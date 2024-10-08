@@ -152,7 +152,6 @@ main(int argc, char **argv)
     elapsed = t1.tv_sec - t0.tv_sec + (t1.tv_usec - t0.tv_usec) / 1000000.0;
     printf("Write data took %.2fs\n", elapsed);
 
-    free(data);
     ret = PDCobj_close(obj_id);
     if (ret < 0) {
         printf("fail to close obj\n");
@@ -182,6 +181,8 @@ main(int argc, char **argv)
         printf("fail to close PDC\n");
         exit(-1);
     }
+
+    free(data);
 
     return 0;
 }
