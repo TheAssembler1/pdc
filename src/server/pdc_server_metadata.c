@@ -3217,7 +3217,7 @@ PDC_Server_get_kvtag_someta(metadata_get_kvtag_in_t *in, metadata_get_kvtag_out_
     return ret_value;
 }
 
-// Serialize all kvtags in current server to nsplit buffers, each with 
+// Serialize all kvtags in current server to nsplit buffers, each with
 // approx the same number of kvtags so they can be sent to (node-local) clients
 // for parallel search
 static perr_t
@@ -3231,8 +3231,8 @@ PDC_Server_seralize_kvtag_someta(int nbuf, void **bufs, uint64_t *buf_sizes)
     int                        n_entry, nkvtag_in_buf = 0, nkvtag_per_buf = 0, buf_i = 0;
     int                        is_prev_objid = 0;
     HashTablePair              pair;
-    BULKI_Entity *key, *obj_key, *val, *obj_val;
-    BULKI *bulki;
+    BULKI_Entity *             key, *obj_key, *val, *obj_val;
+    BULKI *                    bulki;
 
     nkvtag_per_buf = ceil(metadata_total_count_g / nbuf);
 
@@ -3268,8 +3268,8 @@ PDC_Server_seralize_kvtag_someta(int nbuf, void **bufs, uint64_t *buf_sizes)
                     }
                     if (nkvtag_in_buf == 0 && buf_i > 0) {
                         if (buf_i >= nbuf) {
-                            printf("==PDC_SERVER[%d]: Error with %s, buf ptr overflow!\n", 
-                                    pdc_server_rank_g, __func__);
+                            printf("==PDC_SERVER[%d]: Error with %s, buf ptr overflow!\n", pdc_server_rank_g,
+                                   __func__);
                             ret_value = FAIL;
                             goto done;
                         }
@@ -3283,11 +3283,11 @@ PDC_Server_seralize_kvtag_someta(int nbuf, void **bufs, uint64_t *buf_sizes)
                     // Add to a BULKI buffer
                     key = BULKI_ENTITY(kvtag_list_elt->kvtag->name, 1, PDC_STRING, PDC_CLS_ITEM);
                     if (kvtag_list_elt->kvtag->type == PDC_STRING) {
-                        val = BULKI_ENTITY(kvtag_list_elt->kvtag->value, 1, 
-                                           kvtag_list_elt->kvtag->type, PDC_CLS_ITEM);
+                        val = BULKI_ENTITY(kvtag_list_elt->kvtag->value, 1, kvtag_list_elt->kvtag->type,
+                                           PDC_CLS_ITEM);
                     }
                     else {
-                        val = BULKI_ENTITY(kvtag_list_elt->kvtag->value, kvtag_list_elt->kvtag->size, 
+                        val = BULKI_ENTITY(kvtag_list_elt->kvtag->value, kvtag_list_elt->kvtag->size,
                                            kvtag_list_elt->kvtag->type, PDC_CLS_ITEM);
                     }
                     BULKI_put(bulki, key, val);
@@ -3394,7 +3394,7 @@ done:
 static uint64_t
 PDC_del_kvtag_value_from_list(pdc_kvtag_list_t **list_head, char *key)
 {
-    uint64_t kvtag_size;
+    uint64_t          kvtag_size;
     pdc_kvtag_list_t *elt;
 
     FUNC_ENTER(NULL);
@@ -3487,7 +3487,7 @@ PDC_Server_del_kvtag_someta(metadata_get_kvtag_in_t *in, metadata_add_tag_out_t 
         if (target != NULL) {
             metadata_total_size_g -= PDC_del_kvtag_value_from_list(&target->kvtag_list_head, in->key);
             metadata_total_count_g--;
-            out->ret  = 1;
+            out->ret = 1;
         }
         else {
             ret_value = FAIL;
@@ -3499,7 +3499,8 @@ PDC_Server_del_kvtag_someta(metadata_get_kvtag_in_t *in, metadata_add_tag_out_t 
     else {
         cont_lookup_value = hash_table_lookup(container_hash_table_g, &hash_key);
         if (cont_lookup_value != NULL) {
-            metadata_total_size_g -= PDC_del_kvtag_value_from_list(&cont_lookup_value->kvtag_list_head, in->key);
+            metadata_total_size_g -=
+                PDC_del_kvtag_value_from_list(&cont_lookup_value->kvtag_list_head, in->key);
             metadata_total_count_g--;
             out->ret = 1;
         }
