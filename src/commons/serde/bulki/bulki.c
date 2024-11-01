@@ -390,6 +390,32 @@ BULKI_put(BULKI *bulki, BULKI_Entity *key, BULKI_Entity *value)
     get_BULKI_size(bulki);
 }
 
+
+void
+BULKI_append(BULKI *bulki, BULKI_Entity *key, BULKI_Entity *value)
+{
+    if (bulki == NULL || key == NULL || value == NULL) {
+        printf("Error: bulki, key, or value is NULL\n");
+        return;
+    }
+
+    if (bulki->numKeys >= bulki->capacity) {
+        bulki->capacity *= 2;
+        bulki->header->keys = realloc(bulki->header->keys, bulki->capacity * sizeof(BULKI_Entity));
+        bulki->data->values = realloc(bulki->data->values, bulki->capacity * sizeof(BULKI_Entity));
+    }
+    memcpy(&bulki->header->keys[bulki->numKeys], key, sizeof(BULKI_Entity));
+    // append bytes for type, size, and key
+    bulki->header->headerSize += key->size;
+
+    memcpy(&bulki->data->values[bulki->numKeys], value, sizeof(BULKI_Entity));
+    // append bytes for class, type, size, and data
+    bulki->data->dataSize += value->size;
+
+    bulki->numKeys++;
+    get_BULKI_size(bulki);
+}
+
 BULKI_Entity *
 BULKI_delete(BULKI *bulki, BULKI_Entity *key)
 {

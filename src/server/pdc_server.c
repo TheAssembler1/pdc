@@ -144,6 +144,7 @@ int               gen_fastbit_idx_g            = 0;
 int               use_fastbit_idx_g            = 0;
 int               use_rocksdb_g                = 0;
 int               use_sqlite3_g                = 0;
+int               use_shm_meta_query_g         = 0;
 char *            gBinningOption               = NULL;
 
 double server_write_time_g                  = 0.0;
@@ -2182,6 +2183,13 @@ PDC_Server_get_env()
         use_sqlite3_g = 1;
         if (pdc_server_rank_g == 0)
             printf("==PDC_SERVER[%d]: using SQLite3 for kvtag\n", pdc_server_rank_g);
+    }
+
+    tmp_env_char = getenv("PDC_USE_SHM_META_QUERY");
+    if (tmp_env_char != NULL && strcmp(tmp_env_char, "1") == 0) {
+        use_shm_meta_query_g = 1;
+        if (pdc_server_rank_g == 0)
+            printf("==PDC_SERVER[%d]: using shm for kvtag query\n", pdc_server_rank_g);
     }
 
     if (pdc_server_rank_g == 0) {

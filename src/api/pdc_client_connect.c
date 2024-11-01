@@ -50,6 +50,8 @@
 #include "dart_core.h"
 #include "timer_utils.h"
 #include "query_utils.h"
+#include "bulki.h"
+#include "bulki_serde.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -195,6 +197,8 @@ static uint64_t  object_selection_query_counter_g = 0;
 static pthread_t hg_progress_tid_g;
 static int       hg_progress_flag_g     = -1; // -1 thread unintialized, 0 thread created, 1 terminate thread
 static int       hg_progress_task_cnt_g = 0;
+static int       use_shm_meta_query_g = 0;
+BULKI           *deserializedBulki_g = NULL;
 
 /*
  *
@@ -1632,8 +1636,10 @@ PDC_Client_init()
 
 #ifdef ENABLE_MPI
     // Split the PDC_CLIENT_COMM_WORLD_g communicator, MPI_Comm_split_type requires MPI-3
-    MPI_Comm_split_type(PDC_CLIENT_COMM_WORLD_g, MPI_COMM_TYPE_SHARED, 0, MPI_INFO_NULL,
-                        &PDC_SAME_NODE_COMM_g);
+    /* MPI_Comm_split_type(PDC_CLIENT_COMM_WORLD_g, MPI_COMM_TYPE_SHARED, 0, MPI_INFO_NULL, */
+    /*                     &PDC_SAME_NODE_COMM_g); */
+    int sub_comm_color = pdc_client_mpi_rank_g / pdc_server_num_g;
+    MPI_Comm_split(PDC_CLIENT_COMM_WORLD_g, sub_comm_color, pdc_client_mpi_rank_g, &PDC_SAME_NODE_COMM_g);
 
     MPI_Comm_rank(PDC_SAME_NODE_COMM_g, &pdc_client_same_node_rank_g);
     MPI_Comm_size(PDC_SAME_NODE_COMM_g, &pdc_client_same_node_size_g);
@@ -1649,6 +1655,12 @@ PDC_Client_init()
 
     if (pdc_nclient_per_server_g <= 0)
         pdc_nclient_per_server_g = 1;
+
+    tmp_dir = getenv("PDC_USE_SHM_META_QUERY");
+    if (tmp_dir != NULL && strcmp(tmp_dir, "1") == 0)
+        use_shm_meta_query_g = 1;
+    else
+        use_shm_meta_query_g = 0;
 
     PDC_set_execution_locus(CLIENT_MEMORY);
 
@@ -7674,8 +7686,8 @@ PDC_Client_query_kvtag_server(uint32_t server_id, const pdc_kvtag_t *kvtag, int 
     *n_res = bulk_arg->n_meta;
     if (*n_res > 0)
         *out = bulk_arg->obj_ids;
+
     free(bulk_arg);
-    // TODO: need to be careful when freeing the lookup_args, as it include the results returned to user
 
 done:
     fflush(stdout);
@@ -9365,18 +9377,98 @@ _customized_all_gather_result(int query_sent, int *n_res, uint64_t **pdc_ids, MP
 perr_t
 PDC_Client_query_kvtag_mpi(const pdc_kvtag_t *kvtag, int *n_res, uint64_t **pdc_ids, MPI_Comm world_comm)
 {
-    int local_increment = 1;
-    MPI_Scan(&local_increment, &object_selection_query_counter_g, 1, MPI_INT, MPI_SUM, world_comm);
+    int local_increment = 1, comm_size, server_rank, shm_fd;
     perr_t ret_value = SUCCEED;
-    int    i, query_sent = 0;
+    int    i, query_sent = 0, nshm, iter= 0;
     double stime = 0.0, duration = 0.0;
+    char shm_name[64];
+    void *buf;
+    uint64_t *shm_sizes = NULL, shm_size, pdc_id = 0;
+    pdc_kvtag_t query_tag;
+    uint32_t alloc_size = 128;
 
     FUNC_ENTER(NULL);
 
-    MPI_Barrier(world_comm);
+    MPI_Comm_size(world_comm, &comm_size);
+    if (comm_size != pdc_client_mpi_size_g) {
+        printf("==PDC_CLIENT[%d]: %s only support MPI communicator with the same size as WORLD_COMM\n", 
+                pdc_client_mpi_rank_g, __func__);
+        ret_value = FAIL;
+        goto done;
+    }
+
+    MPI_Scan(&local_increment, &object_selection_query_counter_g, 1, MPI_INT, MPI_SUM, world_comm);
     stime = MPI_Wtime();
 
-    ret_value = PDC_Client_query_kvtag_col(kvtag, n_res, pdc_ids, &query_sent);
+    if (use_shm_meta_query_g) {
+        *pdc_ids = (void *)calloc(alloc_size, sizeof(uint64_t));
+
+        // Only retrieve the metadata snapshot once
+        // TODO: if metadata is changed, need to invalidate the cached snapshot and retrieve a new one
+        if (deserializedBulki_g == NULL) {
+            server_rank = pdc_client_mpi_rank_g / pdc_server_num_g;
+            // Send one request to each server at the same time
+            if (pdc_client_same_node_rank_g == 0)
+                ret_value = PDC_Client_query_kvtag_server(server_rank, kvtag, &nshm, &shm_sizes);
+
+            MPI_Scatter(shm_sizes, 1, MPI_UINT64_T, &shm_size, 1, MPI_UINT64_T, 0, PDC_SAME_NODE_COMM_g);
+
+            printf("==PDC_CLIENT[%d]: recv server %d shm size %llu\n", pdc_client_mpi_rank_g, server_rank, shm_size);
+
+            // Open shared memory and map to data buf
+            snprintf(shm_name, 64, "meta_shm.%d.%d", server_rank, pdc_client_same_node_rank_g);
+            shm_fd = shm_open(shm_name, O_RDONLY, 0666);
+            if (shm_fd == -1) {
+                printf("==PDC_CLIENT[%d]: %s - Shared memory open failed [%s]!\n", 
+                        pdc_client_mpi_rank_g, __func__, shm_name);
+                ret_value = FAIL;
+                goto done;
+            }
+
+            buf = mmap(0, shm_size, PROT_READ, MAP_SHARED, shm_fd, 0);
+            if (buf == MAP_FAILED) {
+                printf("==PDC_CLIENT[%d]: %s - Shared memory map failed [%s]!\n", 
+                        pdc_client_mpi_rank_g, __func__, shm_name);
+                ret_value = FAIL;
+                goto done;
+            }
+     
+            deserializedBulki_g = BULKI_deserialize(buf);
+        }
+
+        BULKI_KV_Pair_Iterator *bulki_iter = BULKI_KV_Pair_iterator_init(deserializedBulki_g);
+        BULKI_KV_Pair *bulki_kv;
+        // Iterate and get query result
+        while (NULL != (bulki_kv = BULKI_KV_Pair_iterator_next(bulki_iter))) {
+            printf("key: [%s]\n", (char*)bulki_kv->key.data);
+            if (strcmp("_pdc_id", (char*)bulki_kv->key.data) == 0) {
+                pdc_id = *((uint64_t*)bulki_kv->value.data);
+                printf("value: %llu\n", pdc_id);
+            }
+            else {
+                query_tag.name  = (char*)bulki_kv->key.data;
+                query_tag.value = (void*)bulki_kv->value.data;
+                            /* it->bulki->data->values[it->current_idx]; */
+                query_tag.type  = bulki_iter->bulki->data->values[bulki_iter->current_idx-1].pdc_type;
+                query_tag.size  = bulki_iter->bulki->data->values[bulki_iter->current_idx-1].size;
+                /* printf("value: %d\n", *((int*)bulki_kv->value.data)); */
+                if (PDC_is_matching_kvtag(kvtag, &query_tag) == TRUE) {
+                    if (iter >= alloc_size) {
+                        alloc_size *= 2;
+                        *pdc_ids = (void *)realloc(*pdc_ids, alloc_size * sizeof(uint64_t));
+                    }
+                    (*pdc_ids)[iter++] = pdc_id;
+                    printf("Found match %s:%d\n", query_tag.name, *(int*)query_tag.value);
+                }
+
+            }
+        }
+        *n_res = iter;
+        /* BULKI_free(deserializedBulki_g, 1); */
+    }
+    else {
+        ret_value = PDC_Client_query_kvtag_col(kvtag, n_res, pdc_ids, &query_sent);
+    }
 
     MPI_Barrier(world_comm);
     duration = MPI_Wtime() - stime;

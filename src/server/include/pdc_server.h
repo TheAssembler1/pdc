@@ -61,6 +61,8 @@ extern sqlite3 *sqlite3_db_g;
 extern int      use_sqlite3_g;
 #endif
 
+extern int      use_shm_meta_query_g;
+
 #ifdef ENABLE_MULTITHREAD
 // Mercury multithread
 #include "mercury_thread.h"

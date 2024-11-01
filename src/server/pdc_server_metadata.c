@@ -76,7 +76,6 @@ double   server_update_time_g       = 0.0;
 double   server_hash_insert_time_g  = 0.0;
 double   server_bloom_init_time_g   = 0.0;
 uint32_t n_metadata_g               = 0;
-uint32_t metadata_total_size_g      = 0;
 uint32_t metadata_total_count_g     = 0;
 
 pbool_t
@@ -1592,80 +1591,6 @@ done:
     FUNC_LEAVE(ret_value);
 }
 
-void
-num_query_action_someta(void *cond_exact, void *cond_lo, void *cond_hi, int lo_inclusive, int hi_inclusive,
-                        pdc_c_var_type_t num_type, void *input, void **out, uint64_t *out_len)
-{
-    void *               input_val  = ((pdc_kvtag_t *)input)->value;
-    size_t               input_size = ((pdc_kvtag_t *)input)->size;
-    libhl_cmp_callback_t cmp_func   = LIBHL_CMP_CB(num_type);
-    *out_len                        = 1;
-    *out                            = calloc(1, sizeof(uint64_t));
-    pbool_t ret_value               = FALSE;
-    if (cond_exact != NULL) { // Exact
-        ret_value = cmp_func(input_val, input_size, cond_exact, get_size_by_dtype(num_type)) == 0;
-    }
-    else if (cond_lo == NULL && cond_hi != NULL) { // less than
-        ret_value = (hi_inclusive)
-                        ? cmp_func(input_val, input_size, cond_hi, get_size_by_dtype(num_type)) <= 0
-                        : cmp_func(input_val, input_size, cond_hi, get_size_by_dtype(num_type)) < 0;
-    }
-    else if (cond_lo != NULL && cond_hi == NULL) { // greater than
-        ret_value = (lo_inclusive)
-                        ? cmp_func(input_val, input_size, cond_lo, get_size_by_dtype(num_type)) >= 0
-                        : cmp_func(input_val, input_size, cond_lo, get_size_by_dtype(num_type)) > 0;
-    }
-    else if (cond_lo != NULL && cond_hi != NULL) { // between
-        pbool_t lo_rst = (lo_inclusive)
-                             ? cmp_func(input_val, input_size, cond_lo, get_size_by_dtype(num_type)) >= 0
-                             : cmp_func(input_val, input_size, cond_lo, get_size_by_dtype(num_type)) > 0;
-        pbool_t hi_rst = (hi_inclusive)
-                             ? cmp_func(input_val, input_size, cond_hi, get_size_by_dtype(num_type)) <= 0
-                             : cmp_func(input_val, input_size, cond_hi, get_size_by_dtype(num_type)) < 0;
-        ret_value = lo_rst && hi_rst;
-    }
-    else {
-    }
-    *((uint64_t *)(*out)) = (uint64_t)ret_value;
-}
-
-num_query_action_collection_t soMetaNumQueryActions = {num_query_action_someta, num_query_action_someta,
-                                                       num_query_action_someta, num_query_action_someta};
-
-pbool_t
-_is_matching_kvtag(pdc_kvtag_t *in, pdc_kvtag_t *kvtag)
-{
-    pbool_t ret_value = TRUE;
-    FUNC_ENTER(NULL);
-    // match attribute name
-    if (!simple_matches(kvtag->name, in->name)) {
-        return FALSE;
-    }
-
-    // test attribute type
-    if (in->type != kvtag->type) {
-        return FALSE;
-    }
-    if (in->type == (int8_t)PDC_STRING) {
-        char *pattern = (char *)in->value;
-        if (!simple_matches(kvtag->value, pattern)) {
-            return FALSE;
-        }
-    }
-    else { // FIXME: for all numeric types, we use memcmp to compare, for exact value query, but we also
-           // have to support range query.
-        uint64_t *out;
-        uint64_t  out_len;
-        parse_and_run_number_value_query(in->value, in->type, &soMetaNumQueryActions, kvtag, &out_len,
-                                         (void **)&out);
-        return (pbool_t)out[0];
-        // if (memcmp(in->value, kvtag->value, in->size) != 0)
-        //     return FALSE;
-    }
-
-    FUNC_LEAVE(ret_value);
-}
-
 #ifdef ENABLE_SQLITE3
 static int
 sqlite_query_kvtag_callback(void *data, int argc, char **argv, char **colName)
@@ -1717,7 +1642,7 @@ PDC_Server_query_kvtag_rocksdb(pdc_kvtag_t *in, uint32_t *n_meta, uint64_t **obj
         tmp.size  = len;
         tmp.type  = in->type;
 
-        if (_is_matching_kvtag(in, &tmp) == TRUE) {
+        if (PDC_is_matching_kvtag(in, &tmp) == TRUE) {
             if (iter >= alloc_size) {
                 alloc_size *= 2;
                 *obj_ids = (void *)realloc(*obj_ids, alloc_size * sizeof(uint64_t));
@@ -1879,7 +1804,7 @@ PDC_Server_query_kvtag_someta(pdc_kvtag_t *in, uint32_t *n_meta, uint64_t **obj_
 #endif
                 DL_FOREACH(elt->kvtag_list_head, kvtag_list_elt)
                 {
-                    if (_is_matching_kvtag(in, kvtag_list_elt->kvtag) == TRUE) {
+                    if (PDC_is_matching_kvtag(in, kvtag_list_elt->kvtag) == TRUE) {
 #ifdef PDC_DEBUG_OUTPUT
                         println("[Found]");
 #endif
@@ -1888,7 +1813,7 @@ PDC_Server_query_kvtag_someta(pdc_kvtag_t *in, uint32_t *n_meta, uint64_t **obj_
                             *obj_ids = (void *)realloc(*obj_ids, alloc_size * sizeof(uint64_t));
                         }
                         (*obj_ids)[iter++] = elt->obj_id;
-                        // break; // FIXME: shall we break here? or continue to check other kvtags?
+                        break;
                     }
                     else {
 #ifdef PDC_DEBUG_OUTPUT
@@ -1911,6 +1836,192 @@ PDC_Server_query_kvtag_someta(pdc_kvtag_t *in, uint32_t *n_meta, uint64_t **obj_
     return ret_value;
 }
 
+static void *
+PDC_Server_create_shm(char *shm_name, uint64_t size)
+{
+    int shm_fd = -1;
+    void *buf;
+
+    printf("==PDC_SERVER[%d]: create shm [%s], size %llu!\n", 
+            pdc_server_rank_g, shm_name, size);
+
+    remove(shm_name);
+
+    shm_fd = shm_open(shm_name, O_CREAT | O_RDWR, 0666);
+    if (shm_fd == -1) {
+        printf("==PDC_SERVER[%d]: shm_open failed in %s!\n", pdc_server_rank_g, __func__);
+        return NULL;
+    }
+
+    if (ftruncate(shm_fd, size) != 0) {
+        printf("==PDC_SERVER[%d]: ftruncate failed in %s!\n", pdc_server_rank_g, __func__);
+        return NULL;
+    }
+
+    buf = mmap(0, size, PROT_READ | PROT_WRITE, MAP_SHARED, shm_fd, 0);
+    if (buf == MAP_FAILED) {
+        printf("==PDC_SERVER[%d]: mmap failed in %s!\n", pdc_server_rank_g, __func__);
+        return NULL;
+    }
+
+    return buf;
+}
+
+// Serialize all kvtags in current server to nsplit buffers, each with 
+// approx the same number of kvtags so they can be sent to (node-local) clients
+// for parallel search
+static perr_t
+PDC_Server_seralize_kvtag_someta_to_shm(uint32_t *n_meta, uint64_t **obj_ids, uint64_t alloc_size)
+{
+    perr_t                     ret_value = SUCCEED;
+    pdc_hash_table_entry_head *head;
+    pdc_metadata_t *           elt;
+    pdc_kvtag_list_t *         kvtag_list_elt;
+    HashTableIterator          hash_table_iter;
+    int                        n_entry, nkvtag_in_buf = 0, nkvtag_per_buf = 0, buf_i = 0;
+    int                        is_prev_objid = 0, nclient_per_server, i;
+    HashTablePair              pair;
+    BULKI_Entity *key, *obj_key, *val, *obj_val;
+    BULKI *bulki;
+    void *bufs[256];
+    uint64_t bulki_size, *buf_sizes;
+    char shm_name[64];
+    size_t offset;
+
+    if (pdc_client_num_g <= 0) {
+        printf("==PDC_SERVER[%d]: pdc_client_num_g not initialized!\n", pdc_server_rank_g);
+        ret_value = FAIL;
+        goto done;
+    }
+
+    if (pdc_server_size_g % pdc_client_num_g != 0) {
+        printf("==PDC_SERVER[%d]: #servers not divisible by clients!\n", pdc_server_rank_g);
+        ret_value = FAIL;
+        goto done;
+    }
+
+    nclient_per_server = pdc_server_size_g / pdc_client_num_g;
+    nkvtag_per_buf     = ceil(metadata_total_count_g / nclient_per_server);
+
+    if (alloc_size < nclient_per_server) {
+        alloc_size = nclient_per_server;
+        *obj_ids = (uint64_t *)PDC_realloc(*obj_ids, alloc_size);
+    }
+    *n_meta = nclient_per_server;
+
+    // use obj_ids that will be returned as shm sizes
+    buf_sizes = *obj_ids;
+    memset(buf_sizes, 0, alloc_size*sizeof(uint64_t));
+
+    if (metadata_hash_table_g != NULL) {
+
+        n_entry = hash_table_num_entries(metadata_hash_table_g);
+        hash_table_iterate(metadata_hash_table_g, &hash_table_iter);
+
+        // Init first BULKI buf
+        bulki = BULKI_init(nkvtag_per_buf);
+
+        while (n_entry != 0 && hash_table_iter_has_more(&hash_table_iter)) {
+            pair = hash_table_iter_next(&hash_table_iter);
+            head = pair.value;
+            DL_FOREACH(head->metadata, elt)
+            {
+                if (elt->kvtag_list_head) {
+                    obj_key = BULKI_ENTITY("_pdc_id", 1, PDC_STRING, PDC_CLS_ITEM);
+                    obj_val = BULKI_ENTITY(&elt->obj_id, 1, PDC_UINT64, PDC_CLS_ITEM);
+                    // Add obj_id before all kvtags of an obj
+                    if (is_prev_objid == 0) {
+                        BULKI_append(bulki, obj_key, obj_val);
+                        is_prev_objid = 1;
+                    }
+                }
+                else {
+                    // If this obj doesn't have kvtag, need to put obj_id to bulki next
+                    is_prev_objid = 0;
+                    continue;
+                }
+
+                DL_FOREACH(elt->kvtag_list_head, kvtag_list_elt)
+                {
+                    if (nkvtag_in_buf >= nkvtag_per_buf) {
+
+                        // Create a shm
+                        bulki_size = get_BULKI_size(bulki);
+                        snprintf(shm_name, 64, "meta_shm.%d.%d", pdc_server_rank_g, buf_i);
+                        bufs[buf_i] = PDC_Server_create_shm(shm_name, bulki_size);
+                        // Serialize the data to shm after the current one reached limit
+                        offset = 0;
+                        bufs[buf_i] = BULKI_serialize_to_buffer(bulki, bufs[buf_i], &offset);
+                        buf_sizes[buf_i] = bulki_size;
+                        BULKI_free(bulki, 1);
+                        buf_i++;
+                        nkvtag_in_buf = 0;
+                    }
+                    if (nkvtag_in_buf == 0 && buf_i > 0) {
+                        if (buf_i >= nclient_per_server) {
+                            printf("==PDC_SERVER[%d]: Error with %s, buf ptr overflow!\n", 
+                                    pdc_server_rank_g, __func__);
+                            ret_value = FAIL;
+                            goto done;
+                        }
+                        // Init BULKI buf
+                        bulki = BULKI_init(nkvtag_per_buf);
+                        // Add obj_id before all kvtags of an obj
+                        BULKI_append(bulki, obj_key, obj_val);
+                        is_prev_objid = 1;
+                    }
+
+                    // Add to a BULKI buffer
+                    key = BULKI_ENTITY(kvtag_list_elt->kvtag->name, 1, PDC_STRING, PDC_CLS_ITEM);
+                    if (kvtag_list_elt->kvtag->type == PDC_STRING) {
+                        val = BULKI_ENTITY(kvtag_list_elt->kvtag->value, 1, 
+                                           kvtag_list_elt->kvtag->type, PDC_CLS_ITEM);
+                    }
+                    else {
+                        val = BULKI_ENTITY(kvtag_list_elt->kvtag->value, kvtag_list_elt->kvtag->size, 
+                                           kvtag_list_elt->kvtag->type, PDC_CLS_ITEM);
+                    }
+                    BULKI_append(bulki, key, val);
+                    is_prev_objid = 0;
+                    nkvtag_in_buf++;
+                } // End for each kvtag in list
+            }     // End for each metadata from hash table entry
+        }         // End looping metadata hash table
+
+        // Create a shm
+        bulki_size = get_BULKI_size(bulki);
+        snprintf(shm_name, 64, "meta_shm.%d.%d", pdc_server_rank_g, buf_i);
+        bufs[buf_i] = PDC_Server_create_shm(shm_name, bulki_size);
+        // Serialize the data to shm after the current one reached limit
+        offset = 0;
+        bufs[buf_i] = BULKI_serialize_to_buffer(bulki, bufs[buf_i], &offset);
+        buf_sizes[buf_i] = bulki_size;
+        BULKI_free(bulki, 1);
+
+        /* // Debug */
+        /* BULKI *deserializedBulki = BULKI_deserialize(bufs[buf_i]); */
+        /* BULKI_KV_Pair_Iterator *bulki_iter = BULKI_KV_Pair_iterator_init(deserializedBulki); */
+        /* BULKI_KV_Pair *bulki_kv; */
+        /* while (NULL != (bulki_kv = BULKI_KV_Pair_iterator_next(bulki_iter))) { */
+        /*     printf("key: [%s]\n", (char*)bulki_kv->key.data); */
+        /*     if (strcmp("_pdc_id", (char*)bulki_kv->key.data) == 0) */
+        /*         printf("value: %llu\n", *((uint64_t*)bulki_kv->value.data)); */
+        /*     else */
+        /*         printf("value: %d\n", *((int*)bulki_kv->value.data)); */
+        /* } */
+        /* BULKI_free(deserializedBulki, 1); */
+
+    } // if (metadata_hash_table_g != NULL)
+    else {
+        printf("==PDC_SERVER: metadata_hash_table_g not initialized!\n");
+        ret_value = FAIL;
+    }
+
+done:
+    return ret_value;
+}
+
+
 perr_t
 PDC_Server_get_kvtag_query_result(pdc_kvtag_t *in /*FIXME: query input should be string-based*/,
                                   uint32_t *n_meta, uint64_t **obj_ids)
@@ -1925,15 +2036,15 @@ PDC_Server_get_kvtag_query_result(pdc_kvtag_t *in /*FIXME: query input should be
     *obj_ids = (void *)calloc(alloc_size, sizeof(uint64_t));
 
     char *v_query = (char *)in->value;
-    printf("==PDC_SERVER[%d] before stripQuotes: Querying kvtag with key [%s], value [%s]\n",
-           pdc_server_rank_g, in->name, (char *)in->value);
+    /* printf("==PDC_SERVER[%d] before stripQuotes: Querying kvtag with key [%s], value [%s]\n", */
+    /*        pdc_server_rank_g, in->name, (char *)in->value); */
     if (is_string_query(v_query)) {
         in->value = stripQuotes(v_query);
         in->type  = PDC_STRING;
     }
 
-    printf("==PDC_SERVER[%d] after stripQuotes: Querying kvtag with key [%s], value [%s]\n",
-           pdc_server_rank_g, in->name, (char *)in->value);
+    /* printf("==PDC_SERVER[%d] after stripQuotes: Querying kvtag with key [%s], value [%s]\n", */
+    /*        pdc_server_rank_g, in->name, (char *)in->value); */
 
     if (use_rocksdb_g == 1) {
         ret_value = PDC_Server_query_kvtag_rocksdb(in, n_meta, obj_ids, alloc_size);
@@ -1949,6 +2060,13 @@ PDC_Server_get_kvtag_query_result(pdc_kvtag_t *in /*FIXME: query input should be
             goto done;
         }
     } // End if SQLite3
+    else if (use_shm_meta_query_g) {
+        ret_value = PDC_Server_seralize_kvtag_someta_to_shm(n_meta, obj_ids, alloc_size);
+        if (ret_value != SUCCEED) {
+            printf("==PDC_SERVER[%d]: Error with PDC_Server_seralize_kvtag_someta_to_shm!\n", pdc_server_rank_g);
+            goto done;
+        }
+    }
     else {
         // SoMeta backend
         ret_value = PDC_Server_query_kvtag_someta(in, n_meta, obj_ids, alloc_size);
@@ -2936,7 +3054,6 @@ PDC_Server_add_kvtag_someta(metadata_add_kvtag_in_t *in, metadata_add_tag_out_t 
         if (target != NULL) {
             PDC_add_kvtag_to_list(&target->kvtag_list_head, &in->kvtag);
             out->ret = 1;
-            metadata_total_size_g += PDC_get_kvtag_size(&in->kvtag);
             metadata_total_count_g++;
         } // if (lookup_value != NULL)
         else {
@@ -2949,7 +3066,6 @@ PDC_Server_add_kvtag_someta(metadata_add_kvtag_in_t *in, metadata_add_tag_out_t 
         cont_lookup_value = hash_table_lookup(container_hash_table_g, &hash_key);
         if (cont_lookup_value != NULL) {
             PDC_add_kvtag_to_list(&cont_lookup_value->kvtag_list_head, &in->kvtag);
-            metadata_total_size_g += PDC_get_kvtag_size(&in->kvtag);
             metadata_total_count_g++;
             out->ret = 1;
         }
@@ -3485,7 +3601,7 @@ PDC_Server_del_kvtag_someta(metadata_get_kvtag_in_t *in, metadata_add_tag_out_t 
         pdc_metadata_t *target;
         target = find_metadata_by_id_from_list(lookup_value->metadata, obj_id);
         if (target != NULL) {
-            metadata_total_size_g -= PDC_del_kvtag_value_from_list(&target->kvtag_list_head, in->key);
+            PDC_del_kvtag_value_from_list(&target->kvtag_list_head, in->key);
             metadata_total_count_g--;
             out->ret = 1;
         }
@@ -3499,8 +3615,7 @@ PDC_Server_del_kvtag_someta(metadata_get_kvtag_in_t *in, metadata_add_tag_out_t 
     else {
         cont_lookup_value = hash_table_lookup(container_hash_table_g, &hash_key);
         if (cont_lookup_value != NULL) {
-            metadata_total_size_g -=
-                PDC_del_kvtag_value_from_list(&cont_lookup_value->kvtag_list_head, in->key);
+            PDC_del_kvtag_value_from_list(&cont_lookup_value->kvtag_list_head, in->key);
             metadata_total_count_g--;
             out->ret = 1;
         }

@@ -85,7 +85,7 @@ main(int argc, char *argv[])
     double      stime, total_time;
     pdc_kvtag_t kvtag;
     uint64_t *  pdc_ids;
-    int         nres, ntotal;
+    int         nres;
 
 #ifdef ENABLE_MPI
     MPI_Init(&argc, &argv);
@@ -167,7 +167,7 @@ main(int argc, char *argv[])
                 }
             }
             else {
-                /* println("Rank %d: [%s] [%d], len %d\n", my_rank, kvtag.name, v, kvtag.size); */
+                println("Rank %d: [%s] [%d], len %d\n", my_rank, kvtag.name, v, kvtag.size);
                 if (PDCobj_put_tag(obj_ids[i], kvtag.name, kvtag.value, kvtag.type, kvtag.size) < 0) {
                     printf("fail to add a kvtag to o%d\n", i + my_obj_s);
                 }
@@ -217,16 +217,11 @@ main(int argc, char *argv[])
         }
     }
 
-#ifdef ENABLE_MPI
-    MPI_Barrier(MPI_COMM_WORLD);
-    MPI_Reduce(&nres, &ntotal, 1, MPI_INT, MPI_SUM, 0, MPI_COMM_WORLD);
     total_time = MPI_Wtime() - stime;
 
     if (my_rank == 0)
-        println("Total time to query %d objects with tag: %.5f", ntotal, total_time);
-#else
-    println("Query found %d objects", nres);
-#endif
+        println("Total time to query %d tags: %.5f", nres, total_time);
+
     // close a container
     if (PDCcont_close(cont) < 0)
         printf("fail to close container c1\n");
