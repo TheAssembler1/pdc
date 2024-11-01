@@ -433,6 +433,7 @@ static_region_partition(char *buf, int ndim, uint64_t unit, pdc_access_t access_
     }
     // Use the remainder theorem to split along one dimension of regions.
     s = obj_dims[split_dim] / pdc_server_num_g;
+    if (s == 0) s = 1;
     x = pdc_server_num_g - obj_dims[split_dim] % pdc_server_num_g;
 
     *data_server_ids = (uint32_t *)malloc(sizeof(uint32_t) * pdc_server_num_g);
