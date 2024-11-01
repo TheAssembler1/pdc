@@ -1839,11 +1839,10 @@ PDC_Server_query_kvtag_someta(pdc_kvtag_t *in, uint32_t *n_meta, uint64_t **obj_
 static void *
 PDC_Server_create_shm(char *shm_name, uint64_t size)
 {
-    int shm_fd = -1;
+    int   shm_fd = -1;
     void *buf;
 
-    printf("==PDC_SERVER[%d]: create shm [%s], size %llu!\n", 
-            pdc_server_rank_g, shm_name, size);
+    printf("==PDC_SERVER[%d]: create shm [%s], size %llu!\n", pdc_server_rank_g, shm_name, size);
 
     remove(shm_name);
 
@@ -1867,7 +1866,7 @@ PDC_Server_create_shm(char *shm_name, uint64_t size)
     return buf;
 }
 
-// Serialize all kvtags in current server to nsplit buffers, each with 
+// Serialize all kvtags in current server to nsplit buffers, each with
 // approx the same number of kvtags so they can be sent to (node-local) clients
 // for parallel search
 static perr_t
@@ -1881,12 +1880,12 @@ PDC_Server_seralize_kvtag_someta_to_shm(uint32_t *n_meta, uint64_t **obj_ids, ui
     int                        n_entry, nkvtag_in_buf = 0, nkvtag_per_buf = 0, buf_i = 0;
     int                        is_prev_objid = 0, nclient_per_server, i;
     HashTablePair              pair;
-    BULKI_Entity *key, *obj_key, *val, *obj_val;
-    BULKI *bulki;
-    void *bufs[256];
-    uint64_t bulki_size, *buf_sizes;
-    char shm_name[64];
-    size_t offset;
+    BULKI_Entity *             key, *obj_key, *val, *obj_val;
+    BULKI *                    bulki;
+    void *                     bufs[256];
+    uint64_t                   bulki_size, *buf_sizes;
+    char                       shm_name[64];
+    size_t                     offset;
 
     if (pdc_client_num_g <= 0) {
         printf("==PDC_SERVER[%d]: pdc_client_num_g not initialized!\n", pdc_server_rank_g);
@@ -1905,13 +1904,13 @@ PDC_Server_seralize_kvtag_someta_to_shm(uint32_t *n_meta, uint64_t **obj_ids, ui
 
     if (alloc_size < nclient_per_server) {
         alloc_size = nclient_per_server;
-        *obj_ids = (uint64_t *)PDC_realloc(*obj_ids, alloc_size);
+        *obj_ids   = (uint64_t *)PDC_realloc(*obj_ids, alloc_size);
     }
     *n_meta = nclient_per_server;
 
     // use obj_ids that will be returned as shm sizes
     buf_sizes = *obj_ids;
-    memset(buf_sizes, 0, alloc_size*sizeof(uint64_t));
+    memset(buf_sizes, 0, alloc_size * sizeof(uint64_t));
 
     if (metadata_hash_table_g != NULL) {
 
@@ -1950,8 +1949,8 @@ PDC_Server_seralize_kvtag_someta_to_shm(uint32_t *n_meta, uint64_t **obj_ids, ui
                         snprintf(shm_name, 64, "meta_shm.%d.%d", pdc_server_rank_g, buf_i);
                         bufs[buf_i] = PDC_Server_create_shm(shm_name, bulki_size);
                         // Serialize the data to shm after the current one reached limit
-                        offset = 0;
-                        bufs[buf_i] = BULKI_serialize_to_buffer(bulki, bufs[buf_i], &offset);
+                        offset           = 0;
+                        bufs[buf_i]      = BULKI_serialize_to_buffer(bulki, bufs[buf_i], &offset);
                         buf_sizes[buf_i] = bulki_size;
                         BULKI_free(bulki, 1);
                         buf_i++;
@@ -1959,8 +1958,8 @@ PDC_Server_seralize_kvtag_someta_to_shm(uint32_t *n_meta, uint64_t **obj_ids, ui
                     }
                     if (nkvtag_in_buf == 0 && buf_i > 0) {
                         if (buf_i >= nclient_per_server) {
-                            printf("==PDC_SERVER[%d]: Error with %s, buf ptr overflow!\n", 
-                                    pdc_server_rank_g, __func__);
+                            printf("==PDC_SERVER[%d]: Error with %s, buf ptr overflow!\n", pdc_server_rank_g,
+                                   __func__);
                             ret_value = FAIL;
                             goto done;
                         }
@@ -1974,11 +1973,11 @@ PDC_Server_seralize_kvtag_someta_to_shm(uint32_t *n_meta, uint64_t **obj_ids, ui
                     // Add to a BULKI buffer
                     key = BULKI_ENTITY(kvtag_list_elt->kvtag->name, 1, PDC_STRING, PDC_CLS_ITEM);
                     if (kvtag_list_elt->kvtag->type == PDC_STRING) {
-                        val = BULKI_ENTITY(kvtag_list_elt->kvtag->value, 1, 
-                                           kvtag_list_elt->kvtag->type, PDC_CLS_ITEM);
+                        val = BULKI_ENTITY(kvtag_list_elt->kvtag->value, 1, kvtag_list_elt->kvtag->type,
+                                           PDC_CLS_ITEM);
                     }
                     else {
-                        val = BULKI_ENTITY(kvtag_list_elt->kvtag->value, kvtag_list_elt->kvtag->size, 
+                        val = BULKI_ENTITY(kvtag_list_elt->kvtag->value, kvtag_list_elt->kvtag->size,
                                            kvtag_list_elt->kvtag->type, PDC_CLS_ITEM);
                     }
                     BULKI_append(bulki, key, val);
@@ -1993,8 +1992,8 @@ PDC_Server_seralize_kvtag_someta_to_shm(uint32_t *n_meta, uint64_t **obj_ids, ui
         snprintf(shm_name, 64, "meta_shm.%d.%d", pdc_server_rank_g, buf_i);
         bufs[buf_i] = PDC_Server_create_shm(shm_name, bulki_size);
         // Serialize the data to shm after the current one reached limit
-        offset = 0;
-        bufs[buf_i] = BULKI_serialize_to_buffer(bulki, bufs[buf_i], &offset);
+        offset           = 0;
+        bufs[buf_i]      = BULKI_serialize_to_buffer(bulki, bufs[buf_i], &offset);
         buf_sizes[buf_i] = bulki_size;
         BULKI_free(bulki, 1);
 
@@ -2020,7 +2019,6 @@ PDC_Server_seralize_kvtag_someta_to_shm(uint32_t *n_meta, uint64_t **obj_ids, ui
 done:
     return ret_value;
 }
-
 
 perr_t
 PDC_Server_get_kvtag_query_result(pdc_kvtag_t *in /*FIXME: query input should be string-based*/,
@@ -2063,7 +2061,8 @@ PDC_Server_get_kvtag_query_result(pdc_kvtag_t *in /*FIXME: query input should be
     else if (use_shm_meta_query_g) {
         ret_value = PDC_Server_seralize_kvtag_someta_to_shm(n_meta, obj_ids, alloc_size);
         if (ret_value != SUCCEED) {
-            printf("==PDC_SERVER[%d]: Error with PDC_Server_seralize_kvtag_someta_to_shm!\n", pdc_server_rank_g);
+            printf("==PDC_SERVER[%d]: Error with PDC_Server_seralize_kvtag_someta_to_shm!\n",
+                   pdc_server_rank_g);
             goto done;
         }
     }

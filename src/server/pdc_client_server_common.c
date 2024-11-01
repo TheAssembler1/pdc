@@ -6939,7 +6939,6 @@ num_query_action_someta(void *cond_exact, void *cond_lo, void *cond_hi, int lo_i
     *((uint64_t *)(*out)) = (uint64_t)ret_value;
 }
 
-
 num_query_action_collection_t soMetaNumQueryActions = {num_query_action_someta, num_query_action_someta,
                                                        num_query_action_someta, num_query_action_someta};
 

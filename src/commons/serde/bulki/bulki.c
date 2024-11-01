@@ -390,7 +390,6 @@ BULKI_put(BULKI *bulki, BULKI_Entity *key, BULKI_Entity *value)
     get_BULKI_size(bulki);
 }
 
-
 void
 BULKI_append(BULKI *bulki, BULKI_Entity *key, BULKI_Entity *value)
 {

@@ -4928,5 +4928,4 @@ perr_t PDC_Server_transfer_request_io(uint64_t obj_id, int obj_ndim, const uint6
 
 pbool_t PDC_is_matching_kvtag(const pdc_kvtag_t *in, pdc_kvtag_t *kvtag);
 
-
 #endif /* PDC_CLIENT_SERVER_COMMON_H */
