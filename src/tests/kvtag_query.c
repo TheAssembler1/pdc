@@ -167,7 +167,7 @@ main(int argc, char *argv[])
                 }
             }
             else {
-                println("Rank %d: [%s] [%d], len %d\n", my_rank, kvtag.name, v, kvtag.size);
+                /* println("Rank %d: [%s] [%d], len %d\n", my_rank, kvtag.name, v, kvtag.size); */
                 if (PDCobj_put_tag(obj_ids[i], kvtag.name, kvtag.value, kvtag.type, kvtag.size) < 0) {
                     printf("fail to add a kvtag to o%d\n", i + my_obj_s);
                 }
@@ -220,7 +220,7 @@ main(int argc, char *argv[])
     total_time = MPI_Wtime() - stime;
 
     if (my_rank == 0)
-        println("Total time to query %d tags: %.5f", nres, total_time);
+        println("Total time to query %d tags: %.5f s", nres, total_time);
 
     // close a container
     if (PDCcont_close(cont) < 0)
