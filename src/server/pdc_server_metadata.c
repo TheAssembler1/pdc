@@ -1842,7 +1842,7 @@ PDC_Server_create_shm(char *shm_name, uint64_t size)
     int   shm_fd = -1;
     void *buf;
 
-    /* printf("==PDC_SERVER[%d]: create shm [%s], size %llu!\n", */ 
+    /* printf("==PDC_SERVER[%d]: create shm [%s], size %llu!\n", */
     /*         pdc_server_rank_g, shm_name, size); */
 
     remove(shm_name);

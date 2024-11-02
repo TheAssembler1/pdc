@@ -9426,7 +9426,8 @@ PDC_Client_query_kvtag_mpi(const pdc_kvtag_t *kvtag, int *n_res, uint64_t **pdc_
 
             MPI_Scatter(shm_sizes, 1, MPI_UINT64_T, &shm_size, 1, MPI_UINT64_T, 0, PDC_SAME_NODE_COMM_g);
 
-            /* printf("==PDC_CLIENT[%d]: recv server %d shm size %llu\n", pdc_client_mpi_rank_g, server_rank, shm_size); */
+            /* printf("==PDC_CLIENT[%d]: recv server %d shm size %llu\n", pdc_client_mpi_rank_g, server_rank,
+             * shm_size); */
 
             // Open shared memory and map to data buf
             snprintf(shm_name, 64, "meta_shm.%d.%d", server_rank, pdc_client_same_node_rank_g);
@@ -9454,16 +9455,16 @@ PDC_Client_query_kvtag_mpi(const pdc_kvtag_t *kvtag, int *n_res, uint64_t **pdc_
         // Iterate and get query result
         while (NULL != (bulki_kv = BULKI_KV_Pair_iterator_next(bulki_iter))) {
             /* printf("key: [%s]\n", (char*)bulki_kv->key.data); */
-            if (strcmp("_pdc_id", (char*)bulki_kv->key.data) == 0) {
-                pdc_id = *((uint64_t*)bulki_kv->value.data);
+            if (strcmp("_pdc_id", (char *)bulki_kv->key.data) == 0) {
+                pdc_id = *((uint64_t *)bulki_kv->value.data);
                 /* printf("value: %llu\n", pdc_id); */
             }
             else {
-                query_tag.type  = bulki_iter->bulki->data->values[bulki_iter->current_idx-1].pdc_type;
+                query_tag.type = bulki_iter->bulki->data->values[bulki_iter->current_idx - 1].pdc_type;
                 if (query_tag.type == kvtag->type) {
-                    query_tag.name  = (char*)bulki_kv->key.data;
-                    query_tag.value = (void*)bulki_kv->value.data;
-                    query_tag.size  = bulki_iter->bulki->data->values[bulki_iter->current_idx-1].size;
+                    query_tag.name  = (char *)bulki_kv->key.data;
+                    query_tag.value = (void *)bulki_kv->value.data;
+                    query_tag.size  = bulki_iter->bulki->data->values[bulki_iter->current_idx - 1].size;
                     /* printf("value: %d\n", *((int*)bulki_kv->value.data)); */
                     if (PDC_is_matching_kvtag(kvtag, &query_tag) == TRUE) {
                         if (iter >= alloc_size) {
@@ -9474,8 +9475,8 @@ PDC_Client_query_kvtag_mpi(const pdc_kvtag_t *kvtag, int *n_res, uint64_t **pdc_
                         /* printf("Found match %s:%d\n", query_tag.name, *(int*)query_tag.value); */
                     }
                 } // End if same type
-            } // End else
-        } // End while
+            }     // End else
+        }         // End while
         *n_res = iter;
     }
     else {
