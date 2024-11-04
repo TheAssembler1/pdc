@@ -921,7 +921,7 @@ PDC_region_cache_clock_cycle(void *ptr)
     pdc_obj_cache *obj_cache, *obj_cache_iter;
     struct timeval current_time;
     struct timeval finish_time;
-    int            nflush            = 0;
+    int            nflush = 0;
     double         elapsed_time;
     time_t         t;
     struct tm *    tm;
