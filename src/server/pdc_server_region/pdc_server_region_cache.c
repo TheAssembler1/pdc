@@ -12,12 +12,6 @@
 #define MAX_CACHE_SIZE_GB 32
 #endif
 
-#ifdef PDC_SERVER_CACHE_FLUSH_TIME
-#define PDC_CACHE_FLUSH_TIME_INT PDC_SERVER_CACHE_FLUSH_TIME
-#else
-#define PDC_CACHE_FLUSH_TIME_INT 30
-#endif
-
 #ifdef PDC_SERVER_IDLE_CACHE_FLUSH_TIME
 #define PDC_IDLE_CACHE_FLUSH_TIME_INT PDC_SERVER_IDLE_CACHE_FLUSH_TIME
 #else
@@ -928,14 +922,10 @@ PDC_region_cache_clock_cycle(void *ptr)
     struct timeval current_time;
     struct timeval finish_time;
     int            nflush            = 0;
-    double         flush_frequency_s = PDC_CACHE_FLUSH_TIME_INT, elapsed_time;
+    double         elapsed_time;
     time_t         t;
     struct tm *    tm;
     char           cur_time[64];
-
-    char *p = getenv("PDC_SERVER_CACHE_FLUSH_FREQUENCY_S");
-    if (p != NULL)
-        flush_frequency_s = atoi(p);
 
     if (ptr == NULL) {
         obj_cache_iter = NULL;
