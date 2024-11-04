@@ -766,6 +766,7 @@ PDC_region_cache_flush_by_pointer(uint64_t obj_id, pdc_obj_cache *obj_cache, int
             buf[i]   = obj_regions[i]->buf;
         }
         free(obj_regions);
+
         // Merge adjacent regions
         // printf("checkpoint @ line %d\n", __LINE__);
         merge_requests(start, end, obj_cache->region_cache_size, buf, &new_start, &new_end, &new_buf, unit,
