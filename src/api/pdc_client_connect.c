@@ -9451,8 +9451,8 @@ PDC_Client_query_kvtag_mpi(const pdc_kvtag_t *kvtag, int *n_res, uint64_t **pdc_
         }
 
         BULKI_KV_Pair_Iterator *bulki_iter = BULKI_KV_Pair_iterator_init(deserializedBulki_g);
-        BULKI_KV_Pair *obj_kv, *tag_kv;
-        BULKI *tag_bulki;
+        BULKI_KV_Pair *         obj_kv, *tag_kv;
+        BULKI *                 tag_bulki;
         // Iterate and get query result
         while (NULL != (obj_kv = BULKI_KV_Pair_iterator_next(bulki_iter))) {
 
@@ -9460,7 +9460,7 @@ PDC_Client_query_kvtag_mpi(const pdc_kvtag_t *kvtag, int *n_res, uint64_t **pdc_
             /* printf("id: [%llu]\n", pdc_id); */
 
             BULKI_Entity_Iterator *bent_iter = Bent_iterator_init(&obj_kv->value, NULL, PDC_BULKI);
-            while(NULL != (tag_bulki = Bent_iterator_next_BULKI(bent_iter))) {
+            while (NULL != (tag_bulki = Bent_iterator_next_BULKI(bent_iter))) {
 
                 BULKI_KV_Pair_Iterator *tag_iter = BULKI_KV_Pair_iterator_init(tag_bulki);
                 while (NULL != (tag_kv = BULKI_KV_Pair_iterator_next(tag_iter))) {
@@ -9480,7 +9480,7 @@ PDC_Client_query_kvtag_mpi(const pdc_kvtag_t *kvtag, int *n_res, uint64_t **pdc_
                             /* printf("Found match %s:%d\n", query_tag.name, *(int*)query_tag.value); */
                         }
                     } // End if same type
-                } // End tag while
+                }     // End tag while
             }
         } // End obj while
         *n_res = iter;

@@ -1930,11 +1930,11 @@ PDC_Server_seralize_kvtag_someta_to_shm(uint32_t *n_meta, uint64_t **obj_ids, ui
             {
                 if (elt->kvtag_list_head) {
                     obj_key = BULKI_ENTITY(&elt->obj_id, 1, PDC_UINT64, PDC_CLS_ITEM);
-                    count = 0;
+                    count   = 0;
                     DL_COUNT(elt->kvtag_list_head, kvtag_list_elt, count);
                     BULKI *kvtag_bulki = BULKI_init(count);
 
-                    // iterate over each kv pair of current obj 
+                    // iterate over each kv pair of current obj
                     // save each kv pair as a bulki
                     DL_FOREACH(elt->kvtag_list_head, kvtag_list_elt)
                     {
@@ -1960,8 +1960,8 @@ PDC_Server_seralize_kvtag_someta_to_shm(uint32_t *n_meta, uint64_t **obj_ids, ui
                     BULKI_put(bulki, obj_key, obj_value);
 
                 } // End if obj has kv tag
-            } // End for each metadata from hash table entry
-            
+            }     // End for each metadata from hash table entry
+
             if (nkvtag_in_buf >= nkvtag_per_buf) {
                 // Create a shm
                 bulki_size = get_BULKI_size(bulki);
