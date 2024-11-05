@@ -18,11 +18,11 @@ NUM_SERVER_PROC_PER_NODE=1
 NUM_CLIENT_PROC_PER_NODE=1
 
 
-MAX_NODE=512
+MAX_NODE=64
 MAX_ATTR=1024
 MAX_ATTRLEN=1000
 
-PROG_BASENAME=kvtag_query_scale
+PROG_BASENAME=kvtag_query
 
 for (( i = 1; i <= $MAX_NODE; i*=2 )); do
     for (( j = 0; j <= 1; j+=1 )); do

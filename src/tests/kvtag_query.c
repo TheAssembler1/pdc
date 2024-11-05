@@ -173,8 +173,8 @@ main(int argc, char *argv[])
                 }
             }
         }
-        if (my_rank == 0)
-            println("Rank %d: Added %d kvtag to the %d th object\n", my_rank, round, i);
+        /* if (my_rank == 0) */
+        /*     println("Rank %d: Added %d kvtag to the %d th object", my_rank, round, i); */
     }
 
 #ifdef ENABLE_MPI

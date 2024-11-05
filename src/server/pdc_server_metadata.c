@@ -1878,8 +1878,8 @@ PDC_Server_seralize_kvtag_someta_to_shm(uint32_t *n_meta, uint64_t **obj_ids, ui
     pdc_metadata_t *           elt;
     pdc_kvtag_list_t *         kvtag_list_elt;
     HashTableIterator          hash_table_iter;
-    int                        n_entry, nkvtag_in_buf = 0, nkvtag_per_buf = 0, buf_i = 0;
-    int                        is_prev_objid = 0, nclient_per_server, i;
+    int                        n_entry, nkvtag_in_buf = 0, nkvtag_per_buf = 0, buf_i = 0, count;
+    int                        nclient_per_server, i;
     HashTablePair              pair;
     BULKI_Entity *             key, *obj_key, *val, *obj_val;
     BULKI *                    bulki;
@@ -1921,82 +1921,74 @@ PDC_Server_seralize_kvtag_someta_to_shm(uint32_t *n_meta, uint64_t **obj_ids, ui
         // Init first BULKI buf
         bulki = BULKI_init(nkvtag_per_buf);
 
+        // iterate over hash table entry
         while (n_entry != 0 && hash_table_iter_has_more(&hash_table_iter)) {
             pair = hash_table_iter_next(&hash_table_iter);
             head = pair.value;
+            // iterate over each metadata obj, one hash table entry may have multiple obj
             DL_FOREACH(head->metadata, elt)
             {
                 if (elt->kvtag_list_head) {
-                    obj_key = BULKI_ENTITY("_pdc_id", 1, PDC_STRING, PDC_CLS_ITEM);
-                    obj_val = BULKI_ENTITY(&elt->obj_id, 1, PDC_UINT64, PDC_CLS_ITEM);
-                    // Add obj_id before all kvtags of an obj
-                    if (is_prev_objid == 0) {
-                        BULKI_append(bulki, obj_key, obj_val);
-                        is_prev_objid = 1;
-                    }
-                }
-                else {
-                    // If this obj doesn't have kvtag, need to put obj_id to bulki next
-                    is_prev_objid = 0;
-                    continue;
-                }
+                    obj_key = BULKI_ENTITY(&elt->obj_id, 1, PDC_UINT64, PDC_CLS_ITEM);
+                    count = 0;
+                    DL_COUNT(elt->kvtag_list_head, kvtag_list_elt, count);
+                    BULKI *kvtag_bulki = BULKI_init(count);
 
-                DL_FOREACH(elt->kvtag_list_head, kvtag_list_elt)
-                {
-                    if (nkvtag_in_buf >= nkvtag_per_buf) {
-
-                        // Create a shm
-                        bulki_size = get_BULKI_size(bulki);
-                        snprintf(shm_name, 64, "meta_shm.%d.%d", pdc_server_rank_g, buf_i);
-                        bufs[buf_i] = PDC_Server_create_shm(shm_name, bulki_size);
-                        // Serialize the data to shm after the current one reached limit
-                        offset           = 0;
-                        bufs[buf_i]      = BULKI_serialize_to_buffer(bulki, bufs[buf_i], &offset);
-                        buf_sizes[buf_i] = bulki_size;
-                        BULKI_free(bulki, 1);
-                        buf_i++;
-                        nkvtag_in_buf = 0;
-                    }
-                    if (nkvtag_in_buf == 0 && buf_i > 0) {
-                        if (buf_i >= nclient_per_server) {
-                            printf("==PDC_SERVER[%d]: Error with %s, buf ptr overflow!\n", pdc_server_rank_g,
-                                   __func__);
-                            ret_value = FAIL;
-                            goto done;
+                    // iterate over each kv pair of current obj 
+                    // save each kv pair as a bulki
+                    DL_FOREACH(elt->kvtag_list_head, kvtag_list_elt)
+                    {
+                        // Add to a BULKI buffer
+                        key = BULKI_ENTITY(kvtag_list_elt->kvtag->name, 1, PDC_STRING, PDC_CLS_ITEM);
+                        if (kvtag_list_elt->kvtag->type == PDC_STRING) {
+                            val = BULKI_ENTITY(kvtag_list_elt->kvtag->value, 1, kvtag_list_elt->kvtag->type,
+                                               PDC_CLS_ITEM);
                         }
-                        // Init BULKI buf
-                        bulki = BULKI_init(nkvtag_per_buf);
-                        // Add obj_id before all kvtags of an obj
-                        BULKI_append(bulki, obj_key, obj_val);
-                        is_prev_objid = 1;
-                    }
+                        else {
+                            val = BULKI_ENTITY(kvtag_list_elt->kvtag->value, kvtag_list_elt->kvtag->size,
+                                               kvtag_list_elt->kvtag->type, PDC_CLS_ITEM);
+                        }
 
-                    // Add to a BULKI buffer
-                    key = BULKI_ENTITY(kvtag_list_elt->kvtag->name, 1, PDC_STRING, PDC_CLS_ITEM);
-                    if (kvtag_list_elt->kvtag->type == PDC_STRING) {
-                        val = BULKI_ENTITY(kvtag_list_elt->kvtag->value, 1, kvtag_list_elt->kvtag->type,
-                                           PDC_CLS_ITEM);
-                    }
-                    else {
-                        val = BULKI_ENTITY(kvtag_list_elt->kvtag->value, kvtag_list_elt->kvtag->size,
-                                           kvtag_list_elt->kvtag->type, PDC_CLS_ITEM);
-                    }
-                    BULKI_append(bulki, key, val);
-                    is_prev_objid = 0;
-                    nkvtag_in_buf++;
-                } // End for each kvtag in list
-            }     // End for each metadata from hash table entry
-        }         // End looping metadata hash table
+                        BULKI_append(kvtag_bulki, key, val);
+                        nkvtag_in_buf++;
 
-        // Create a shm
-        bulki_size = get_BULKI_size(bulki);
-        snprintf(shm_name, 64, "meta_shm.%d.%d", pdc_server_rank_g, buf_i);
-        bufs[buf_i] = PDC_Server_create_shm(shm_name, bulki_size);
-        // Serialize the data to shm after the current one reached limit
-        offset           = 0;
-        bufs[buf_i]      = BULKI_serialize_to_buffer(bulki, bufs[buf_i], &offset);
-        buf_sizes[buf_i] = bulki_size;
-        BULKI_free(bulki, 1);
+                    } // End for each kvtag in list
+
+                    // Use bulki that has all kv pairs of an obj as an bulki entity
+                    BULKI_Entity *obj_value = empty_BULKI_Array_Entity();
+                    BULKI_ENTITY_append_BULKI(obj_value, kvtag_bulki);
+                    BULKI_put(bulki, obj_key, obj_value);
+
+                } // End if obj has kv tag
+            } // End for each metadata from hash table entry
+            
+            if (nkvtag_in_buf >= nkvtag_per_buf) {
+                // Create a shm
+                bulki_size = get_BULKI_size(bulki);
+                snprintf(shm_name, 64, "meta_shm.%d.%d", pdc_server_rank_g, buf_i);
+                bufs[buf_i] = PDC_Server_create_shm(shm_name, bulki_size);
+                // Serialize the data to shm after the current one reached limit
+                offset           = 0;
+                bufs[buf_i]      = BULKI_serialize_to_buffer(bulki, bufs[buf_i], &offset);
+                buf_sizes[buf_i] = bulki_size;
+                BULKI_free(bulki, 1);
+                buf_i++;
+                nkvtag_in_buf = 0;
+            }
+
+        } // End looping metadata hash table
+
+        if (nkvtag_in_buf > 0) {
+            // Create a shm
+            bulki_size = get_BULKI_size(bulki);
+            snprintf(shm_name, 64, "meta_shm.%d.%d", pdc_server_rank_g, buf_i);
+            bufs[buf_i] = PDC_Server_create_shm(shm_name, bulki_size);
+            // Serialize the data to shm after the current one reached limit
+            offset           = 0;
+            bufs[buf_i]      = BULKI_serialize_to_buffer(bulki, bufs[buf_i], &offset);
+            buf_sizes[buf_i] = bulki_size;
+            BULKI_free(bulki, 1);
+        }
 
         /* // Debug */
         /* BULKI *deserializedBulki = BULKI_deserialize(bufs[buf_i]); */
@@ -3330,98 +3322,6 @@ PDC_Server_get_kvtag_someta(metadata_get_kvtag_in_t *in, metadata_get_kvtag_out_
         }
     }
 
-    return ret_value;
-}
-
-// Serialize all kvtags in current server to nsplit buffers, each with
-// approx the same number of kvtags so they can be sent to (node-local) clients
-// for parallel search
-static perr_t
-PDC_Server_seralize_kvtag_someta(int nbuf, void **bufs, uint64_t *buf_sizes)
-{
-    perr_t                     ret_value = SUCCEED;
-    pdc_hash_table_entry_head *head;
-    pdc_metadata_t *           elt;
-    pdc_kvtag_list_t *         kvtag_list_elt;
-    HashTableIterator          hash_table_iter;
-    int                        n_entry, nkvtag_in_buf = 0, nkvtag_per_buf = 0, buf_i = 0;
-    int                        is_prev_objid = 0;
-    HashTablePair              pair;
-    BULKI_Entity *             key, *obj_key, *val, *obj_val;
-    BULKI *                    bulki;
-
-    nkvtag_per_buf = ceil(metadata_total_count_g / nbuf);
-
-    if (metadata_hash_table_g != NULL) {
-
-        n_entry = hash_table_num_entries(metadata_hash_table_g);
-        hash_table_iterate(metadata_hash_table_g, &hash_table_iter);
-
-        // Init first BULKI buf
-        bulki = BULKI_init(nkvtag_per_buf);
-
-        while (n_entry != 0 && hash_table_iter_has_more(&hash_table_iter)) {
-            pair = hash_table_iter_next(&hash_table_iter);
-            head = pair.value;
-            DL_FOREACH(head->metadata, elt)
-            {
-                obj_key = BULKI_ENTITY("_pdc_id", 1, PDC_STRING, PDC_CLS_ITEM);
-                obj_val = BULKI_ENTITY(&elt->obj_id, 1, PDC_UINT64, PDC_CLS_ITEM);
-                // Add obj_id before all kvtags of an obj
-                if (is_prev_objid == 0) {
-                    BULKI_put(bulki, obj_key, obj_val);
-                    is_prev_objid = 1;
-                }
-
-                DL_FOREACH(elt->kvtag_list_head, kvtag_list_elt)
-                {
-                    if (nkvtag_in_buf >= nkvtag_per_buf) {
-                        // Serialize the data after the current one reached limit
-                        bufs[buf_i] = BULKI_serialize(bulki, &buf_sizes[buf_i]);
-                        BULKI_free(bulki, 1);
-                        buf_i++;
-                        nkvtag_in_buf = 0;
-                    }
-                    if (nkvtag_in_buf == 0 && buf_i > 0) {
-                        if (buf_i >= nbuf) {
-                            printf("==PDC_SERVER[%d]: Error with %s, buf ptr overflow!\n", pdc_server_rank_g,
-                                   __func__);
-                            ret_value = FAIL;
-                            goto done;
-                        }
-                        // Init BULKI buf
-                        bulki = BULKI_init(nkvtag_per_buf);
-                        // Add obj_id before all kvtags of an obj
-                        BULKI_put(bulki, obj_key, obj_val);
-                        is_prev_objid = 1;
-                    }
-
-                    // Add to a BULKI buffer
-                    key = BULKI_ENTITY(kvtag_list_elt->kvtag->name, 1, PDC_STRING, PDC_CLS_ITEM);
-                    if (kvtag_list_elt->kvtag->type == PDC_STRING) {
-                        val = BULKI_ENTITY(kvtag_list_elt->kvtag->value, 1, kvtag_list_elt->kvtag->type,
-                                           PDC_CLS_ITEM);
-                    }
-                    else {
-                        val = BULKI_ENTITY(kvtag_list_elt->kvtag->value, kvtag_list_elt->kvtag->size,
-                                           kvtag_list_elt->kvtag->type, PDC_CLS_ITEM);
-                    }
-                    BULKI_put(bulki, key, val);
-                    is_prev_objid = 0;
-                    nkvtag_in_buf++;
-                } // End for each kvtag in list
-            }     // End for each metadata from hash table entry
-        }         // End looping metadata hash table
-
-        // Serialize last buf
-        bufs[buf_i] = BULKI_serialize(bulki, &buf_sizes[buf_i]);
-    } // if (metadata_hash_table_g != NULL)
-    else {
-        printf("==PDC_SERVER: metadata_hash_table_g not initialized!\n");
-        ret_value = FAIL;
-    }
-
-done:
     return ret_value;
 }
 

@@ -9451,32 +9451,38 @@ PDC_Client_query_kvtag_mpi(const pdc_kvtag_t *kvtag, int *n_res, uint64_t **pdc_
         }
 
         BULKI_KV_Pair_Iterator *bulki_iter = BULKI_KV_Pair_iterator_init(deserializedBulki_g);
-        BULKI_KV_Pair *         bulki_kv;
+        BULKI_KV_Pair *obj_kv, *tag_kv;
+        BULKI *tag_bulki;
         // Iterate and get query result
-        while (NULL != (bulki_kv = BULKI_KV_Pair_iterator_next(bulki_iter))) {
-            /* printf("key: [%s]\n", (char*)bulki_kv->key.data); */
-            if (strcmp("_pdc_id", (char *)bulki_kv->key.data) == 0) {
-                pdc_id = *((uint64_t *)bulki_kv->value.data);
-                /* printf("value: %llu\n", pdc_id); */
-            }
-            else {
-                query_tag.type = bulki_iter->bulki->data->values[bulki_iter->current_idx - 1].pdc_type;
-                if (query_tag.type == kvtag->type) {
-                    query_tag.name  = (char *)bulki_kv->key.data;
-                    query_tag.value = (void *)bulki_kv->value.data;
-                    query_tag.size  = bulki_iter->bulki->data->values[bulki_iter->current_idx - 1].size;
-                    /* printf("value: %d\n", *((int*)bulki_kv->value.data)); */
-                    if (PDC_is_matching_kvtag(kvtag, &query_tag) == TRUE) {
-                        if (iter >= alloc_size) {
-                            alloc_size *= 2;
-                            *pdc_ids = (void *)realloc(*pdc_ids, alloc_size * sizeof(uint64_t));
+        while (NULL != (obj_kv = BULKI_KV_Pair_iterator_next(bulki_iter))) {
+
+            pdc_id = *((uint64_t *)obj_kv->key.data);
+            /* printf("id: [%llu]\n", pdc_id); */
+
+            BULKI_Entity_Iterator *bent_iter = Bent_iterator_init(&obj_kv->value, NULL, PDC_BULKI);
+            while(NULL != (tag_bulki = Bent_iterator_next_BULKI(bent_iter))) {
+
+                BULKI_KV_Pair_Iterator *tag_iter = BULKI_KV_Pair_iterator_init(tag_bulki);
+                while (NULL != (tag_kv = BULKI_KV_Pair_iterator_next(tag_iter))) {
+
+                    query_tag.type = tag_kv->value.pdc_type;
+                    if (query_tag.type == kvtag->type) {
+                        query_tag.name  = (char *)tag_kv->key.data;
+                        query_tag.value = (void *)tag_kv->value.data;
+                        query_tag.size  = tag_kv->value.size;
+                        /* printf("value: %d\n", *((int*)tag_kv->value.data)); */
+                        if (PDC_is_matching_kvtag(kvtag, &query_tag) == TRUE) {
+                            if (iter >= alloc_size) {
+                                alloc_size *= 2;
+                                *pdc_ids = (void *)realloc(*pdc_ids, alloc_size * sizeof(uint64_t));
+                            }
+                            (*pdc_ids)[iter++] = pdc_id;
+                            /* printf("Found match %s:%d\n", query_tag.name, *(int*)query_tag.value); */
                         }
-                        (*pdc_ids)[iter++] = pdc_id;
-                        /* printf("Found match %s:%d\n", query_tag.name, *(int*)query_tag.value); */
-                    }
-                } // End if same type
-            }     // End else
-        }         // End while
+                    } // End if same type
+                } // End tag while
+            }
+        } // End obj while
         *n_res = iter;
     }
     else {

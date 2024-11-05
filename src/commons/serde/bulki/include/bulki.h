@@ -267,14 +267,6 @@ BULKI *BULKI_init(int initial_field_count);
 void BULKI_put(BULKI *bulki, BULKI_Entity *key, BULKI_Entity *value);
 
 /**
- * @brief Append a key-value pair to the serialized data structure.
- * @param data Pointer to the BULKI structure
- * @param key Pointer to the BULKI_Entity structure representing the key
- * @param value Pointer to the BULKI_Entity structure representing the value
- */
-void BULKI_append(BULKI *bulki, BULKI_Entity *key, BULKI_Entity *value);
-
-/**
  * @brief Delete a key-value pair from the serialized data structure
  *
  * @param data Pointer to the BULKI structure
