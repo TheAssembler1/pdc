@@ -1882,7 +1882,7 @@ PDC_Server_seralize_kvtag_someta_to_shm(uint32_t *n_meta, uint64_t **obj_ids, ui
     int                        nclient_per_server, i;
     HashTablePair              pair;
     BULKI_Entity *             key, *obj_key, *val, *obj_val;
-    BULKI *                    bulki;
+    BULKI *                    bulki = NULL;
     void *                     bufs[256];
     uint64_t                   bulki_size, *buf_sizes;
     char                       shm_name[64];
@@ -1919,7 +1919,8 @@ PDC_Server_seralize_kvtag_someta_to_shm(uint32_t *n_meta, uint64_t **obj_ids, ui
         hash_table_iterate(metadata_hash_table_g, &hash_table_iter);
 
         // Init first BULKI buf
-        bulki = BULKI_init(nkvtag_per_buf);
+        if (bulki == NULL)
+            bulki = BULKI_init(nkvtag_per_buf);
 
         // iterate over hash table entry
         while (n_entry != 0 && hash_table_iter_has_more(&hash_table_iter)) {
@@ -1972,6 +1973,7 @@ PDC_Server_seralize_kvtag_someta_to_shm(uint32_t *n_meta, uint64_t **obj_ids, ui
                 bufs[buf_i]      = BULKI_serialize_to_buffer(bulki, bufs[buf_i], &offset);
                 buf_sizes[buf_i] = bulki_size;
                 BULKI_free(bulki, 1);
+                bulki = BULKI_init(nkvtag_per_buf);
                 buf_i++;
                 nkvtag_in_buf = 0;
             }
