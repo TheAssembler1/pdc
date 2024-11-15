@@ -1894,13 +1894,13 @@ PDC_Server_seralize_kvtag_someta_to_shm(uint32_t *n_meta, uint64_t **obj_ids, ui
         goto done;
     }
 
-    if (pdc_server_size_g % pdc_client_num_g != 0) {
+    if (pdc_client_num_g % pdc_server_size_g != 0) {
         printf("==PDC_SERVER[%d]: #servers not divisible by clients!\n", pdc_server_rank_g);
         ret_value = FAIL;
         goto done;
     }
 
-    nclient_per_server = pdc_server_size_g / pdc_client_num_g;
+    nclient_per_server = pdc_client_num_g / pdc_server_size_g;
     nkvtag_per_buf     = ceil(metadata_total_count_g / nclient_per_server);
 
     if (alloc_size < nclient_per_server) {
@@ -1949,7 +1949,7 @@ PDC_Server_seralize_kvtag_someta_to_shm(uint32_t *n_meta, uint64_t **obj_ids, ui
                                                kvtag_list_elt->kvtag->type, PDC_CLS_ITEM);
                         }
 
-                        BULKI_append(kvtag_bulki, key, val);
+                        BULKI_put(kvtag_bulki, key, val);
                         nkvtag_in_buf++;
 
                     } // End for each kvtag in list

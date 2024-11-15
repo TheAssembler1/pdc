@@ -1638,7 +1638,7 @@ PDC_Client_init()
     // Split the PDC_CLIENT_COMM_WORLD_g communicator, MPI_Comm_split_type requires MPI-3
     /* MPI_Comm_split_type(PDC_CLIENT_COMM_WORLD_g, MPI_COMM_TYPE_SHARED, 0, MPI_INFO_NULL, */
     /*                     &PDC_SAME_NODE_COMM_g); */
-    int sub_comm_color = pdc_client_mpi_rank_g / pdc_server_num_g;
+    int sub_comm_color = pdc_client_mpi_rank_g / (pdc_client_mpi_size_g / pdc_server_num_g);
     MPI_Comm_split(PDC_CLIENT_COMM_WORLD_g, sub_comm_color, pdc_client_mpi_rank_g, &PDC_SAME_NODE_COMM_g);
 
     MPI_Comm_rank(PDC_SAME_NODE_COMM_g, &pdc_client_same_node_rank_g);
@@ -9419,7 +9419,7 @@ PDC_Client_query_kvtag_mpi(const pdc_kvtag_t *kvtag, int *n_res, uint64_t **pdc_
         // Only retrieve the metadata snapshot once
         // TODO: if metadata is changed, need to invalidate the cached snapshot and retrieve a new one
         if (deserializedBulki_g == NULL) {
-            server_rank = pdc_client_mpi_rank_g / pdc_server_num_g;
+            server_rank = pdc_client_mpi_rank_g / (pdc_client_mpi_size_g / pdc_server_num_g);
             // Send one request to each server at the same time
             if (pdc_client_same_node_rank_g == 0)
                 ret_value = PDC_Client_query_kvtag_server(server_rank, kvtag, &nshm, &shm_sizes);

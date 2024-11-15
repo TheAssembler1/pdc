@@ -79,7 +79,7 @@ main(int argc, char *argv[])
 {
     pdcid_t     pdc, cont_prop, cont, obj_prop;
     pdcid_t *   obj_ids;
-    int         n_obj, n_add_tag, my_obj, my_obj_s, my_add_tag, my_add_tag_s;
+    int         n_obj, n_add_tag, my_obj, my_obj_s, my_add_tag, my_add_tag_s, my_tags, total_tags;
     int         proc_num = 1, my_rank = 0, i, v, iter, round, selectivity, is_using_dart;
     char        obj_name[128];
     double      stime, total_time;
@@ -156,6 +156,7 @@ main(int argc, char *argv[])
     assign_work_to_rank(my_rank, proc_num, n_add_tag, &my_add_tag, &my_add_tag_s);
 
     // This is for adding #rounds tags to the objects.
+    my_tags = 0;
     for (i = 0; i < my_add_tag; i++) {
         for (iter = 0; iter < round; iter++) {
             v = iter;
@@ -172,10 +173,15 @@ main(int argc, char *argv[])
                     printf("fail to add a kvtag to o%d\n", i + my_obj_s);
                 }
             }
+            my_tags++;
         }
         /* if (my_rank == 0) */
         /*     println("Rank %d: Added %d kvtag to the %d th object", my_rank, round, i); */
     }
+
+    MPI_Reduce(&my_tags, &total_tags, 1, MPI_INT, MPI_MAX, 0, MPI_COMM_WORLD);
+    if (my_rank == 0)
+        println("Added %d kvtags", total_tags);
 
 #ifdef ENABLE_MPI
     MPI_Barrier(MPI_COMM_WORLD);
@@ -225,20 +231,14 @@ main(int argc, char *argv[])
     // close a container
     if (PDCcont_close(cont) < 0)
         printf("fail to close container c1\n");
-    else
-        printf("successfully close container c1\n");
 
     // close an object property
     if (PDCprop_close(obj_prop) < 0)
         printf("Fail to close property @ line %d\n", __LINE__);
-    else
-        printf("successfully close object property\n");
 
     // close a container property
     if (PDCprop_close(cont_prop) < 0)
         printf("Fail to close property @ line %d\n", __LINE__);
-    else
-        printf("successfully close container property\n");
 
     // close pdc
     if (PDCclose(pdc) < 0)

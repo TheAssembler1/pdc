@@ -721,7 +721,8 @@ PDC_Server_set_close(void)
         start = MPI_Wtime();
 #endif
         char *tmp_env_char = getenv("PDC_DISABLE_CHECKPOINT");
-        if (tmp_env_char != NULL && strcmp(tmp_env_char, "TRUE") == 0) {
+        if (tmp_env_char != NULL && 
+                (strcmp(tmp_env_char, "TRUE") == 0 || atoi(tmp_env_char) == 1)) {
             if (pdc_server_rank_g == 0) {
                 printf("==PDC_SERVER[0]: checkpoint disabled!\n");
             }
