@@ -1842,6 +1842,7 @@ PDC_Server_create_shm(char *shm_name, uint64_t size)
     int   shm_fd = -1;
     void *buf;
 
+    // Debug
     /* printf("==PDC_SERVER[%d]: create shm [%s], size %llu!\n", */
     /*         pdc_server_rank_g, shm_name, size); */
 
@@ -1871,7 +1872,7 @@ PDC_Server_create_shm(char *shm_name, uint64_t size)
 // approx the same number of kvtags so they can be sent to (node-local) clients
 // for parallel search
 static perr_t
-PDC_Server_seralize_kvtag_someta_to_shm(uint32_t *n_meta, uint64_t **obj_ids, uint64_t alloc_size)
+PDC_Server_seralize_kvtag_someta_to_shm_bulki(uint32_t *n_meta, uint64_t **obj_ids, uint64_t alloc_size)
 {
     perr_t                     ret_value = SUCCEED;
     pdc_hash_table_entry_head *head;
@@ -1887,6 +1888,7 @@ PDC_Server_seralize_kvtag_someta_to_shm(uint32_t *n_meta, uint64_t **obj_ids, ui
     uint64_t                   bulki_size, *buf_sizes;
     char                       shm_name[64];
     size_t                     offset;
+    double                     stime, duration, ser_time;
 
     if (pdc_client_num_g <= 0) {
         printf("==PDC_SERVER[%d]: pdc_client_num_g not initialized!\n", pdc_server_rank_g);
@@ -1913,6 +1915,7 @@ PDC_Server_seralize_kvtag_someta_to_shm(uint32_t *n_meta, uint64_t **obj_ids, ui
     buf_sizes = *obj_ids;
     memset(buf_sizes, 0, alloc_size * sizeof(uint64_t));
 
+    stime = MPI_Wtime();
     if (metadata_hash_table_g != NULL) {
 
         n_entry = hash_table_num_entries(metadata_hash_table_g);
@@ -1970,7 +1973,12 @@ PDC_Server_seralize_kvtag_someta_to_shm(uint32_t *n_meta, uint64_t **obj_ids, ui
                 bufs[buf_i] = PDC_Server_create_shm(shm_name, bulki_size);
                 // Serialize the data to shm after the current one reached limit
                 offset           = 0;
+
+                ser_time = MPI_Wtime();
                 bufs[buf_i]      = BULKI_serialize_to_buffer(bulki, bufs[buf_i], &offset);
+                duration = MPI_Wtime() - ser_time;
+                printf("==PDC_SERVER[%d]: BULKI serialize took %f s\n", pdc_server_rank_g, duration);
+
                 buf_sizes[buf_i] = bulki_size;
                 BULKI_free(bulki, 1);
                 bulki = BULKI_init(nkvtag_per_buf);
@@ -1987,7 +1995,12 @@ PDC_Server_seralize_kvtag_someta_to_shm(uint32_t *n_meta, uint64_t **obj_ids, ui
             bufs[buf_i] = PDC_Server_create_shm(shm_name, bulki_size);
             // Serialize the data to shm after the current one reached limit
             offset           = 0;
+
+            ser_time = MPI_Wtime();
             bufs[buf_i]      = BULKI_serialize_to_buffer(bulki, bufs[buf_i], &offset);
+            duration = MPI_Wtime() - ser_time;
+            printf("==PDC_SERVER[%d]: BULKI serialize took %f s\n", pdc_server_rank_g, duration);
+
             buf_sizes[buf_i] = bulki_size;
             BULKI_free(bulki, 1);
         }
@@ -2010,6 +2023,140 @@ PDC_Server_seralize_kvtag_someta_to_shm(uint32_t *n_meta, uint64_t **obj_ids, ui
         printf("==PDC_SERVER: metadata_hash_table_g not initialized!\n");
         ret_value = FAIL;
     }
+    duration = MPI_Wtime() - stime;
+    printf("==PDC_SERVER[%d]: total serialization took %f s\n", pdc_server_rank_g, duration);
+
+done:
+    return ret_value;
+} // End PDC_Server_seralize_kvtag_someta_to_shm_bulki
+
+// Serialize using binary format
+static perr_t
+PDC_Server_seralize_kvtag_someta_to_shm_binary(uint32_t *n_meta, uint64_t **obj_ids, uint64_t alloc_size)
+{
+    perr_t                     ret_value = SUCCEED;
+    pdc_hash_table_entry_head *head;
+    pdc_metadata_t *           elt;
+    pdc_kvtag_list_t *         kvtag_list_elt;
+    HashTableIterator          hash_table_iter;
+    int                        n_entry, nkvtag_in_buf = 0, nkvtag_per_buf = 0, buf_i = 0, count;
+    int                        nclient_per_server, i, key_len;
+    HashTablePair              pair;
+    void *                     bufs[256];
+    uint64_t                   *buf_sizes, tmp_buf_alloc_size = 1048576;
+    char                       shm_name[64];
+    size_t                     offset = 0;
+    double                     stime, duration, ser_time;
+    void *                     tmp_buf;
+
+    if (pdc_client_num_g <= 0) {
+        printf("==PDC_SERVER[%d]: pdc_client_num_g not initialized!\n", pdc_server_rank_g);
+        ret_value = FAIL;
+        goto done;
+    }
+
+    if (pdc_client_num_g % pdc_server_size_g != 0) {
+        printf("==PDC_SERVER[%d]: #servers not divisible by clients!\n", pdc_server_rank_g);
+        ret_value = FAIL;
+        goto done;
+    }
+
+    nclient_per_server = pdc_client_num_g / pdc_server_size_g;
+    nkvtag_per_buf     = ceil(metadata_total_count_g / nclient_per_server);
+
+    if (alloc_size < nclient_per_server) {
+        alloc_size = nclient_per_server;
+        *obj_ids   = (uint64_t *)PDC_realloc(*obj_ids, alloc_size);
+    }
+    *n_meta = nclient_per_server;
+
+    // use obj_ids that will be returned as shm sizes
+    buf_sizes = *obj_ids;
+    memset(buf_sizes, 0, alloc_size * sizeof(uint64_t));
+
+    stime = MPI_Wtime();
+    // Format, obj_id1 | nkvtags | kvtag1 | ... | obj_id2 | ...
+    if (metadata_hash_table_g != NULL) {
+
+        n_entry = hash_table_num_entries(metadata_hash_table_g);
+        if (n_entry  == 0)
+            goto done;
+
+        hash_table_iterate(metadata_hash_table_g, &hash_table_iter);
+
+        tmp_buf = malloc(tmp_buf_alloc_size);
+
+        // iterate over hash table entry
+        while (hash_table_iter_has_more(&hash_table_iter)) {
+            pair = hash_table_iter_next(&hash_table_iter);
+            head = pair.value;
+            // iterate over each metadata obj, one hash table entry may have multiple obj
+            DL_FOREACH(head->metadata, elt)
+            {
+                if (elt->kvtag_list_head) {
+                    count   = 0;
+                    DL_COUNT(elt->kvtag_list_head, kvtag_list_elt, count);
+                    memcpy(tmp_buf + offset, &elt->obj_id, sizeof(uint64_t));
+                    offset += sizeof(uint64_t);
+                    memcpy(tmp_buf + offset, &count, sizeof(int));
+                    offset += sizeof(int);
+
+                    // iterate over each kv pair of current obj
+                    DL_FOREACH(elt->kvtag_list_head, kvtag_list_elt)
+                    {
+                        while (tmp_buf_alloc_size < offset + 1024 + kvtag_list_elt->kvtag->size) {
+                            tmp_buf_alloc_size *= 2;
+                            tmp_buf = realloc(tmp_buf, tmp_buf_alloc_size);
+                        }
+
+                        key_len = strlen(kvtag_list_elt->kvtag->name) + 1;
+                        memcpy(tmp_buf + offset, &key_len, sizeof(int));
+                        offset += sizeof(int);
+                        memcpy(tmp_buf + offset, kvtag_list_elt->kvtag->name, key_len);
+                        offset += key_len;
+                        memcpy(tmp_buf + offset, &kvtag_list_elt->kvtag->size, sizeof(uint32_t));
+                        offset += sizeof(uint32_t);
+                        memcpy(tmp_buf + offset, &kvtag_list_elt->kvtag->type, sizeof(int8_t));
+                        offset += sizeof(uint8_t);
+                        memcpy(tmp_buf + offset, kvtag_list_elt->kvtag->value, kvtag_list_elt->kvtag->size);
+                        offset += kvtag_list_elt->kvtag->size;
+
+                        nkvtag_in_buf++;
+                    } // End for each kvtag in list
+
+                } // End if obj has kv tag
+            }     // End for each metadata from hash table entry
+
+            if (nkvtag_in_buf >= nkvtag_per_buf) {
+                // Create a shm
+                snprintf(shm_name, 64, "meta_shm.%d.%d", pdc_server_rank_g, buf_i);
+                bufs[buf_i] = PDC_Server_create_shm(shm_name, offset);
+                memcpy(bufs[buf_i], tmp_buf, offset);
+                buf_sizes[buf_i] = offset;
+                offset = 0;
+                buf_i++;
+                nkvtag_in_buf = 0;
+            }
+
+        } // End looping metadata hash table
+
+        if (nkvtag_in_buf > 0) {
+            // Create a shm
+            snprintf(shm_name, 64, "meta_shm.%d.%d", pdc_server_rank_g, buf_i);
+            bufs[buf_i] = PDC_Server_create_shm(shm_name, offset);
+
+            memcpy(bufs[buf_i], tmp_buf, offset);
+            buf_sizes[buf_i] = offset;
+            offset = 0;
+        }
+
+    } // if (metadata_hash_table_g != NULL)
+    else {
+        printf("==PDC_SERVER: metadata_hash_table_g not initialized!\n");
+        ret_value = FAIL;
+    }
+    duration = MPI_Wtime() - stime;
+    printf("==PDC_SERVER[%d]: total serialization took %f s\n", pdc_server_rank_g, duration);
 
 done:
     return ret_value;
@@ -2053,10 +2200,18 @@ PDC_Server_get_kvtag_query_result(pdc_kvtag_t *in /*FIXME: query input should be
             goto done;
         }
     } // End if SQLite3
-    else if (use_shm_meta_query_g) {
-        ret_value = PDC_Server_seralize_kvtag_someta_to_shm(n_meta, obj_ids, alloc_size);
+    else if (use_shm_meta_query_bulki_g) {
+        ret_value = PDC_Server_seralize_kvtag_someta_to_shm_bulki(n_meta, obj_ids, alloc_size);
         if (ret_value != SUCCEED) {
-            printf("==PDC_SERVER[%d]: Error with PDC_Server_seralize_kvtag_someta_to_shm!\n",
+            printf("==PDC_SERVER[%d]: Error with PDC_Server_seralize_kvtag_someta_to_shm_bulki!\n",
+                   pdc_server_rank_g);
+            goto done;
+        }
+    }
+    else if (use_shm_meta_query_binary_g) {
+        ret_value = PDC_Server_seralize_kvtag_someta_to_shm_binary(n_meta, obj_ids, alloc_size);
+        if (ret_value != SUCCEED) {
+            printf("==PDC_SERVER[%d]: Error with PDC_Server_seralize_kvtag_someta_to_shm_binary!\n",
                    pdc_server_rank_g);
             goto done;
         }

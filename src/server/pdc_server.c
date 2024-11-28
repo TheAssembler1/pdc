@@ -144,7 +144,8 @@ int               gen_fastbit_idx_g            = 0;
 int               use_fastbit_idx_g            = 0;
 int               use_rocksdb_g                = 0;
 int               use_sqlite3_g                = 0;
-int               use_shm_meta_query_g         = 0;
+int               use_shm_meta_query_bulki_g   = 0;
+int               use_shm_meta_query_binary_g  = 0;
 char *            gBinningOption               = NULL;
 
 double server_write_time_g                  = 0.0;
@@ -1236,6 +1237,7 @@ PDC_Server_checkpoint()
     uint64_t          checkpoint_size;
     bool              use_tmpfs = false;
     FILE *            file;
+    int               total_kvtags = 0;
 
     FUNC_ENTER(NULL);
 
@@ -1323,6 +1325,7 @@ PDC_Server_checkpoint()
                 fwrite(&kvlist_elt->kvtag->size, sizeof(uint32_t), 1, file);
                 fwrite(&kvlist_elt->kvtag->type, sizeof(int8_t), 1, file);
                 fwrite(kvlist_elt->kvtag->value, kvlist_elt->kvtag->size, 1, file);
+                total_kvtags++;
             }
 
             // Write region info
@@ -1422,8 +1425,8 @@ PDC_Server_checkpoint()
 #endif
 
 #ifdef PDC_TIMING
-    printf("==PDC_SERVER[%4d]: checkpointed %10d objects, with %10d regions, took %7.2fs\n",
-           pdc_server_rank_g, metadata_size, region_count, checkpoint_time_rank);
+    printf("==PDC_SERVER[%4d]: checkpointed %10d objects, with %10d regions, %d kvtags took %7.2fs\n",
+           pdc_server_rank_g, metadata_size, region_count, total_kvtags, checkpoint_time_rank);
 
     gettimeofday(&pdc_timer_end, 0);
     checkpoint_time = PDC_get_elapsed_time_double(&pdc_timer_start, &pdc_timer_end);
@@ -2185,11 +2188,18 @@ PDC_Server_get_env()
             printf("==PDC_SERVER[%d]: using SQLite3 for kvtag\n", pdc_server_rank_g);
     }
 
-    tmp_env_char = getenv("PDC_USE_SHM_META_QUERY");
+    tmp_env_char = getenv("PDC_USE_SHM_META_QUERY_BULKI");
     if (tmp_env_char != NULL && strcmp(tmp_env_char, "1") == 0) {
-        use_shm_meta_query_g = 1;
+        use_shm_meta_query_bulki_g = 1;
         if (pdc_server_rank_g == 0)
-            printf("==PDC_SERVER[%d]: using shm for kvtag query\n", pdc_server_rank_g);
+            printf("==PDC_SERVER[%d]: using shm with BULKI for kvtag query\n", pdc_server_rank_g);
+    }
+
+    tmp_env_char = getenv("PDC_USE_SHM_META_QUERY_BINARY");
+    if (tmp_env_char != NULL && strcmp(tmp_env_char, "1") == 0) {
+        use_shm_meta_query_binary_g = 1;
+        if (pdc_server_rank_g == 0)
+            printf("==PDC_SERVER[%d]: using shm with binary for kvtag query\n", pdc_server_rank_g);
     }
 
     if (pdc_server_rank_g == 0) {

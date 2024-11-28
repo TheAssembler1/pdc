@@ -6964,13 +6964,13 @@ PDC_is_matching_kvtag(const pdc_kvtag_t *in, pdc_kvtag_t *kvtag)
     }
     else { // FIXME: for all numeric types, we use memcmp to compare, for exact value query, but we also
            // have to support range query.
-        uint64_t *out;
-        uint64_t  out_len;
-        parse_and_run_number_value_query(in->value, in->type, &soMetaNumQueryActions, kvtag, &out_len,
-                                         (void **)&out);
-        return (pbool_t)out[0];
-        // if (memcmp(in->value, kvtag->value, in->size) != 0)
-        //     return FALSE;
+        /* uint64_t *out; */
+        /* uint64_t  out_len; */
+        /* parse_and_run_number_value_query(in->value, in->type, &soMetaNumQueryActions, kvtag, &out_len, */
+        /*                                  (void **)&out); */
+        /* return (pbool_t)out[0]; */
+        if (memcmp(in->value, kvtag->value, in->size) != 0)
+            return FALSE;
     }
 
     FUNC_LEAVE(ret_value);

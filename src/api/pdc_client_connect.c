@@ -197,8 +197,12 @@ static uint64_t  object_selection_query_counter_g = 0;
 static pthread_t hg_progress_tid_g;
 static int       hg_progress_flag_g     = -1; // -1 thread unintialized, 0 thread created, 1 terminate thread
 static int       hg_progress_task_cnt_g = 0;
-static int       use_shm_meta_query_g   = 0;
+static int       use_shm_meta_query_bulki_g = 0;
+static int       use_shm_meta_query_binary_g = 0;
 BULKI *          deserializedBulki_g    = NULL;
+void *           deserializedBinary_g   = NULL;
+static int       use_shm_meta_flag_g    = 0;
+static size_t    shm_meta_query_size_g    = 0;
 
 /*
  *
@@ -1656,11 +1660,13 @@ PDC_Client_init()
     if (pdc_nclient_per_server_g <= 0)
         pdc_nclient_per_server_g = 1;
 
-    tmp_dir = getenv("PDC_USE_SHM_META_QUERY");
+    tmp_dir = getenv("PDC_USE_SHM_META_QUERY_BULKI");
     if (tmp_dir != NULL && strcmp(tmp_dir, "1") == 0)
-        use_shm_meta_query_g = 1;
-    else
-        use_shm_meta_query_g = 0;
+        use_shm_meta_query_bulki_g = 1;
+
+    tmp_dir = getenv("PDC_USE_SHM_META_QUERY_BINARY");
+    if (tmp_dir != NULL && strcmp(tmp_dir, "1") == 0)
+        use_shm_meta_query_binary_g = 1;
 
     PDC_set_execution_locus(CLIENT_MEMORY);
 
@@ -7338,12 +7344,14 @@ PDC_add_kvtag(pdcid_t obj_id, pdc_kvtag_t *kvtag, int is_cont)
 
     FUNC_ENTER(NULL);
 
-    if (use_shm_meta_query_g) {
+    if (use_shm_meta_query_bulki_g || use_shm_meta_query_binary_g) {
         // Invalidate the cached metadata snapshot
         if (deserializedBulki_g) {
             BULKI_free(deserializedBulki_g, 1);
             deserializedBulki_g = NULL;
         }
+        use_shm_meta_flag_g = 0;
+        deserializedBinary_g = NULL;
     }
 
     if (is_cont == 0) {
@@ -7756,12 +7764,14 @@ PDCtag_delete(pdcid_t obj_id, char *tag_name, int is_cont)
     struct _pdc_client_lookup_args lookup_args;
 
     FUNC_ENTER(NULL);
-    if (use_shm_meta_query_g) {
+    if (use_shm_meta_query_bulki_g || use_shm_meta_query_binary_g) {
         // Invalidate the cached metadata snapshot
         if (deserializedBulki_g) {
             BULKI_free(deserializedBulki_g, 1);
             deserializedBulki_g = NULL;
         }
+        use_shm_meta_flag_g = 0;
+        deserializedBinary_g = NULL;
     }
 
     if (is_cont) {
@@ -9392,13 +9402,15 @@ PDC_Client_query_kvtag_mpi(const pdc_kvtag_t *kvtag, int *n_res, uint64_t **pdc_
 {
     int         local_increment = 1, comm_size, server_rank, shm_fd;
     perr_t      ret_value       = SUCCEED;
-    int         i, query_sent = 0, nshm, iter = 0;
+    int         i, query_sent = 0, nshm, iter = 0, has_data = 0, ntags, keylen;
     double      stime = 0.0, duration = 0.0;
+    double      search_time = 0.0, search_duration = 0.0;
     char        shm_name[64];
     void *      buf;
-    uint64_t *  shm_sizes = NULL, shm_size, pdc_id = 0;
+    uint64_t *  shm_sizes = NULL, pdc_id = 0;
     pdc_kvtag_t query_tag;
     uint32_t    alloc_size = 128;
+    size_t      offset = 0;
 
     FUNC_ENTER(NULL);
 
@@ -9413,78 +9425,155 @@ PDC_Client_query_kvtag_mpi(const pdc_kvtag_t *kvtag, int *n_res, uint64_t **pdc_
     MPI_Scan(&local_increment, &object_selection_query_counter_g, 1, MPI_INT, MPI_SUM, world_comm);
     stime = MPI_Wtime();
 
-    if (use_shm_meta_query_g) {
+    // Use shm for kvtag query
+    if (use_shm_meta_query_bulki_g || use_shm_meta_query_binary_g) {
         *pdc_ids = (void *)calloc(alloc_size, sizeof(uint64_t));
 
         // Only retrieve the metadata snapshot once
         // TODO: if metadata is changed, need to invalidate the cached snapshot and retrieve a new one
-        if (deserializedBulki_g == NULL) {
+        if (use_shm_meta_flag_g == 0) {
             server_rank = pdc_client_mpi_rank_g / (pdc_client_mpi_size_g / pdc_server_num_g);
             // Send one request to each server at the same time
-            if (pdc_client_same_node_rank_g == 0)
+            if (pdc_client_same_node_rank_g == 0) {
+                // Debug
+                /* printf("==PDC_CLIENT[%d]: sending shm request to server %d!\n", */ 
+                /*         pdc_client_mpi_rank_g, server_rank); */
                 ret_value = PDC_Client_query_kvtag_server(server_rank, kvtag, &nshm, &shm_sizes);
-
-            MPI_Scatter(shm_sizes, 1, MPI_UINT64_T, &shm_size, 1, MPI_UINT64_T, 0, PDC_SAME_NODE_COMM_g);
-
-            /* printf("==PDC_CLIENT[%d]: recv server %d shm size %llu\n", pdc_client_mpi_rank_g, server_rank,
-             * shm_size); */
-
-            // Open shared memory and map to data buf
-            snprintf(shm_name, 64, "meta_shm.%d.%d", server_rank, pdc_client_same_node_rank_g);
-            shm_fd = shm_open(shm_name, O_RDONLY, 0666);
-            if (shm_fd == -1) {
-                printf("==PDC_CLIENT[%d]: %s - Shared memory open failed [%s]!\n", pdc_client_mpi_rank_g,
-                       __func__, shm_name);
-                ret_value = FAIL;
-                goto done;
+                // Debug
+                /* printf("==PDC_CLIENT[%d]: recv shm request from server %d: %d!\n", */ 
+                /*         pdc_client_mpi_rank_g, server_rank, nshm); */
             }
 
-            buf = mmap(0, shm_size, PROT_READ, MAP_SHARED, shm_fd, 0);
-            if (buf == MAP_FAILED) {
-                printf("==PDC_CLIENT[%d]: %s - Shared memory map failed [%s]!\n", pdc_client_mpi_rank_g,
-                       __func__, shm_name);
-                ret_value = FAIL;
-                goto done;
+            // Debug
+            /* printf("==PDC_CLIENT[%d]: before scatter to all node local ranks, nshm %d\n", */ 
+            /*         pdc_client_mpi_rank_g, nshm); */
+
+            MPI_Scatter(shm_sizes, 1, MPI_UINT64_T, &shm_meta_query_size_g, 1, MPI_UINT64_T, 0, PDC_SAME_NODE_COMM_g);
+
+            // Debug
+            /* printf("==PDC_CLIENT[%d]: recv server %d shm size %llu\n", */ 
+            /*         pdc_client_mpi_rank_g, server_rank, shm_meta_query_size_g); */
+
+            if (shm_meta_query_size_g > 0) {
+                // Open shared memory and map to data buf
+                snprintf(shm_name, 64, "meta_shm.%d.%d", server_rank, pdc_client_same_node_rank_g);
+
+                shm_fd = shm_open(shm_name, O_RDONLY, 0666);
+                if (shm_fd == -1) {
+                    printf("==PDC_CLIENT[%d]: %s - Shared memory open failed [%s]!\n", pdc_client_mpi_rank_g,
+                           __func__, shm_name);
+                    ret_value = FAIL;
+                    goto done;
+                }
+
+                buf = mmap(0, shm_meta_query_size_g, PROT_READ, MAP_SHARED, shm_fd, 0);
+                if (buf == MAP_FAILED) {
+                    printf("==PDC_CLIENT[%d]: %s - Shared memory map failed [%s]!\n", pdc_client_mpi_rank_g,
+                           __func__, shm_name);
+                    ret_value = FAIL;
+                    goto done;
+                }
+                if (use_shm_meta_query_bulki_g)
+                    deserializedBulki_g = BULKI_deserialize(buf);
+                else if (use_shm_meta_query_binary_g)
+                    deserializedBinary_g = buf;
+                
+                has_data = 1;
+                use_shm_meta_flag_g = 1;
             }
+            else {
+                // Server does not have any metadata to assign to this rank
+                use_shm_meta_flag_g = -1;
+            }
+        } // End if use_shm_meta_flag_g == 0
+        /* else { */
+        /*     // Debug */
+        /*     printf("==PDC_CLIENT[%d]: reuse previously obtained shm!\n", pdc_client_mpi_rank_g, __func__); */
+        /* } */
 
-            deserializedBulki_g = BULKI_deserialize(buf);
-        }
+        search_time = MPI_Wtime();
+        iter = 0;
+        if (use_shm_meta_flag_g == 1 ) {
+            if (use_shm_meta_query_bulki_g == 1) {
+                BULKI_KV_Pair_Iterator *bulki_iter = BULKI_KV_Pair_iterator_init(deserializedBulki_g);
+                BULKI_KV_Pair *         obj_kv, *tag_kv;
+                BULKI *                 tag_bulki;
+                // Iterate and get query result
+                while (NULL != (obj_kv = BULKI_KV_Pair_iterator_next(bulki_iter))) {
 
-        BULKI_KV_Pair_Iterator *bulki_iter = BULKI_KV_Pair_iterator_init(deserializedBulki_g);
-        BULKI_KV_Pair *         obj_kv, *tag_kv;
-        BULKI *                 tag_bulki;
-        // Iterate and get query result
-        while (NULL != (obj_kv = BULKI_KV_Pair_iterator_next(bulki_iter))) {
+                    pdc_id = *((uint64_t *)obj_kv->key.data);
+                    /* printf("id: [%llu]\n", pdc_id); */
 
-            pdc_id = *((uint64_t *)obj_kv->key.data);
-            /* printf("id: [%llu]\n", pdc_id); */
+                    BULKI_Entity_Iterator *bent_iter = Bent_iterator_init(&obj_kv->value, NULL, PDC_BULKI);
+                    while (NULL != (tag_bulki = Bent_iterator_next_BULKI(bent_iter))) {
 
-            BULKI_Entity_Iterator *bent_iter = Bent_iterator_init(&obj_kv->value, NULL, PDC_BULKI);
-            while (NULL != (tag_bulki = Bent_iterator_next_BULKI(bent_iter))) {
+                        BULKI_KV_Pair_Iterator *tag_iter = BULKI_KV_Pair_iterator_init(tag_bulki);
+                        while (NULL != (tag_kv = BULKI_KV_Pair_iterator_next(tag_iter))) {
 
-                BULKI_KV_Pair_Iterator *tag_iter = BULKI_KV_Pair_iterator_init(tag_bulki);
-                while (NULL != (tag_kv = BULKI_KV_Pair_iterator_next(tag_iter))) {
+                            query_tag.type = tag_kv->value.pdc_type;
+                            if (query_tag.type == kvtag->type) {
+                                query_tag.name  = (char *)tag_kv->key.data;
+                                query_tag.value = (void *)tag_kv->value.data;
+                                query_tag.size  = tag_kv->value.size;
+                                /* printf("value: %d\n", *((int*)tag_kv->value.data)); */
+                                if (PDC_is_matching_kvtag(kvtag, &query_tag) == TRUE) {
+                                    if (iter >= alloc_size) {
+                                        alloc_size *= 2;
+                                        *pdc_ids = (void *)realloc(*pdc_ids, alloc_size * sizeof(uint64_t));
+                                    }
+                                    (*pdc_ids)[iter++] = pdc_id;
+                                    /* printf("Found match %s:%d\n", query_tag.name, *(int*)query_tag.value); */
+                                }
+                            } // End if same type
+                        }     // End tag while
+                    }
+                } // End obj while
+                *n_res = iter;
+                // Debug
+                /* printf("==PDC_CLIENT[%d]: found %d tags from shm!\n", pdc_client_mpi_rank_g, iter); */
+            } // end if use_shm_meta_query_bulki_g
+            else if (use_shm_meta_query_binary_g == 1) {
+                while (offset < shm_meta_query_size_g) {
+                    pdc_id = *((uint64_t *)(deserializedBinary_g+offset));
+                    offset += sizeof(uint64_t);
+                    ntags = *((int *)(deserializedBinary_g+offset));
+                    offset += sizeof(int);
+                    for (i = 0; i < ntags; i++) {
+                        keylen= *((int *)(deserializedBinary_g+offset));
+                        offset += sizeof(int);
+                        query_tag.name  = (char *)(deserializedBinary_g+offset);
+                        offset += keylen;
+                        query_tag.size  = *((uint32_t*)(deserializedBinary_g+offset));
+                        offset += sizeof(uint32_t);
+                        query_tag.type = *((uint8_t*)(deserializedBinary_g+offset));
+                        offset += sizeof(uint8_t);
+                        query_tag.value = (void *)(deserializedBinary_g+offset);
+                        offset += query_tag.size;
 
-                    query_tag.type = tag_kv->value.pdc_type;
-                    if (query_tag.type == kvtag->type) {
-                        query_tag.name  = (char *)tag_kv->key.data;
-                        query_tag.value = (void *)tag_kv->value.data;
-                        query_tag.size  = tag_kv->value.size;
-                        /* printf("value: %d\n", *((int*)tag_kv->value.data)); */
                         if (PDC_is_matching_kvtag(kvtag, &query_tag) == TRUE) {
                             if (iter >= alloc_size) {
                                 alloc_size *= 2;
                                 *pdc_ids = (void *)realloc(*pdc_ids, alloc_size * sizeof(uint64_t));
                             }
                             (*pdc_ids)[iter++] = pdc_id;
-                            /* printf("Found match %s:%d\n", query_tag.name, *(int*)query_tag.value); */
                         }
-                    } // End if same type
-                }     // End tag while
-            }
-        } // End obj while
-        *n_res = iter;
-    }
+                    } // End for ntags
+                } // End while
+                *n_res = iter;
+            } // End use_shm_meta_query_binary_g
+
+        } // End if has data in shm
+        else
+            *n_res = 0;
+
+        search_duration = MPI_Wtime() - search_time;
+
+        // Print time in a few ranks
+        if (pdc_client_mpi_rank_g % 32 == 0) {
+            printf("==PDC_CLIENT[%d]: found %d tags from shm, took %f ms\n", 
+                    pdc_client_mpi_rank_g, iter, search_duration * 1000.0);
+        }
+    } // End use shm
     else {
         ret_value = PDC_Client_query_kvtag_col(kvtag, n_res, pdc_ids, &query_sent);
     }
@@ -9501,13 +9590,13 @@ PDC_Client_query_kvtag_mpi(const pdc_kvtag_t *kvtag, int *n_res, uint64_t **pdc_
         *n_res   = 0;
         *pdc_ids = NULL;
     }
-    else {
+    // else {
         // print the pdc ids returned by this client, along with the client id
         // printf("==PDC_CLIENT == COLLECTIVE [%d]: ", pdc_client_mpi_rank_g);
         // for (i = 0; i < *n_res; i++)
         //     printf("%llu ", (*pdc_ids)[i]);
         // printf("\n");
-    }
+    // }
 
     if (pdc_client_mpi_size_g == 1) {
         goto done;
@@ -9525,34 +9614,38 @@ PDC_Client_query_kvtag_mpi(const pdc_kvtag_t *kvtag, int *n_res, uint64_t **pdc_
     }
 
     // deducplicating result with a Set.
-    Set *result_set = set_new(ui64_hash, ui64_equal);
-    set_register_free_function(result_set, free);
-    for (i = 0; i < *n_res; i++) {
-        uint64_t *id = (uint64_t *)malloc(sizeof(uint64_t));
-        *id          = (*pdc_ids)[i];
-        set_insert(result_set, id);
-    }
-    free(*pdc_ids);
-    // Pick deduplicated result.
-    *n_res = set_num_entries(result_set);
-    // println("num_ids = %d", num_ids);
     if (*n_res > 0) {
+        Set *result_set = set_new(ui64_hash, ui64_equal);
+        set_register_free_function(result_set, free);
+        for (i = 0; i < *n_res; i++) {
+            uint64_t *id = (uint64_t *)malloc(sizeof(uint64_t));
+            *id          = (*pdc_ids)[i];
+            set_insert(result_set, id);
+        }
+        free(*pdc_ids);
+        // Pick deduplicated result.
+        *n_res = set_num_entries(result_set);
+
+        // println("num_ids = %d", num_ids);
         *pdc_ids           = (uint64_t *)calloc(*n_res, sizeof(uint64_t));
         uint64_t **set_arr = (uint64_t **)set_to_array(result_set);
         for (i = 0; i < *n_res; i++) {
             (*pdc_ids)[i] = set_arr[i][0];
         }
         free(set_arr);
+        set_free(result_set);
     }
-    set_free(result_set);
 
     // print the pdc ids returned after gathering all the results
-    if (pdc_client_mpi_rank_g == 0) {
+    // if (pdc_client_mpi_rank_g == 0) {
         // printf("==PDC_CLIENT == GATHERED [%d]: ", pdc_client_mpi_rank_g);
         // for (i = 0; i < *n_res; i++)
         //     printf("%llu ", (*pdc_ids)[i]);
         // printf("\n");
-    }
+    // }
+
+    // Debug
+    /* printf("==PDC_CLIENT[%d]: done with query\n", pdc_client_mpi_rank_g); */
 
 done:
     fflush(stdout);
