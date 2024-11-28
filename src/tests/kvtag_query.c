@@ -160,7 +160,7 @@ main(int argc, char *argv[])
     for (i = 0; i < my_add_tag; i++) {
         /* for (iter = 0; iter < round; iter++) { */
         for (iter = 0; iter < 2000; iter++) {
-            sprintf(tag_name, "%s_%d", attr_name_per_rank, iter); 
+            sprintf(tag_name, "%s_%d", attr_name_per_rank, iter);
             v = iter;
             if (is_using_dart) {
                 sprintf(value, "%d", v);
@@ -201,7 +201,7 @@ main(int argc, char *argv[])
 
     for (iter = 0; iter < round; iter++) {
         v = iter;
-        sprintf(tag_name, "%s_%d", attr_name_per_rank, iter); 
+        sprintf(tag_name, "%s_%d", attr_name_per_rank, iter);
 #ifdef ENABLE_MPI
         stime1 = MPI_Wtime();
 #endif

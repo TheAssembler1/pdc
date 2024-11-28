@@ -1972,11 +1972,11 @@ PDC_Server_seralize_kvtag_someta_to_shm_bulki(uint32_t *n_meta, uint64_t **obj_i
                 snprintf(shm_name, 64, "meta_shm.%d.%d", pdc_server_rank_g, buf_i);
                 bufs[buf_i] = PDC_Server_create_shm(shm_name, bulki_size);
                 // Serialize the data to shm after the current one reached limit
-                offset           = 0;
+                offset = 0;
 
-                ser_time = MPI_Wtime();
-                bufs[buf_i]      = BULKI_serialize_to_buffer(bulki, bufs[buf_i], &offset);
-                duration = MPI_Wtime() - ser_time;
+                ser_time    = MPI_Wtime();
+                bufs[buf_i] = BULKI_serialize_to_buffer(bulki, bufs[buf_i], &offset);
+                duration    = MPI_Wtime() - ser_time;
                 printf("==PDC_SERVER[%d]: BULKI serialize took %f s\n", pdc_server_rank_g, duration);
 
                 buf_sizes[buf_i] = bulki_size;
@@ -1994,11 +1994,11 @@ PDC_Server_seralize_kvtag_someta_to_shm_bulki(uint32_t *n_meta, uint64_t **obj_i
             snprintf(shm_name, 64, "meta_shm.%d.%d", pdc_server_rank_g, buf_i);
             bufs[buf_i] = PDC_Server_create_shm(shm_name, bulki_size);
             // Serialize the data to shm after the current one reached limit
-            offset           = 0;
+            offset = 0;
 
-            ser_time = MPI_Wtime();
-            bufs[buf_i]      = BULKI_serialize_to_buffer(bulki, bufs[buf_i], &offset);
-            duration = MPI_Wtime() - ser_time;
+            ser_time    = MPI_Wtime();
+            bufs[buf_i] = BULKI_serialize_to_buffer(bulki, bufs[buf_i], &offset);
+            duration    = MPI_Wtime() - ser_time;
             printf("==PDC_SERVER[%d]: BULKI serialize took %f s\n", pdc_server_rank_g, duration);
 
             buf_sizes[buf_i] = bulki_size;
@@ -2043,7 +2043,7 @@ PDC_Server_seralize_kvtag_someta_to_shm_binary(uint32_t *n_meta, uint64_t **obj_
     int                        nclient_per_server, i, key_len;
     HashTablePair              pair;
     void *                     bufs[256];
-    uint64_t                   *buf_sizes, tmp_buf_alloc_size = 1048576;
+    uint64_t *                 buf_sizes, tmp_buf_alloc_size = 1048576;
     char                       shm_name[64];
     size_t                     offset = 0;
     double                     stime, duration, ser_time;
@@ -2079,7 +2079,7 @@ PDC_Server_seralize_kvtag_someta_to_shm_binary(uint32_t *n_meta, uint64_t **obj_
     if (metadata_hash_table_g != NULL) {
 
         n_entry = hash_table_num_entries(metadata_hash_table_g);
-        if (n_entry  == 0)
+        if (n_entry == 0)
             goto done;
 
         hash_table_iterate(metadata_hash_table_g, &hash_table_iter);
@@ -2094,7 +2094,7 @@ PDC_Server_seralize_kvtag_someta_to_shm_binary(uint32_t *n_meta, uint64_t **obj_
             DL_FOREACH(head->metadata, elt)
             {
                 if (elt->kvtag_list_head) {
-                    count   = 0;
+                    count = 0;
                     DL_COUNT(elt->kvtag_list_head, kvtag_list_elt, count);
                     memcpy(tmp_buf + offset, &elt->obj_id, sizeof(uint64_t));
                     offset += sizeof(uint64_t);
@@ -2133,7 +2133,7 @@ PDC_Server_seralize_kvtag_someta_to_shm_binary(uint32_t *n_meta, uint64_t **obj_
                 bufs[buf_i] = PDC_Server_create_shm(shm_name, offset);
                 memcpy(bufs[buf_i], tmp_buf, offset);
                 buf_sizes[buf_i] = offset;
-                offset = 0;
+                offset           = 0;
                 buf_i++;
                 nkvtag_in_buf = 0;
             }
@@ -2147,7 +2147,7 @@ PDC_Server_seralize_kvtag_someta_to_shm_binary(uint32_t *n_meta, uint64_t **obj_
 
             memcpy(bufs[buf_i], tmp_buf, offset);
             buf_sizes[buf_i] = offset;
-            offset = 0;
+            offset           = 0;
         }
 
     } // if (metadata_hash_table_g != NULL)
