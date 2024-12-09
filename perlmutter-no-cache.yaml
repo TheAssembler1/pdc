@@ -1,4 +1,5 @@
 name: NERSC / Perlmutter (no cache)
+
 on:
   push:
   workflow_dispatch:
@@ -9,6 +10,7 @@ env:
   GOOGLE_CREDENTIALS: "${{ secrets.GOOGLE_CREDENTIALS }}"
   GOOGLE_SPREADSHEET_ID: "${{ secrets.GOOGLE_SPREADSHEET_ID }}"
   PDC_PROJECT: "${{ secrets.NERSC_PERLMUTTER_PROJECT }}"
+
 jobs:
   perlmutter-no-cache-build:
     runs-on:
