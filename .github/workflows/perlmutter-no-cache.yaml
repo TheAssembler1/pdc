@@ -20,16 +20,14 @@ jobs:
     env:
       PDC_BUILD_PATH: "${{ github.workspace }}/build"
       PDC_INSTALL_PATH: "${{ github.workspace }}/install"
-      SCHEDULER_PARAMETERS: "-A ${PDC_PROJECT} --qos=debug --constraint=cpu --tasks-per-node=64 -N 1 -t 00:30:00"
-      MERCURY_DIR: "/global/cfs/cdirs/${PDC_PROJECT}/pdc-perlmutter/mercury/install"
+      SCHEDULER_PARAMETERS: "-A ${{ env.PDC_PROJECT }} --qos=debug --constraint=cpu --tasks-per-node=64 -N 1 -t 00:30:00"
+      MERCURY_DIR: "/global/cfs/cdirs/${{ env.PDC_PROJECT }}/pdc-perlmutter/mercury/install"
     steps:
     - uses: actions/checkout@v4.1.0
       with:
         fetch-depth: 20
         lfs: true
     - run: |
-        echo "PDC_PROJECT = $PDC_PROJECT"
-        echo "MERCURY_DIR = $MERCURY_DIR"
         module load libfabric
         module list
         mkdir -p ${PDC_BUILD_PATH}/perlmutter/no-cache
