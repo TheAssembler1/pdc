@@ -45,7 +45,8 @@ jobs:
           ${{ github.workspace }}/${{ github.run_id }}
 
   parallel-pdc:
-    needs: build
+    needs:
+    - no-cache
     runs-on:
       - self-hosted
       - perlmutter
