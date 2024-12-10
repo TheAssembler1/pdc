@@ -28,13 +28,14 @@ jobs:
       with:
         fetch-depth: 20
         lfs: true
-    - run: module load libfabric
-    - run: module list
-    - run: mkdir -p ${PDC_BUILD_PATH}/perlmutter/no-cache
-    - run: cd ${PDC_BUILD_PATH}/perlmutter/no-cache
-    - run: cmake ../../.. -DBUILD_MPI_TESTING=ON -DBUILD_SHARED_LIBS=ON -DPDC_SERVER_CACHE=OFF -DBUILD_TESTING=ON -DCMAKE_INSTALL_PREFIX=$PDC_DIR -DPDC_ENABLE_MPI=ON -DMERCURY_DIR=$MERCURY_DIR -DCMAKE_C_COMPILER=cc -DMPI_RUN_CMD="srun -A ${PDC_PROJECT} --qos=debug --constraint=cpu --tasks-per-node=64" -DCMAKE_INSTALL_PREFIX=${PDC_INSTALL_PATH}/perlmutter/no-cache
-    - run: make -j
-    - run: make install
+    - run: |
+        module load libfabric
+        module list
+        mkdir -p ${PDC_BUILD_PATH}/perlmutter/no-cache
+        cd ${PDC_BUILD_PATH}/perlmutter/no-cache
+        cmake ../../.. -DBUILD_MPI_TESTING=ON -DBUILD_SHARED_LIBS=ON -DPDC_SERVER_CACHE=OFF -DBUILD_TESTING=ON -DCMAKE_INSTALL_PREFIX=$PDC_DIR -DPDC_ENABLE_MPI=ON -DMERCURY_DIR=$MERCURY_DIR -DCMAKE_C_COMPILER=cc -DMPI_RUN_CMD="srun -A ${PDC_PROJECT} --qos=debug --constraint=cpu --tasks-per-node=64" -DCMAKE_INSTALL_PREFIX=${PDC_INSTALL_PATH}/perlmutter/no-cache
+        make -j
+        make install
     - uses: actions/upload-artifact@v4.1.0
       if: success()
       with:
