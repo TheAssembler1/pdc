@@ -63,8 +63,9 @@ jobs:
         fetch-depth: 20
         lfs: true
     - uses: actions/download-artifact@v4.1.0
-      path: |
-        ${{ github.workspace }}/${{ github.run_id }}
+      with:
+        path: |
+          ${{ github.workspace }}/${{ github.run_id }}
     - run: |
         export LD_LIBRARY_PATH="$MERCURY_DIR/lib:$LD_LIBRARY_PATH"
         cd ${PDC_BUILD_PATH}/no-cache
