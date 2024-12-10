@@ -31,9 +31,9 @@ jobs:
         echo "MERCURY_DIR = $MERCURY_DIR"
         module load libfabric
         module list
-        mkdir -p ${PDC_BUILD_PATH}/build
+        mkdir -p ${PDC_BUILD_PATH}/build ${PDC_BUILD_PATH}/install
         cd ${PDC_BUILD_PATH}/build
-        cmake ../.. -DBUILD_MPI_TESTING=ON -DBUILD_SHARED_LIBS=ON -DPDC_SERVER_CACHE=OFF -DBUILD_TESTING=ON -DCMAKE_INSTALL_PREFIX=$PDC_DIR -DPDC_ENABLE_MPI=ON -DMERCURY_DIR=$MERCURY_DIR -DCMAKE_C_COMPILER=cc -DMPI_RUN_CMD="srun -A ${{ secrets.NERSC_PERLMUTTER_PROJECT }} --qos=debug --constraint=cpu --tasks-per-node=64"
+        cmake ../.. -DBUILD_MPI_TESTING=ON -DBUILD_SHARED_LIBS=ON -DPDC_SERVER_CACHE=OFF -DBUILD_TESTING=ON -DCMAKE_INSTALL_PREFIX=${PDC_BUILD_PATH}/install -DPDC_ENABLE_MPI=ON -DMERCURY_DIR=$MERCURY_DIR -DCMAKE_C_COMPILER=cc -DMPI_RUN_CMD="srun -A ${{ secrets.NERSC_PERLMUTTER_PROJECT }} --qos=debug --constraint=cpu --tasks-per-node=64"
         make -j
     - uses: actions/upload-artifact@v4.1.0
       if: success()
@@ -41,6 +41,7 @@ jobs:
         name: "${{ github.job }}"
         path: |
           ${{ github.workspace }}/${{ github.run_id }}/build
+          ${{ github.workspace }}/${{ github.run_id }}/install
 
   parallel-pdc:
     needs:
@@ -61,7 +62,7 @@ jobs:
           ${{ github.workspace }}/${{ github.run_id }}
     - run: |
         export LD_LIBRARY_PATH="$MERCURY_DIR/lib:$LD_LIBRARY_PATH"
-        cd ${PDC_BUILD_PATH}/build
+        cd ${PDC_BUILD_PATH}/install
         ctest -L parallel_pdc
         rm -rf ${PDC_TMPDIR} ${PDC_DATA_LOC}
 
