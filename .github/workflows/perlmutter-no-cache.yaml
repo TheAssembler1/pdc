@@ -17,7 +17,7 @@ env:
   MERCURY_DIR: "/global/cfs/cdirs/${{ secrets.NERSC_PERLMUTTER_PROJECT }}/pdc-perlmutter/mercury/install"
 
 jobs:
-  no-cache:
+  build:
     runs-on:
       - self-hosted
       - perlmutter
@@ -47,7 +47,7 @@ jobs:
 
   parallel-pdc:
     needs:
-    - no-cache
+    - build
     runs-on:
       - self-hosted
       - perlmutter
@@ -64,13 +64,13 @@ jobs:
           ${{ github.workspace }}/${{ github.run_id }}
     - run: |
         export LD_LIBRARY_PATH="$MERCURY_DIR/lib:$LD_LIBRARY_PATH"
-        cd ${PDC_BUILD_PATH}/build
+        cd ${PDC_BUILD_PATH}
         ctest -L parallel_pdc
         rm -rf ${PDC_TMPDIR} ${PDC_DATA_LOC}
 
   parallel-obj:
     needs:
-    - no-cache
+    - build
     - parallel-pdc
     runs-on:
       - self-hosted
@@ -88,7 +88,7 @@ jobs:
           ${{ github.workspace }}/${{ github.run_id }}
     - run: |
         export LD_LIBRARY_PATH="$MERCURY_DIR/lib:$LD_LIBRARY_PATH"
-        cd ${PDC_BUILD_PATH}/build
+        cd ${PDC_BUILD_PATH}
         ctest -L parallel_obj
         rm -rf ${PDC_TMPDIR} ${PDC_DATA_LOC}
 
