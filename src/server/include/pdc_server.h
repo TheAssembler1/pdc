@@ -62,6 +62,7 @@ extern int      use_sqlite3_g;
 #endif
 
 extern int use_shm_meta_query_bulki_g;
+extern int use_shm_meta_query_bulki2_g;
 extern int use_shm_meta_query_binary_g;
 
 #ifdef ENABLE_MULTITHREAD

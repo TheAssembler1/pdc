@@ -198,8 +198,10 @@ static pthread_t hg_progress_tid_g;
 static int       hg_progress_flag_g     = -1; // -1 thread unintialized, 0 thread created, 1 terminate thread
 static int       hg_progress_task_cnt_g = 0;
 static int       use_shm_meta_query_bulki_g  = 0;
+static int       use_shm_meta_query_bulki2_g = 0;
 static int       use_shm_meta_query_binary_g = 0;
 BULKI *          deserializedBulki_g         = NULL;
+BULKI_Entity *   deserializedBulkiEntity_g   = NULL;
 void *           deserializedBinary_g        = NULL;
 static int       use_shm_meta_flag_g         = 0;
 static size_t    shm_meta_query_size_g       = 0;
@@ -1663,6 +1665,10 @@ PDC_Client_init()
     tmp_dir = getenv("PDC_USE_SHM_META_QUERY_BULKI");
     if (tmp_dir != NULL && strcmp(tmp_dir, "1") == 0)
         use_shm_meta_query_bulki_g = 1;
+
+    tmp_dir = getenv("PDC_USE_SHM_META_QUERY_BULKI2");
+    if (tmp_dir != NULL && strcmp(tmp_dir, "1") == 0)
+        use_shm_meta_query_bulki2_g = 1;
 
     tmp_dir = getenv("PDC_USE_SHM_META_QUERY_BINARY");
     if (tmp_dir != NULL && strcmp(tmp_dir, "1") == 0)
@@ -7344,12 +7350,17 @@ PDC_add_kvtag(pdcid_t obj_id, pdc_kvtag_t *kvtag, int is_cont)
 
     FUNC_ENTER(NULL);
 
-    if (use_shm_meta_query_bulki_g || use_shm_meta_query_binary_g) {
+    if (use_shm_meta_query_bulki_g || use_shm_meta_query_binary_g || use_shm_meta_query_bulki2_g) {
         // Invalidate the cached metadata snapshot
         if (deserializedBulki_g) {
             BULKI_free(deserializedBulki_g, 1);
             deserializedBulki_g = NULL;
         }
+        if (deserializedBulkiEntity_g) {
+            BULKI_Entity_free(deserializedBulkiEntity_g, 1);
+            deserializedBulkiEntity_g = NULL;
+        }
+        use_shm_meta_flag_g  = 0;
         use_shm_meta_flag_g  = 0;
         deserializedBinary_g = NULL;
     }
@@ -7764,11 +7775,15 @@ PDCtag_delete(pdcid_t obj_id, char *tag_name, int is_cont)
     struct _pdc_client_lookup_args lookup_args;
 
     FUNC_ENTER(NULL);
-    if (use_shm_meta_query_bulki_g || use_shm_meta_query_binary_g) {
+    if (use_shm_meta_query_bulki_g || use_shm_meta_query_binary_g || use_shm_meta_query_bulki2_g) {
         // Invalidate the cached metadata snapshot
         if (deserializedBulki_g) {
             BULKI_free(deserializedBulki_g, 1);
             deserializedBulki_g = NULL;
+        }
+        if (deserializedBulkiEntity_g) {
+            BULKI_Entity_free(deserializedBulkiEntity_g, 1);
+            deserializedBulkiEntity_g = NULL;
         }
         use_shm_meta_flag_g  = 0;
         deserializedBinary_g = NULL;
@@ -9426,7 +9441,7 @@ PDC_Client_query_kvtag_mpi(const pdc_kvtag_t *kvtag, int *n_res, uint64_t **pdc_
     stime = MPI_Wtime();
 
     // Use shm for kvtag query
-    if (use_shm_meta_query_bulki_g || use_shm_meta_query_binary_g) {
+    if (use_shm_meta_query_bulki_g || use_shm_meta_query_binary_g || use_shm_meta_query_bulki2_g) {
         *pdc_ids = (void *)calloc(alloc_size, sizeof(uint64_t));
 
         // Only retrieve the metadata snapshot once
@@ -9476,6 +9491,10 @@ PDC_Client_query_kvtag_mpi(const pdc_kvtag_t *kvtag, int *n_res, uint64_t **pdc_
                 }
                 if (use_shm_meta_query_bulki_g)
                     deserializedBulki_g = BULKI_deserialize(buf);
+                else if (use_shm_meta_query_bulki2_g) {
+                    offset = 0;
+                    deserializedBulkiEntity_g = BULKI_Entity_deserialize_from_buffer(buf, &offset);
+                }
                 else if (use_shm_meta_query_binary_g)
                     deserializedBinary_g = buf;
 
@@ -9530,6 +9549,39 @@ PDC_Client_query_kvtag_mpi(const pdc_kvtag_t *kvtag, int *n_res, uint64_t **pdc_
                             } // End if same type
                         }     // End tag while
                     }
+                } // End obj while
+                *n_res = iter;
+                // Debug
+                /* printf("==PDC_CLIENT[%d]: found %d tags from shm!\n", pdc_client_mpi_rank_g, iter); */
+            } // end if use_shm_meta_query_bulki_g            
+            else if (use_shm_meta_query_bulki2_g == 1) {
+                BULKI_Entity_Iterator *bent_iter = Bent_iterator_init(deserializedBulkiEntity_g, NULL, 0);
+                BULKI_Entity *bulki_entity;
+
+                // Iterate and get query result
+                while (NULL != (bulki_entity = Bent_iterator_next_Bent(bent_iter))) {
+
+                    pdc_id = *((uint64_t *)bulki_entity->data);
+                    /* printf("id: [%llu]\n", pdc_id); */
+                    bulki_entity = Bent_iterator_next_Bent(bent_iter);
+                    int count = *((int *)bulki_entity->data);
+
+                    while(count--) {
+                        bulki_entity = Bent_iterator_next_Bent(bent_iter);
+                        query_tag.name  = (char *)bulki_entity->data;
+
+                        bulki_entity = Bent_iterator_next_Bent(bent_iter);
+                        query_tag.value = (void *)bulki_entity->data;
+                        query_tag.size  = bulki_entity->size;
+                        query_tag.type = bulki_entity->pdc_type;
+                        if (PDC_is_matching_kvtag(kvtag, &query_tag) == TRUE) {
+                            if (iter >= alloc_size) {
+                                alloc_size *= 2;
+                                *pdc_ids = (void *)realloc(*pdc_ids, alloc_size * sizeof(uint64_t));
+                            }
+                            (*pdc_ids)[iter++] = pdc_id;
+                        } // End if
+                    } // End count while
                 } // End obj while
                 *n_res = iter;
                 // Debug
