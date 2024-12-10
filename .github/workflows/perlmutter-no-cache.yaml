@@ -42,8 +42,7 @@ jobs:
       with:
         name: "${{ github.job }}"
         path: |
-          ${{ github.workspace }}/${{ github.run_id }}/build
-          ${{ github.workspace }}/${{ github.run_id }}/install
+          ${{ github.workspace }}/${{ github.run_id }}
 
   parallel-pdc:
     needs:
