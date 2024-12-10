@@ -15,6 +15,7 @@ jobs:
     runs-on:
       - self-hosted
       - perlmutter
+    environment: NERSC
     timeout-minutes: 2880
     env:
       PDC_BUILD_PATH: "${{ github.workspace }}/build"
@@ -49,6 +50,7 @@ jobs:
     runs-on:
       - self-hosted
       - perlmutter
+    environment: NERSC
     timeout-minutes: 2880
     env:
       PDC_BUILD_PATH: "${{ github.workspace }}/build"
