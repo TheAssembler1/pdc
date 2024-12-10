@@ -27,7 +27,7 @@ jobs:
     steps:
     - uses: actions/checkout@v4.1.0
       with:
-        path: ${{ github.run_id }}
+        path: "${{ github.run_id }}/pdc"
     - run: |
         module load libfabric
         module list
