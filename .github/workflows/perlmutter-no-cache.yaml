@@ -9,7 +9,6 @@ concurrency:
 env:
   GOOGLE_CREDENTIALS: "${{ secrets.GOOGLE_CREDENTIALS }}"
   GOOGLE_SPREADSHEET_ID: "${{ secrets.GOOGLE_SPREADSHEET_ID }}"
-  PDC_PATH: "${{ github.workspace }}/${{ github.run_id }}"
   PDC_BUILD_PATH: "${{ github.workspace }}/${{ github.run_id }}/build"
   PDC_INSTALL_PATH: "${{ github.workspace }}/${{ github.run_id }}/install"
   PDC_TMPDIR: "${{ github.workspace }}/${{ github.run_id }}/pdc-tmp-paralell-pdc"
@@ -26,8 +25,6 @@ jobs:
     timeout-minutes: 2880
     steps:
     - uses: actions/checkout@v4.1.0
-      with:
-        path: "${{ github.run_id }}/pdc"
     - run: |
         module load libfabric
         module list
