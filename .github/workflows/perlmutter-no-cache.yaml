@@ -31,9 +31,9 @@ jobs:
         echo "MERCURY_DIR = $MERCURY_DIR"
         module load libfabric
         module list
-        echo "PATH = ${PDC_BUILD_PATH}/perlmutter/no-cache"
-        mkdir -p ${PDC_BUILD_PATH}/perlmutter/no-cache
-        cd ${PDC_BUILD_PATH}/perlmutter/no-cache
+        echo "PATH = ${{ env.PDC_BUILD_PATH }}/perlmutter/no-cache"
+        mkdir -p ${{ env.PDC_BUILD_PATH }}/perlmutter/no-cache
+        cd ${{ env.PDC_BUILD_PATH }}/perlmutter/no-cache
         cmake ../../.. -DBUILD_MPI_TESTING=ON -DBUILD_SHARED_LIBS=ON -DPDC_SERVER_CACHE=OFF -DBUILD_TESTING=ON -DCMAKE_INSTALL_PREFIX=$PDC_DIR -DPDC_ENABLE_MPI=ON -DMERCURY_DIR=$MERCURY_DIR -DCMAKE_C_COMPILER=cc -DMPI_RUN_CMD="srun -A ${{ secrets.NERSC_PERLMUTTER_PROJECT }} --qos=debug --constraint=cpu --tasks-per-node=64" -DCMAKE_INSTALL_PREFIX=${PDC_INSTALL_PATH}/perlmutter/no-cache
         make -j
         make install
@@ -42,7 +42,7 @@ jobs:
       with:
         name: "${{ github.job }}"
         path: |-
-          ${PDC_BUILD_PATH}/perlmutter/no-cache
+          ${{ env.PDC_BUILD_PATH }}/perlmutter/no-cache
           ${PDC_INSTALL_PATH}/perlmutter/no-cache
 
   perlmutter-no-cache-parallel-pdc:
@@ -57,8 +57,8 @@ jobs:
       PDC_INSTALL_PATH: "${{ github.workspace }}/install"
       SCHEDULER_PARAMETERS: "-A ${{ secrets.NERSC_PERLMUTTER_PROJECT }} --qos=debug --constraint=cpu --tasks-per-node=64 -N 1 -t 00:30:00"
       MERCURY_DIR: "/global/cfs/cdirs/${{ secrets.NERSC_PERLMUTTER_PROJECT }}/pdc-perlmutter/mercury/install"
-      PDC_TMPDIR: "${PDC_BUILD_PATH}/no-cache/pdc-tmp-paralell-pdc"
-      PDC_DATA_LOC: "${PDC_BUILD_PATH}/no-cache/pdc-data-paralell-pdc"
+      PDC_TMPDIR: "${{ env.PDC_BUILD_PATH }}/no-cache/pdc-tmp-paralell-pdc"
+      PDC_DATA_LOC: "${{ env.PDC_BUILD_PATH }}/no-cache/pdc-data-paralell-pdc"
     steps:
     - uses: actions/checkout@v4.1.0
       with:
@@ -66,7 +66,7 @@ jobs:
         lfs: true
     - uses: actions/download-artifact@v4.1.0
     - run: export LD_LIBRARY_PATH="$MERCURY_DIR/lib:$LD_LIBRARY_PATH"
-    - run: cd ${PDC_BUILD_PATH}/perlmutter/no-cache
+    - run: cd ${{ env.PDC_BUILD_PATH }}/perlmutter/no-cache
     - run: ctest -L parallel_pdc
     - run: rm -rf ${PDC_TMPDIR} ${PDC_DATA_LOC}
 
@@ -83,8 +83,8 @@ jobs:
       PDC_INSTALL_PATH: "${{ github.workspace }}/install"
       SCHEDULER_PARAMETERS: "-A ${{ secrets.NERSC_PERLMUTTER_PROJECT }} --qos=debug --constraint=cpu --tasks-per-node=64 -N 1 -t 00:30:00"
       MERCURY_DIR: "/global/cfs/cdirs/${{ secrets.NERSC_PERLMUTTER_PROJECT }}/pdc-perlmutter/mercury/install"
-      PDC_TMPDIR: "${PDC_BUILD_PATH}/no-cache/pdc-tmp-paralell-obj"
-      PDC_DATA_LOC: "${PDC_BUILD_PATH}/no-cache/pdc-data-paralell-obj"
+      PDC_TMPDIR: "${{ env.PDC_BUILD_PATH }}/no-cache/pdc-tmp-paralell-obj"
+      PDC_DATA_LOC: "${{ env.PDC_BUILD_PATH }}/no-cache/pdc-data-paralell-obj"
     steps:
     - uses: actions/checkout@v4.1.0
       with:
@@ -92,7 +92,7 @@ jobs:
         lfs: true
     - uses: actions/download-artifact@v4.1.0
     - run: export LD_LIBRARY_PATH="$MERCURY_DIR/lib:$LD_LIBRARY_PATH"
-    - run: cd ${PDC_BUILD_PATH}/perlmutter/no-cache
+    - run: cd ${{ env.PDC_BUILD_PATH }}/perlmutter/no-cache
     - run: ctest -L parallel_obj
     - run: rm -rf ${PDC_TMPDIR} ${PDC_DATA_LOC}
 
@@ -109,8 +109,8 @@ jobs:
       PDC_INSTALL_PATH: "${{ github.workspace }}/install"
       SCHEDULER_PARAMETERS: "-A ${{ secrets.NERSC_PERLMUTTER_PROJECT }} --qos=debug --constraint=cpu --tasks-per-node=64 -N 1 -t 00:30:00"
       MERCURY_DIR: "/global/cfs/cdirs/${{ secrets.NERSC_PERLMUTTER_PROJECT }}/pdc-perlmutter/mercury/install"
-      PDC_TMPDIR: "${PDC_BUILD_PATH}/no-cache/pdc-tmp-paralell-cont"
-      PDC_DATA_LOC: "${PDC_BUILD_PATH}/no-cache/pdc-data-paralell-cont"
+      PDC_TMPDIR: "${{ env.PDC_BUILD_PATH }}/no-cache/pdc-tmp-paralell-cont"
+      PDC_DATA_LOC: "${{ env.PDC_BUILD_PATH }}/no-cache/pdc-data-paralell-cont"
     steps:
     - uses: actions/checkout@v4.1.0
       with:
@@ -118,7 +118,7 @@ jobs:
         lfs: true
     - uses: actions/download-artifact@v4.1.0
     - run: export LD_LIBRARY_PATH="$MERCURY_DIR/lib:$LD_LIBRARY_PATH"
-    - run: cd ${PDC_BUILD_PATH}/perlmutter/no-cache
+    - run: cd ${{ env.PDC_BUILD_PATH }}/perlmutter/no-cache
     - run: ctest -L parallel_cont
     - run: rm -rf ${PDC_TMPDIR} ${PDC_DATA_LOC}
 
@@ -135,8 +135,8 @@ jobs:
       PDC_INSTALL_PATH: "${{ github.workspace }}/install"
       SCHEDULER_PARAMETERS: "-A ${{ secrets.NERSC_PERLMUTTER_PROJECT }} --qos=debug --constraint=cpu --tasks-per-node=64 -N 1 -t 00:30:00"
       MERCURY_DIR: "/global/cfs/cdirs/${{ secrets.NERSC_PERLMUTTER_PROJECT }}/pdc-perlmutter/mercury/install"
-      PDC_TMPDIR: "${PDC_BUILD_PATH}/no-cache/pdc-tmp-paralell-prop"
-      PDC_DATA_LOC: "${PDC_BUILD_PATH}/no-cache/pdc-data-paralell-prop"
+      PDC_TMPDIR: "${{ env.PDC_BUILD_PATH }}/no-cache/pdc-tmp-paralell-prop"
+      PDC_DATA_LOC: "${{ env.PDC_BUILD_PATH }}/no-cache/pdc-data-paralell-prop"
     steps:
     - uses: actions/checkout@v4.1.0
       with:
@@ -144,7 +144,7 @@ jobs:
         lfs: true
     - uses: actions/download-artifact@v4.1.0
     - run: export LD_LIBRARY_PATH="$MERCURY_DIR/lib:$LD_LIBRARY_PATH"
-    - run: cd ${PDC_BUILD_PATH}/perlmutter/no-cache
+    - run: cd ${{ env.PDC_BUILD_PATH }}/perlmutter/no-cache
     - run: ctest -L parallel_prop
     - run: rm -rf ${PDC_TMPDIR} ${PDC_DATA_LOC}
 
@@ -161,8 +161,8 @@ jobs:
       PDC_INSTALL_PATH: "${{ github.workspace }}/install"
       SCHEDULER_PARAMETERS: "-A ${{ secrets.NERSC_PERLMUTTER_PROJECT }} --qos=debug --constraint=cpu --tasks-per-node=64 -N 1 -t 00:30:00"
       MERCURY_DIR: "/global/cfs/cdirs/${{ secrets.NERSC_PERLMUTTER_PROJECT }}/pdc-perlmutter/mercury/install"
-      PDC_TMPDIR: "${PDC_BUILD_PATH}/no-cache/pdc-tmp-paralell-region"
-      PDC_DATA_LOC: "${PDC_BUILD_PATH}/no-cache/pdc-data-paralell-region"
+      PDC_TMPDIR: "${{ env.PDC_BUILD_PATH }}/no-cache/pdc-tmp-paralell-region"
+      PDC_DATA_LOC: "${{ env.PDC_BUILD_PATH }}/no-cache/pdc-data-paralell-region"
     steps:
     - uses: actions/checkout@v4.1.0
       with:
@@ -170,7 +170,7 @@ jobs:
         lfs: true
     - uses: actions/download-artifact@v4.1.0
     - run: export LD_LIBRARY_PATH="$MERCURY_DIR/lib:$LD_LIBRARY_PATH"
-    - run: cd ${PDC_BUILD_PATH}/perlmutter/no-cache
+    - run: cd ${{ env.PDC_BUILD_PATH }}/perlmutter/no-cache
     - run: ctest -L parallel_region_transfer
     - run: rm -rf ${PDC_TMPDIR} ${PDC_DATA_LOC}
 
@@ -187,8 +187,8 @@ jobs:
       PDC_INSTALL_PATH: "${{ github.workspace }}/install"
       SCHEDULER_PARAMETERS: "-A ${{ secrets.NERSC_PERLMUTTER_PROJECT }} --qos=debug --constraint=cpu --tasks-per-node=64 -N 1 -t 00:30:00"
       MERCURY_DIR: "/global/cfs/cdirs/${{ secrets.NERSC_PERLMUTTER_PROJECT }}/pdc-perlmutter/mercury/install"
-      PDC_TMPDIR: "${PDC_BUILD_PATH}/no-cache/pdc-tmp-paralell-region-all"
-      PDC_DATA_LOC: "${PDC_BUILD_PATH}/no-cache/pdc-data-paralell-region-all"
+      PDC_TMPDIR: "${{ env.PDC_BUILD_PATH }}/no-cache/pdc-tmp-paralell-region-all"
+      PDC_DATA_LOC: "${{ env.PDC_BUILD_PATH }}/no-cache/pdc-data-paralell-region-all"
     steps:
     - uses: actions/checkout@v4.1.0
       with:
@@ -196,6 +196,6 @@ jobs:
         lfs: true
     - uses: actions/download-artifact@v4.1.0
     - run: export LD_LIBRARY_PATH="$MERCURY_DIR/lib:$LD_LIBRARY_PATH"
-    - run: cd ${PDC_BUILD_PATH}/perlmutter/no-cache
+    - run: cd ${{ env.PDC_BUILD_PATH }}/perlmutter/no-cache
     - run: ctest -L parallel_region_transfer_all
     - run: rm -rf ${PDC_TMPDIR} ${PDC_DATA_LOC}
