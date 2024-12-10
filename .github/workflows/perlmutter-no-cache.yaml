@@ -68,7 +68,7 @@ jobs:
 
   parallel-obj:
     needs:
-    - build
+    - no-cache
     - parallel-pdc
     runs-on:
       - self-hosted
