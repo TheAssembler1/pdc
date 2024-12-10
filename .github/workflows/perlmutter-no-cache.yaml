@@ -28,6 +28,7 @@ jobs:
         fetch-depth: 20
         lfs: true
     - run: |
+        echo "PDC_PROJECT = $PDC_PROJECT"
         echo "MERCURY_DIR = $MERCURY_DIR"
         module load libfabric
         module list
