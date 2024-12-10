@@ -9,7 +9,7 @@ concurrency:
 env:
   GOOGLE_CREDENTIALS: "${{ secrets.GOOGLE_CREDENTIALS }}"
   GOOGLE_SPREADSHEET_ID: "${{ secrets.GOOGLE_SPREADSHEET_ID }}"
-  PDC_BUILD_PATH: "${{ github.workspace }}/${{ github.run_id }}"
+  PDC_BUILD_PATH: "${{ github.workspace }}/${{ github.run_id }}/build"
   PDC_INSTALL_PATH: "${{ github.workspace }}/${{ github.run_id }}/install"
   PDC_TMPDIR: "${{ github.workspace }}/${{ github.run_id }}/pdc-tmp-paralell-pdc"
   PDC_DATA_LOC: "${{ github.workspace }}/${{ github.run_id }}/pdc-data-paralell-pdc"
@@ -32,8 +32,8 @@ jobs:
         echo "MERCURY_DIR = $MERCURY_DIR"
         module load libfabric
         module list
-        mkdir -p ${PDC_BUILD_PATH}/no-cache/build
-        cd ${PDC_BUILD_PATH}/no-cache/build
+        mkdir -p ${PDC_BUILD_PATH}
+        cd ${PDC_BUILD_PATH}
         cmake ../../.. -DBUILD_MPI_TESTING=ON -DBUILD_SHARED_LIBS=ON -DPDC_SERVER_CACHE=OFF -DBUILD_TESTING=ON -DCMAKE_INSTALL_PREFIX=$PDC_DIR -DPDC_ENABLE_MPI=ON -DMERCURY_DIR=$MERCURY_DIR -DCMAKE_C_COMPILER=cc -DMPI_RUN_CMD="srun -A ${{ secrets.NERSC_PERLMUTTER_PROJECT }} --qos=debug --constraint=cpu --tasks-per-node=64" -DCMAKE_INSTALL_PREFIX=${PDC_INSTALL_PATH}
         make -j
         make install
@@ -42,7 +42,8 @@ jobs:
       with:
         name: "${{ github.job }}"
         path: |
-          ${{ github.workspace }}/${{ github.run_id }}
+          ${{ github.workspace }}/${{ github.run_id }}/build
+          ${{ github.workspace }}/${{ github.run_id }}/install
 
   parallel-pdc:
     needs:
@@ -63,7 +64,7 @@ jobs:
           ${{ github.workspace }}/${{ github.run_id }}
     - run: |
         export LD_LIBRARY_PATH="$MERCURY_DIR/lib:$LD_LIBRARY_PATH"
-        cd ${PDC_BUILD_PATH}/no-cache/build
+        cd ${PDC_BUILD_PATH}/build
         ctest -L parallel_pdc
         rm -rf ${PDC_TMPDIR} ${PDC_DATA_LOC}
 
@@ -87,7 +88,7 @@ jobs:
           ${{ github.workspace }}/${{ github.run_id }}
     - run: |
         export LD_LIBRARY_PATH="$MERCURY_DIR/lib:$LD_LIBRARY_PATH"
-        cd ${PDC_BUILD_PATH}/no-cache
+        cd ${PDC_BUILD_PATH}/build
         ctest -L parallel_obj
         rm -rf ${PDC_TMPDIR} ${PDC_DATA_LOC}
 
