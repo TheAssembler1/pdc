@@ -58,7 +58,6 @@ jobs:
         lfs: true
     - uses: actions/download-artifact@v4.1.0
       with:
-        merge-multiple: true
         path: |
           ${{ github.workspace }}/${{ github.run_id }}
     - run: |
@@ -83,7 +82,6 @@ jobs:
         lfs: true
     - uses: actions/download-artifact@v4.1.0
       with:
-        merge-multiple: true
         path: |
           ${{ github.workspace }}/${{ github.run_id }}
     - run: |
@@ -107,7 +105,6 @@ jobs:
         lfs: true
     - uses: actions/download-artifact@v4.1.0
       with:
-        merge-multiple: true
         path: |
           ${{ github.workspace }}/${{ github.run_id }}
     - run: |
@@ -132,7 +129,6 @@ jobs:
         lfs: true
     - uses: actions/download-artifact@v4.1.0
       with:
-        merge-multiple: true
         path: |
           ${{ github.workspace }}/${{ github.run_id }}
     - run: |
@@ -157,7 +153,6 @@ jobs:
         lfs: true
     - uses: actions/download-artifact@v4.1.0
       with:
-        merge-multiple: true
         path: |
           ${{ github.workspace }}/${{ github.run_id }}
     - run: |
@@ -182,7 +177,6 @@ jobs:
         lfs: true
     - uses: actions/download-artifact@v4.1.0
       with:
-        merge-multiple: true
         path: |
           ${{ github.workspace }}/${{ github.run_id }}
     - run: |
