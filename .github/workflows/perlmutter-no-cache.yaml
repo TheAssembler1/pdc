@@ -55,7 +55,7 @@ jobs:
     - uses: actions/download-artifact@v4.1.0
     - run: |
         export LD_LIBRARY_PATH="$MERCURY_DIR/lib:$LD_LIBRARY_PATH"
-        cd ${PDC_INSTALL_PATH}
+        cd ${PDC_BUILD_PATH}
         ctest -L parallel_pdc
         rm -rf ${PDC_TMPDIR} ${PDC_DATA_LOC}
 
@@ -79,7 +79,7 @@ jobs:
           ${{ github.workspace }}/${{ github.run_id }}
     - run: |
         export LD_LIBRARY_PATH="$MERCURY_DIR/lib:$LD_LIBRARY_PATH"
-        cd ${PDC_INSTALL_PATH}
+        cd ${PDC_BUILD_PATH}
         ctest -L parallel_obj
         rm -rf ${PDC_TMPDIR} ${PDC_DATA_LOC}
 
