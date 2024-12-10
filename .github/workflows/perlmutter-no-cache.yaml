@@ -51,8 +51,6 @@ jobs:
       - perlmutter
     environment: NERSC
     timeout-minutes: 2880
-    env:
-      
     steps:
     - uses: actions/checkout@v4.1.0
       with:
