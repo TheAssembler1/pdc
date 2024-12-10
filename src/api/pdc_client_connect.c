@@ -9492,7 +9492,7 @@ PDC_Client_query_kvtag_mpi(const pdc_kvtag_t *kvtag, int *n_res, uint64_t **pdc_
                 if (use_shm_meta_query_bulki_g)
                     deserializedBulki_g = BULKI_deserialize(buf);
                 else if (use_shm_meta_query_bulki2_g) {
-                    offset = 0;
+                    offset                    = 0;
                     deserializedBulkiEntity_g = BULKI_Entity_deserialize_from_buffer(buf, &offset);
                 }
                 else if (use_shm_meta_query_binary_g)
@@ -9553,10 +9553,10 @@ PDC_Client_query_kvtag_mpi(const pdc_kvtag_t *kvtag, int *n_res, uint64_t **pdc_
                 *n_res = iter;
                 // Debug
                 /* printf("==PDC_CLIENT[%d]: found %d tags from shm!\n", pdc_client_mpi_rank_g, iter); */
-            } // end if use_shm_meta_query_bulki_g            
+            } // end if use_shm_meta_query_bulki_g
             else if (use_shm_meta_query_bulki2_g == 1) {
                 BULKI_Entity_Iterator *bent_iter = Bent_iterator_init(deserializedBulkiEntity_g, NULL, 0);
-                BULKI_Entity *bulki_entity;
+                BULKI_Entity *         bulki_entity;
 
                 // Iterate and get query result
                 while (NULL != (bulki_entity = Bent_iterator_next_Bent(bent_iter))) {
@@ -9564,16 +9564,16 @@ PDC_Client_query_kvtag_mpi(const pdc_kvtag_t *kvtag, int *n_res, uint64_t **pdc_
                     pdc_id = *((uint64_t *)bulki_entity->data);
                     /* printf("id: [%llu]\n", pdc_id); */
                     bulki_entity = Bent_iterator_next_Bent(bent_iter);
-                    int count = *((int *)bulki_entity->data);
+                    int count    = *((int *)bulki_entity->data);
 
-                    while(count--) {
-                        bulki_entity = Bent_iterator_next_Bent(bent_iter);
-                        query_tag.name  = (char *)bulki_entity->data;
+                    while (count--) {
+                        bulki_entity   = Bent_iterator_next_Bent(bent_iter);
+                        query_tag.name = (char *)bulki_entity->data;
 
-                        bulki_entity = Bent_iterator_next_Bent(bent_iter);
+                        bulki_entity    = Bent_iterator_next_Bent(bent_iter);
                         query_tag.value = (void *)bulki_entity->data;
                         query_tag.size  = bulki_entity->size;
-                        query_tag.type = bulki_entity->pdc_type;
+                        query_tag.type  = bulki_entity->pdc_type;
                         if (PDC_is_matching_kvtag(kvtag, &query_tag) == TRUE) {
                             if (iter >= alloc_size) {
                                 alloc_size *= 2;
@@ -9581,8 +9581,8 @@ PDC_Client_query_kvtag_mpi(const pdc_kvtag_t *kvtag, int *n_res, uint64_t **pdc_
                             }
                             (*pdc_ids)[iter++] = pdc_id;
                         } // End if
-                    } // End count while
-                } // End obj while
+                    }     // End count while
+                }         // End obj while
                 *n_res = iter;
                 // Debug
                 /* printf("==PDC_CLIENT[%d]: found %d tags from shm!\n", pdc_client_mpi_rank_g, iter); */

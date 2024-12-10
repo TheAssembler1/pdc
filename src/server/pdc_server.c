@@ -145,7 +145,7 @@ int               use_fastbit_idx_g            = 0;
 int               use_rocksdb_g                = 0;
 int               use_sqlite3_g                = 0;
 int               use_shm_meta_query_bulki_g   = 0;
-int               use_shm_meta_query_bulki2_g = 0;
+int               use_shm_meta_query_bulki2_g  = 0;
 int               use_shm_meta_query_binary_g  = 0;
 char *            gBinningOption               = NULL;
 
