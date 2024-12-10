@@ -76,6 +76,7 @@ jobs:
     runs-on:
       - self-hosted
       - perlmutter
+    environment: NERSC
     timeout-minutes: 2880
     steps:
     - uses: actions/checkout@v4.1.0
