@@ -26,9 +26,12 @@ jobs:
     - run: |
         module load libfabric
         module list
+        
         mkdir -p build install
+        
         cd build
         cmake .. -DBUILD_MPI_TESTING=ON -DBUILD_SHARED_LIBS=ON -DPDC_SERVER_CACHE=OFF -DBUILD_TESTING=ON -DCMAKE_INSTALL_PREFIX=$(realpath ..)/install -DPDC_ENABLE_MPI=ON -DMERCURY_DIR=$MERCURY_DIR -DCMAKE_C_COMPILER=cc -DMPI_RUN_CMD="srun -A ${{ secrets.NERSC_PERLMUTTER_PROJECT }} --qos=debug --constraint=cpu --tasks-per-node=64"
+        
         make -j
         make install
     - uses: actions/upload-artifact@v4.1.0
@@ -50,29 +53,13 @@ jobs:
     steps:
     - uses: actions/download-artifact@v4.1.0
     - run: |
+        cat <<EOF > .${{ github.ref }}.slurm
+        
         export LD_LIBRARY_PATH="$MERCURY_DIR/lib:$LD_LIBRARY_PATH"
         cd ${{ github.workspace }}/no-cache/build
-        salloc $SCHEDULER_PARAMETERS
         ctest -L parallel_pdc
-        exit
         rm -rf ${PDC_TMPDIR} ${PDC_DATA_LOC}
 
-  parallel-obj:
-    needs:
-    - build
-    - parallel-pdc
-    runs-on:
-      - self-hosted
-      - perlmutter
-    environment: NERSC
-    timeout-minutes: 2880
-    steps:
-    - uses: actions/download-artifact@v4.1.0
-    - run: |
-        export LD_LIBRARY_PATH="$MERCURY_DIR/lib:$LD_LIBRARY_PATH"
-        cd ${{ github.workspace }}/no-cache/build
-        salloc $SCHEDULER_PARAMETERS
-        ctest -L parallel_obj
-        exit
-        rm -rf ${PDC_TMPDIR} ${PDC_DATA_LOC}
+        EOF
 
+        sbatch $SCHEDULER_PARAMETERS .${{ github.ref }}.slurm        
