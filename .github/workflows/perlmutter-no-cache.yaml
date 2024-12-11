@@ -54,7 +54,8 @@ jobs:
     - uses: actions/download-artifact@v4.1.0
     - run: |
         cat <<EOF > .${{ github.run_id }}.slurm
-        
+        #!/bin/sh
+
         export LD_LIBRARY_PATH="$MERCURY_DIR/lib:$LD_LIBRARY_PATH"
         cd ${{ github.workspace }}/no-cache/build
         ctest -L parallel_pdc
