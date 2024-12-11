@@ -34,7 +34,6 @@ jobs:
     - uses: actions/upload-artifact@v4.1.0
       if: success()
       with:
-        name: "${{ github.job }}"
         path: |
           ${{ github.workspace }}/build
           ${{ github.workspace }}/install
