@@ -13,7 +13,7 @@ env:
   PDC_DATA_LOC: "${{ github.workspace }}/${{ github.run_id }}/pdc-data-paralell-pdc"
   SCHEDULER_PARAMETERS: "-A ${{ secrets.NERSC_PERLMUTTER_PROJECT }} --qos=debug --constraint=cpu -N 1 -t 00:30:00 -W"
   MERCURY_DIR: "/global/cfs/cdirs/${{ secrets.NERSC_PERLMUTTER_PROJECT }}/pdc-perlmutter/mercury/install"
-foundation
+
 jobs:
   build:
     runs-on:
