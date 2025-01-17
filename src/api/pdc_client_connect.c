@@ -9617,22 +9617,22 @@ PDC_Client_search_obj_ref_through_dart_mpi(dart_hash_algo_t hash_algo, char *que
 static hg_return_t
 generic_bulk_c2s_rpc_cb(const struct hg_cb_info *callback_info)
 {
-    hg_return_t ret_value = HG_SUCCESS;
-    hg_handle_t handle;
+    hg_return_t                             ret_value = HG_SUCCESS;
+    hg_handle_t                             handle;
     struct _generic_bulk_c2s_transfer_args *transfer_args;
-    generic_bulk_c2s_transfer_out_t output;
+    generic_bulk_c2s_transfer_out_t         output;
 
     FUNC_ENTER(NULL);
 
     fprintf(stderr, "entered %s\n", __func__);
 
-    transfer_args = (struct _generic_bulk_c2s_transfer_args*)callback_info->arg;
+    transfer_args = (struct _generic_bulk_c2s_transfer_args *)callback_info->arg;
     handle        = callback_info->info.forward.handle;
 
     ret_value = HG_Get_output(handle, &output);
     if (ret_value != HG_SUCCESS) {
-        PGOTO_ERROR(FAIL, "==CLIENT[%d]: ERROR with HG_Get_output @ line %d",
-                    pdc_client_mpi_rank_g, __LINE__);
+        PGOTO_ERROR(FAIL, "==CLIENT[%d]: ERROR with HG_Get_output @ line %d", pdc_client_mpi_rank_g,
+                    __LINE__);
         transfer_args->ret = -1;
         goto done;
     }
@@ -9651,11 +9651,11 @@ done:
 perr_t
 PDC_data_transfer_c2s(uint32_t server_id, void *buf, uint64_t buf_size)
 {
-    perr_t ret_value = SUCCEED;
-    hg_return_t hg_ret = HG_SUCCESS;
-    hg_class_t *hg_class;
-    hg_handle_t rpc_handle;
-    generic_bulk_c2s_transfer_in_t in;
+    perr_t                                 ret_value = SUCCEED;
+    hg_return_t                            hg_ret    = HG_SUCCESS;
+    hg_class_t *                           hg_class;
+    hg_handle_t                            rpc_handle;
+    generic_bulk_c2s_transfer_in_t         in;
     struct _generic_bulk_c2s_transfer_args transfer_args;
 
     FUNC_ENTER(NULL);
@@ -9673,7 +9673,7 @@ PDC_data_transfer_c2s(uint32_t server_id, void *buf, uint64_t buf_size)
     if (hg_ret != HG_SUCCESS)
         PGOTO_ERROR(FAIL, "%s: Could not create rpc handle @ line %d\n", __func__, __LINE__);
 
-    in.buf_size = (hg_size_t) buf_size;
+    in.buf_size = (hg_size_t)buf_size;
 
     hg_ret = HG_Bulk_create(hg_class, 1, &buf, &in.buf_size, HG_BULK_READ_ONLY, &in.local_bulk_handle);
     if (hg_ret != HG_SUCCESS)

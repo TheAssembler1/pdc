@@ -2990,7 +2990,7 @@ hg_proc_transfer_request_metadata_query2_out_t(hg_proc_t proc, void *data)
 static HG_INLINE hg_return_t
 hg_proc_generic_bulk_c2s_transfer_in_t(hg_proc_t proc, void *data)
 {
-    hg_return_t ret;
+    hg_return_t                     ret;
     generic_bulk_c2s_transfer_in_t *struct_data = (generic_bulk_c2s_transfer_in_t *)data;
 
     ret = hg_proc_hg_bulk_t(proc, &struct_data->local_bulk_handle);
@@ -3012,7 +3012,7 @@ hg_proc_generic_bulk_c2s_transfer_in_t(hg_proc_t proc, void *data)
 static HG_INLINE hg_return_t
 hg_proc_generic_bulk_c2s_transfer_out_t(hg_proc_t proc, void *data)
 {
-    hg_return_t ret;
+    hg_return_t                      ret;
     generic_bulk_c2s_transfer_out_t *struct_data = (generic_bulk_c2s_transfer_out_t *)data;
 
     ret = hg_proc_int32_t(proc, &struct_data->ret);

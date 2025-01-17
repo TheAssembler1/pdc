@@ -4703,7 +4703,6 @@ done:
     FUNC_LEAVE(ret_value);
 }
 
-
 /*
  * Data server related
  */
@@ -6537,22 +6536,23 @@ done:
 static hg_return_t
 process_generic_c2s_bulk_transfer_cb(const struct hg_cb_info *hg_cb_info)
 {
-    hg_return_t ret_value = HG_SUCCESS;
-    struct bulk_args_t *bulk_args = (struct bulk_args_t *)hg_cb_info->arg;
-    hg_bulk_t local_bulk_handle = hg_cb_info->info.bulk.local_handle;
-    void *buf;
+    hg_return_t                     ret_value         = HG_SUCCESS;
+    struct bulk_args_t *            bulk_args         = (struct bulk_args_t *)hg_cb_info->arg;
+    hg_bulk_t                       local_bulk_handle = hg_cb_info->info.bulk.local_handle;
+    void *                          buf;
     generic_bulk_c2s_transfer_out_t out;
 
     FUNC_ENTER(NULL);
 
-    ret_value = HG_Bulk_access(local_bulk_handle, 0, bulk_args->nbytes, HG_BULK_READWRITE, 1, &buf, NULL, NULL);
+    ret_value =
+        HG_Bulk_access(local_bulk_handle, 0, bulk_args->nbytes, HG_BULK_READWRITE, 1, &buf, NULL, NULL);
     if (ret_value != HG_SUCCESS)
         PGOTO_ERROR(ret_value, "Could not access bulk data @ %s:%d", __func__, __LINE__);
 
     printf("==PDC_SERVER: process generic bulk data, size %lu\n", bulk_args->nbytes);
-    fprintf(stderr, "first 3 values: %d %d %d\n", ((int*)buf)[0], ((int*)buf)[1], ((int*)buf)[2]);
-    fprintf(stderr, "last values: %d %d %d\n", ((int*)buf)[bulk_args->nbytes/4-3], 
-            ((int*)buf)[bulk_args->nbytes/4-2], ((int*)buf)[bulk_args->nbytes/4-1]);
+    fprintf(stderr, "first 3 values: %d %d %d\n", ((int *)buf)[0], ((int *)buf)[1], ((int *)buf)[2]);
+    fprintf(stderr, "last values: %d %d %d\n", ((int *)buf)[bulk_args->nbytes / 4 - 3],
+            ((int *)buf)[bulk_args->nbytes / 4 - 2], ((int *)buf)[bulk_args->nbytes / 4 - 1]);
 
     out.ret = 1;
     HG_Respond(bulk_args->handle, NULL, NULL, &out);
@@ -6570,13 +6570,13 @@ done:
 /* generic_bulk_c2s_transfer_cb(hg_handle_t handle) */
 HG_TEST_RPC_CB(generic_bulk_c2s_transfer, handle)
 {
-    hg_return_t ret_value = HG_SUCCESS;
-    hg_bulk_t origin_bulk_handle, local_bulk_handle;
-    const struct hg_info *hg_info = NULL;
-    struct bulk_args_t *bulk_args = NULL;
-    generic_bulk_c2s_transfer_in_t in;
+    hg_return_t                     ret_value = HG_SUCCESS;
+    hg_bulk_t                       origin_bulk_handle, local_bulk_handle;
+    const struct hg_info *          hg_info   = NULL;
+    struct bulk_args_t *            bulk_args = NULL;
+    generic_bulk_c2s_transfer_in_t  in;
     generic_bulk_c2s_transfer_out_t out;
-    void *buf;
+    void *                          buf;
 
     FUNC_ENTER(NULL);
 
@@ -6585,10 +6585,10 @@ HG_TEST_RPC_CB(generic_bulk_c2s_transfer, handle)
     if (ret_value != HG_SUCCESS)
         PGOTO_ERROR(ret_value, "Could not get input @ %s:%d", __func__, __LINE__);
 
-    bulk_args = (struct bulk_args_t *)malloc(sizeof(struct bulk_args_t));
-    bulk_args->handle = handle;
+    bulk_args          = (struct bulk_args_t *)malloc(sizeof(struct bulk_args_t));
+    bulk_args->handle  = handle;
     origin_bulk_handle = in.local_bulk_handle;
-    bulk_args->nbytes = HG_Bulk_get_size(origin_bulk_handle);
+    bulk_args->nbytes  = HG_Bulk_get_size(origin_bulk_handle);
 
     buf = malloc(bulk_args->nbytes);
 
@@ -6599,9 +6599,9 @@ HG_TEST_RPC_CB(generic_bulk_c2s_transfer, handle)
 
     // Data should be processed in process_generic_c2s_bulk_transfer_cb, after sending a reply to the client
     // HG_Bulk_transfer is non-blocking
-    ret_value = HG_Bulk_transfer(hg_info->context, process_generic_c2s_bulk_transfer_cb, bulk_args, 
-                                 HG_BULK_PULL, hg_info->addr, origin_bulk_handle, 0, 
-                                 local_bulk_handle, 0, bulk_args->nbytes, HG_OP_ID_IGNORE);
+    ret_value = HG_Bulk_transfer(hg_info->context, process_generic_c2s_bulk_transfer_cb, bulk_args,
+                                 HG_BULK_PULL, hg_info->addr, origin_bulk_handle, 0, local_bulk_handle, 0,
+                                 bulk_args->nbytes, HG_OP_ID_IGNORE);
     if (ret_value != HG_SUCCESS)
         PGOTO_ERROR(ret_value, "Could not read bulk data");
 
