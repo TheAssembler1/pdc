@@ -171,6 +171,7 @@ static hg_id_t transfer_request_status_register_id_g;
 static hg_id_t transfer_request_wait_register_id_g;
 static hg_id_t buf_map_register_id_g;
 static hg_id_t buf_unmap_register_id_g;
+static hg_id_t generic_bulk_c2s_transfer_register_id_g;
 
 static hg_id_t cont_add_del_objs_rpc_register_id_g;
 static hg_id_t cont_add_tags_rpc_register_id_g;
@@ -627,7 +628,6 @@ done:
 }
 
 static hg_return_t
-
 client_send_transfer_request_metadata_query2_rpc_cb(const struct hg_cb_info *callback_info)
 {
     hg_return_t                                        ret_value = HG_SUCCESS;
@@ -1510,6 +1510,7 @@ drc_access_again:
     transfer_request_wait_register_id_g            = PDC_transfer_request_wait_register(*hg_class);
     buf_map_register_id_g                          = PDC_buf_map_register(*hg_class);
     buf_unmap_register_id_g                        = PDC_buf_unmap_register(*hg_class);
+    generic_bulk_c2s_transfer_register_id_g        = PDC_generic_bulk_c2s_transfer_register(*hg_class);
 
     // Analysis and Transforms
     analysis_ftn_register_id_g         = PDC_analysis_ftn_register(*hg_class);
@@ -9611,3 +9612,87 @@ PDC_Client_search_obj_ref_through_dart_mpi(dart_hash_algo_t hash_algo, char *que
 #endif
 
 /******************** Collective Object Selection Query Ends *******************************/
+
+// Generic bulk data transfer from client to server
+static hg_return_t
+generic_bulk_c2s_rpc_cb(const struct hg_cb_info *callback_info)
+{
+    hg_return_t ret_value = HG_SUCCESS;
+    hg_handle_t handle;
+    struct _generic_bulk_c2s_transfer_args *transfer_args;
+    generic_bulk_c2s_transfer_out_t output;
+
+    FUNC_ENTER(NULL);
+
+    fprintf(stderr, "entered %s\n", __func__);
+
+    transfer_args = (struct _generic_bulk_c2s_transfer_args*)callback_info->arg;
+    handle        = callback_info->info.forward.handle;
+
+    ret_value = HG_Get_output(handle, &output);
+    if (ret_value != HG_SUCCESS) {
+        PGOTO_ERROR(FAIL, "==CLIENT[%d]: ERROR with HG_Get_output @ line %d",
+                    pdc_client_mpi_rank_g, __LINE__);
+        transfer_args->ret = -1;
+        goto done;
+    }
+
+    transfer_args->ret = output.ret;
+    fprintf(stderr, "received return value %d\n", output.ret);
+
+done:
+    fflush(stdout);
+    hg_atomic_decr32(&atomic_work_todo_g);
+    HG_Free_output(handle, &output);
+
+    FUNC_LEAVE(ret_value);
+}
+
+perr_t
+PDC_data_transfer_c2s(uint32_t server_id, void *buf, uint64_t buf_size)
+{
+    perr_t ret_value = SUCCEED;
+    hg_return_t hg_ret = HG_SUCCESS;
+    hg_class_t *hg_class;
+    hg_handle_t rpc_handle;
+    generic_bulk_c2s_transfer_in_t in;
+    struct _generic_bulk_c2s_transfer_args transfer_args;
+
+    FUNC_ENTER(NULL);
+
+    debug_server_id_count[server_id]++;
+
+    hg_class = HG_Context_get_class(send_context_g);
+
+    if (PDC_Client_try_lookup_server(server_id, 0) != SUCCEED)
+        PGOTO_ERROR(FAIL, "==CLIENT[%d]: ERROR with PDC_Client_try_lookup_server @ line %d",
+                    pdc_client_mpi_rank_g, __LINE__);
+
+    hg_ret = HG_Create(send_context_g, pdc_server_info_g[server_id].addr,
+                       generic_bulk_c2s_transfer_register_id_g, &rpc_handle);
+    if (hg_ret != HG_SUCCESS)
+        PGOTO_ERROR(FAIL, "%s: Could not create rpc handle @ line %d\n", __func__, __LINE__);
+
+    in.buf_size = (hg_size_t) buf_size;
+
+    hg_ret = HG_Bulk_create(hg_class, 1, &buf, &in.buf_size, HG_BULK_READ_ONLY, &in.local_bulk_handle);
+    if (hg_ret != HG_SUCCESS)
+        PGOTO_ERROR(FAIL, "%s: Could not create local bulk data handle @ line %d\n", __func__, __LINE__);
+
+    hg_atomic_set32(&atomic_work_todo_g, 1);
+
+    hg_ret = HG_Forward(rpc_handle, generic_bulk_c2s_rpc_cb, &transfer_args, &in);
+    if (hg_ret != HG_SUCCESS)
+        PGOTO_ERROR(FAIL, "%s: Could not start HG_Forward() @ line %d\n", __func__, __LINE__);
+
+    PDC_Client_check_response(&send_context_g);
+
+    if (transfer_args.ret != 1)
+        PGOTO_ERROR(FAIL, "%s return failed @ line %d\n", __func__, __LINE__);
+
+    HG_Destroy(rpc_handle);
+
+done:
+    fflush(stdout);
+    FUNC_LEAVE(ret_value);
+}

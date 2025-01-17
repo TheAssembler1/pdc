@@ -115,6 +115,10 @@ struct _pdc_transfer_request_metadata_query2_args {
     int32_t ret;
 };
 
+struct _generic_bulk_c2s_transfer_args {
+    int32_t ret;
+};
+
 struct _pdc_transfer_request_status_args {
     uint32_t status;
     int32_t  ret;
@@ -1135,4 +1139,6 @@ void report_avg_server_profiling_rst();
 perr_t PDC_Client_transfer_pthread_create();
 perr_t PDC_Client_transfer_pthread_terminate();
 perr_t PDC_Client_transfer_pthread_cnt_add(int n);
+
+perr_t PDC_data_transfer_c2s(uint32_t server_id, void *buf, uint64_t buf_size);
 #endif /* PDC_CLIENT_CONNECT_H */

@@ -22,7 +22,6 @@ transfer_request_all_bulk_transfer_read_cb2(const struct hg_cb_info *info)
     free(local_bulk_args2->transfer_request_id);
     HG_Bulk_free(local_bulk_args2->bulk_handle);
     HG_Destroy(local_bulk_args2->handle);
-    free(local_bulk_args2);
     // printf("finishing transfer_request_all_bulk_transfer_read_cb2\n");
 
 #ifdef PDC_TIMING
@@ -32,6 +31,7 @@ transfer_request_all_bulk_transfer_read_cb2(const struct hg_cb_info *info)
     pdc_server_timings->PDCreg_transfer_request_inner_read_all_bulk_rpc += end - start;
     pdc_timestamp_register(pdc_transfer_request_inner_read_all_bulk_timestamps, start, end);
 #endif
+    free(local_bulk_args2);
 
     FUNC_LEAVE(ret);
 }
@@ -331,14 +331,14 @@ transfer_request_wait_all_bulk_transfer_cb(const struct hg_cb_info *info)
 
     HG_Bulk_free(local_bulk_args->bulk_handle);
 
-    free(local_bulk_args);
-
 #ifdef PDC_TIMING
     double end = MPI_Wtime();
 
     pdc_server_timings->PDCreg_transfer_request_wait_all_rpc += end - local_bulk_args->start_time;
     pdc_timestamp_register(pdc_transfer_request_wait_all_timestamps, local_bulk_args->start_time, end);
 #endif
+
+    free(local_bulk_args);
 
     FUNC_LEAVE(ret);
 }

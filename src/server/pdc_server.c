@@ -2047,6 +2047,7 @@ PDC_Server_mercury_register()
     PDC_transform_region_release_register(hg_class_g);
     PDC_region_transform_release_register(hg_class_g);
     PDC_region_analysis_release_register(hg_class_g);
+    PDC_generic_bulk_c2s_transfer_register(hg_class_g);
 
     // DART Index
     PDC_dart_get_server_info_register(hg_class_g);

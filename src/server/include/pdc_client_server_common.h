@@ -851,6 +851,17 @@ typedef struct transfer_request_metadata_query2_out_t {
     int32_t ret;
 } transfer_request_metadata_query2_out_t;
 
+/* Define generic_bulk_c2s_transfer_in_t*/
+typedef struct generic_bulk_c2s_transfer_in_t {
+    hg_bulk_t local_bulk_handle;
+    hg_size_t buf_size;
+} generic_bulk_c2s_transfer_in_t;
+
+/* Define generic_bulk_c2s_transfer_out_t*/
+typedef struct generic_bulk_c2s_transfer_out_t {
+    int32_t ret;
+} generic_bulk_c2s_transfer_out_t;
+
 /* Define buf_map_in_t */
 typedef struct {
     uint32_t               meta_server_id;
@@ -2975,6 +2986,42 @@ hg_proc_transfer_request_metadata_query2_out_t(hg_proc_t proc, void *data)
     return ret;
 }
 
+/* Define hg_proc_generic_bulk_c2s_transfer_in_t */
+static HG_INLINE hg_return_t
+hg_proc_generic_bulk_c2s_transfer_in_t(hg_proc_t proc, void *data)
+{
+    hg_return_t ret;
+    generic_bulk_c2s_transfer_in_t *struct_data = (generic_bulk_c2s_transfer_in_t *)data;
+
+    ret = hg_proc_hg_bulk_t(proc, &struct_data->local_bulk_handle);
+    if (ret != HG_SUCCESS) {
+        fprintf(stderr, "Proc error @ %s:%d", __func__, __LINE__);
+        return ret;
+    }
+
+    ret = hg_proc_hg_size_t(proc, &struct_data->buf_size);
+    if (ret != HG_SUCCESS) {
+        fprintf(stderr, "Proc error @ %s:%d", __func__, __LINE__);
+        return ret;
+    }
+
+    return ret;
+}
+
+/* Define hg_proc_generic_bulk_c2s_transfer_out_t */
+static HG_INLINE hg_return_t
+hg_proc_generic_bulk_c2s_transfer_out_t(hg_proc_t proc, void *data)
+{
+    hg_return_t ret;
+    generic_bulk_c2s_transfer_out_t *struct_data = (generic_bulk_c2s_transfer_out_t *)data;
+
+    ret = hg_proc_int32_t(proc, &struct_data->ret);
+    if (ret != HG_SUCCESS) {
+        fprintf(stderr, "Proc error @ %s:%d", __func__, __LINE__);
+    }
+    return ret;
+}
+
 /* Define hg_proc_transfer_request_wait_in_t */
 static HG_INLINE hg_return_t
 hg_proc_transfer_request_wait_in_t(hg_proc_t proc, void *data)
@@ -4041,7 +4088,7 @@ struct bulk_args_t {
     uint64_t          cont_id;
     hg_handle_t       handle;
     hg_bulk_t         bulk_handle;
-    size_t            nbytes;
+    hg_size_t         nbytes;
     int               origin;
     size_t            ret;
     pdc_metadata_t ** meta_arr;
@@ -4326,6 +4373,7 @@ hg_id_t PDC_region_transform_release_register(hg_class_t *hg_class);
 hg_id_t PDC_transform_region_release_register(hg_class_t *hg_class);
 hg_id_t PDC_buf_map_server_register(hg_class_t *hg_class);
 hg_id_t PDC_buf_unmap_server_register(hg_class_t *hg_class);
+hg_id_t PDC_generic_bulk_c2s_transfer_register(hg_class_t *hg_class);
 
 hg_id_t PDC_test_bulk_xfer_register(hg_class_t *hg_class);
 hg_id_t PDC_server_lookup_remote_server_register(hg_class_t *hg_class);

@@ -43,6 +43,7 @@ include_directories(${TEST_EXT_INCLUDE_DIRS})
 
 set(PROGRAMS
   pdc_init
+  pdc_generic_bulk
 #  create_prop
 #  create_region
 #  create_obj_coll
