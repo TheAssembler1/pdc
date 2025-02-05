@@ -967,8 +967,9 @@ PDC_region_cache_clock_cycle(void *ptr)
                     }
                 }
                 else {
+                    pthread_mutex_lock(&pdc_obj_cache_list_mutex);
                     obj_cache_iter = obj_cache_iter->next;
-                    /* pthread_mutex_unlock(&pdc_obj_cache_list_mutex); */
+                    pthread_mutex_unlock(&pdc_obj_cache_list_mutex);
 
                     /* PDC_get_time_str(cur_time); */
                     /* fprintf(stderr, "%s ==PDC_SERVER[%d]: stop flush to allow processing new RPCs\n", */
