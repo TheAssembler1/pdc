@@ -1,0 +1,43 @@
+name: Ubuntu (no-cache) Spack
+
+on:
+  pull_request:
+    branches: [ develop ]
+  push:
+    branches: [ develop ]
+  workflow_dispatch:
+
+jobs:
+  PDC:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Install Spack
+        run: |
+          git clone https://github.com/spack/spack.git /opt/spack
+          source /opt/spack/share/spack/setup-env.sh
+
+      - name: Checkout local PDC branch
+        run: |
+          git checkout develop
+          
+      - name: Develop PDC from local directory
+        run: |
+          spack develop -p $(pwd) pdc@develop
+
+      - name: Install dependencies using Spack
+        run: |
+          spack install pdc@develop
+
+      - name: Build PDC
+        run: |
+          mkdir build && cd build
+          cmake ../ -DBUILD_MPI_TESTING=ON -DBUILD_SHARED_LIBS=ON -DPDC_SERVER_CACHE=OFF -DBUILD_TESTING=ON -DPDC_ENABLE_MPI=ON -DCMAKE_C_COMPILER=mpicc
+          make -j2
+
+      - name: Test PDC
+        working-directory: build
+        run: ctest -L serial
