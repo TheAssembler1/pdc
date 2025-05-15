@@ -43,6 +43,7 @@
 #include "pdc_transforms_common.h"
 #include "pdc_client_connect.h"
 #include "pdc_logger.h"
+#include "pdc_malloc.h"
 
 #include "mercury.h"
 #include "mercury_macros.h"
@@ -1354,7 +1355,7 @@ PDC_Client_mercury_init(hg_class_t **hg_class, hg_context_t **hg_context, int po
 {
     perr_t ret_value = SUCCEED;
     char   na_info_string[NA_STRING_INFO_LEN];
-    char   hostname[HOSTNAME_LEN];
+    char * hostname;
     int    local_server_id;
     /* Set the default mercury transport
      * but enable overriding that to any of:
@@ -1378,13 +1379,18 @@ PDC_Client_mercury_init(hg_class_t **hg_class, hg_context_t **hg_context, int po
     if ((hg_transport = getenv("HG_TRANSPORT")) == NULL) {
         hg_transport = default_hg_transport;
     }
-    memset(hostname, 0, sizeof(hostname));
-    gethostname(hostname, sizeof(hostname));
+    if ((hostname = getenv("HG_HOST")) == NULL) {
+        hostname = PDC_malloc(HOSTNAME_LEN);
+        memset(hostname, 0, HOSTNAME_LEN);
+        gethostname(hostname, HOSTNAME_LEN - 1);
+    }
     sprintf(na_info_string, "%s://%s:%d", hg_transport, hostname, port);
     if (pdc_client_mpi_rank_g == 0) {
-        LOG_INFO("==PDC_CLIENT: using %.7s\n", na_info_string);
+        LOG_INFO("==PDC_CLIENT: using %s\n", na_info_string);
         fflush(stdout);
     }
+
+    free(hostname);
 
 // gni starts here
 #ifdef PDC_HAS_CRAY_DRC
