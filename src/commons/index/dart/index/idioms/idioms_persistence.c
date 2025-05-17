@@ -33,7 +33,7 @@ append_obj_id_set(Set *obj_id_set, BULKI_Entity *id_set_entity)
     SetIterator iter;
     set_iterate(obj_id_set, &iter);
     while (set_iter_has_more(&iter)) {
-        uint64_t *    item      = (uint64_t *)set_iter_next(&iter);
+        uint64_t     *item      = (uint64_t *)set_iter_next(&iter);
         BULKI_Entity *id_entity = BULKI_ENTITY(item, 1, PDC_UINT64, PDC_CLS_ITEM);
         BULKI_ENTITY_append_BULKI_Entity(id_set_entity, id_entity);
     }
@@ -119,7 +119,7 @@ append_attr_name_node(void *data, const unsigned char *key, uint32_t key_len, vo
     int rst = 0;
 
     key_index_leaf_content_t *leafcnt      = (key_index_leaf_content_t *)value;
-    HashTable *               vnode_buf_ht = (HashTable *)data; // data is the parameter passed in
+    HashTable                *vnode_buf_ht = (HashTable *)data; // data is the parameter passed in
     // the hash table is used to store the buffer struct related to each vnode id.
     BULKI *kv_bulki = hash_table_lookup(vnode_buf_ht, &(leafcnt->virtural_node_id));
     // index_buffer_t *buffer = hash_table_lookup(vnode_buf_ht, &(leafcnt->virtural_node_id));
@@ -190,7 +190,7 @@ dump_attr_root_tree(art_tree *art, char *dir_path, char *base_name, uint32_t ser
         HashTablePair pair = hash_table_iter_next(&iter);
         // vnode ID.  On different server, there can be the same vnode ID at this line below
         uint64_t *vid   = pair.key;
-        BULKI *   bulki = pair.value;
+        BULKI    *bulki = pair.value;
         char      file_name[1024];
         // and this is why do we need to differentiate the file name by the server ID.
         sprintf(file_name, "%s/%s_%" PRIu32 "_%" PRIu64 ".bin", dir_path, base_name, serverID, *vid);
@@ -208,7 +208,7 @@ dump_dart_info(DART *dart, char *dir_path, uint32_t serverID)
         char file_name[1024];
         sprintf(file_name, "%s/%s.bin", dir_path, "dart_info");
         LOG_INFO("Writing DART info to file_name: %s\n", file_name);
-        FILE *        stream   = fopen(file_name, "wb");
+        FILE         *stream   = fopen(file_name, "wb");
         BULKI_Entity *dart_ent = empty_Bent_Array_Entity();
         BULKI_ENTITY_append_BULKI_Entity(dart_ent,
                                          BULKI_ENTITY(&(dart->alphabet_size), 1, PDC_INT, PDC_CLS_ITEM));
@@ -242,8 +242,8 @@ idioms_metadata_index_dump(IDIOMS_t *idioms, char *dir_path, uint32_t serverID)
     dump_attr_root_tree(idioms->art_key_suffix_tree_g, dir_path, "idioms_suffix", serverID);
 
     timer_pause(&timer);
-    println("[IDIOMS_Index_Dump_%d] Timer to dump index = %.4f microseconds\n", serverID,
-            timer_delta_us(&timer));
+    LOG_INFO("[IDIOMS_Index_Dump_%d] Timer to dump index = %.4f microseconds\n", serverID,
+             timer_delta_us(&timer));
     return ret_value;
 }
 
@@ -256,7 +256,7 @@ fill_set_from_BULKI_Entity(value_index_leaf_content_t *value_index_leaf, BULKI_E
     BULKI_Entity_Iterator *it = Bent_iterator_init(data_entity, NULL, PDC_UNKNOWN);
     while (Bent_iterator_has_next_Bent(it)) {
         BULKI_Entity *id_entity = Bent_iterator_next_Bent(it);
-        uint64_t *    obj_id    = calloc(1, sizeof(uint64_t));
+        uint64_t     *obj_id    = calloc(1, sizeof(uint64_t));
         memcpy(obj_id, id_entity->data, sizeof(uint64_t));
         set_insert(value_index_leaf->obj_id_set, obj_id);
         value_index_leaf->indexed_item_count++;
@@ -273,8 +273,8 @@ read_attr_value_node(key_index_leaf_content_t *leaf_cnt, int value_tree_idx, BUL
     BULKI_KV_Pair_Iterator *it  = BULKI_KV_Pair_iterator_init(v_id_bulki);
     while (BULKI_KV_Pair_iterator_has_next(it)) {
         BULKI_KV_Pair *kv_pair     = BULKI_KV_Pair_iterator_next(it);
-        BULKI_Entity * key_entity  = &(kv_pair->key);
-        BULKI_Entity * data_entity = &(kv_pair->value);
+        BULKI_Entity  *key_entity  = &(kv_pair->key);
+        BULKI_Entity  *data_entity = &(kv_pair->value);
 
         value_index_leaf_content_t *value_index_leaf =
             (value_index_leaf_content_t *)calloc(1, sizeof(value_index_leaf_content_t));
@@ -383,8 +383,8 @@ read_attr_name_node(IDIOMS_t *idioms, char *dir_path, char *base_name, uint32_t 
     BULKI_KV_Pair_Iterator *it = BULKI_KV_Pair_iterator_init(bulki);
     while (BULKI_KV_Pair_iterator_has_next(it)) {
         BULKI_KV_Pair *kv_pair     = BULKI_KV_Pair_iterator_next(it);
-        BULKI_Entity * key_entity  = &(kv_pair->key);
-        BULKI_Entity * data_entity = &(kv_pair->value);
+        BULKI_Entity  *key_entity  = &(kv_pair->key);
+        BULKI_Entity  *data_entity = &(kv_pair->value);
 
         key_index_leaf_content_t *leafcnt =
             (key_index_leaf_content_t *)calloc(1, sizeof(key_index_leaf_content_t));
@@ -433,7 +433,7 @@ load_dart_info(DART *dart, char *dir_path, uint32_t serverID)
         if (stream == NULL) {
             return;
         }
-        BULKI_Entity *         dart_ent = BULKI_Entity_deserialize_from_file(stream);
+        BULKI_Entity          *dart_ent = BULKI_Entity_deserialize_from_file(stream);
         BULKI_Entity_Iterator *it       = Bent_iterator_init(dart_ent, NULL, PDC_UNKNOWN);
         int                    i        = 0;
         while (Bent_iterator_has_next_Bent(it)) {
@@ -499,7 +499,7 @@ idioms_metadata_index_recover(IDIOMS_t *idioms, char *dir_path, int num_server, 
         }
     }
     timer_pause(&timer);
-    println("[IDIOMS_Index_Recover_%d] Timer to recover index = %.4f microseconds\n", serverID,
-            timer_delta_us(&timer));
+    LOG_INFO("[IDIOMS_Index_Recover_%d] Timer to recover index = %.4f microseconds\n", serverID,
+             timer_delta_us(&timer));
     return ret_value;
 }

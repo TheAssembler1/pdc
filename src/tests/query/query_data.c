@@ -24,16 +24,16 @@ main(int argc, char **argv)
     struct pdc_region_info region;
     uint64_t               i, dims[1];
     pdc_selection_t        sel;
-    char *                 obj_name;
+    char                  *obj_name;
     int                    my_data_count;
-    pdc_metadata_t *       metadata;
+    pdc_metadata_t        *metadata;
     pdcid_t                pdc, cont_prop, cont, obj_prop;
     int                    ndim = 1;
-    int *                  mydata;
+    int                   *mydata;
     int                    lo0 = 1000;
     int                    lo1 = 2000, hi1 = 3000;
     int                    lo2 = 5000, hi2 = 7000;
-    pdc_query_t *          q0, *q1l, *q1h, *q1, *q2l, *q2h, *q2, *q, *q12;
+    pdc_query_t           *q0, *q1l, *q1h, *q1, *q2l, *q2h, *q2, *q, *q12;
     int                    ret_value = 0;
 
     struct timeval ht_total_start;
@@ -97,7 +97,6 @@ main(int argc, char **argv)
     // Create a object with only rank 0
     if (rank == 0) {
         LOG_INFO("Creating an object with name [%s]\n", obj_name);
-        fflush(stdout);
         obj_id = PDCobj_create(cont, obj_name, obj_prop);
         if (obj_id <= 0) {
             LOG_ERROR("Error getting an object id of %s from server, exit...\n", "DataServerTestBin");
@@ -143,7 +142,6 @@ main(int argc, char **argv)
 
     if (rank == 0) {
         LOG_INFO("Time to write data with %d ranks: %.5e\n", size, ht_total_sec);
-        fflush(stdout);
     }
 
     // Construct query constraints

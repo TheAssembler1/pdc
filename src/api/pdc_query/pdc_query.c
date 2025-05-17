@@ -22,8 +22,8 @@
 pdc_query_t *
 PDCquery_create(pdcid_t obj_id, pdc_query_op_t op, pdc_var_type_t type, void *value)
 {
-    pdc_query_t *         ret_value = NULL;
-    pdc_query_t *         query;
+    pdc_query_t          *ret_value = NULL;
+    pdc_query_t          *query;
     int                   type_size;
     struct _pdc_obj_info *obj_prop;
     uint64_t              meta_id;
@@ -54,7 +54,6 @@ PDCquery_create(pdcid_t obj_id, pdc_query_op_t op, pdc_var_type_t type, void *va
     ret_value = query;
 
 done:
-    fflush(stdout);
     FUNC_LEAVE(ret_value);
 }
 
@@ -71,7 +70,6 @@ PDCquery_sel_region(pdc_query_t *query, struct pdc_region_info *obj_region)
     query->region = obj_region;
 
 done:
-    fflush(stdout);
     FUNC_LEAVE(ret_value);
 }
 
@@ -111,49 +109,6 @@ PDCquery_and(pdc_query_t *q1, pdc_query_t *q2)
                   (q2->constraint->op == PDC_LT || q2->constraint->op == PDC_LTE))) {
                 break;
             }
-            /*
-                        switch (q1->constraint->type) {
-                            case PDC_FLOAT:
-                                flo = *((float *)&q1->constraint->value);
-                                fhi = *((float *)&q2->constraint->value);
-                                if (flo <= fhi)
-                                    can_combine = 1;
-                                break;
-                            case PDC_DOUBLE:
-                                dlo = *((double *)&q1->constraint->value);
-                                dhi = *((double *)&q2->constraint->value);
-                                if (dlo <= dhi)
-                                    can_combine = 1;
-                                break;
-                            case PDC_INT:
-                                ilo = *((int *)&q1->constraint->value);
-                                ihi = *((int *)&q2->constraint->value);
-                                if (ilo <= ihi)
-                                    can_combine = 1;
-                                break;
-                            case PDC_UINT:
-                                ulo = *((uint32_t *)&q1->constraint->value);
-                                uhi = *((uint32_t *)&q2->constraint->value);
-                                if (ulo <= uhi)
-                                    can_combine = 1;
-                                break;
-                            case PDC_INT64:
-                                i64lo = *((int64_t *)&q1->constraint->value);
-                                i64hi = *((int64_t *)&q2->constraint->value);
-                                if (i64lo <= i64hi)
-                                    can_combine = 1;
-                                break;
-                            case PDC_UINT64:
-                                ui64lo = *((uint64_t *)&q1->constraint->value);
-                                ui64hi = *((uint64_t *)&q2->constraint->value);
-                                if (ui64lo <= ui64hi)
-                                    can_combine = 1;
-                                break;
-                            default:
-                                PGOTO_ERROR(NULL, "== error with operator type!");
-                                break;
-                        } // End switch
-            */
             switch (q1->constraint->type) {
                 case PDC_FLOAT:
                     flo = (float)q1->constraint->value;
@@ -192,7 +147,7 @@ PDCquery_and(pdc_query_t *q1, pdc_query_t *q2)
                         can_combine = 1;
                     break;
                 default:
-                    PGOTO_ERROR(NULL, "== error with operator type!");
+                    PGOTO_ERROR(NULL, "== Error with operator type!");
                     break;
             } // End switch
             break;
@@ -223,7 +178,6 @@ PDCquery_and(pdc_query_t *q1, pdc_query_t *q2)
     ret_value = query;
 
 done:
-    fflush(stdout);
     FUNC_LEAVE(ret_value);
 }
 
@@ -249,7 +203,6 @@ PDCquery_or(pdc_query_t *q1, pdc_query_t *q2)
     ret_value = query;
 
 done:
-    fflush(stdout);
     FUNC_LEAVE(ret_value);
 }
 
@@ -266,7 +219,6 @@ PDCquery_get_nhits(pdc_query_t *query, uint64_t *n)
     ret_value = PDC_send_data_query(query, PDC_QUERY_GET_NHITS, n, NULL, NULL);
 
 done:
-    fflush(stdout);
     FUNC_LEAVE(ret_value);
 }
 
@@ -284,7 +236,6 @@ PDCquery_get_selection(pdc_query_t *query, pdc_selection_t *sel)
     ret_value = PDC_send_data_query(query, PDC_QUERY_GET_SEL, NULL, sel, NULL);
 
 done:
-    fflush(stdout);
     FUNC_LEAVE(ret_value);
 }
 
@@ -310,7 +261,6 @@ PDCquery_get_data(pdcid_t obj_id, pdc_selection_t *sel, void *obj_data)
     ret_value = PDC_Client_get_sel_data(meta_id, sel, obj_data);
 
 done:
-    fflush(stdout);
     FUNC_LEAVE(ret_value);
 }
 

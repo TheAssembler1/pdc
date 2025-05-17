@@ -21,9 +21,9 @@ int
 main(int argc, char *argv[])
 {
     int      my_rank = 0, num_procs = 1, i, ndim, region_MB = 0;
-    char *   file_name, *group_name;
-    char *   dset_names[7] = {"Energy", "x", "y", "z", "Ux", "Uy", "Uz"};
-    void *   data;
+    char    *file_name, *group_name;
+    char    *dset_names[7] = {"Energy", "x", "y", "z", "Ux", "Uy", "Uz"};
+    void    *data;
     hid_t    file_id, group_id, dset_ids[NVAR], filespace, memspace, fapl;
     hsize_t  dims[1], my_elem_off, my_nelem, region_offset, region_size;
     hsize_t  elem_offset, elem_count, total_elem, my_nregion, total_region, j;
@@ -32,7 +32,7 @@ main(int argc, char *argv[])
 
     pdcid_t                pdc_id, cont_prop, cont_id, obj_ids[NVAR], obj_prop;
     perr_t                 ret;
-    pdc_metadata_t *       obj_meta;
+    pdc_metadata_t        *obj_meta;
     struct PDC_region_info obj_region;
 
 #ifdef ENABLE_MPI
@@ -169,7 +169,6 @@ main(int argc, char *argv[])
 
         if (my_rank == 0)
             LOG_INFO("\n\nFinished import object %s\n\n", dset_names[i]);
-        fflush(stdout);
     } // End for i
 
     H5Pclose(fapl);

@@ -6,7 +6,7 @@
 #define MACRO_SAMPLE_MIN_MAX(TYPE, n, data, sample_pct, min, max)                                            \
     ({                                                                                                       \
         uint64_t i, sample_n, iter = 0;                                                                      \
-        TYPE *   ldata = (TYPE *)data;                                                                       \
+        TYPE    *ldata = (TYPE *)data;                                                                       \
         (min)          = ldata[0];                                                                           \
         (max)          = ldata[0];                                                                           \
         sample_n       = (n) * (sample_pct);                                                                 \
@@ -42,11 +42,10 @@ PDC_sample_min_max(pdc_var_type_t dtype, uint64_t n, void *data, double sample_p
     else if (PDC_UINT == dtype)
         MACRO_SAMPLE_MIN_MAX(uint32_t, n, data, sample_pct, *min, *max);
     else {
-        PGOTO_ERROR(FAIL, "== datatype %d not supported!", dtype);
+        PGOTO_ERROR(FAIL, "Datatype %d not supported!", dtype);
     }
 
 done:
-    fflush(stdout);
     FUNC_LEAVE(ret_value);
 }
 
@@ -154,7 +153,6 @@ PDC_create_hist(pdc_var_type_t dtype, int nbin, double min, double max)
     ret_value = hist;
 
 done:
-    fflush(stdout);
     FUNC_LEAVE(ret_value);
 }
 
@@ -162,7 +160,7 @@ done:
     ({                                                                                                       \
         uint64_t i;                                                                                          \
         int      lo, mid = 0, hi;                                                                            \
-        TYPE *   ldata = (TYPE *)(_data);                                                                    \
+        TYPE    *ldata = (TYPE *)(_data);                                                                    \
         if ((hist)->incr > 0) {                                                                              \
             for (i = 0; i < (n); i++) {                                                                      \
                 if (ldata[i] < (hist)->range[1]) {                                                           \
@@ -234,10 +232,9 @@ PDC_hist_incr_all(pdc_histogram_t *hist, pdc_var_type_t dtype, uint64_t n, void 
     else if (PDC_UINT == dtype)
         MACRO_HIST_INCR_ALL(uint32_t, hist, n, data);
     else
-        PGOTO_ERROR(FAIL, "== datatype %d not supported!", dtype);
+        PGOTO_ERROR(FAIL, "Datatype %d not supported!", dtype);
 
 done:
-    fflush(stdout);
     FUNC_LEAVE(ret_value);
 }
 
@@ -266,7 +263,7 @@ PDC_gen_hist(pdc_var_type_t dtype, uint64_t n, void *data)
 
     hist = PDC_create_hist(dtype, 50, min, max);
     if (NULL == hist)
-        PGOTO_ERROR(NULL, "== error with PDC_create_hist!");
+        PGOTO_ERROR(NULL, "Error with PDC_create_hist!");
 
     PDC_hist_incr_all(hist, dtype, n, data);
 
@@ -280,7 +277,6 @@ PDC_gen_hist(pdc_var_type_t dtype, uint64_t n, void *data)
     ret_value = hist;
 
 done:
-    fflush(stdout);
     FUNC_LEAVE(ret_value);
 }
 
@@ -297,7 +293,6 @@ PDC_free_hist(pdc_histogram_t *hist)
     free(hist);
 
 done:
-    fflush(stdout);
     FUNC_LEAVE_VOID;
 }
 
@@ -320,7 +315,6 @@ PDC_print_hist(pdc_histogram_t *hist)
     LOG_INFO("\n\n");
 
 done:
-    fflush(stdout);
     FUNC_LEAVE_VOID;
 }
 
@@ -350,7 +344,6 @@ PDC_dup_hist(pdc_histogram_t *hist)
     ret_value = res;
 
 done:
-    fflush(stdout);
     FUNC_LEAVE(ret_value);
 }
 
@@ -373,7 +366,7 @@ PDC_merge_hist(int n, pdc_histogram_t **hists)
 
     for (i = 1; i < n; i++) {
         if (hists[i]->dtype != hists[i - 1]->dtype) {
-            PGOTO_ERROR(NULL, "== cannot merge histograms of different types!");
+            PGOTO_ERROR(NULL, "Cannot merge histograms of different types!");
         }
         if (hists[i]->incr > incr_max) {
             incr_max     = hists[i]->incr;
@@ -391,7 +384,7 @@ PDC_merge_hist(int n, pdc_histogram_t **hists)
     // Duplicate the base hist to result
     res = PDC_dup_hist(hists[incr_max_idx]);
     if (NULL == res)
-        PGOTO_ERROR(NULL, "== error with PDC_dup_hist!");
+        PGOTO_ERROR(NULL, "Error with PDC_dup_hist!");
 
     res->range[0]                   = tot_min;
     res->range[(res->nbin) * 2 - 1] = tot_max;
@@ -420,7 +413,6 @@ PDC_merge_hist(int n, pdc_histogram_t **hists)
     ret_value = res;
 
 done:
-    fflush(stdout);
     FUNC_LEAVE(ret_value);
 }
 

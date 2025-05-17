@@ -20,15 +20,15 @@ main(int argc, char **argv)
 {
     int                    rank = 0, size = 1;
     uint64_t               size_MB;
-    char *                 obj_name;
+    char                  *obj_name;
     pdcid_t                test_obj = -1;
     pdcid_t                pdc, cont_prop, cont, obj_prop;
     struct pdc_region_info region;
     int                    my_data_size;
     uint64_t               dims[1];
     int                    ndim = 1;
-    pdc_metadata_t *       metadata;
-    char *                 mydata;
+    pdc_metadata_t        *metadata;
+    char                  *mydata;
 
     struct timeval ht_total_start;
     struct timeval ht_total_end;
@@ -123,10 +123,8 @@ main(int argc, char **argv)
                        ht_total_start.tv_usec;
     ht_total_sec = ht_total_elapsed / 1000000.0;
 
-    if (rank == 0) {
+    if (rank == 0)
         LOG_INFO("Time to write data with %d ranks: %.5e\n", size, ht_total_sec);
-        fflush(stdout);
-    }
 
     // close a container
     if (PDCcont_close(cont) < 0)

@@ -18,7 +18,7 @@ main(int argc, const char *argv[])
 {
     int      rank = 0, size = 1;
     uint64_t size_MB  = 0;
-    char *   obj_name = "test";
+    char    *obj_name = "test";
 
 #ifdef ENABLE_MPI
     MPI_Init(&argc, &argv);
@@ -58,8 +58,6 @@ main(int argc, const char *argv[])
 
     // Create a object with only rank 0
     if (rank == 0) {
-
-        /* fflush(stdout); */
         test_obj = PDCobj_create(cont, obj_name, obj_prop);
         if (test_obj <= 0) {
             LOG_ERROR("Error getting an object id of %s from server, exit...\n", "DataServerTestBin");

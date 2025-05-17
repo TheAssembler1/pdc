@@ -26,8 +26,6 @@ main(int argc, char **argv)
     int rank = 0, size = 1;
 
 #ifdef ENABLE_MPI
-    // println("MPI enabled!\n");
-    fflush(stdout);
     MPI_Init(&argc, &argv);
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
     MPI_Comm_size(MPI_COMM_WORLD, &size);
@@ -50,48 +48,48 @@ main(int argc, char **argv)
     dart_object_ref_type_t ref_type  = REF_PRIMARY_ID;
     dart_hash_algo_t       hash_algo = DART_HASH;
 
-    char *   key   = "abcd";
-    char *   value = "1234";
+    char    *key   = "abcd";
+    char    *value = "1234";
     uint64_t data  = 12341234;
     // if (rank == 0) {
     PDC_Client_insert_obj_ref_into_dart(hash_algo, key, value, strlen(value), PDC_STRING, ref_type, data);
-    println("[Client_Side_Insert] Insert '%s=%s' for ref %llu", key, value, data);
+    LOG_INFO("[Client_Side_Insert] Insert '%s=%s' for ref %llu\n", key, value, data);
 
     // This is for testing exact search
-    char *    exact_query = "abcd=1234";
+    char     *exact_query = "abcd=1234";
     uint64_t *out1;
     int       rest_count1 = 0;
     PDC_Client_search_obj_ref_through_dart(hash_algo, exact_query, ref_type, &rest_count1, &out1);
 
-    println("[Client_Side_Exact] Search '%s' and get %d results : %llu", exact_query, rest_count1, out1[0]);
+    LOG_INFO("[Client_Side_Exact] Search '%s' and get %d results : %llu\n", exact_query, rest_count1,
+             out1[0]);
 
     // This function test is for testing the prefix search
-    char *    prefix_query = "ab*=12*";
+    char     *prefix_query = "ab*=12*";
     uint64_t *out2;
     int       rest_count2 = 0;
     PDC_Client_search_obj_ref_through_dart(hash_algo, prefix_query, ref_type, &rest_count2, &out2);
 
-    println("[Client_Side_Prefix] Search '%s' and get %d results : %llu", prefix_query, rest_count2, out2[0]);
+    LOG_INFO("[Client_Side_Prefix] Search '%s' and get %d results : %llu\n", prefix_query, rest_count2,
+             out2[0]);
 
     // This function test is for testing the suffix search.
-    char *    suffix_query = "*cd=*34";
+    char     *suffix_query = "*cd=*34";
     uint64_t *out3;
     int       rest_count3 = 0;
     PDC_Client_search_obj_ref_through_dart(hash_algo, suffix_query, ref_type, &rest_count3, &out3);
 
-    println("[Client_Side_Suffix] Search '%s' and get %d results : %llu", suffix_query, rest_count3, out3[0]);
+    LOG_INFO("[Client_Side_Suffix] Search '%s' and get %d results : %llu\n", suffix_query, rest_count3,
+             out3[0]);
 
     // This is for testing infix search.
-    char *    infix_query = "*bc*=*23*";
+    char     *infix_query = "*bc*=*23*";
     uint64_t *out4;
     int       rest_count4 = 0;
     PDC_Client_search_obj_ref_through_dart(hash_algo, infix_query, ref_type, &rest_count4, &out4);
 
-    println("[Client_Side_Infix] Search '%s' and get %d results : %llu", infix_query, rest_count4, out4[0]);
-
-    // }
-
-    // done:
+    LOG_INFO("[Client_Side_Infix] Search '%s' and get %d results : %llu\n", infix_query, rest_count4,
+             out4[0]);
 
     if (PDCcont_close(cont) < 0)
         LOG_ERROR("Failed to close container %lld\n", cont);
@@ -101,7 +99,7 @@ main(int argc, char **argv)
 
     if (PDCclose(pdc) < 0)
         LOG_ERROR("Failed to close PDC\n");
-        // }
+    // }
 #ifdef ENABLE_MPI
     MPI_Finalize();
 #endif

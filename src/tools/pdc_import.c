@@ -30,7 +30,7 @@ typedef struct ArrayList {
 ArrayList *
 newList(void)
 {
-    char **    items = malloc(4 * sizeof(char *));
+    char     **items = malloc(4 * sizeof(char *));
     ArrayList *list  = malloc(sizeof(ArrayList));
     list->length     = 0;
     list->capacity   = 4;
@@ -76,7 +76,7 @@ print_usage()
 
 int     rank = 0, size = 1;
 char    tags_g[MAX_TAG_SIZE];
-char *  tags_ptr_g;
+char   *tags_ptr_g;
 char    dset_name_g[TAG_LEN_MAX];
 hsize_t tag_size_g;
 int     ndset_g = 0;
@@ -109,9 +109,6 @@ main(int argc, char **argv)
     int   displs[MAX_FILES];
     int   total_dset = 0;
     container_names  = newList();
-    /* char* summary_fname = "/global/cscratch1/sd/houhun/tag_size_summary.csv"; */
-
-    /* summary_fp_g = fopen(summary_fname, "a+"); */
 
     // create a pdc
     pdc_id_g = PDCinit("pdc");
@@ -156,7 +153,6 @@ main(int argc, char **argv)
                 fclose(filenames_fp);
 
                 LOG_INFO("Running with %d clients, %d files\n", size, total_count);
-                fflush(stdout);
             }
         }
         if (argc > 2) {
@@ -212,7 +208,6 @@ main(int argc, char **argv)
         LOG_INFO("Importer%2d: Importing %d files\n", rank, my_count);
         for (i = 0; i < my_count; i++)
             LOG_INFO("Importer%2d: [%s] \n", rank, my_filenames[i]);
-        fflush(stdout);
 
 #ifdef ENABLE_MPI
         MPI_Barrier(MPI_COMM_WORLD);
@@ -224,11 +219,9 @@ main(int argc, char **argv)
         for (i = 0; i < my_count; i++) {
             filename = my_filenames[i];
             LOG_INFO("Importer%2d: processing [%s]\n", rank, my_filenames[i]);
-            fflush(stdout);
             file = H5Fopen(filename, H5F_ACC_RDONLY, H5P_DEFAULT);
             if (file < 0) {
                 LOG_ERROR("Failed to open file [%s]\n", filename);
-                fflush(stdout);
                 continue;
             }
 
@@ -266,8 +259,6 @@ main(int argc, char **argv)
         }
     }
 
-    /* fclose(summary_fp_g); */
-
 done:
 #ifdef ENABLE_MPI
     MPI_Finalize();
@@ -281,7 +272,6 @@ done:
  *   This can be used as a model to implement different actions and
  *   searches.
  */
-
 void
 scan_group(hid_t gid, int level, char *app_name)
 {
@@ -302,11 +292,6 @@ scan_group(hid_t gid, int level, char *app_name)
      *  Other info., not shown here: number of links, object id
      */
     len = H5Iget_name(gid, group_name, MAX_NAME);
-
-    /*
-     *  process the attributes of the group, if any.
-     */
-    // scan_attrs(gid);
 
     /*
      *  Get all the members of the groups, one at a time.
@@ -379,11 +364,11 @@ do_dset(hid_t did, char *name, char *app_name)
     hsize_t                dtype_size, dset_size;
     char                   ds_name[MAX_NAME];
     char                   grp_name[MAX_NAME];
-    char *                 obj_name;
+    char                  *obj_name;
     int                    name_len, i;
     hsize_t                ndim, dims[10];
     uint64_t               region_offset[10], region_size[10];
-    void *                 buf;
+    void                  *buf;
     struct pdc_region_info obj_region;
 
     tag_size_g = 0;
@@ -465,7 +450,6 @@ do_dset(hid_t did, char *name, char *app_name)
     buf = malloc(dset_size);
     H5Dread(did, tid, H5S_ALL, H5S_ALL, H5P_DEFAULT, buf);
 
-    /* H5Pclose(pid); */
     H5Tclose(tid);
     H5Sclose(sid);
 
@@ -475,7 +459,6 @@ do_dset(hid_t did, char *name, char *app_name)
 
     scan_attrs(did, obj_id);
 
-    // pdc_metadata_t *meta = NULL;
     obj_region.ndim = ndim;
     for (i = 0; i < ndim; i++) {
         region_offset[i] = 0;
@@ -502,7 +485,6 @@ do_dset(hid_t did, char *name, char *app_name)
             (write_timer_end_g.tv_nsec - write_timer_start_g.tv_nsec); // calculate duration in nanoseconds;
         LOG_INFO("Importer%2d: Finished written 100 objects, took %.2f, my total %d\n", rank,
                  elapsed_time / 1e9, ndset_g);
-        fflush(stdout);
         clock_gettime(CLOCK_MONOTONIC, &write_timer_start_g);
     }
 
@@ -523,34 +505,26 @@ do_dtype(hid_t tid, hid_t oid, int is_compound)
     herr_t      status;
     int         compound_nmember, i;
     hsize_t     dims[8], ndim;
-    char *      mem_name;
-    char *      attr_string[100], new_string[TAG_LEN_MAX], tmp_str[TAG_LEN_MAX];
+    char       *mem_name;
+    char       *attr_string[100], new_string[TAG_LEN_MAX], tmp_str[TAG_LEN_MAX];
     hsize_t     attr_size, attr_len;
     hid_t       mem_type;
     hid_t       atype, aspace, naive_type;
     H5T_class_t t_class, compound_class;
     t_class = H5Tget_class(tid);
-    if (t_class < 0) {
-        /* puts("   Invalid datatype.\n"); */
-    }
-    else {
+    if (t_class >= 0) {
         attr_size = H5Tget_size(tid);
         /*
          * Each class has specific properties that can be
          * retrieved, e.g., attr_size, byte order, exponent, etc.
          */
         if (t_class == H5T_INTEGER) {
-            /* puts(" 'H5T_INTEGER'."); */
             return PDC_INT;
-
-            /* display size, signed, endianess, etc. */
         }
         else if (t_class == H5T_FLOAT) {
-            /* puts(" 'H5T_FLOAT'."); */
             return PDC_FLOAT;
         }
         else if (t_class == H5T_STRING) {
-            /* puts(" 'H5T_STRING'."); */
             return PDC_CHAR;
         }
         else if (t_class == H5T_COMPOUND) {
@@ -627,8 +601,8 @@ do_attr(hid_t aid, pdcid_t obj_id)
     char    buf[MAX_NAME]         = {0};
     char    read_buf[TAG_LEN_MAX] = {0};
     // pdc_kvtag_t kvtag1;
-    char *         tag_name;
-    void *         tag_value;
+    char          *tag_name;
+    void          *tag_value;
     pdc_var_type_t value_type;
     size_t         tag_size;
 

@@ -24,7 +24,7 @@ main(int argc, char **argv)
     uint64_t        nhits;
     pdc_selection_t sel;
     double          get_sel_time, get_data_time;
-    float *         energy_data = NULL, *x_data = NULL, *y_data = NULL, *z_data = NULL;
+    float          *energy_data = NULL, *x_data = NULL, *y_data = NULL, *z_data = NULL;
 
     float        preload_value = -10000.0;
     pdc_query_t *qpreload_energy, *qpreload_x, *qpreload, *q1_lo, *q1_hi, *q1, *q2_lo, *q2_hi, *q2, *q;
@@ -110,8 +110,6 @@ main(int argc, char **argv)
         gettimeofday(&pdc_timer_end, 0);
         get_data_time = PDC_get_elapsed_time_double(&pdc_timer_start, &pdc_timer_end);
         LOG_INFO("Get data time: %.5e\n", get_data_time);
-
-        fflush(stdout);
     }
 
     PDCselection_free(&sel);

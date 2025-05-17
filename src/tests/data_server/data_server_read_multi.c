@@ -129,10 +129,8 @@ main(int argc, char **argv)
             (meta_end.tv_sec - meta_start.tv_sec) * 1000000LL + meta_end.tv_usec - meta_start.tv_usec;
         total_meta_sec += meta_elapsed / 1000000.0;
 
-        if (rank == 0) {
+        if (rank == 0)
             LOG_INFO("Sleep %.2f seconds.\n", sleepseconds);
-            fflush(stdout);
-        }
 
         // Fake computation
         usleep(microseconds);
@@ -157,7 +155,6 @@ main(int argc, char **argv)
                 total_wait_sec += wait_elapsed / 1000000.0;
                 LOG_INFO("Timestep %d read, metadata %.2f s, wait %.2f s.\n", ts, meta_elapsed / 1000000.0,
                          wait_elapsed / 1000000.0);
-                fflush(stdout);
             }
         }
 
@@ -178,13 +175,11 @@ main(int argc, char **argv)
     total_elapsed =
         (total_end.tv_sec - total_start.tv_sec) * 1000000LL + total_end.tv_usec - total_start.tv_usec;
 
-    if (rank == 0) {
+    if (rank == 0)
         printf(
             "Total time read %d ts data each %luMB with %d ranks: %.5e, meta %.2f, wait %.2f, sleep %.2f\n",
             ntimestep, size_MB, size, total_elapsed / 1000000.0, total_meta_sec, total_wait_sec,
             sleepseconds * ntimestep);
-        fflush(stdout);
-    }
 
 done:
     // close a container

@@ -50,20 +50,20 @@ main(int argc, char **argv)
     long long      ht_total_elapsed;
     double         ht_total_sec;
     int            use_name = -1;
-    char *         env_str, *tmp_dir;
+    char          *env_str, *tmp_dir;
     pdc_metadata_t new;
-    char **         obj_names;
-    int *           obj_ts;
+    char          **obj_names;
+    int            *obj_ts;
     char            filename[1024], pdc_server_tmp_dir_g[128];
     int             n_entry;
     pdc_metadata_t  entry;
-    uint32_t *      hash_key;
+    uint32_t       *hash_key;
     int             j, read_count = 0, tmp_count;
     pdc_metadata_t *res = NULL;
     int             progress_factor;
-    FILE *          file;
+    FILE           *file;
     char            name_mode[6][32] = {"Random Obj Names", "INVALID!", "One Obj Name",
-                             "INVALID!",         "INVALID!", "Four Obj Names"};
+                                        "INVALID!",         "INVALID!", "Four Obj Names"};
 
 #ifdef ENABLE_MPI
     MPI_Init(&argc, &argv);
@@ -98,7 +98,6 @@ main(int argc, char **argv)
 
     if (rank == 0)
         LOG_INFO("Update/Delete %d objects per MPI rank\n", count);
-    fflush(stdout);
 
     // create a pdc
     pdc = PDCinit("pdc");
@@ -212,7 +211,6 @@ main(int argc, char **argv)
                 ht_total_sec = ht_total_elapsed / 1000000.0;
 
                 LOG_INFO("updated %10d ... %.5e\n", i * size, ht_total_sec);
-                fflush(stdout);
             }
         }
     }
@@ -224,10 +222,8 @@ main(int argc, char **argv)
     ht_total_elapsed = (ht_total_end.tv_sec - ht_total_start.tv_sec) * 1000000LL + ht_total_end.tv_usec -
                        ht_total_start.tv_usec;
     ht_total_sec = ht_total_elapsed / 1000000.0;
-    if (rank == 0) {
+    if (rank == 0)
         LOG_INFO("Time to update %d obj/rank with %d ranks: %.5e\n\n\n", count, size, ht_total_sec);
-        fflush(stdout);
-    }
 
     // close a container
     if (PDCcont_close(cont) < 0)

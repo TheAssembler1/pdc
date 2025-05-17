@@ -20,10 +20,10 @@ main(int argc, char **argv)
     uint64_t               readsize;
     pdcid_t                pdc, cont_prop, cont;
     struct pdc_region_info region;
-    pdc_metadata_t *       metadata;
+    pdc_metadata_t        *metadata;
     uint64_t               my_readsize;
     int                    ndim = 1;
-    void *                 buf;
+    void                  *buf;
 
     struct timeval ht_total_start;
     struct timeval ht_total_end;
@@ -87,10 +87,8 @@ main(int argc, char **argv)
                        ht_total_start.tv_usec;
     ht_total_sec = ht_total_elapsed / 1000000.0;
 
-    if (rank == 0) {
+    if (rank == 0)
         LOG_INFO("Time to read data with %d ranks: %.5e\n", size, ht_total_sec);
-        fflush(stdout);
-    }
 
 #ifdef ENABLE_MPI
     MPI_Barrier(MPI_COMM_WORLD);

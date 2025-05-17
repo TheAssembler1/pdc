@@ -47,7 +47,7 @@ main(int argc, char **argv)
     pdcid_t obj2;
     pdcid_t r1, r2;
     perr_t  ret;
-    float * x;
+    float  *x;
     int     x_dim        = 64;
     long    numparticles = 8388608;
     //    const int my_data_size = 992;
@@ -122,7 +122,6 @@ main(int argc, char **argv)
 
     for (int i = 0; i < numparticles; i++) {
         x[i] = uniform_random_number() * x_dim;
-        // fflush(stdout);
     }
 
     ret = PDCreg_release_lock(obj2, r2, WRITE);
@@ -131,20 +130,15 @@ main(int argc, char **argv)
 
     MPI_Barrier(MPI_COMM_WORLD);
     LOG_INFO("done with region release\n");
-    fflush(stdout);
 
-    if (rank == 0) {
+    if (rank == 0)
         LOG_INFO("request another lock\n");
-        fflush(stdout);
-    }
 
     ret = PDCreg_obtain_lock(obj2, r2, WRITE, BLOCK);
     if (ret != SUCCEED)
         LOG_ERROR("Failed to obtain lock for r2\n");
-    if (rank == 0) {
+    if (rank == 0)
         LOG_INFO("lock is granted\n");
-        fflush(stdout);
-    }
 
     ret = PDCbuf_obj_unmap(obj2, r2);
     if (ret != SUCCEED)

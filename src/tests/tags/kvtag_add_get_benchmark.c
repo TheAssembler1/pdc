@@ -34,7 +34,7 @@
 uint64_t
 atoui64(char *arg)
 {
-    char *   endptr;
+    char    *endptr;
     uint64_t num = strtoull(arg, &endptr, 10);
 
     if (*endptr != '\0') {
@@ -326,7 +326,7 @@ int
 main(int argc, char *argv[])
 {
     pdcid_t   pdc, cont_prop, cont, obj_prop;
-    pdcid_t * obj_ids;
+    pdcid_t  *obj_ids;
     uint64_t  n_obj, n_obj_incr, my_obj, my_obj_s;
     uint64_t  n_attr, n_attr_len, n_query, my_query, my_query_s;
     uint64_t  n_servers, n_clients;
@@ -335,8 +335,9 @@ main(int argc, char *argv[])
     double    stime = 0.0, step_elapse = 0.0;
     double    total_object_time = 0.0, total_tag_time = 0.0, total_query_time = 0.0;
     uint64_t  total_object_count = 0, total_tag_count = 0, total_query_count = 0;
-    void **   query_rst_cache;
+    void    **query_rst_cache;
     uint64_t *value_size;
+    int       ret_value = SUCCEED;
 
 #ifdef ENABLE_MPI
     MPI_Init(&argc, &argv);
@@ -359,14 +360,13 @@ main(int argc, char *argv[])
     if (n_obj_incr > n_obj) {
         if (my_rank == 0)
             LOG_ERROR("n_obj_incr cannot be larger than n_obj! Exiting...\n");
-        goto done;
+        PGOTO_DONE(FAIL);
     }
 
     if (n_query > n_obj_incr) {
-        if (my_rank == 0) {
+        if (my_rank == 0)
             LOG_ERROR("n_query cannot be larger than n_obj_incr! Exiting...\n");
-        }
-        goto done;
+        PGOTO_DONE(FAIL);
     }
 
     if (my_rank == 0)
@@ -380,7 +380,6 @@ main(int argc, char *argv[])
     char **tag_values = gen_strings(n_attr, n_attr_len);
 
     do {
-
         k++;
 
 #ifdef ENABLE_MPI
@@ -461,7 +460,6 @@ main(int argc, char *argv[])
 
         check_and_release_query_result(my_query, my_obj, my_obj_s, n_attr, tag_values, query_rst_cache,
                                        obj_ids);
-        fflush(stdout);
 
         my_obj_s += n_obj_incr;
         my_query_s += n_obj_incr;
@@ -469,14 +467,14 @@ main(int argc, char *argv[])
     } while (total_object_count < n_obj);
 
     if (my_rank == 0) {
-        LOG_ERROR("Final Report: \n");
+        LOG_INFO("Final Report: \n");
         LOG_INFO("[Final Report 1] Servers: %" PRIu64 " , Clients: %" PRIu64 " , C/S ratio: %.5e \n",
                  n_servers, n_clients, (double)n_clients / (double)n_servers);
         LOG_INFO("[Final Report 2] Iterations: %" PRIu64 " ,  Objects: %" PRIu64 " , Tags/Object: %" PRIu64
                  " ,  Queries/Iteration: "
                  "%" PRIu64 " , \n",
                  k, total_object_count, n_attr, n_query);
-        LOG_INFO("[Final Report 3] Object throughput: %.5e , Tag Throughput: %.5e , Query Throughput: %.5e ,",
+        LOG_INFO("[Final Report 3] Object throughput: %.5e , Tag Throughput: %.5e , Query Throughput: %.5e\n",
                  (double)total_object_count / total_object_time,
                  (double)(total_object_count * n_attr) / total_tag_time,
                  (double)(total_query_count * n_attr) / total_query_time);
@@ -488,14 +486,10 @@ main(int argc, char *argv[])
     free(tag_values);
     free(obj_ids);
 
-    // FIXME: the following is currently commented off to reduce node hours taken by time-consuming resource
-    // releasing procedure.
-    // closePDC(pdc, cont_prop, cont, obj_prop);
-
 done:
 #ifdef ENABLE_MPI
     MPI_Finalize();
 #endif
 
-    return 0;
+    return ret_value;
 }

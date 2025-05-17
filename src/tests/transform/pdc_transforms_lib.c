@@ -567,7 +567,7 @@ pdc_transform_increment(void *dataIn, PDC_var_type_t srcType, int ndim, uint64_t
 {
     int     i;
     int64_t nval, nbytes;
-    void *  destBuff;
+    void   *destBuff;
     size_t  typesize = 1;
     if (srcType >= 0) {
         if ((srcType == PDC_INT) || (srcType == PDC_UINT) || (srcType == PDC_FLOAT))
@@ -603,7 +603,7 @@ pdc_transform_increment(void *dataIn, PDC_var_type_t srcType, int ndim, uint64_t
             }
             break;
         default:
-            LOG_INFO("\n[TRANSFORM] Unable to increment values\n");
+            LOG_ERROR("\n[TRANSFORM] Unable to increment values\n");
             return -1;
             break;
     }
@@ -625,7 +625,7 @@ pdc_transform_compress(void *dataIn, PDC_var_type_t srcType, int ndim, uint64_t 
     int     doshuffle = BLOSC_BITSHUFFLE;
     int     nval, i, typesize;
     int64_t destsize, nbytes, csize;
-    void *  destBuff;
+    void   *destBuff;
 
     if ((srcType == PDC_INT) || (srcType == PDC_UINT) || (srcType == PDC_FLOAT))
         typesize = sizeof(int);
@@ -650,9 +650,9 @@ pdc_transform_compress(void *dataIn, PDC_var_type_t srcType, int ndim, uint64_t 
     csize = blosc_compress(clevel, doshuffle, typesize, nbytes, dataIn, destBuff, destsize);
 
     if (csize < 0)
-        LOG_INFO("[TRANSFORM] Error while compressing data (errcode: %ld)\n", csize);
+        LOG_ERROR("[TRANSFORM] Error while compressing data (errcode: %ld)\n", csize);
     if (csize == 0)
-        LOG_INFO("[TRANSFORM] Unable to compress data (errcode: %ld)\n", csize);
+        LOG_ERROR("[TRANSFORM] Unable to compress data (errcode: %ld)\n", csize);
 
     if (csize > 0) {
         LOG_INFO("[TRANSFORM] Data sucessfully compressed from %ld B to %ld B\n", nbytes, csize);
@@ -667,7 +667,7 @@ pdc_transform_decompress(void *dataIn, PDC_var_type_t srcType, int ndim, uint64_
 {
     int    i;
     size_t typesize, destsize, dsize;
-    void * destBuff = *dataOut;
+    void  *destBuff = *dataOut;
 
     LOG_INFO("\n[TRANSFORM] Entering pdc_transform_decompress\n");
 
@@ -688,7 +688,7 @@ pdc_transform_decompress(void *dataIn, PDC_var_type_t srcType, int ndim, uint64_
     dsize = (size_t)blosc_decompress(dataIn, destBuff, destsize);
 
     if (dsize <= 0)
-        LOG_INFO("[TRANSFORM] Error while decompressing data (errcode: %zu)\n", dsize);
+        LOG_ERROR("[TRANSFORM] Error while decompressing data (errcode: %zu)\n", dsize);
     else
         LOG_INFO("[TRANSFORM] Data sucessfully decompressed!\n");
     return dsize;

@@ -62,14 +62,13 @@ main(int argc, char **argv)
     MPI_Comm_size(MPI_COMM_WORLD, &size);
 #else
     LOG_INFO("MPI NOT Enabled!\n");
-    fflush(stdout);
 #endif
 
     char *obj_names[] = {"x", "y", "z", "px", "py", "pz", "id1", "id2"};
 
     pdcid_t                obj_ids[NUM_VAR];
     struct pdc_region_info obj_regions[NUM_VAR];
-    pdc_metadata_t *       obj_metas[NUM_VAR];
+    pdc_metadata_t        *obj_metas[NUM_VAR];
 
     pdcid_t obj_prop_float, obj_prop_int;
 
@@ -80,7 +79,7 @@ main(int argc, char **argv)
     uint64_t int_dims[NDIM]   = {int_bytes * size};
 
     uint64_t myoffset[NDIM], mysize[NDIM];
-    void *   mydata[NUM_VAR];
+    void    *mydata[NUM_VAR];
 
     int write_var = NUM_VAR;
 
@@ -251,7 +250,6 @@ main(int argc, char **argv)
         LOG_INFO("Write %f MB data with %d ranks\nTotal write time: %.2f\nSent %.2f, wait %.2f, Throughput "
                  "%.2f MB/s\n",
                  total_size, size, write_time, sent_time_total, wait_time_total, total_size / write_time);
-        fflush(stdout);
     }
 
 done:

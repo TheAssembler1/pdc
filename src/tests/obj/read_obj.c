@@ -27,7 +27,7 @@ main(int argc, char **argv)
 #ifdef ENABLE_MPI
     MPI_Comm comm;
 #else
-    int comm   = 1;
+    int comm = 1;
 #endif
     struct timeval pdc_timer_start;
     struct timeval pdc_timer_end;
@@ -39,7 +39,7 @@ main(int argc, char **argv)
     uint64_t *offset, *local_offset;
     uint64_t *mysize;
     int       i, j;
-    char *    mydata;
+    char     *mydata;
     char      obj_name[128], cont_name[128];
 
     uint64_t my_data_size;
@@ -207,10 +207,8 @@ main(int argc, char **argv)
     gettimeofday(&pdc_timer_end, 0);
     write_time = PDC_get_elapsed_time_double(&pdc_timer_start, &pdc_timer_end);
 
-    if (rank == 0) {
+    if (rank == 0)
         LOG_INFO("Time to process write data with %d ranks: %.5e\n", size, write_time);
-        fflush(stdout);
-    }
 
     transfer_request = PDCregion_transfer_create(mydata, PDC_READ, global_obj, local_region, global_region);
     if (transfer_request == 0) {
@@ -257,10 +255,8 @@ main(int argc, char **argv)
     gettimeofday(&pdc_timer_end, 0);
     write_time = PDC_get_elapsed_time_double(&pdc_timer_start, &pdc_timer_end);
 
-    if (rank == 0) {
+    if (rank == 0)
         LOG_INFO("Time to process read data with %d ranks: %.5e\n", size, write_time);
-        fflush(stdout);
-    }
 
     free(offset);
     free(local_offset);

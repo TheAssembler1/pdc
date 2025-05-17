@@ -26,7 +26,7 @@ main(int argc, char **argv)
     uint64_t pdc_dims[3], pdc_offset[3], pdc_size[3], pdc_local_offset[3], pdc_local_size[3];
     uint32_t value_size;
     // 12x, 32x, 32x
-    char *  fname, *dname = "vel_0 ijk layout", tag_name[128];
+    char   *fname, *dname = "vel_0 ijk layout", tag_name[128];
     double *data = NULL, t0, t1, t2, data_max, data_min, *ssi_data = NULL, *rec_data = NULL,
            *opensees_data = NULL, tag_value[4];
 
@@ -67,7 +67,6 @@ main(int argc, char **argv)
     offset[2] = chunk_size[2] * start_y[rank];
     offset[3] = 0;
 
-    /* size[0] = chunk_size[0]; */
     size[0] = dims[0];
     size[1] = chunk_size[1];
     size[2] = chunk_size[2];
@@ -80,7 +79,6 @@ main(int argc, char **argv)
     local_offset[2] = 0;
     local_offset[3] = 0;
 
-    /* local_size[0] = chunk_size[0]; */
     local_size[0] = dims[0];
     local_size[1] = chunk_size[1];
     local_size[2] = chunk_size[2];
@@ -149,7 +147,6 @@ main(int argc, char **argv)
     PDCprop_set_obj_transfer_region_type(obj_prop, PDC_REGION_LOCAL);
 
     obj = PDCobj_create_mpi(cont, "run1", obj_prop, 0, MPI_COMM_WORLD);
-    /* obj = PDCobj_create(cont, "run1", obj_prop); */
     if (obj <= 0)
         LOG_ERROR("Failed to create object");
 

@@ -341,6 +341,7 @@ main(int argc, char *argv[])
     pdcid_t pdc, cont_prop, cont, obj_prop;
     int     world_size, world_rank, i;
     double  stime, total_time;
+    int     ret_value = SUCCEED;
 
 #ifdef ENABLE_MPI
     MPI_Init(&argc, &argv);
@@ -349,17 +350,13 @@ main(int argc, char *argv[])
 #endif
 
     // prepare container
-    if (prepare_container(&pdc, &cont_prop, &cont, &obj_prop, world_rank) < 0) {
-        println("Failed to prepare container");
-        goto done;
-    }
+    if (prepare_container(&pdc, &cont_prop, &cont, &obj_prop, world_rank) < 0)
+        PGOTO_ERROR(FAIL, "Failed to prepare container");
 
-    if (world_rank == 0) {
-        println("Initialization Done!");
-    }
+    if (world_rank == 0)
+        LOG_INFO("Initialization Done!\n");
 
     // No need to create any object for testing only the index.
-
 #ifdef ENABLE_MPI
     MPI_Barrier(MPI_COMM_WORLD);
     stime = MPI_Wtime();
@@ -383,11 +380,9 @@ main(int argc, char *argv[])
     // perform the same query, there should be no result.
 
     // we are performing 1000 insertion operations for string value and 1000 times for numerical values.
-    perr_t ret_value = insert_index_records(world_rank, world_size);
-    if (ret_value == FAIL) {
-        LOG_ERROR("CLIENT %d failed to insert index records\n", world_rank);
-    }
-    assert(ret_value == SUCCEED);
+    ret_value = insert_index_records(world_rank, world_size);
+    if (ret_value == FAIL)
+        PGOTO_ERROR(FAIL, "CLIENT %d failed to insert index records\n", world_rank);
 
 #ifdef ENABLE_MPI
     MPI_Barrier(MPI_COMM_WORLD);
@@ -462,7 +457,6 @@ main(int argc, char *argv[])
                  1000.0 * world_size / total_time);
     }
 
-done:
     // close a container
     if (PDCcont_close(cont) < 0) {
         if (world_rank == 0) {
@@ -500,9 +494,10 @@ done:
             LOG_ERROR("Failed to close PDC\n");
     }
 
+done:
 #ifdef ENABLE_MPI
     MPI_Finalize();
 #endif
 
-    return 0;
+    return ret_value;
 }

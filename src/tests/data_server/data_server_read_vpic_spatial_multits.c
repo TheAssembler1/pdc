@@ -82,10 +82,10 @@ main(int argc, char **argv)
     int      n_particles;
     uint64_t float_bytes, int_bytes;
     uint64_t myoffset[NDIM], mysize[NDIM];
-    void *   mydata[NUM_VAR_MAX];
+    void    *mydata[NUM_VAR_MAX];
 
     struct pdc_region_info obj_regions[TS_MAX][NUM_VAR_MAX];
-    pdc_metadata_t *       obj_metas[TS_MAX][NUM_VAR_MAX];
+    pdc_metadata_t        *obj_metas[TS_MAX][NUM_VAR_MAX];
     struct pdc_request     request[TS_MAX][NUM_VAR_MAX];
 
     struct timeval pdc_timer_start;
@@ -130,11 +130,9 @@ main(int argc, char **argv)
         selectivity = 1.0;
     }
 
-    if (rank == 0) {
+    if (rank == 0)
         LOG_INFO("read %d variables, each %dMB per proc, %d timesteps, %.1f compute time, %.2f selectivity\n",
                  n_var, size_per_proc_var_MB, n_ts, sleep_time, selectivity);
-        fflush(stdout);
-    }
 
     // create a pdc
     pdc_id = PDCinit("pdc");
@@ -207,7 +205,6 @@ main(int argc, char **argv)
 
     if (rank == 0)
         LOG_INFO("Query done!\n");
-    fflush(stdout);
 
     for (ts = 0; ts < n_ts; ts++) {
         /*
@@ -219,7 +216,6 @@ main(int argc, char **argv)
         if (ts == 0) {
             if (rank == 0)
                 LOG_INFO("Timestep %d: sync read start\n", ts);
-            fflush(stdout);
 
             // Timing
             gettimeofday(&pdc_timer_start_1, 0);
@@ -241,8 +237,7 @@ main(int argc, char **argv)
             wait_time_total += wait_time;
 
             if (rank == 0)
-                LOG_INFO("sync read done\n");
-            fflush(stdout);
+                LOG_INFO("Sync read done\n");
         }
         else {
             /*
@@ -254,10 +249,8 @@ main(int argc, char **argv)
 #endif
             gettimeofday(&pdc_timer_start_1, 0);
 
-            if (rank == 0) {
+            if (rank == 0)
                 LOG_INFO("Timestep %d: Wait for prefetch.\n", ts);
-                fflush(stdout);
-            }
 
             // wait for read to finish before reading next timestep
             for (i = 0; i < n_var; i++) {
@@ -274,10 +267,8 @@ main(int argc, char **argv)
             wait_time = PDC_get_elapsed_time_double(&pdc_timer_start_1, &pdc_timer_end_1);
             wait_time_total += wait_time;
 
-            if (rank == 0) {
+            if (rank == 0)
                 LOG_INFO("Timestep %d: prefetch finished.\n", ts);
-                fflush(stdout);
-            }
         }
 
         /*
@@ -313,10 +304,8 @@ main(int argc, char **argv)
         if (true_sleep_time < 0)
             true_sleep_time = 0;
 
-        if (rank == 0) {
+        if (rank == 0)
             LOG_INFO("Compute for %d seconds.\n", (int)(true_sleep_time));
-            fflush(stdout);
-        }
 
         // Sleep to fake compute time
         PDC_msleep((unsigned long)(true_sleep_time * 1000));
@@ -336,13 +325,11 @@ main(int argc, char **argv)
     gettimeofday(&pdc_timer_end, 0);
     total_time = PDC_get_elapsed_time_double(&pdc_timer_start, &pdc_timer_end);
     total_size = n_particles * selectivity * 4.0 * 8 * size / 1024.0 / 1024.0;
-    if (rank == 0) {
+    if (rank == 0)
         LOG_INFO("read %d ts each of %.0fMB data with %d ranks: total %.2f\n"
                  "query %.2f, read %.2f, wait %.2f, compute %.2f\n",
                  n_ts, total_size, size, total_time, query_time_total, read_time_total, wait_time_total,
                  compute_total);
-        fflush(stdout);
-    }
 
     // Free allocated space
     for (i = 0; i < n_var; i++) {

@@ -9,6 +9,7 @@
 #include "string_utils.h"
 #include "timer_utils.h"
 #include "dart_core.h"
+#include "pdc.h"
 
 #define HASH_MD5    0
 #define HASH_MURMUR 1
@@ -224,8 +225,8 @@ get_key_distribution(int num_server, char *algo)
         if (max < num_indexed_word) {
             max = num_indexed_word;
         }
-        println("[%s Key Distribution] The total number of indexed keys on server %d = %.0f", algo, srv_cnt,
-                num_indexed_word);
+        LOG_JUST_PRINT("[%s Key Distribution] The total number of indexed keys on server %d = %.0f\n", algo,
+                       srv_cnt, num_indexed_word);
         sum += (double)num_indexed_word;
         sqrt_sum += (double)((double)num_indexed_word * (double)num_indexed_word);
     }
@@ -234,8 +235,9 @@ get_key_distribution(int num_server, char *algo)
     double variance = sqrt_sum / num_server - mean * mean;
     double stddev   = sqrt(variance);
 
-    println("[%s Key Distribution] STDDEV = %.3f and CV = %.3f for %d servers and %.0f keys in total.", algo,
-            stddev, stddev / mean, num_server, sum);
+    LOG_JUST_PRINT(
+        "[%s Key Distribution] STDDEV = %.3f and CV = %.3f for %d servers and %.0f keys in total\n", algo,
+        stddev, stddev / mean, num_server, sum);
 }
 
 void
@@ -248,16 +250,16 @@ get_request_distribution(int num_server, char *algo)
     for (srv_cnt = 0; srv_cnt < num_server; srv_cnt++) {
         dart_server server_abstract = all_servers[srv_cnt];
         double      request_count   = (double)server_abstract.request_count;
-        println("[%s Load Balance All] The total number of query requests on server %d = %.0f", algo, srv_cnt,
-                request_count);
+        LOG_INFO("[%s Load Balance All] The total number of query requests on server %d = %.0f\n", algo,
+                 srv_cnt, request_count);
         sum += (double)request_count;
         sqrt_sum += (double)((double)request_count * (double)request_count);
     }
     double mean     = sum / (double)num_server;
     double variance = sqrt_sum / num_server - mean * mean;
     double stddev   = sqrt(variance);
-    println("[%s Load Balance All] STDDEV = %.3f and CV = %.3f for %d servers and %.0f request in total.",
-            algo, stddev, stddev / mean, num_server, sum);
+    LOG_INFO("[%s Load Balance All] STDDEV = %.3f and CV = %.3f for %d servers and %.0f request in total\n",
+             algo, stddev, stddev / mean, num_server, sum);
 }
 
 void
@@ -332,7 +334,7 @@ read_words_from_text(const char *fileName, int *word_count, int **req_count, int
 
     FILE *file = fopen(fileName, "r"); /* should check the result */
     if (file == NULL) {
-        println("File not available\n");
+        LOG_ERROR("File not available\n");
         exit(4);
     }
     int lines_allocated = 128;
@@ -378,8 +380,8 @@ read_words_from_text(const char *fileName, int *word_count, int **req_count, int
 void
 print_usage()
 {
-    println("dart_sim.exe <hash> <num_server> <input_type> <path_to_file> <alphabet_size> "
-            "<replication_factor> <word_count> <prefix_len>");
+    LOG_JUST_PRINT("dart_sim.exe <hash> <num_server> <input_type> <path_to_file> <alphabet_size> "
+                   "<replication_factor> <word_count> <prefix_len>\n");
 }
 
 int
@@ -404,7 +406,7 @@ main(int argc, char **argv)
     word_count             = atoi(argv[7]);
     prefix_len             = atoi(argv[8]);
     char **input_word_list = NULL;
-    int *  req_count       = NULL;
+    int   *req_count       = NULL;
 
     int i = 0;
 
@@ -427,12 +429,12 @@ main(int argc, char **argv)
         algo_name = "DART";
     }
 
-    println("HASH = %s", algo_name);
+    LOG_INFO("HASH = %s\n", algo_name);
 
     void (*keyword_insert[])(char *, int) = {DHT_INITIAL_keyword_insert, DHT_FULL_keyword_insert,
                                              dart_keyword_insert};
     int (*keyword_search[])(char *, int)  = {DHT_INITIAL_keyword_search, DHT_FULL_keyword_search,
-                                            dart_keyword_search};
+                                             dart_keyword_search};
 
     if (INPUT_TYPE == INPUT_DICTIONARY) {
         // Init dart space.

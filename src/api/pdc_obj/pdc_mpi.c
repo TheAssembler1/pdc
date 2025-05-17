@@ -34,7 +34,7 @@ PDCobj_create_mpi(pdcid_t cont_id, const char *obj_name, pdcid_t obj_prop_id, in
 {
     pdcid_t               ret_value = SUCCEED;
     struct _pdc_obj_info *p         = NULL;
-    struct _pdc_id_info * id_info   = NULL;
+    struct _pdc_id_info  *id_info   = NULL;
     int                   rank;
 
     FUNC_ENTER(NULL);
@@ -61,7 +61,7 @@ perr_t
 PDCobj_encode(pdcid_t obj_id, pdcid_t *meta_id)
 {
     perr_t                ret_value = FAIL;
-    struct _pdc_id_info * objinfo;
+    struct _pdc_id_info  *objinfo;
     struct _pdc_obj_info *obj;
     int                   client_rank, client_size;
 
@@ -69,17 +69,17 @@ PDCobj_encode(pdcid_t obj_id, pdcid_t *meta_id)
 
     MPI_Comm_size(MPI_COMM_WORLD, &client_size);
     if (client_size < 2)
-        PGOTO_ERROR(ret_value, "Requires at least two processes.");
+        PGOTO_ERROR(ret_value, "Requires at least two processes");
 
     MPI_Comm_rank(MPI_COMM_WORLD, &client_rank);
 
     if (client_rank == 0) {
         objinfo = PDC_find_id(obj_id);
         if (objinfo == NULL)
-            PGOTO_ERROR(ret_value, "cannot locate object ID");
+            PGOTO_ERROR(ret_value, "Cannot locate object ID");
         obj = (struct _pdc_obj_info *)(objinfo->obj_ptr);
         if (obj->location == PDC_OBJ_LOCAL)
-            PGOTO_ERROR(FAIL, "trying to encode local object");
+            PGOTO_ERROR(FAIL, "Trying to encode local object");
         *meta_id = obj->obj_info_pub->meta_id;
     }
 
@@ -91,7 +91,7 @@ pdcid_t
 PDCobj_decode(pdcid_t obj_id, pdcid_t meta_id)
 {
     pdcid_t               ret_value = 0;
-    struct _pdc_id_info * objinfo;
+    struct _pdc_id_info  *objinfo;
     struct _pdc_obj_info *obj;
     int                   client_rank, client_size;
 
@@ -99,18 +99,17 @@ PDCobj_decode(pdcid_t obj_id, pdcid_t meta_id)
 
     MPI_Comm_size(MPI_COMM_WORLD, &client_size);
     if (client_size < 2)
-        PGOTO_ERROR(ret_value, "Requires at least two processes.");
+        PGOTO_ERROR(ret_value, "Requires at least two processes");
 
     MPI_Comm_rank(MPI_COMM_WORLD, &client_rank);
     if (client_rank != 0) {
         objinfo = PDC_find_id(obj_id);
         if (objinfo == NULL)
-            PGOTO_ERROR(ret_value, "cannot locate object ID");
+            PGOTO_ERROR(ret_value, "Cannot locate object ID");
         obj                        = (struct _pdc_obj_info *)(objinfo->obj_ptr);
         obj->obj_info_pub->meta_id = meta_id;
     }
 
 done:
-    fflush(stdout);
     FUNC_LEAVE(ret_value);
 }

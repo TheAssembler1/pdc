@@ -122,7 +122,6 @@ main(int argc, char **argv)
         // Create a object with only rank 0
         if (rank == 0) {
             LOG_INFO("Creating an object with name [%s], timestep %u\n", obj_name, ts);
-            /* fflush(stdout); */
             test_obj = PDCobj_create(cont, obj_name, obj_prop);
             if (test_obj <= 0) {
                 LOG_ERROR("Error getting an object id of %s from server, exit...\n", "DataServerTestBin");
@@ -154,10 +153,8 @@ main(int argc, char **argv)
             (meta_end.tv_sec - meta_start.tv_sec) * 1000000LL + meta_end.tv_usec - meta_start.tv_usec;
         total_meta_sec += meta_elapsed / 1000000.0;
 
-        if (rank == 0) {
+        if (rank == 0)
             LOG_INFO("Sleep %.2f seconds.\n", sleepseconds);
-            fflush(stdout);
-        }
 
         // Fake computation
         usleep(microseconds);
@@ -183,7 +180,6 @@ main(int argc, char **argv)
                 total_wait_sec += wait_elapsed / 1000000.0;
                 LOG_INFO("Timestep %d written, metadata %.2f s, wait %.2f s.\n", ts, meta_elapsed / 1000000.0,
                          wait_elapsed / 1000000.0);
-                fflush(stdout);
             }
         }
 
@@ -205,13 +201,11 @@ main(int argc, char **argv)
     total_elapsed =
         (total_end.tv_sec - total_start.tv_sec) * 1000000LL + total_end.tv_usec - total_start.tv_usec;
 
-    if (rank == 0) {
+    if (rank == 0)
         LOG_INFO(
             "Total time write %d ts data each %luMB with %d ranks: %.5e, meta %.2f, wait %.2f, sleep %.2f\n",
             ntimestep, size_MB, size, total_elapsed / 1000000.0, total_meta_sec, total_wait_sec,
             sleepseconds * ntimestep);
-        fflush(stdout);
-    }
 
 done:
     // close a container

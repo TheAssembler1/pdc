@@ -178,36 +178,6 @@ dsprintf(const char *format, ...)
     return ret;
 }
 
-void
-println(const char *format, ...)
-{
-    // 1. declare argument list
-    va_list args;
-    // 2. starting argument list
-    va_start(args, format);
-    // 3. get arguments value
-    vfprintf(stdout, format, args);
-    // 4. ending argument list
-    va_end(args);
-    fputc('\n', stdout);
-    fflush(stdout);
-}
-
-void
-stderr_println(const char *format, ...)
-{
-    // 1. declare argument list
-    va_list args;
-    // 2. starting argument list
-    va_start(args, format);
-    // 3. get arguments value
-    vfprintf(stderr, format, args);
-    // 4. ending argument list
-    va_end(args);
-    fputc('\n', stderr);
-    fflush(stderr);
-}
-
 char *
 reverse_str(char *str)
 {

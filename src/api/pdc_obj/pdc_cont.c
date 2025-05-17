@@ -43,10 +43,9 @@ PDC_cont_init()
 
     /* Initialize the atom group for the container IDs */
     if (PDC_register_type(PDC_CONT, (PDC_free_t)PDC_cont_close) < 0)
-        PGOTO_ERROR(FAIL, "unable to initialize container interface");
+        PGOTO_ERROR(FAIL, "Unable to initialize container interface");
 
 done:
-    fflush(stdout);
     FUNC_LEAVE(ret_value);
 }
 
@@ -57,7 +56,7 @@ PDCcont_create(const char *cont_name, pdcid_t cont_prop_id)
     perr_t                 ret       = SUCCEED;
     struct _pdc_cont_info *p         = NULL;
     struct _pdc_cont_prop *cont_prop = NULL;
-    struct _pdc_id_info *  id_info   = NULL;
+    struct _pdc_id_info   *id_info   = NULL;
 
     FUNC_ENTER(NULL);
 
@@ -95,7 +94,6 @@ PDCcont_create(const char *cont_name, pdcid_t cont_prop_id)
     ret_value = p->cont_info_pub->local_id;
 
 done:
-    fflush(stdout);
     FUNC_LEAVE(ret_value);
 }
 
@@ -106,7 +104,7 @@ PDCcont_create_col(const char *cont_name, pdcid_t cont_prop_id)
     perr_t                 ret       = SUCCEED;
     struct _pdc_cont_info *p         = NULL;
     struct _pdc_cont_prop *cont_prop = NULL;
-    struct _pdc_id_info *  id_info   = NULL;
+    struct _pdc_id_info   *id_info   = NULL;
 
     FUNC_ENTER(NULL);
 
@@ -142,7 +140,6 @@ PDCcont_create_col(const char *cont_name, pdcid_t cont_prop_id)
     ret_value                  = p->cont_info_pub->local_id;
 
 done:
-    fflush(stdout);
     FUNC_LEAVE(ret_value);
 }
 
@@ -152,7 +149,7 @@ PDC_cont_create_local(pdcid_t pdc, const char *cont_name, uint64_t cont_meta_id)
     pdcid_t                ret_value = 0;
     struct _pdc_cont_info *p         = NULL;
     struct _pdc_cont_prop *cont_prop = NULL;
-    struct _pdc_id_info *  id_info   = NULL;
+    struct _pdc_id_info   *id_info   = NULL;
     pdcid_t                cont_prop_id;
 
     FUNC_ENTER(NULL);
@@ -190,7 +187,6 @@ PDC_cont_create_local(pdcid_t pdc, const char *cont_name, uint64_t cont_meta_id)
     PDCprop_close(cont_prop_id);
 
 done:
-    fflush(stdout);
     FUNC_LEAVE(ret_value);
 }
 
@@ -210,7 +206,6 @@ PDC_cont_list_null()
     }
 
 done:
-    fflush(stdout);
     FUNC_LEAVE(ret_value);
 }
 
@@ -240,25 +235,23 @@ PDCcont_close(pdcid_t id)
 
     /* When the reference count reaches zero the resources are freed */
     if (PDC_dec_ref(id) < 0)
-        PGOTO_ERROR(FAIL, "container: problem of freeing id");
+        PGOTO_ERROR(FAIL, "Container: problem of freeing id");
 
 done:
-    fflush(stdout);
     FUNC_LEAVE(ret_value);
 }
 
 perr_t
 PDC_cont_end()
 {
-    perr_t ret_value = SUCCEED; /* Return value */
+    perr_t ret_value = SUCCEED;
 
     FUNC_ENTER(NULL);
 
     if (PDC_destroy_type(PDC_CONT) < 0)
-        PGOTO_ERROR(FAIL, "unable to destroy container interface");
+        PGOTO_ERROR(FAIL, "Unable to destroy container interface");
 
 done:
-    fflush(stdout);
     FUNC_LEAVE(ret_value);
 }
 
@@ -274,15 +267,14 @@ PDCcont_open(const char *cont_name, pdcid_t pdc)
 
     ret = PDC_Client_query_container_name(cont_name, &cont_meta_id);
     if (ret == FAIL)
-        PGOTO_ERROR(0, "query container name failed");
+        PGOTO_ERROR(0, "Query container name failed");
     if (cont_meta_id == 0)
-        PGOTO_ERROR(0, "query container not found");
+        PGOTO_ERROR(0, "Query container not found");
 
     cont_id   = PDC_cont_create_local(pdc, cont_name, cont_meta_id);
     ret_value = cont_id;
 
 done:
-    fflush(stdout);
     FUNC_LEAVE(ret_value);
 }
 
@@ -298,12 +290,11 @@ PDCcont_open_col(const char *cont_name, pdcid_t pdc)
 
     ret = PDC_Client_query_container_name_col(cont_name, &cont_meta_id);
     if (ret == FAIL)
-        PGOTO_ERROR(0, "query container name failed");
+        PGOTO_ERROR(0, "Query container name failed");
     cont_id   = PDC_cont_create_local(pdc, cont_name, cont_meta_id);
     ret_value = cont_id;
 
 done:
-    fflush(stdout);
     FUNC_LEAVE(ret_value);
 }
 
@@ -312,20 +303,20 @@ PDC_cont_get_info(pdcid_t cont_id)
 {
     struct _pdc_cont_info *ret_value = NULL;
     struct _pdc_cont_info *info      = NULL;
-    struct _pdc_id_info *  id_info   = NULL;
+    struct _pdc_id_info   *id_info   = NULL;
 
     FUNC_ENTER(NULL);
 
     id_info = PDC_find_id(cont_id);
     if (id_info == NULL)
-        PGOTO_ERROR(NULL, "cannot locate object");
+        PGOTO_ERROR(NULL, "Cannot locate object");
 
     info      = (struct _pdc_cont_info *)(id_info->obj_ptr);
     ret_value = (struct _pdc_cont_info *)PDC_calloc(1, sizeof(struct _pdc_cont_info));
     if (ret_value)
         memcpy(ret_value, info, sizeof(struct _pdc_cont_info));
     else
-        PGOTO_ERROR(NULL, "cannot allocate ret_value");
+        PGOTO_ERROR(NULL, "Cannot allocate ret_value");
 
     ret_value->cont_info_pub = (struct pdc_cont_info *)PDC_calloc(1, sizeof(struct pdc_cont_info));
     if (ret_value->cont_info_pub)
@@ -338,7 +329,7 @@ PDC_cont_get_info(pdcid_t cont_id)
     if (ret_value->cont_pt)
         memcpy(ret_value->cont_pt, info->cont_pt, sizeof(struct _pdc_cont_prop));
     else
-        PGOTO_ERROR(NULL, "cannot allocate ret_value->cont_pt");
+        PGOTO_ERROR(NULL, "Cannot allocate ret_value->cont_pt");
     ret_value->cont_pt->pdc = (struct _pdc_class *)PDC_calloc(1, sizeof(struct _pdc_class));
     if (ret_value->cont_pt->pdc) {
         ret_value->cont_pt->pdc->local_id = info->cont_pt->pdc->local_id;
@@ -346,17 +337,16 @@ PDC_cont_get_info(pdcid_t cont_id)
             ret_value->cont_pt->pdc->name = strdup(info->cont_pt->pdc->name);
     }
     else
-        PGOTO_ERROR(NULL, "cannot allocate ret_value->cont_pt->pdc");
+        PGOTO_ERROR(NULL, "Cannot allocate ret_value->cont_pt->pdc");
 
 done:
-    fflush(stdout);
     FUNC_LEAVE(ret_value);
 }
 
 struct pdc_cont_info *
 PDCcont_get_info(const char *cont_name)
 {
-    struct pdc_cont_info * ret_value = NULL;
+    struct pdc_cont_info  *ret_value = NULL;
     struct _pdc_cont_info *tmp       = NULL;
     pdcid_t                cont_id;
 
@@ -368,32 +358,30 @@ PDCcont_get_info(const char *cont_name)
 
     ret_value = (struct pdc_cont_info *)PDC_calloc(1, sizeof(struct pdc_cont_info));
     if (!ret_value)
-        PGOTO_ERROR(NULL, "cannot allocate memory");
+        PGOTO_ERROR(NULL, "Cannot allocate memory");
 
     ret_value = tmp->cont_info_pub;
 
 done:
-    fflush(stdout);
     FUNC_LEAVE(ret_value);
 }
 
 cont_handle *
 PDCcont_iter_start()
 {
-    cont_handle *       ret_value = NULL;
-    cont_handle *       conthl    = NULL;
+    cont_handle        *ret_value = NULL;
+    cont_handle        *conthl    = NULL;
     struct PDC_id_type *type_ptr;
 
     FUNC_ENTER(NULL);
 
     type_ptr = (pdc_id_list_g->PDC_id_type_list_g)[PDC_CONT];
     if (type_ptr == NULL)
-        PGOTO_ERROR(NULL, "container list is empty");
+        PGOTO_ERROR(NULL, "Container list is empty");
     conthl    = (&type_ptr->ids)->head;
     ret_value = conthl;
 
 done:
-    fflush(stdout);
     FUNC_LEAVE(ret_value);
 }
 
@@ -419,19 +407,18 @@ PDCcont_iter_next(cont_handle *chandle)
     FUNC_ENTER(NULL);
 
     if (chandle == NULL)
-        PGOTO_ERROR(NULL, "no next container");
+        PGOTO_ERROR(NULL, "No next container");
     next      = PDC_LIST_NEXT(chandle, entry);
     ret_value = next;
 
 done:
-    fflush(stdout);
     FUNC_LEAVE(ret_value);
 }
 
 struct pdc_cont_info *
 PDCcont_iter_get_info(cont_handle *chandle)
 {
-    struct pdc_cont_info * ret_value = NULL;
+    struct pdc_cont_info  *ret_value = NULL;
     struct _pdc_cont_info *info      = NULL;
 
     FUNC_ENTER(NULL);
@@ -442,12 +429,11 @@ PDCcont_iter_get_info(cont_handle *chandle)
 
     ret_value = (struct pdc_cont_info *)PDC_calloc(1, sizeof(struct pdc_cont_info));
     if (!ret_value)
-        PGOTO_ERROR(NULL, "failed to allocate memory");
+        PGOTO_ERROR(NULL, "Failed to allocate memory");
 
     ret_value = info->cont_info_pub;
 
 done:
-    fflush(stdout);
     FUNC_LEAVE(ret_value);
 }
 
@@ -461,12 +447,11 @@ PDCcont_persist(pdcid_t cont_id)
 
     info = PDC_find_id(cont_id);
     if (info == NULL)
-        PGOTO_ERROR(FAIL, "cannot locate container ID");
+        PGOTO_ERROR(FAIL, "Cannot locate container ID");
 
     ((struct _pdc_cont_info *)info->obj_ptr)->cont_pt->cont_life = PDC_PERSIST;
 
 done:
-    fflush(stdout);
     FUNC_LEAVE(ret_value);
 }
 
@@ -480,10 +465,9 @@ PDCprop_set_cont_lifetime(pdcid_t cont_prop, pdc_lifetime_t cont_lifetime)
 
     info = PDC_find_id(cont_prop);
     if (info == NULL)
-        PGOTO_ERROR(FAIL, "cannot locate container property ID");
+        PGOTO_ERROR(FAIL, "Cannot locate container property ID");
     ((struct _pdc_cont_prop *)(info->obj_ptr))->cont_life = cont_lifetime;
 
 done:
-    fflush(stdout);
     FUNC_LEAVE(ret_value);
 }

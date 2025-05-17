@@ -67,7 +67,6 @@ PDC_commit_request(uint64_t transfer_request_id)
         transfer_request_status_list_end = ptr->next;
     }
 
-    fflush(stdout);
     FUNC_LEAVE(ret_value);
 }
 
@@ -79,7 +78,7 @@ PDC_commit_request(uint64_t transfer_request_id)
 perr_t
 PDC_finish_request(uint64_t transfer_request_id)
 {
-    pdc_transfer_request_status *   ptr, *tmp = NULL;
+    pdc_transfer_request_status    *ptr, *tmp = NULL;
     perr_t                          ret_value = SUCCEED;
     transfer_request_wait_out_t     out;
     transfer_request_wait_all_out_t out_all;
@@ -136,7 +135,6 @@ PDC_finish_request(uint64_t transfer_request_id)
         ptr = ptr->next;
     }
 
-    fflush(stdout);
     FUNC_LEAVE(ret_value);
 }
 
@@ -188,7 +186,6 @@ PDC_check_request(uint64_t transfer_request_id)
         ptr = ptr->next;
     }
 
-    fflush(stdout);
     FUNC_LEAVE(ret_value);
 }
 
@@ -216,7 +213,6 @@ PDC_try_finish_request(uint64_t transfer_request_id, hg_handle_t handle, int *ha
         ptr = ptr->next;
     }
 
-    fflush(stdout);
     FUNC_LEAVE(ret_value);
 }
 
@@ -238,7 +234,6 @@ PDC_transfer_request_id_register()
     ret_value = transfer_request_id_g;
     transfer_request_id_g++;
 
-    fflush(stdout);
     FUNC_LEAVE(ret_value);
 }
 
@@ -264,8 +259,8 @@ PDC_Server_transfer_request_io(uint64_t obj_id, int obj_ndim, const uint64_t *ob
 {
     perr_t   ret_value = SUCCEED;
     int      fd;
-    char *   data_path                = NULL;
-    char *   user_specified_data_path = NULL;
+    char    *data_path                = NULL;
+    char    *user_specified_data_path = NULL;
     char     storage_location[ADDR_MAX];
     ssize_t  io_size;
     uint64_t i, j;
@@ -372,9 +367,6 @@ PDC_Server_transfer_request_io(uint64_t obj_id, int obj_ndim, const uint64_t *ob
     close(fd);
 
 done:
-    /* PDC_get_time_str(cur_time); */
-
-    fflush(stdout);
     FUNC_LEAVE(ret_value);
 }
 
@@ -393,7 +385,7 @@ clean_write_bulk_data(transfer_request_all_data *request_data)
 int
 parse_bulk_data(void *buf, transfer_request_all_data *request_data, pdc_access_t access_type)
 {
-    char *   ptr = (char *)buf;
+    char    *ptr = (char *)buf;
     int      i, j;
     uint64_t data_size;
 

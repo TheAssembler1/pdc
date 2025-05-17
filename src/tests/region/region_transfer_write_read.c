@@ -31,6 +31,7 @@
 #include <unistd.h>
 #include <sys/time.h>
 #include "pdc.h"
+#include "pdc_client_connect.h"
 #define BUF_LEN 128
 
 int
@@ -43,7 +44,7 @@ main(int argc, char **argv)
     pdcid_t transfer_request;
 
     int rank = 0, size = 1, i;
-    int ret_value = 0;
+    int ret_value = SUCCEED;
 
     uint64_t offset[3], offset_length[3];
     uint64_t dims[3];
@@ -69,38 +70,27 @@ main(int argc, char **argv)
 
     // create a container property
     cont_prop = PDCprop_create(PDC_CONT_CREATE, pdc);
-    if (cont_prop > 0) {
+    if (cont_prop > 0)
         LOG_INFO("Create a container property\n");
-    }
-    else {
-        LOG_ERROR("Failed to create container property");
-        ret_value = 1;
-    }
+    else
+        PGOTO_ERROR(FAIL, "Failed to create container property");
     // create a container
     sprintf(cont_name, "c%d", rank);
     cont = PDCcont_create(cont_name, cont_prop);
-    if (cont > 0) {
+    if (cont > 0)
         LOG_INFO("Create a container c1\n");
-    }
-    else {
-        LOG_ERROR("Failed to create container");
-        ret_value = 1;
-    }
+    else
+        PGOTO_ERROR(FAIL, "Failed to create container");
     // create an object property
     obj_prop = PDCprop_create(PDC_OBJ_CREATE, pdc);
-    if (obj_prop > 0) {
+    if (obj_prop > 0)
         LOG_INFO("Create an object property\n");
-    }
-    else {
-        LOG_ERROR("Failed to create object property");
-        ret_value = 1;
-    }
+    else
+        PGOTO_ERROR(FAIL, "Failed to create object property");
 
     ret = PDCprop_set_obj_type(obj_prop, PDC_INT);
-    if (ret != SUCCEED) {
-        LOG_ERROR("Failed to set obj type");
-        ret_value = 1;
-    }
+    if (ret != SUCCEED)
+        PGOTO_ERROR(FAIL, "Failed to set obj type");
     PDCprop_set_obj_user_id(obj_prop, getuid());
     PDCprop_set_obj_time_step(obj_prop, 0);
     PDCprop_set_obj_app_name(obj_prop, "DataServerTest");
@@ -111,26 +101,20 @@ main(int argc, char **argv)
     PDCprop_set_obj_dims(obj_prop, 1, dims);
     sprintf(obj_name1, "o1_%d", rank);
     obj1 = PDCobj_create(cont, obj_name1, obj_prop);
-    if (obj1 > 0) {
+    if (obj1 > 0)
         LOG_INFO("Create an object o1\n");
-    }
-    else {
-        LOG_ERROR("Failed to create object");
-        ret_value = 1;
-    }
+    else
+        PGOTO_ERROR(FAIL, "Failed to create object");
     // create second object
     dims[0] = BUF_LEN / 4;
     dims[1] = 4;
     PDCprop_set_obj_dims(obj_prop, 2, dims);
     sprintf(obj_name2, "o2_%d", rank);
     obj2 = PDCobj_create(cont, obj_name2, obj_prop);
-    if (obj2 > 0) {
-        LOG_INFO("Create an object o2\n");
-    }
-    else {
-        LOG_ERROR("Failed to create object");
-        ret_value = 1;
-    }
+    if (obj2 > 0)
+        LOG_INFO("Created object o2\n");
+    else
+        PGOTO_ERROR(FAIL, "Failed to create object");
     // create third object
     dims[0] = BUF_LEN / 4;
     dims[1] = 2;
@@ -138,32 +122,23 @@ main(int argc, char **argv)
     PDCprop_set_obj_dims(obj_prop, 3, dims);
     sprintf(obj_name3, "o3_%d", rank);
     obj3 = PDCobj_create(cont, obj_name3, obj_prop);
-    if (obj3 > 0) {
+    if (obj3 > 0)
         LOG_INFO("Create an object o3\n");
-    }
-    else {
-        LOG_ERROR("Failed to create object");
-        ret_value = 1;
-    }
+    else
+        PGOTO_ERROR(FAIL, "Failed to create object");
 
     offset[0]        = 0;
     offset_length[0] = BUF_LEN;
     reg              = PDCregion_create(1, offset, offset_length);
-    if (reg > 0) {
+    if (reg > 0)
         LOG_INFO("Create an region o1\n");
-    }
-    else {
-        LOG_ERROR("Failed to create region");
-        ret_value = 1;
-    }
+    else
+        PGOTO_ERROR(FAIL, "Failed to create region");
     reg_global = PDCregion_create(1, offset, offset_length);
-    if (reg_global > 0) {
-        LOG_INFO("Create an region o1\n");
-    }
-    else {
-        LOG_ERROR("Failed to create region");
-        ret_value = 1;
-    }
+    if (reg_global > 0)
+        LOG_INFO("Created region o1\n");
+    else
+        PGOTO_ERROR(FAIL, "Failed to create region");
     for (i = 0; i < BUF_LEN; ++i) {
         data[i] = i;
     }
@@ -236,25 +211,18 @@ main(int argc, char **argv)
         ret_value = 1;
     }
     ret = PDCregion_transfer_close(transfer_request);
-    if (ret != SUCCEED) {
-        LOG_ERROR("Failed to region transfer close");
-        ret_value = 1;
-    }
-    if (PDCregion_close(reg) < 0) {
-        LOG_ERROR("Failed to close local region");
-        ret_value = 1;
-    }
-    else {
-        LOG_INFO("successfully closed local region");
-    }
+    if (ret != SUCCEED)
+        PGOTO_ERROR(FAIL, "Failed to region transfer close\n");
+    if (PDCregion_close(reg) < 0)
+        PGOTO_ERROR(FAIL, "Failed to close local region");
+    else
+        LOG_INFO("Successfully closed local region\n");
 
-    if (PDCregion_close(reg_global) < 0) {
-        LOG_ERROR("Failed to close global region");
-        ret_value = 1;
-    }
-    else {
-        LOG_INFO("successfully closed global region");
-    }
+    if (PDCregion_close(reg_global) < 0)
+        PGOTO_ERROR(FAIL, "Failed to close global region");
+    else
+        LOG_INFO("Successfully closed global region\n");
+
     // Write the second object
     offset[0]        = 0;
     offset_length[0] = BUF_LEN / 4;
@@ -262,21 +230,16 @@ main(int argc, char **argv)
     offset_length[1] = 4;
 
     reg = PDCregion_create(2, offset, offset_length);
-    if (reg > 0) {
-        LOG_INFO("Create an region o1\n");
-    }
-    else {
-        LOG_ERROR("Failed to create region");
-        ret_value = 1;
-    }
+    if (reg > 0)
+        LOG_INFO("Created region o1\n");
+    else
+        PGOTO_ERROR(FAIL, "Failed to create region");
     reg_global = PDCregion_create(2, offset, offset_length);
-    if (reg_global > 0) {
-        LOG_INFO("Create an region o1\n");
-    }
-    else {
-        LOG_ERROR("Failed to create region");
-        ret_value = 1;
-    }
+    if (reg_global > 0)
+        LOG_INFO("Created region o1\n");
+    else
+        PGOTO_ERROR(FAIL, "Failed to create region");
+
     for (i = 0; i < BUF_LEN; ++i) {
         data[i] = i;
     }
@@ -284,35 +247,23 @@ main(int argc, char **argv)
     transfer_request = PDCregion_transfer_create(data, PDC_WRITE, obj2, reg, reg_global);
 
     ret = PDCregion_transfer_start(transfer_request);
-    if (ret != SUCCEED) {
-        LOG_ERROR("Failed to region transfer start");
-        ret_value = 1;
-    }
+    if (ret != SUCCEED)
+        PGOTO_ERROR(FAIL, "Failed to region transfer start");
     ret = PDCregion_transfer_wait(transfer_request);
-    if (ret != SUCCEED) {
-        LOG_ERROR("Failed to region transfer wait");
-        ret_value = 1;
-    }
+    if (ret != SUCCEED)
+        PGOTO_ERROR(FAIL, "Failed to region transfer wait");
     ret = PDCregion_transfer_close(transfer_request);
-    if (ret != SUCCEED) {
-        LOG_ERROR("Failed to region transfer close");
-        ret_value = 1;
-    }
-    if (PDCregion_close(reg) < 0) {
-        LOG_ERROR("Failed to close local region");
-        ret_value = 1;
-    }
-    else {
-        LOG_INFO("successfully closed local region");
-    }
+    if (ret != SUCCEED)
+        PGOTO_ERROR(FAIL, "Failed to region transfer close");
+    if (PDCregion_close(reg) < 0)
+        PGOTO_ERROR(FAIL, "Failed to close local region");
+    else
+        LOG_INFO("Successfully closed local region");
 
-    if (PDCregion_close(reg_global) < 0) {
-        LOG_ERROR("Failed to close global region");
-        ret_value = 1;
-    }
-    else {
-        LOG_INFO("successfully closed global region");
-    }
+    if (PDCregion_close(reg_global) < 0)
+        PGOTO_ERROR(FAIL, "Failed to close global region");
+    else
+        LOG_INFO("Successfully closed global region\n");
 
     // Write the third object
     offset[0]        = 0;
@@ -322,21 +273,19 @@ main(int argc, char **argv)
     offset[2]        = 0;
     offset_length[2] = 2;
     reg              = PDCregion_create(3, offset, offset_length);
-    if (reg > 0) {
-        LOG_INFO("Create an region o1\n");
-    }
-    else {
-        LOG_ERROR("Failed to create region");
-        ret_value = 1;
-    }
+
+    if (reg > 0)
+        LOG_INFO("Created region o1\n");
+    else
+        PGOTO_ERROR(FAIL, "Failed to create region");
+
     reg_global = PDCregion_create(3, offset, offset_length);
-    if (reg_global > 0) {
-        LOG_INFO("Create an region o1\n");
-    }
-    else {
-        LOG_ERROR("Failed to create region");
-        ret_value = 1;
-    }
+
+    if (reg_global > 0)
+        LOG_INFO("Created region o1\n");
+    else
+        PGOTO_ERROR(FAIL, "Failed to create region");
+
     for (i = 0; i < BUF_LEN; ++i) {
         data[i] = i;
     }
@@ -344,114 +293,75 @@ main(int argc, char **argv)
     transfer_request = PDCregion_transfer_create(data, PDC_WRITE, obj3, reg, reg_global);
 
     ret = PDCregion_transfer_start(transfer_request);
-    if (ret != SUCCEED) {
-        LOG_ERROR("Failed to region transfer start");
-        ret_value = 1;
-    }
+    if (ret != SUCCEED)
+        PGOTO_ERROR(FAIL, "Failed to region transfer start");
     ret = PDCregion_transfer_wait(transfer_request);
-    if (ret != SUCCEED) {
-        LOG_ERROR("Failed to region transfer wait");
-        ret_value = 1;
-    }
+    if (ret != SUCCEED)
+        PGOTO_ERROR(FAIL, "Failed to region transfer wait");
     ret = PDCregion_transfer_close(transfer_request);
-    if (ret != SUCCEED) {
-        LOG_ERROR("Failed to region transfer close");
-        ret_value = 1;
-    }
-    if (PDCregion_close(reg) < 0) {
-        LOG_ERROR("Failed to close local region");
-        ret_value = 1;
-    }
-    else {
-        LOG_INFO("successfully closed local region");
-    }
+    if (ret != SUCCEED)
+        PGOTO_ERROR(FAIL, "Failed to region transfer close");
+    if (PDCregion_close(reg) < 0)
+        PGOTO_ERROR(FAIL, "Failed to close local region");
+    else
+        LOG_INFO("Successfully closed local region\n");
 
-    if (PDCregion_close(reg_global) < 0) {
-        LOG_ERROR("Failed to close global region");
-        ret_value = 1;
-    }
-    else {
-        LOG_INFO("successfully closed global region");
-    }
+    if (PDCregion_close(reg_global) < 0)
+        PGOTO_ERROR(FAIL, "Failed to close global region");
+    else
+        LOG_INFO("Successfully closed global region\n");
 
     // close object
-    if (PDCobj_close(obj1) < 0) {
-        LOG_ERROR("Failed to close object o1");
-        ret_value = 1;
-    }
-    else {
+    if (PDCobj_close(obj1) < 0)
+        PGOTO_ERROR(FAIL, "Failed to close object o1");
+    else
         LOG_INFO("Successfully closed object o1");
-    }
-    if (PDCobj_close(obj2) < 0) {
-        LOG_ERROR("Failed to close object o2");
-        ret_value = 1;
-    }
-    else {
-        LOG_INFO("Successfully closed object o2");
-    }
-    if (PDCobj_close(obj3) < 0) {
-        LOG_ERROR("Failed to close object o3");
-        ret_value = 1;
-    }
-    else {
-        LOG_INFO("Successfully closed object o2");
-    }
+    if (PDCobj_close(obj2) < 0)
+        PGOTO_ERROR(FAIL, "Failed to close object o2");
+    else
+        LOG_INFO("Successfully closed object o2\n");
+    if (PDCobj_close(obj3) < 0)
+        PGOTO_ERROR(FAIL, "Failed to close object o3");
+    else
+        LOG_INFO("Successfully closed object o2\n");
     // close a container
-    if (PDCcont_close(cont) < 0) {
-        LOG_ERROR("Failed to close container c1");
-        ret_value = 1;
-    }
-    else {
-        LOG_INFO("Successfully closed container c1");
-    }
+    if (PDCcont_close(cont) < 0)
+        PGOTO_ERROR(FAIL, "Failed to close container c1");
+    else
+        LOG_INFO("Successfully closed container c1\n");
     // close a object property
-    if (PDCprop_close(obj_prop) < 0) {
-        LOG_ERROR("Failed to close property");
-        ret_value = 1;
-    }
-    else {
-        LOG_INFO("Successfully closed object property");
-    }
+    if (PDCprop_close(obj_prop) < 0)
+        PGOTO_ERROR(FAIL, "Failed to close property");
+    else
+        LOG_INFO("Successfully closed object property\n");
     // close a container property
-    if (PDCprop_close(cont_prop) < 0) {
-        LOG_ERROR("Failed to close property");
-        ret_value = 1;
-    }
-    else {
-        LOG_INFO("Successfully closed container property");
-    }
+    if (PDCprop_close(cont_prop) < 0)
+        PGOTO_ERROR(FAIL, "Failed to close property");
+    else
+        LOG_INFO("Successfully closed container property\n");
     free(data);
 
     // create first object
     sprintf(obj_name1, "o1_%d", rank);
     obj1 = PDCobj_open(obj_name1, pdc);
-    if (obj1 > 0) {
-        LOG_INFO("Create an object o1\n");
-    }
-    else {
-        LOG_ERROR("Failed to create object");
-        ret_value = 1;
-    }
+    if (obj1 > 0)
+        LOG_INFO("Created object o1\n");
+    else
+        PGOTO_ERROR(FAIL, "Failed to create object");
     // create second object
     sprintf(obj_name2, "o2_%d", rank);
     obj2 = PDCobj_open(obj_name2, pdc);
-    if (obj2 > 0) {
-        LOG_INFO("Create an object o2\n");
-    }
-    else {
-        LOG_ERROR("Failed to create object");
-        ret_value = 1;
-    }
+    if (obj2 > 0)
+        LOG_INFO("Created object o2\n");
+    else
+        PGOTO_ERROR(FAIL, "Failed to create object");
     // create third object
     sprintf(obj_name3, "o3_%d", rank);
     obj3 = PDCobj_open(obj_name3, pdc);
-    if (obj3 > 0) {
-        LOG_INFO("Create an object o3\n");
-    }
-    else {
-        LOG_ERROR("Failed to create object");
-        ret_value = 1;
-    }
+    if (obj3 > 0)
+        LOG_INFO("Created object o3\n");
+    else
+        PGOTO_ERROR(FAIL, "Failed to create object");
 
     offset[0]        = 0;
     offset_length[0] = BUF_LEN;
@@ -462,90 +372,61 @@ main(int argc, char **argv)
     transfer_request = PDCregion_transfer_create(data_read, PDC_READ, obj1, reg, reg_global);
 
     ret = PDCregion_transfer_start(transfer_request);
-    if (ret != SUCCEED) {
-        LOG_ERROR("Failed to region transfer start");
-        ret_value = 1;
-    }
+    if (ret != SUCCEED)
+        PGOTO_ERROR(FAIL, "Failed to region transfer start");
     ret = PDCregion_transfer_wait(transfer_request);
-    if (ret != SUCCEED) {
-        LOG_ERROR("Failed to region transfer wait");
-        ret_value = 1;
-    }
+    if (ret != SUCCEED)
+        PGOTO_ERROR(FAIL, "Failed to region transfer wait");
     // Check if data written previously has been correctly read.
     for (i = 0; i < BUF_LEN; ++i) {
-        if (data_read[i] != i) {
-            LOG_ERROR("wrong value %d!=%d\n", data_read[i], i);
-            ret_value = 1;
-            break;
-        }
+        if (data_read[i] != i)
+            PGOTO_ERROR(FAIL, "Wrong value %d!=%d\n", data_read[i], i);
     }
     ret = PDCregion_transfer_close(transfer_request);
-    if (ret != SUCCEED) {
-        LOG_ERROR("Failed to region transfer close");
-        ret_value = 1;
-    }
+    if (ret != SUCCEED)
+        PGOTO_ERROR(FAIL, "Failed to region transfer close");
     // Read the second object
     offset[0]        = 0;
     offset_length[0] = BUF_LEN / 4;
     offset[1]        = 0;
     offset_length[1] = 4;
     reg              = PDCregion_create(2, offset, offset_length);
-    if (reg > 0) {
+    if (reg > 0)
         LOG_INFO("Create an region o1\n");
-    }
-    else {
-        LOG_ERROR("Failed to create region");
-        ret_value = 1;
-    }
+    else
+        PGOTO_ERROR(FAIL, "Failed to create region");
     reg_global = PDCregion_create(2, offset, offset_length);
     if (reg_global > 0) {
         LOG_INFO("Create an region o1\n");
     }
-    else {
-        LOG_ERROR("Failed to create region");
-        ret_value = 1;
-    }
+    else
+        PGOTO_ERROR(FAIL, "Failed to create region");
     memset(data_read, 0, BUF_LEN);
     transfer_request = PDCregion_transfer_create(data_read, PDC_READ, obj2, reg, reg_global);
 
     ret = PDCregion_transfer_start(transfer_request);
-    if (ret != SUCCEED) {
-        LOG_ERROR("Failed to region transfer start");
-        ret_value = 1;
-    }
+    if (ret != SUCCEED)
+        PGOTO_ERROR(FAIL, "Failed to region transfer start");
     ret = PDCregion_transfer_wait(transfer_request);
-    if (ret != SUCCEED) {
-        LOG_ERROR("Failed to region transfer wait");
-        ret_value = 1;
-    }
+    if (ret != SUCCEED)
+        PGOTO_ERROR(FAIL, "Failed to region transfer wait");
     // Check if data written previously has been correctly read.
     for (i = 0; i < BUF_LEN; ++i) {
-        if (data_read[i] != i) {
-            LOG_ERROR("wrong value %d!=%d\n", data_read[i], i);
-            ret_value = 1;
-            break;
-        }
+        if (data_read[i] != i)
+            PGOTO_ERROR(FAIL, "Wrong value %d!=%d\n", data_read[i], i);
     }
     ret = PDCregion_transfer_close(transfer_request);
-    if (ret != SUCCEED) {
-        LOG_ERROR("Failed to region transfer close");
-        ret_value = 1;
-    }
-    if (PDCregion_close(reg) < 0) {
-        LOG_ERROR("Failed to close local region");
-        ret_value = 1;
-    }
-    else {
-        LOG_INFO("successfully closed local region");
-    }
+    if (ret != SUCCEED)
+        PGOTO_ERROR(FAIL, "Failed to region transfer close");
+    if (PDCregion_close(reg) < 0)
+        PGOTO_ERROR(FAIL, "Failed to close local region");
+    else
+        LOG_INFO("Successfully closed local region\n");
 
-    if (PDCregion_close(reg_global) < 0) {
-        LOG_ERROR("Failed to close global region");
-        ret_value = 1;
-    }
-    else {
-        LOG_INFO("successfully closed global region");
-    }
+    if (PDCregion_close(reg_global) < 0)
+        PGOTO_ERROR(FAIL, "Failed to close global region");
+    else
+        LOG_INFO("Successfully closed global region\n");
 
     // Read the third object
     offset[0]        = 0;
@@ -555,90 +436,59 @@ main(int argc, char **argv)
     offset[2]        = 0;
     offset_length[2] = 2;
     reg              = PDCregion_create(3, offset, offset_length);
-    if (reg > 0) {
+
+    if (reg > 0)
         LOG_INFO("Create an region o1\n");
-    }
-    else {
-        LOG_ERROR("Failed to create region");
-        ret_value = 1;
-    }
+    else
+        PGOTO_ERROR(FAIL, "Failed to create region");
     reg_global = PDCregion_create(3, offset, offset_length);
-    if (reg_global > 0) {
+    if (reg_global > 0)
         LOG_INFO("Create an region o1\n");
-    }
-    else {
-        LOG_ERROR("Failed to create region");
-        ret_value = 1;
-    }
+    else
+        PGOTO_ERROR(FAIL, "Failed to create region");
     memset(data_read, 0, BUF_LEN);
     transfer_request = PDCregion_transfer_create(data_read, PDC_READ, obj3, reg, reg_global);
 
     ret = PDCregion_transfer_start(transfer_request);
-    if (ret != SUCCEED) {
-        LOG_ERROR("Failed to region transfer start");
-        ret_value = 1;
-    }
+    if (ret != SUCCEED)
+        PGOTO_ERROR(FAIL, "Failed to region transfer start");
     ret = PDCregion_transfer_wait(transfer_request);
-    if (ret != SUCCEED) {
-        LOG_ERROR("Failed to region transfer wait");
-        ret_value = 1;
-    }
+    if (ret != SUCCEED)
+        PGOTO_ERROR(FAIL, "Failed to region transfer wait");
     // Check if data written previously has been correctly read.
     for (i = 0; i < BUF_LEN; ++i) {
         if (data_read[i] != i) {
-            LOG_ERROR("wrong value %d!=%d\n", data_read[i], i);
-            ret_value = 1;
-            break;
+            PGOTO_ERROR(FAIL, "Wrong value %d!=%d", data_read[i], i);
         }
     }
     ret = PDCregion_transfer_close(transfer_request);
-    if (ret != SUCCEED) {
-        LOG_ERROR("Failed to region transfer close");
-        ret_value = 1;
-    }
-    if (PDCregion_close(reg) < 0) {
-        LOG_ERROR("Failed to close local region");
-        ret_value = 1;
-    }
-    else {
-        LOG_INFO("successfully closed local region");
-    }
+    if (ret != SUCCEED)
+        PGOTO_ERROR(FAIL, "Failed to region transfer close");
+    if (PDCregion_close(reg) < 0)
+        PGOTO_ERROR(FAIL, "Failed to close local region");
+    else
+        LOG_INFO("Successfully closed local region\n");
 
-    if (PDCregion_close(reg_global) < 0) {
-        LOG_ERROR("Failed to close global region");
-        ret_value = 1;
-    }
-    else {
-        LOG_INFO("successfully closed global region");
-    }
+    if (PDCregion_close(reg_global) < 0)
+        PGOTO_ERROR(FAIL, "Failed to close global region");
+    else
+        LOG_INFO("Successfully closed global region\n");
+    if (PDCobj_close(obj1) < 0)
+        PGOTO_ERROR(FAIL, "Failed to close object o1");
+    else
+        LOG_INFO("Successfully closed object o1\n");
+    if (PDCobj_close(obj2) < 0)
+        PGOTO_ERROR(FAIL, "Failed to close object o2");
+    else
+        LOG_INFO("Successfully closed object o2\n");
+    if (PDCobj_close(obj3) < 0)
+        PGOTO_ERROR(FAIL, "Failed to close object o3");
+    else
+        LOG_INFO("Successfully closed object o2\n");
+    if (PDCclose(pdc) < 0)
+        PGOTO_ERROR(FAIL, "Failed to close PDC");
 
-    // close object
-    if (PDCobj_close(obj1) < 0) {
-        LOG_ERROR("Failed to close object o1");
-        ret_value = 1;
-    }
-    else {
-        LOG_INFO("Successfully closed object o1");
-    }
-    if (PDCobj_close(obj2) < 0) {
-        LOG_ERROR("Failed to close object o2");
-        ret_value = 1;
-    }
-    else {
-        LOG_INFO("Successfully closed object o2");
-    }
-    if (PDCobj_close(obj3) < 0) {
-        LOG_ERROR("Failed to close object o3");
-        ret_value = 1;
-    }
-    else {
-        LOG_INFO("Successfully closed object o2");
-    }
-    // close pdc
-    if (PDCclose(pdc) < 0) {
-        LOG_ERROR("Failed to close PDC");
-        ret_value = 1;
-    }
+done:
 #ifdef ENABLE_MPI
     MPI_Finalize();
 #endif

@@ -397,15 +397,16 @@ int
 main(int argc, char *argv[])
 {
     pdcid_t     pdc, cont_prop, cont, obj_prop;
-    pdcid_t *   obj_ids;
+    pdcid_t    *obj_ids;
     int         n_obj, my_csv_rows, num_columns;
     int         proc_num, my_rank, i, v, iter, round, csv_expand_factor, is_using_dart, query_type, comm_type;
     double      stime, total_time;
     pdc_kvtag_t kvtag;
-    uint64_t *  pdc_ids;
+    uint64_t   *pdc_ids;
     int         nres, ntotal;
-    int *       my_cnt_round;
-    int *       total_cnt_round;
+    int        *my_cnt_round;
+    int        *total_cnt_round;
+    int         ret_value = SUCCEED;
 
 #ifdef ENABLE_MPI
     MPI_Init(&argc, &argv);
@@ -416,7 +417,7 @@ main(int argc, char *argv[])
     if (argc < 8) {
         if (my_rank == 0)
             print_usage(argv[0]);
-        goto done;
+        PGOTO_DONE(FAIL);
     }
     n_obj             = atoi(argv[1]);
     round             = atoi(argv[2]);
@@ -431,13 +432,11 @@ main(int argc, char *argv[])
 
     int bypass_query = query_type == -1 ? 1 : 0;
     // prepare container
-    if (prepare_container(&pdc, &cont_prop, &cont, &obj_prop, my_rank) < 0) {
-        println("Failed to prepare container");
-        goto done;
-    }
+    if (prepare_container(&pdc, &cont_prop, &cont, &obj_prop, my_rank) < 0)
+        PGOTO_ERROR(FAIL, "Failed to prepare container");
 
     // ********************** Read and Broadcast first few rows of CSV file **********************
-    char * data      = NULL;
+    char  *data      = NULL;
     size_t data_size = 0;
 
     if (my_rank == 0) {
@@ -466,7 +465,7 @@ main(int argc, char *argv[])
 
     // ********************** Parse these rows of CSV file **********************
     // read the CSV file and parse into data
-    char ** csv_header = (char **)calloc(MAX_COLUMNS, sizeof(char *));
+    char  **csv_header = (char **)calloc(MAX_COLUMNS, sizeof(char *));
     char ***csv_data   = NULL;
     my_csv_rows =
         read_csv_from_buffer(data, &csv_header, &csv_data, &num_columns, rows_to_read, my_rank, proc_num);
@@ -483,13 +482,11 @@ main(int argc, char *argv[])
     total_time = MPI_Wtime() - stime;
 #endif
 
-    if (my_rank == 0) {
-        println("[Object Creation] Rank %d/%d: Created %d objects, time: %.5f ms", my_rank, proc_num,
-                obj_created, total_time * 1000.0);
-    }
+    if (my_rank == 0)
+        LOG_INFO("[Object Creation] Rank %d/%d: Created %d objects, time: %.5f ms\n", my_rank, proc_num,
+                 obj_created, total_time * 1000.0);
 
     // ********************** Add tags to objects **********************
-
 #ifdef ENABLE_MPI
     MPI_Barrier(MPI_COMM_WORLD);
     stime = MPI_Wtime();
@@ -504,13 +501,13 @@ main(int argc, char *argv[])
 #endif
 
     if (my_rank == 0) {
-        println("[Tag Creation] Rank %d/%d: Added %d tags for %d objects, time: %.5f ms", my_rank, proc_num,
-                tags_added, obj_created, total_time * 1000.0);
+        LOG_INFO("[Tag Creation] Rank %d/%d: Added %d tags for %d objects, time: %.5f ms\n", my_rank,
+                 proc_num, tags_added, obj_created, total_time * 1000.0);
     }
 
     if (bypass_query) {
         if (my_rank == 0) {
-            println("Rank %d: All queries are bypassed.", my_rank);
+            LOG_INFO("Rank %d: All queries are bypassed\n", my_rank);
             report_avg_server_profiling_rst();
         }
         goto done;
@@ -524,8 +521,7 @@ main(int argc, char *argv[])
 
     for (comm_type = 1; comm_type >= 0; comm_type--) {
         for (query_type = 0; query_type < 4; query_type++) {
-            perr_t ret_value;
-            int    round_total = 0;
+            int round_total = 0;
             for (iter = -1; iter < iter_round; iter++) { // -1 is for warm up
 #ifdef ENABLE_MPI
                 if (iter == 0) {
@@ -550,16 +546,16 @@ main(int argc, char *argv[])
                     query_type_str = "SUFFIX";
                 else if (query_type == 3)
                     query_type_str = "INFIX";
-                println("[%s Client %s Query with%sINDEX] %d rounds (%d) within %.5f ms",
-                        comm_type == 0 ? "Single" : "Multi", query_type_str,
-                        is_using_dart == 0 ? " NO " : " DART ", round, round_total, total_time * 1000.0);
+                LOG_INFO("[%s Client %s Query with%sINDEX] %d rounds (%d) within %.5f ms\n",
+                         comm_type == 0 ? "Single" : "Multi", query_type_str,
+                         is_using_dart == 0 ? " NO " : " DART ", round, round_total, total_time * 1000.0);
             }
 #endif
         } // end query type
-    }     // end comm type
+    } // end comm type
 
     if (my_rank == 0) {
-        println("Rank %d: All queries are done.", my_rank);
+        LOG_INFO("Rank %d: All queries are done\n", my_rank);
         report_avg_server_profiling_rst();
     }
 
@@ -579,11 +575,10 @@ main(int argc, char *argv[])
 #endif
 
     if (my_rank == 0) {
-        println("[TAG Deletion] Rank %d/%d: Deleted %d kvtag from %d objects, time: %.5f ms", my_rank,
-                proc_num, tags_deleted, obj_created, total_time * 1000.0);
+        LOG_INFO("[TAG Deletion] Rank %d/%d: Deleted %d kvtag from %d objects, time: %.5f ms\n", my_rank,
+                 proc_num, tags_deleted, obj_created, total_time * 1000.0);
     }
 
-done:
     // close a container
     if (PDCcont_close(cont) < 0) {
         if (my_rank == 0) {
@@ -621,9 +616,10 @@ done:
             LOG_ERROR("Failed to close PDC\n");
     }
 
+done:
 #ifdef ENABLE_MPI
     MPI_Finalize();
 #endif
 
-    return 0;
+    return ret_value;
 }

@@ -27,7 +27,7 @@
 #include "pdc_analysis_pkg.h"
 #include "pdc_transforms_common.h"
 
-static hg_context_t *     send_context_g     = NULL;
+static hg_context_t      *send_context_g     = NULL;
 static hg_atomic_int32_t *atomic_work_todo_g = NULL;
 
 /* Forward References:: */
@@ -51,12 +51,12 @@ PDC_Client_send_iter_recv_id(pdcid_t iter_id, pdcid_t *meta_id)
 {
     uint64_t                   ret_value = SUCCEED;
     struct _pdc_iterator_info *thisIter  = NULL;
-    struct _pdc_my_rpc_state * my_rpc_state_p;
+    struct _pdc_my_rpc_state  *my_rpc_state_p;
     obj_data_iterator_in_t     in;
     hg_return_t                hg_ret;
     int                        server_id = 0;
     int                        n_retry   = 0;
-    struct _pdc_obj_info *     object_info;
+    struct _pdc_obj_info      *object_info;
 
     FUNC_ENTER(NULL);
     if (atomic_work_todo_g == NULL) {
@@ -128,7 +128,6 @@ PDC_Client_send_iter_recv_id(pdcid_t iter_id, pdcid_t *meta_id)
     *meta_id = my_rpc_state_p->value;
 
 done:
-    fflush(stdout);
     HG_Destroy(my_rpc_state_p->handle);
     free(my_rpc_state_p);
 
@@ -156,7 +155,6 @@ client_register_iterator_rpc_cb(const struct hg_cb_info *info)
     }
 
 done:
-    fflush(stdout);
     hg_atomic_decr32(atomic_work_todo_g);
     HG_Free_output(info->info.forward.handle, &output);
 
@@ -172,11 +170,11 @@ PDC_Client_register_obj_analysis(struct _pdc_region_analysis_ftn_info *thisFtn, 
     uint32_t                   server_id = 0;
     hg_return_t                hg_ret;
     analysis_ftn_in_t          in;
-    struct _pdc_my_rpc_state * my_rpc_state_p;
+    struct _pdc_my_rpc_state  *my_rpc_state_p;
     struct _pdc_iterator_info *thisIter;
     int                        n_retry      = 0;
     int                        input_server = -1, output_server = -1;
-    struct _pdc_obj_info *     obj_prop;
+    struct _pdc_obj_info      *obj_prop;
 
     FUNC_ENTER(NULL);
     if (atomic_work_todo_g == NULL) {
@@ -248,7 +246,6 @@ PDC_Client_register_obj_analysis(struct _pdc_region_analysis_ftn_info *thisFtn, 
     thisFtn->meta_index = my_rpc_state_p->value;
 
 done:
-    fflush(stdout);
     HG_Destroy(my_rpc_state_p->handle);
     free(my_rpc_state_p);
 
@@ -276,7 +273,6 @@ client_register_analysis_rpc_cb(const struct hg_cb_info *info)
     }
 
 done:
-    fflush(stdout);
     hg_atomic_decr32(atomic_work_todo_g);
     HG_Free_output(info->info.forward.handle, &output);
 
@@ -293,7 +289,7 @@ PDC_Client_register_region_transform(const char *func, const char *loadpath,
     uint32_t                  server_id = 0;
     hg_return_t               hg_ret;
     transform_ftn_in_t        in;
-    struct _pdc_obj_info *    object_info = NULL;
+    struct _pdc_obj_info     *object_info = NULL;
     struct _pdc_my_rpc_state *my_rpc_state_p;
 
     FUNC_ENTER(NULL);
@@ -341,7 +337,6 @@ PDC_Client_register_region_transform(const char *func, const char *loadpath,
     // Here, we should update the local registry with the returned valued from my_rpc_state_p;
 
 done:
-    fflush(stdout);
     if (object_info)
         PDC_free_obj_info(object_info);
     HG_Destroy(my_rpc_state_p->handle);
@@ -369,7 +364,6 @@ client_register_transform_rpc_cb(const struct hg_cb_info *info)
     }
 
 done:
-    fflush(stdout);
     hg_atomic_decr32(atomic_work_todo_g);
     HG_Free_output(info->info.forward.handle, &output);
 

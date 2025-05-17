@@ -32,13 +32,14 @@
 #include "pdc_client_connect.h"
 #include "string_utils.h"
 
-int
+perr_t
 assign_work_to_rank(int rank, int size, int nwork, int *my_count, int *my_start)
 {
-    if (rank > size || my_count == NULL || my_start == NULL) {
-        LOG_ERROR("assign_work_to_rank(): Error with input!\n");
-        return -1;
-    }
+    perr_t ret_value = SUCCEED;
+
+    if (rank > size || my_count == NULL || my_start == NULL)
+        PGOTO_ERROR(FAIL, "assign_work_to_rank(): Error with input!");
+
     if (nwork < size) {
         if (rank < nwork)
             *my_count = 1;
@@ -57,7 +58,8 @@ assign_work_to_rank(int rank, int size, int nwork, int *my_count, int *my_start)
         }
     }
 
-    return 1;
+done:
+    return ret_value;
 }
 
 void
@@ -83,31 +85,24 @@ print_usage(char *name)
 perr_t
 prepare_container(pdcid_t *pdc, pdcid_t *cont_prop, pdcid_t *cont, pdcid_t *obj_prop, int my_rank)
 {
-    perr_t ret_value = FAIL;
+    perr_t ret_value = SUCCEED;
     // create a pdc
     *pdc = PDCinit("pdc");
 
     // create a container property
     *cont_prop = PDCprop_create(PDC_CONT_CREATE, *pdc);
-    if (*cont_prop <= 0) {
-        LOG_ERROR("[Client %d] Fail to create container property!\n", my_rank);
-        goto done;
-    }
+    if (*cont_prop <= 0)
+        PGOTO_ERROR(FAIL, "[Client %d] Failed to create container property!", my_rank);
     // create a container
     *cont = PDCcont_create("c1", *cont_prop);
-    if (*cont <= 0) {
-        LOG_ERROR("[Client %d] Fail to create container!\n", my_rank);
-        goto done;
-    }
+    if (*cont <= 0)
+        PGOTO_ERROR(FAIL, "[Client %d] Failed to create container!", my_rank);
 
     // create an object property
     *obj_prop = PDCprop_create(PDC_OBJ_CREATE, *pdc);
-    if (*obj_prop <= 0) {
-        LOG_ERROR("[Client %d] Fail to create object property!\n", my_rank);
-        goto done;
-    }
+    if (*obj_prop <= 0)
+        PGOTO_ERROR(FAIL, "[Client %d] Failed to create object property!", my_rank);
 
-    ret_value = SUCCEED;
 done:
     return ret_value;
 }
@@ -115,19 +110,16 @@ done:
 perr_t
 creating_objects(pdcid_t **obj_ids, int my_obj, int my_obj_s, pdcid_t cont, pdcid_t obj_prop, int my_rank)
 {
-    perr_t  ret_value = FAIL;
+    perr_t  ret_value = SUCCEED;
     char    obj_name[128];
     int64_t timestamp = get_timestamp_ms();
     *obj_ids          = (pdcid_t *)calloc(my_obj, sizeof(pdcid_t));
     for (int i = 0; i < my_obj; i++) {
         sprintf(obj_name, "obj%" PRId64 "%d", timestamp, my_obj_s + i);
         (*obj_ids)[i] = PDCobj_create(cont, obj_name, obj_prop);
-        if ((*obj_ids)[i] <= 0) {
-            LOG_ERROR("[Client %d] Fail to create object!\n", my_rank);
-            goto done;
-        }
+        if ((*obj_ids)[i] <= 0)
+            PGOTO_ERROR(FAIL, "[Client %d] Failed to create object!", my_rank);
     }
-    ret_value = SUCCEED;
 done:
     return ret_value;
 }
@@ -136,15 +128,16 @@ int
 main(int argc, char *argv[])
 {
     pdcid_t     pdc, cont_prop, cont, obj_prop;
-    pdcid_t *   obj_ids;
+    pdcid_t    *obj_ids;
     int         n_obj, my_obj, my_obj_s;
     int         proc_num, my_rank, i, v, iter, round, selectivity, is_using_dart, query_type, comm_type;
     double      stime, total_time;
     pdc_kvtag_t kvtag;
-    uint64_t *  pdc_ids;
+    uint64_t   *pdc_ids;
     int         nres, ntotal;
-    int *       my_cnt_round;
-    int *       total_cnt_round;
+    int        *my_cnt_round;
+    int        *total_cnt_round;
+    int         ret_value = SUCCEED;
 
 #ifdef ENABLE_MPI
     MPI_Init(&argc, &argv);
@@ -155,7 +148,7 @@ main(int argc, char *argv[])
     if (argc < 7) {
         if (my_rank == 0)
             print_usage(argv[0]);
-        goto done;
+        PGOTO_DONE(FAIL);
     }
     n_obj         = atoi(argv[1]);
     round         = atoi(argv[2]);
@@ -167,16 +160,15 @@ main(int argc, char *argv[])
 
     int bypass_query = query_type == -1 ? 1 : 0;
     // prepare container
-    if (prepare_container(&pdc, &cont_prop, &cont, &obj_prop, my_rank) < 0) {
-        LOG_ERROR("Failed to prepare container");
-        goto done;
-    }
+    if (prepare_container(&pdc, &cont_prop, &cont, &obj_prop, my_rank) < 0)
+        PGOTO_ERROR(FAIL, "Failed to prepare container");
     // Create a number of objects, add at least one tag to that object
-    assign_work_to_rank(my_rank, proc_num, n_obj, &my_obj, &my_obj_s);
-
-    if (my_rank == 0) {
-        LOG_INFO("Each client will create about %d obj", my_obj);
+    if (assign_work_to_rank(my_rank, proc_num, n_obj, &my_obj, &my_obj_s) != SUCCEED) {
+        PGOTO_ERROR(FAIL, "Failed to assign_work_to_rank");
     }
+
+    if (my_rank == 0)
+        LOG_INFO("Each client will create about %d objects", my_obj);
 
     // creating objects
     creating_objects(&obj_ids, my_obj, my_obj_s, cont, obj_prop, my_rank);
@@ -207,30 +199,25 @@ main(int argc, char *argv[])
             snprintf(attr_name, 63, "attr_name");
             kvtag.name  = strdup(attr_name);
             kvtag.value = malloc(sizeof(int64_t));
-            if (kvtag.value == NULL) {
-                LOG_ERROR("Failed to allocate tag_value\n");
-                goto done;
-            }
+            if (kvtag.value == NULL)
+                PGOTO_ERROR(FAIL, "Failed to allocate tag_value");
             int64_t iter_val = iter;
             memcpy(kvtag.value, &iter_val, sizeof(int64_t));
             kvtag.type      = PDC_INT64;
             kvtag.size      = get_size_by_class_n_type(kvtag.value, 1, PDC_CLS_ITEM, PDC_INT64);
             pdcid_t meta_id = PDC_obj_get_info(obj_ids[i])->obj_info_pub->meta_id;
             if (is_using_dart) {
-                if (PDCobj_put_tag(obj_ids[i], kvtag.name, kvtag.value, kvtag.type, kvtag.size) < 0) {
-                    LOG_ERROR("Failed to add a kvtag to o%d\n", i + my_obj_s);
-                }
+                if (PDCobj_put_tag(obj_ids[i], kvtag.name, kvtag.value, kvtag.type, kvtag.size) < 0)
+                    PGOTO_ERROR(FAIL, "Failed to add a kvtag to o%d", i + my_obj_s);
                 // NOTE: object ID is a local ID, we need to get the global object metadata ID
                 if (PDC_Client_insert_obj_ref_into_dart(hash_algo, kvtag.name, kvtag.value, kvtag.size,
-                                                        kvtag.type, ref_type, meta_id) < 0) {
-                    LOG_ERROR("Failed to add a kvtag to o%d\n", i + my_obj_s);
-                }
+                                                        kvtag.type, ref_type, meta_id) < 0)
+                    PGOTO_ERROR(FAIL, "Failed to add a kvtag to o%d", i + my_obj_s);
                 total_insert++;
             }
             else {
-                if (PDCobj_put_tag(obj_ids[i], kvtag.name, kvtag.value, kvtag.type, kvtag.size) < 0) {
-                    LOG_ERROR("Failed to add a kvtag to o%d\n", i + my_obj_s);
-                }
+                if (PDCobj_put_tag(obj_ids[i], kvtag.name, kvtag.value, kvtag.type, kvtag.size) < 0)
+                    PGOTO_ERROR(FAIL, "Failed to add a kvtag to o%d", i + my_obj_s);
             }
             free(kvtag.name);
             free(kvtag.value);
@@ -239,9 +226,10 @@ main(int argc, char *argv[])
         }
         // TODO: why n_obj has to be larger than 1000?
         if (my_rank == 0 /*&& n_obj > 1000 */) {
-            println("Rank %d: Added %d kvtag to the %d / %d th object, I'm applying selectivity %d to %d "
-                    "objects.\n",
-                    my_rank, round, i + 1, my_obj_after_selectivity, selectivity, my_obj);
+            LOG_JUST_PRINT(
+                "Rank %d: Added %d kvtag to the %d / %d th object, I'm applying selectivity %d to %d\n"
+                "objects.\n",
+                my_rank, round, i + 1, my_obj_after_selectivity, selectivity, my_obj);
         }
     }
 
@@ -251,8 +239,9 @@ main(int argc, char *argv[])
 #endif
 
     if (my_rank == 0) {
-        println("[TAG Creation] Rank %d: Added %d kvtag to %d objects, time: %.5f ms, dart_insert_count=%d",
-                my_rank, round, my_obj, total_time * 1000.0, get_dart_insert_count());
+        LOG_JUST_PRINT(
+            "[TAG Creation] Rank %d: Added %d kvtag to %d objects, time: %.5f ms, dart_insert_count=%d\n",
+            my_rank, round, my_obj, total_time * 1000.0, get_dart_insert_count());
     }
 
 #ifdef ENABLE_MPI
@@ -265,24 +254,22 @@ main(int argc, char *argv[])
 
     if (bypass_query) {
         if (my_rank == 0) {
-            println("Rank %d: All queries are bypassed.", my_rank);
+            LOG_JUST_PRINT("Rank %d: All queries are bypassed\n", my_rank);
             report_avg_server_profiling_rst();
         }
-        goto done;
+        PGOTO_DONE(SUCCEED);
     }
 
     // For the queries, we issue #round queries.
     // The selectivity of each exact query should be #selectivity / 100 * #n_obj.
     // Namely, if you have 1M objects, selectivity is 10, then each query should return 100K objects.
     int iter_round = round;
-    if (comm_type == 0 && is_using_dart == 0) {
+    if (comm_type == 0 && is_using_dart == 0)
         iter_round = 2;
-    }
 
     for (comm_type = 1; comm_type >= 0; comm_type--) {
         for (query_type = 4; query_type < 6; query_type++) {
-            perr_t ret_value;
-            int    round_total = 0;
+            int round_total = 0;
             for (iter = -1; iter < iter_round; iter++) { // -1 is for warm up
 #ifdef ENABLE_MPI
                 if (iter == 0) {
@@ -290,7 +277,7 @@ main(int argc, char *argv[])
                     stime = MPI_Wtime();
                 }
 #endif
-                char *   attr_name = (char *)calloc(64, sizeof(char));
+                char    *attr_name = (char *)calloc(64, sizeof(char));
                 int64_t *tag_value;
                 snprintf(attr_name, 63, "attr_name");
                 tag_value    = malloc(sizeof(int64_t));
@@ -329,9 +316,6 @@ main(int argc, char *argv[])
                 else {
                     kvtag.name  = output.key_query;
                     kvtag.value = output.value_query;
-                    /* LOG_ERROR("    Rank %d: key [%s] value [%s]\n", my_rank, kvtag.name,
-                     * kvtag.value); */
-
 #ifdef ENABLE_MPI
                     ret_value = (comm_type == 0)
                                     ? PDC_Client_query_kvtag(&kvtag, &nres, &pdc_ids)
@@ -340,18 +324,14 @@ main(int argc, char *argv[])
                     ret_value = PDC_Client_query_kvtag(&kvtag, &nres, &pdc_ids);
 #endif
                 }
-                if (ret_value < 0) {
-                    LOG_ERROR("Failed to query kvtag [%s] with rank %d\n", kvtag.name, my_rank);
-                    break;
-                }
+                if (ret_value < 0)
+                    PGOTO_ERROR(FAIL, "Failed to query kvtag [%s] with rank %d", kvtag.name, my_rank);
 
                 // TODO: This is for checking the correctness of the query results.
-                if (iter >= 0) {
-                    if (nres != total_cnt_round[iter])
-                        LOG_ERROR(
-                            "Rank %d: query %d, comm %d, round %d - results %d do not match expected %d\n ",
-                            my_rank, query_type, comm_type, iter, nres, total_cnt_round[iter]);
-                }
+                if (iter >= 0 && nres != total_cnt_round[iter])
+                    PGOTO_ERROR(FAIL,
+                                "Rank %d: query %d, comm %d, round %d - results %d do not match expected %d",
+                                my_rank, query_type, comm_type, iter, nres, total_cnt_round[iter]);
 
                 round_total += nres;
                 free(kvtag.name);
@@ -369,21 +349,21 @@ main(int argc, char *argv[])
                     query_type_str = "EXACT";
                 else if (query_type == 5)
                     query_type_str = "RANGE";
-                println("[%s Client %s Query with%sINDEX] %d rounds with %d results, time: %.5f ms",
-                        comm_type == 0 ? "Single" : "Multi", query_type_str,
-                        is_using_dart == 0 ? " NO " : " DART ", round, round_total, total_time * 1000.0);
+                LOG_JUST_PRINT("[%s Client %s Query with%sINDEX] %d rounds with %d results, time: %.5f ms\n",
+                               comm_type == 0 ? "Single" : "Multi", query_type_str,
+                               is_using_dart == 0 ? " NO " : " DART ", round, round_total,
+                               total_time * 1000.0);
             }
 #endif
         } // end query type
-    }     // end comm type
+    } // end comm type
 
     if (my_rank == 0) {
-        println("Rank %d: All queries are done.", my_rank);
+        LOG_JUST_PRINT("Rank %d: All queries are done\n", my_rank);
         report_avg_server_profiling_rst();
     }
 
     // delete all tags
-
 #ifdef ENABLE_MPI
     MPI_Barrier(MPI_COMM_WORLD);
     stime = MPI_Wtime();
@@ -397,10 +377,8 @@ main(int argc, char *argv[])
             snprintf(attr_name, 63, "attr_name");
             kvtag.name  = strdup(attr_name);
             kvtag.value = malloc(sizeof(int64_t));
-            if (kvtag.value == NULL) {
-                LOG_ERROR("Failed to allocate tag_value\n");
-                goto done;
-            }
+            if (kvtag.value == NULL)
+                PGOTO_ERROR(FAIL, "Failed to allocate tag_value");
             int64_t iter_val = iter;
             memcpy(kvtag.value, &iter_val, sizeof(int64_t));
             kvtag.type = PDC_INT64;
@@ -410,9 +388,8 @@ main(int argc, char *argv[])
                 PDC_Client_delete_obj_ref_from_dart(hash_algo, kvtag.name, (char *)kvtag.value, kvtag.size,
                                                     kvtag.type, ref_type, meta_id);
             }
-            else {
+            else
                 PDCobj_del_tag(obj_ids[i], kvtag.name);
-            }
             free(kvtag.name);
             free(kvtag.value);
         }
@@ -422,52 +399,36 @@ main(int argc, char *argv[])
     MPI_Barrier(MPI_COMM_WORLD);
     total_time = MPI_Wtime() - stime;
 #endif
-    if (my_rank == 0) {
-        println("[TAG Deletion] Rank %d: Deleted %d kvtag from %d objects, time: %.5f ms", my_rank, round,
-                my_obj, total_time * 1000.0);
-    }
+    if (my_rank == 0)
+        LOG_JUST_PRINT("[TAG Deletion] Rank %d: Deleted %d kvtag from %d objects, time: %.5f ms\n", my_rank,
+                       round, my_obj, total_time * 1000.0);
 
-done:
     // close a container
-    if (PDCcont_close(cont) < 0) {
-        if (my_rank == 0) {
-            LOG_ERROR("Failed to close container c1\n");
-        }
-    }
-    else {
-        if (my_rank == 0)
-            LOG_INFO("Successfully closed container c1\n");
-    }
+    if (PDCcont_close(cont) < 0 && my_rank == 0)
+        PGOTO_ERROR(FAIL, "Failed to close container c1");
+    else if (my_rank == 0)
+        LOG_INFO("Successfully closed container c1\n");
 
     // close an object property
-    if (PDCprop_close(obj_prop) < 0) {
-        if (my_rank == 0)
-            LOG_ERROR("Failed to close property");
-    }
-    else {
-        if (my_rank == 0)
-            LOG_INFO("Successfully closed object property\n");
-    }
+    if (PDCprop_close(obj_prop) < 0 && my_rank == 0)
+        PGOTO_ERROR(FAIL, "Failed to close property");
+    else if (my_rank == 0)
+        LOG_INFO("Successfully closed object property\n");
 
     // close a container property
-    if (PDCprop_close(cont_prop) < 0) {
-        if (my_rank == 0)
-            LOG_ERROR("Failed to close property");
-    }
-    else {
-        if (my_rank == 0)
-            LOG_INFO("Successfully closed container property\n");
-    }
+    if (PDCprop_close(cont_prop) < 0 && my_rank == 0)
+        PGOTO_ERROR(FAIL, "Failed to close property");
+    else if (my_rank == 0)
+        LOG_INFO("Successfully closed container property\n");
 
     // close pdc
-    if (PDCclose(pdc) < 0) {
-        if (my_rank == 0)
-            LOG_ERROR("Failed to close PDC\n");
-    }
+    if (PDCclose(pdc) < 0 && my_rank == 0)
+        PGOTO_ERROR(FAIL, "Failed to close PDC");
 
+done:
 #ifdef ENABLE_MPI
     MPI_Finalize();
 #endif
 
-    return 0;
+    return ret_value;
 }

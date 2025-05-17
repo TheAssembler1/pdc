@@ -68,16 +68,18 @@ int
 main(int argc, char *argv[])
 {
     pdcid_t     pdc, cont_prop, cont, obj_prop;
-    pdcid_t *   obj_ids;
+    pdcid_t    *obj_ids;
     int         n_obj, n_add_tag, n_query, my_obj, my_obj_s, my_add_tag, my_query, my_add_tag_s, my_query_s;
     int         obj_1percent = 0, tag_1percent = 0, query_1percent = 0;
     int         proc_num, my_rank, i, v;
     char        obj_name[128];
     double      stime, total_time, percent_time;
     pdc_kvtag_t kvtag;
-    void **     values;
+    void      **values;
     pdc_var_type_t value_type;
     size_t         value_size;
+    int            ret_value = SUCCEED;
+
 #ifdef ENABLE_MPI
     MPI_Init(&argc, &argv);
     MPI_Comm_size(MPI_COMM_WORLD, &proc_num);
@@ -86,7 +88,7 @@ main(int argc, char *argv[])
     if (argc < 4) {
         if (my_rank == 0)
             print_usage(argv[0]);
-        goto done;
+        PGOTO_DONE(FAIL);
     }
     n_obj     = atoi(argv[1]);
     n_add_tag = atoi(argv[2]);
@@ -95,7 +97,7 @@ main(int argc, char *argv[])
     if (n_add_tag > n_obj || n_query > n_obj) {
         if (my_rank == 0)
             LOG_ERROR("n_add_tag or n_query larger than n_obj! Exiting...\n");
-        goto done;
+        PGOTO_DONE(FAIL);
     }
 
     assign_work_to_rank(my_rank, proc_num, n_add_tag, &my_add_tag, &my_add_tag_s);
@@ -115,17 +117,17 @@ main(int argc, char *argv[])
     // create a container property
     cont_prop = PDCprop_create(PDC_CONT_CREATE, pdc);
     if (cont_prop <= 0)
-        LOG_ERROR("Failed to create container property");
+        PGOTO_ERROR(FAIL, "Failed to create container property");
 
     // create a container
     cont = PDCcont_create("c1", cont_prop);
     if (cont <= 0)
-        LOG_ERROR("Failed to create container");
+        PGOTO_ERROR(FAIL, "Failed to create container");
 
     // create an object property
     obj_prop = PDCprop_create(PDC_OBJ_CREATE, pdc);
     if (obj_prop <= 0)
-        LOG_ERROR("Failed to create object property");
+        PGOTO_ERROR(FAIL, "Failed to create object property");
 
     // Create a number of objects, add at least one tag to that object
     obj_ids = (pdcid_t *)calloc(my_obj, sizeof(pdcid_t));
@@ -139,7 +141,7 @@ main(int argc, char *argv[])
         sprintf(obj_name, "obj%d", my_obj_s + i);
         obj_ids[i] = PDCobj_create(cont, obj_name, obj_prop);
         if (obj_ids[i] <= 0)
-            LOG_ERROR("Failed to create object");
+            PGOTO_ERROR(FAIL, "Failed to create object");
 
         if (i > 0 && i % obj_1percent == 0) {
 #ifdef ENABLE_MPI
@@ -178,7 +180,7 @@ main(int argc, char *argv[])
     for (i = 0; i < my_add_tag; i++) {
         v = i + my_add_tag_s;
         if (PDCobj_put_tag(obj_ids[i], kvtag.name, kvtag.value, kvtag.type, kvtag.size) < 0)
-            LOG_ERROR("Failed to add a kvtag to o%d\n", i + my_obj_s);
+            PGOTO_ERROR(FAIL, "Failed to add a kvtag to o%d", i + my_obj_s);
 
         if (i % tag_1percent == 0) {
 #ifdef ENABLE_MPI
@@ -212,7 +214,7 @@ main(int argc, char *argv[])
     for (i = 0; i < my_query; i++) {
         if (PDCobj_get_tag(obj_ids[i], kvtag.name, (void *)&values[i], (void *)&value_type,
                            (void *)&value_size) < 0)
-            LOG_ERROR("Failed to get a kvtag from o%d\n", i + my_query_s);
+            PGOTO_ERROR(FAIL, "Failed to get a kvtag from o%d\n", i + my_query_s);
 
         if (i % query_1percent == 0) {
 #ifdef ENABLE_MPI
@@ -237,17 +239,14 @@ main(int argc, char *argv[])
         LOG_INFO("Total time to retrieve 1 tag from %11d objects: %7.2f , throughput %10.2f \n", n_query,
                  total_time, n_query / total_time);
 
-    fflush(stdout);
-
     for (i = 0; i < my_query; i++) {
         if (*(int *)(values[i]) != i + my_add_tag_s)
-            LOG_ERROR("Error with retrieved tag from o%d\n", i + my_query_s);
+            PGOTO_ERROR(FAIL, "Error with retrieved tag from o%d", i + my_query_s);
         free(values[i]);
     }
     free(values);
     if (my_rank == 0) {
         LOG_INFO("Done checking values\n");
-        fflush(stdout);
     }
 
 done:
@@ -255,5 +254,5 @@ done:
     MPI_Finalize();
 #endif
 
-    return 0;
+    return ret_value;
 }

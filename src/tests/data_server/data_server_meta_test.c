@@ -33,16 +33,16 @@ main(int argc, char **argv)
 #endif
 
     pdc_metadata_t *metadata[NOBJ];
-    char *          obj_names[NOBJ];
+    char           *obj_names[NOBJ];
     const int       my_data_size = 1048576;
     int             ndim         = 1;
     uint64_t        dims[1]      = {my_data_size};
-    char *          write_data   = (char *)malloc(my_data_size);
+    char           *write_data   = (char *)malloc(my_data_size);
 
     int       my_read_obj       = NOBJ / size;
     int       my_read_obj_start = my_read_obj * rank;
     uint64_t *out_buf_sizes     = (uint64_t *)calloc(sizeof(uint64_t), my_read_obj);
-    void **   out_buf;
+    void    **out_buf;
 
     write_region.ndim      = ndim;
     write_region.offset    = (uint64_t *)malloc(sizeof(uint64_t) * ndim);
@@ -107,8 +107,7 @@ main(int argc, char **argv)
         PDC_Client_write(metadata[i], &write_region, write_data);
     }
 
-    LOG_INFO("%d - Finished writing %d regions. \n", rank, NOBJ);
-    fflush(stdout);
+    LOG_INFO("%d - Finished writing %d regions\n", rank, NOBJ);
 
 #ifdef ENABLE_MPI
     MPI_Barrier(MPI_COMM_WORLD);
@@ -133,7 +132,6 @@ main(int argc, char **argv)
     for (i = 0; i < my_read_obj; i++) {
         LOG_INFO("Proc %d - [%s]: [%c] ... [%c], size %" PRId64 "\n", rank, obj_names[i],
                  ((char **)out_buf)[i][0], ((char **)out_buf)[i][out_buf_sizes[i] - 1], out_buf_sizes[i]);
-        fflush(stdout);
     }
 
 #ifdef ENABLE_MPI

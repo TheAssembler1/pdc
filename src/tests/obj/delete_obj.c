@@ -65,9 +65,9 @@ main(int argc, char **argv)
     int      use_name          = -1;
     char     obj_prefix[4][10] = {"x", "y", "z", "energy"};
     char     tmp_str[128];
-    char *   env_str;
+    char    *env_str;
     char     name_mode[6][32] = {"Random Obj Names", "INVALID!", "One Obj Name",
-                             "INVALID!",         "INVALID!", "Four Obj Names"};
+                                 "INVALID!",         "INVALID!", "Four Obj Names"};
     char     obj_name[1024];
     perr_t   ret;
 
@@ -104,7 +104,6 @@ main(int argc, char **argv)
 
     if (rank == 0)
         LOG_INFO("Delete %d objects per MPI rank\n", count);
-    fflush(stdout);
 
     // create a pdc
     pdc = PDCinit("pdc");
@@ -131,10 +130,8 @@ main(int argc, char **argv)
         use_name = atoi(env_str);
     }
 
-    if (rank == 0) {
+    if (rank == 0)
         LOG_INFO("Using %s\n", name_mode[use_name + 1]);
-        fflush(stdout);
-    }
 
     srand(rank + 1);
 

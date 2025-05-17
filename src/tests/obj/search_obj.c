@@ -67,16 +67,16 @@ main(int argc, char **argv)
     double         ht_total_sec;
 
     char           name_mode[6][32] = {"Random Obj Names", "INVALID!", "One Obj Name",
-                             "INVALID!",         "INVALID!", "Four Obj Names"};
+                                       "INVALID!",         "INVALID!", "Four Obj Names"};
     char           filename[128], pdc_server_tmp_dir_g[128];
-    char *         env_str;
-    char **        obj_names;
-    int *          obj_ts;
-    char *         tmp_dir;
+    char          *env_str;
+    char         **obj_names;
+    int           *obj_ts;
+    char          *tmp_dir;
     int            n_entry;
     int            use_name = -1;
     pdc_metadata_t entry;
-    uint32_t *     hash_key;
+    uint32_t      *hash_key;
     int            j, read_count = 0, tmp_count;
 
 #ifdef ENABLE_MPI
@@ -189,7 +189,6 @@ main(int argc, char **argv)
 
     if (rank == 0)
         LOG_INFO("Searching %d objects per MPI rank\n", count);
-    fflush(stdout);
 
 #ifdef ENABLE_MPI
     MPI_Barrier(MPI_COMM_WORLD);
@@ -215,10 +214,8 @@ main(int argc, char **argv)
                                ht_total_end.tv_usec - ht_total_start.tv_usec;
             ht_total_sec = ht_total_elapsed / 1000000.0;
 
-            if (rank == 0) {
+            if (rank == 0)
                 LOG_INFO("searched %10d ... %.5e\n", i * size, ht_total_sec);
-                fflush(stdout);
-            }
 
 #ifdef ENABLE_MPI
             MPI_Barrier(MPI_COMM_WORLD);
@@ -233,10 +230,8 @@ main(int argc, char **argv)
     ht_total_elapsed = (ht_total_end.tv_sec - ht_total_start.tv_sec) * 1000000LL + ht_total_end.tv_usec -
                        ht_total_start.tv_usec;
     ht_total_sec = ht_total_elapsed / 1000000.0;
-    if (rank == 0) {
+    if (rank == 0)
         LOG_INFO("Time to partial query %d obj/rank with %d ranks: %.5e\n\n\n", count, size, ht_total_sec);
-        fflush(stdout);
-    }
 
     // close a container
     if (PDCcont_close(cont) < 0)

@@ -39,10 +39,10 @@ main(int argc, char *argv[])
 
     __dart_space_init(&dart, num_server, alphabet_size, extra_tree_height, replication_factor, 1024);
 
-    println(
-        "num_server: %d, num_client: %d, alphabet_size: %d, extra_tree_height: %d, replication_factor: %d",
+    LOG_INFO(
+        "num_server: %d, num_client: %d, alphabet_size: %d, extra_tree_height: %d, replication_factor: %d\n",
         num_server, num_client, alphabet_size, extra_tree_height, replication_factor);
-    println("DART: num_vnode: %lu", dart.num_vnode);
+    LOG_INFO("DART: num_vnode: %lu\n", dart.num_vnode);
 
     index_hash_result_t *out;
     int                  array_len = DART_hash(&dart, query_str, OP_INSERT, NULL, &out);

@@ -33,7 +33,7 @@ main(int argc, char **argv)
     pdcid_t pdc, create_prop, cont;
     int     rank = 0, size = 1;
 
-    int ret_value = 0;
+    int ret_value = SUCCEED;
 
 #ifdef ENABLE_MPI
     MPI_Init(&argc, &argv);

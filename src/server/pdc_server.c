@@ -82,7 +82,7 @@ sqlite3 *sqlite3_db_g;
 int is_debug_g       = 0;
 int pdc_client_num_g = 0;
 
-hg_class_t *  hg_class_g   = NULL;
+hg_class_t   *hg_class_g   = NULL;
 hg_context_t *hg_context_g = NULL;
 
 // Below three are guarded by pdc_server_task_mutex_g for multi-thread
@@ -90,10 +90,10 @@ pdc_task_list_t *pdc_server_agg_task_head_g = NULL;
 pdc_task_list_t *pdc_server_s2s_task_head_g = NULL;
 int              pdc_server_task_id_g       = PDC_SERVER_TASK_INIT_VALUE;
 
-pdc_client_info_t *       pdc_client_info_g        = NULL;
+pdc_client_info_t        *pdc_client_info_g        = NULL;
 pdc_remote_server_info_t *pdc_remote_server_info_g = NULL;
-char *                    all_addr_strings_1d_g    = NULL;
-char **                   all_addr_strings_g       = NULL;
+char                     *all_addr_strings_1d_g    = NULL;
+char                    **all_addr_strings_g       = NULL;
 int                       is_hash_table_init_g     = 0;
 int                       lustre_stripe_size_mb_g  = 16;
 int                       lustre_total_ost_g       = 0;
@@ -146,7 +146,7 @@ int               gen_fastbit_idx_g            = 0;
 int               use_fastbit_idx_g            = 0;
 int               use_rocksdb_g                = 0;
 int               use_sqlite3_g                = 0;
-char *            gBinningOption               = NULL;
+char             *gBinningOption               = NULL;
 
 double server_write_time_g                  = 0.0;
 double server_read_time_g                   = 0.0;
@@ -164,9 +164,9 @@ volatile int dbg_sleep_g = 1;
 double total_mem_usage_g = 0.0;
 
 // Data server related
-pdc_data_server_io_list_t *  pdc_data_server_read_list_head_g    = NULL;
-pdc_data_server_io_list_t *  pdc_data_server_write_list_head_g   = NULL;
-update_storage_meta_list_t * pdc_update_storage_meta_list_head_g = NULL;
+pdc_data_server_io_list_t   *pdc_data_server_read_list_head_g    = NULL;
+pdc_data_server_io_list_t   *pdc_data_server_write_list_head_g   = NULL;
+update_storage_meta_list_t  *pdc_update_storage_meta_list_head_g = NULL;
 extern data_server_region_t *dataserver_region_g;
 
 /*
@@ -280,11 +280,9 @@ PDC_Server_get_client_addr(const struct hg_cb_info *callback_info)
 #endif
 
     if (pdc_client_info_g && in->is_init == 1) {
-        if (is_debug_g && pdc_server_rank_g == 0) {
+        if (is_debug_g && pdc_server_rank_g == 0)
             LOG_INFO("==PDC_SERVER[%d]: new application run detected, create new client info\n",
                      pdc_server_rank_g);
-            fflush(stdout);
-        }
 
         PDC_Server_destroy_client_info(pdc_client_info_g);
         pdc_client_info_g = NULL;
@@ -378,7 +376,7 @@ static int
 remove_directory(const char *dir)
 {
     int     ret  = 0;
-    FTS *   ftsp = NULL;
+    FTS    *ftsp = NULL;
     FTSENT *curr;
 
     // Cast needed (in C) because fts_open() takes a "char * const *", instead
@@ -542,7 +540,7 @@ PDC_Server_lookup_server_id(int remote_server_id)
 
     lookup_args->server_id = remote_server_id;
     hg_ret                 = HG_Addr_lookup(hg_context_g, lookup_remote_server_cb, lookup_args,
-                            pdc_remote_server_info_g[remote_server_id].addr_string, HG_OP_ID_IGNORE);
+                                            pdc_remote_server_info_g[remote_server_id].addr_string, HG_OP_ID_IGNORE);
     if (hg_ret != HG_SUCCESS) {
         LOG_ERROR("==PDC_SERVER: Connection to remote server FAILED!\n");
         ret_value = FAIL;
@@ -552,7 +550,6 @@ PDC_Server_lookup_server_id(int remote_server_id)
     hg_ret = HG_Trigger(hg_context_g, 0 /* timeout */, 1 /* max count */, &actual_count);
 
 done:
-    fflush(stdout);
     FUNC_LEAVE(ret_value);
 }
 
@@ -592,11 +589,9 @@ PDC_Server_lookup_all_servers()
         }
     }
 
-    if (pdc_server_rank_g == 0) {
+    if (pdc_server_rank_g == 0)
         LOG_INFO("==PDC_SERVER[%d]: Successfully established connection to %d other PDC servers\n",
                  pdc_server_rank_g, pdc_server_size_g - 1);
-        fflush(stdout);
-    }
 
 done:
     FUNC_LEAVE(ret_value);
@@ -630,7 +625,6 @@ PDC_Server_lookup_client_cb(const struct hg_cb_info *callback_info)
     pdc_client_info_g[client_id].addr_valid = 1;
 
 done:
-    fflush(stdout);
     FUNC_LEAVE(ret_value);
 }
 
@@ -662,7 +656,7 @@ PDC_Server_lookup_client(uint32_t client_id)
 
     // Lookup and fill the client info
     server_lookup_args_t lookup_args;
-    char *               target_addr_string;
+    char                *target_addr_string;
 
     lookup_args.server_id   = pdc_server_rank_g;
     lookup_args.client_id   = client_id;
@@ -680,7 +674,6 @@ PDC_Server_lookup_client(uint32_t client_id)
     hg_ret = HG_Trigger(hg_context_g, 0 /* timeout */, 1 /* max count */, &actual_count);
 
 done:
-    fflush(stdout);
     FUNC_LEAVE(ret_value);
 }
 
@@ -691,7 +684,7 @@ PDC_hg_handle_create_cb(hg_handle_t handle, void *arg)
     hg_return_t            ret            = HG_SUCCESS;
 
     if (!hg_thread_work) {
-        // HG_LOG_ERROR("Could not allocate hg_thread_work");
+        LOG_ERROR("Could not allocate hg_thread_work");
         ret = HG_NOMEM_ERROR;
         goto done;
     }
@@ -798,7 +791,7 @@ PDC_Server_init(int port, hg_class_t **hg_class, hg_context_t **hg_context)
     uint32_t          credential = 0, cookie;
     drc_info_handle_t credential_info;
     char              pdc_auth_key[256] = {'\0'};
-    char *            auth_key;
+    char             *auth_key;
     int               rc;
 #endif
 
@@ -819,6 +812,7 @@ PDC_Server_init(int port, hg_class_t **hg_class, hg_context_t **hg_context)
     }
     memset(hostname, 0, HOSTNAME_LEN);
     gethostname(hostname, HOSTNAME_LEN - 1);
+    strcpy(hostname, "eno1");
     snprintf(na_info_string, NA_STRING_INFO_LEN, "%s://%s:%d", hg_transport, hostname, port);
     if (pdc_server_rank_g == 0)
         LOG_INFO("==PDC_SERVER[%d]: using %.7s\n", pdc_server_rank_g, na_info_string);
@@ -849,15 +843,12 @@ drc_access_again:
     if (pdc_server_rank_g == 0) {
         LOG_INFO("# Credential is %u\n", credential);
         LOG_INFO("# Cookie is %u\n", cookie);
-        fflush(stdout);
     }
     sprintf(pdc_auth_key, "%u", cookie);
     init_info.na_init_info.auth_key = strdup(pdc_auth_key);
 #endif
     // end of gni
 
-    // Init server
-//    *hg_class = HG_Init(na_info_string, NA_TRUE);
 #ifndef ENABLE_MULTITHREAD
     init_info.na_init_info.progress_mode = NA_NO_BLOCK; // busy mode
 #endif
@@ -1050,7 +1041,7 @@ perr_t
 PDC_Server_finalize()
 {
     pdc_data_server_io_list_t *io_elt     = NULL;
-    region_list_t *            region_elt = NULL, *region_tmp = NULL;
+    region_list_t             *region_elt = NULL, *region_tmp = NULL;
     perr_t                     ret_value = SUCCEED;
     hg_return_t                hg_ret;
 
@@ -1059,10 +1050,8 @@ PDC_Server_finalize()
     transfer_request_metadata_query_finalize();
 
     // Debug: check duplicates
-    if (is_debug_g == 1) {
+    if (is_debug_g == 1)
         PDC_Server_metadata_duplicate_check();
-        fflush(stdout);
-    }
 
     // Remove the opened shm
     DL_FOREACH(pdc_data_server_read_list_head_g, io_elt)
@@ -1216,21 +1205,21 @@ perr_t
 PDC_Server_checkpoint()
 {
     perr_t                       ret_value = SUCCEED;
-    pdc_metadata_t *             elt;
-    region_list_t *              region_elt;
-    pdc_kvtag_list_t *           kvlist_elt;
-    pdc_hash_table_entry_head *  head;
+    pdc_metadata_t              *elt;
+    region_list_t               *region_elt;
+    pdc_kvtag_list_t            *kvlist_elt;
+    pdc_hash_table_entry_head   *head;
     pdc_cont_hash_table_entry_t *cont_head;
     int n_entry, metadata_size = 0, region_count = 0, n_region, n_objs, n_write_region = 0, n_kvtag, key_len;
     uint32_t          hash_key;
     HashTablePair     pair;
     char              checkpoint_file[ADDR_MAX], checkpoint_file_local[ADDR_MAX], cmd[4096];
     HashTableIterator hash_table_iter;
-    char *            checkpoint;
-    char *            env_char;
+    char             *checkpoint;
+    char             *env_char;
     uint64_t          checkpoint_size;
     bool              use_tmpfs = false;
-    FILE *            file;
+    FILE             *file;
 
     FUNC_ENTER(NULL);
 
@@ -1257,10 +1246,8 @@ PDC_Server_checkpoint()
     snprintf(checkpoint_file, ADDR_MAX, "%s/%d/metadata_checkpoint.%d", pdc_server_tmp_dir_g,
              pdc_server_rank_g, pdc_server_rank_g);
     snprintf(checkpoint_file_local, ADDR_MAX, "/tmp/metadata_checkpoint.%d", pdc_server_rank_g);
-    if (pdc_server_rank_g == 0) {
+    if (pdc_server_rank_g == 0)
         LOG_INFO("==PDC_SERVER[%4d]: Checkpoint file [%s]\n", pdc_server_rank_g, checkpoint_file);
-        fflush(stdout);
-    }
 
     if (use_tmpfs)
         file = fopen(checkpoint_file_local, "w+");
@@ -1351,7 +1338,7 @@ PDC_Server_checkpoint()
             metadata_size++;
             region_count += n_region;
         } // End for metadata entry linked list
-    }     // End for hash table metadata entry
+    } // End for hash table metadata entry
 
     // Note data server region are managed by data server instead of metadata server
     data_server_region_t *region = NULL;
@@ -1406,7 +1393,6 @@ PDC_Server_checkpoint()
     gettimeofday(&pdc_timer_end, 0);
     checkpoint_time = PDC_get_elapsed_time_double(&pdc_timer_start, &pdc_timer_end);
 
-    fflush(stdout);
     if (pdc_server_rank_g == 0)
         LOG_ERROR("==PDC_SERVER[ ALL]: total checkpoint time = %.6f\n", checkpoint_time);
 #endif
@@ -1414,13 +1400,11 @@ PDC_Server_checkpoint()
     if (pdc_server_rank_g == 0) {
         LOG_INFO("==PDC_SERVER[ ALL]: checkpointed %10d objects, with %10d regions \n", all_metadata_size,
                  all_region_count);
-        fflush(stdout);
     }
 
     metadata_index_dump(pdc_server_tmp_dir_g, pdc_server_rank_g);
 
 done:
-    fflush(stdout);
     FUNC_LEAVE(ret_value);
 } // End Checkpoint
 
@@ -1445,14 +1429,14 @@ PDC_Server_restart(char *filename)
     int    n_entry, count, i, j, nobj = 0, all_nobj = 0, all_n_region, n_region, n_objs, total_region = 0,
                               n_kvtag, key_len;
     int                          n_cont, all_cont;
-    pdc_metadata_t *             metadata, *elt;
-    region_list_t *              region_list;
-    pdc_hash_table_entry_head *  entry;
+    pdc_metadata_t              *metadata, *elt;
+    region_list_t               *region_list;
+    pdc_hash_table_entry_head   *entry;
     pdc_cont_hash_table_entry_t *cont_entry;
-    uint32_t *                   hash_key;
+    uint32_t                    *hash_key;
     unsigned                     idx;
     uint64_t                     checkpoint_size;
-    char *                       checkpoint_buf;
+    char                        *checkpoint_buf;
 #ifdef PDC_TIMING
     double start = MPI_Wtime();
 #endif
@@ -1733,8 +1717,8 @@ PDC_Server_restart(char *filename)
     MPI_Reduce(&nobj, &all_nobj, 1, MPI_INT, MPI_SUM, 0, MPI_COMM_WORLD);
     MPI_Reduce(&total_region, &all_n_region, 1, MPI_INT, MPI_SUM, 0, MPI_COMM_WORLD);
 #else
-    all_nobj          = nobj;
-    all_n_region      = total_region;
+    all_nobj     = nobj;
+    all_n_region = total_region;
 #endif
 
     if (pdc_server_rank_g == 0) {
@@ -1748,8 +1732,6 @@ done:
     pdc_server_timings->PDCserver_restart += MPI_Wtime() - start;
 #endif
 
-    fflush(stdout);
-
     FUNC_LEAVE(ret_value);
 }
 
@@ -1762,7 +1744,7 @@ done:
 static HG_THREAD_RETURN_TYPE
 hg_progress_thread(void *arg)
 {
-    hg_context_t *        context = (hg_context_t *)arg;
+    hg_context_t         *context = (hg_context_t *)arg;
     HG_THREAD_RETURN_TYPE tret    = (HG_THREAD_RETURN_TYPE)0;
     hg_return_t           ret     = HG_SUCCESS;
 
@@ -2247,7 +2229,7 @@ server_run(int argc, char *argv[])
         rocksdb_options_set_create_if_missing(options, 1);
 
         rocksdb_block_based_table_options_t *table_options = rocksdb_block_based_options_create();
-        rocksdb_filterpolicy_t *             filter_policy = rocksdb_filterpolicy_create_bloom(10);
+        rocksdb_filterpolicy_t              *filter_policy = rocksdb_filterpolicy_create_bloom(10);
         rocksdb_block_based_options_set_filter_policy(table_options, filter_policy);
 
         rocksdb_options_set_block_based_table_factory(options, table_options);
@@ -2325,7 +2307,6 @@ server_run(int argc, char *argv[])
         LOG_INFO("==PDC_SERVER[%d]: Server ready (no MPI)!\n\n\n", pdc_server_rank_g);
 #endif
     }
-    fflush(stdout);
 
     // Main loop to handle Mercury RPC/Bulk requests
 #ifdef ENABLE_MULTITHREAD

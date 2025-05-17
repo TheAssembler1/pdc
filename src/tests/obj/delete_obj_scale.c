@@ -70,9 +70,9 @@ main(int argc, char **argv)
     char           tmp_str[128];
     int            use_name = -1;
     int            progress_factor;
-    char *         env_str;
+    char          *env_str;
     char           name_mode[6][32] = {"Random Obj Names", "INVALID!", "One Obj Name",
-                             "INVALID!",         "INVALID!", "Four Obj Names"};
+                                       "INVALID!",         "INVALID!", "Four Obj Names"};
 
 #ifdef ENABLE_MPI
     MPI_Init(&argc, &argv);
@@ -107,7 +107,6 @@ main(int argc, char **argv)
 
     if (rank == 0)
         LOG_INFO("Creating %d objects per MPI rank\n", count);
-    fflush(stdout);
 
     // create a pdc
     pdc = PDCinit("pdc");
@@ -179,7 +178,6 @@ main(int argc, char **argv)
             ht_total_sec = ht_total_elapsed / 1000000.0;
 
             LOG_INFO("%10d deleted ... %.2fs\n", i * size, ht_total_sec);
-            fflush(stdout);
         }
     }
 #ifdef ENABLE_MPI
@@ -190,10 +188,8 @@ main(int argc, char **argv)
     ht_total_elapsed = (ht_total_end.tv_sec - ht_total_start.tv_sec) * 1000000LL + ht_total_end.tv_usec -
                        ht_total_start.tv_usec;
     ht_total_sec = ht_total_elapsed / 1000000.0;
-    if (rank == 0) {
+    if (rank == 0)
         LOG_INFO("Time to create %d obj/rank with %d ranks: %.5e\n", count, size, ht_total_sec);
-        fflush(stdout);
-    }
 
 done:
     // close a container

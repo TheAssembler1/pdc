@@ -34,77 +34,78 @@ int
 main()
 {
     pdcid_t        pdc, cont_prop, cont, obj_prop1, obj_prop2, obj1, obj2;
-    pdc_kvtag_t *  value1, *value2, *value3;
+    pdc_kvtag_t   *value1, *value2, *value3;
     pdc_var_type_t type1, type2, type3;
     psize_t        value_size;
+    int            ret_value = SUCCEED;
 
     // create a pdc
     pdc = PDCinit("pdc");
-    LOG_INFO("create a new pdc\n");
+    LOG_INFO("Created a new pdc\n");
 
     // create a container property
     cont_prop = PDCprop_create(PDC_CONT_CREATE, pdc);
     if (cont_prop > 0)
-        LOG_INFO("Create a container property\n");
+        LOG_INFO("Created a container property\n");
     else
-        LOG_ERROR("Failed to create container property");
+        PGOTO_ERROR(FAIL, "Failed to create container property");
 
     // create a container
     cont = PDCcont_create("c1", cont_prop);
     if (cont > 0)
-        LOG_INFO("Create a container c1\n");
+        LOG_INFO("Created a container c1\n");
     else
-        LOG_ERROR("Failed to create container");
+        PGOTO_ERROR(FAIL, "Failed to create container");
 
     // create an object property
     obj_prop1 = PDCprop_create(PDC_OBJ_CREATE, pdc);
     if (obj_prop1 > 0)
-        LOG_INFO("Create an object property\n");
+        LOG_INFO("Created an object property\n");
     else
-        LOG_ERROR("Failed to create object property");
+        PGOTO_ERROR(FAIL, "Failed to create object property");
 
     obj_prop2 = PDCprop_create(PDC_OBJ_CREATE, pdc);
     if (obj_prop2 > 0)
-        LOG_INFO("Create an object property\n");
+        LOG_INFO("Created an object property\n");
     else
-        LOG_ERROR("Failed to create object property");
+        PGOTO_ERROR(FAIL, "Failed to create object property");
 
     // create first object
     obj1 = PDCobj_create(cont, "o1", obj_prop1);
     if (obj1 > 0)
-        LOG_INFO("Create an object o1\n");
+        LOG_INFO("Created an object o1\n");
     else
-        LOG_ERROR("Failed to create object");
+        PGOTO_ERROR(FAIL, "Failed to create object");
 
     // create second object
     obj2 = PDCobj_create(cont, "o2", obj_prop2);
     if (obj2 > 0)
-        LOG_INFO("Create an object o2\n");
+        LOG_INFO("Created an object o2\n");
     else
-        LOG_ERROR("Failed to create object");
+        PGOTO_ERROR(FAIL, "Failed to create object");
 
     if (PDCobj_get_tag(obj1, "key1string", (void *)&value1, (void *)&type1, (void *)&value_size) < 0)
-        LOG_ERROR("Failed to get a kvtag from o1\n");
+        PGOTO_ERROR(FAIL, "Failed to get a kvtag from o1");
     else
-        LOG_INFO("successfully retrieved a kvtag [%s] = [%s] from o1\n", value1->name, (char *)value1->value);
+        LOG_INFO("Successfully retrieved a kvtag [%s] = [%s] from o1\n", value1->name, (char *)value1->value);
 
     if (PDCobj_get_tag(obj2, "key2int", (void *)&value2, (void *)&type2, (void *)&value_size) < 0)
-        LOG_ERROR("Failed to get a kvtag from o2\n");
+        PGOTO_ERROR(FAIL, "Failed to get a kvtag from o2");
     else
-        LOG_INFO("successfully retrieved a kvtag [%s] = [%d] from o2\n", value2->name, *(int *)value2->value);
+        LOG_INFO("Successfully retrieved a kvtag [%s] = [%d] from o2\n", value2->name, *(int *)value2->value);
 
     if (PDCobj_get_tag(obj2, "key3double", (void *)&value3, (void *)&type3, (void *)&value_size) < 0)
-        LOG_ERROR("Failed to get a kvtag from o2\n");
+        PGOTO_ERROR(FAIL, "Failed to get a kvtag from o2");
     else
-        LOG_INFO("successfully retrieved a kvtag [%s] = [%f] from o2\n", value3->name,
+        LOG_INFO("Successfully retrieved a kvtag [%s] = [%f] from o2\n", value3->name,
                  *(double *)value3->value);
 
     PDC_free_kvtag(&value1);
 
     if (PDCobj_get_tag(obj1, "key1string", (void *)&value1, (void *)&type1, (void *)&value_size) < 0)
-        LOG_ERROR("Failed to get a kvtag from o1\n");
+        PGOTO_ERROR(FAIL, "Failed to get a kvtag from o1");
     else
-        LOG_INFO("successfully retrieved a kvtag [%s] = [%s] from o1\n", value1->name, (char *)value1->value);
+        LOG_INFO("Successfully retrieved a kvtag [%s] = [%s] from o1\n", value1->name, (char *)value1->value);
 
     PDC_free_kvtag(&value1);
     PDC_free_kvtag(&value2);
@@ -112,41 +113,42 @@ main()
 
     // close first object
     if (PDCobj_close(obj1) < 0)
-        LOG_ERROR("Failed to close object o1\n");
+        PGOTO_ERROR(FAIL, "Failed to close object o1");
     else
         LOG_INFO("Successfully closed object o1\n");
 
     // close second object
     if (PDCobj_close(obj2) < 0)
-        LOG_ERROR("Failed to close object o2\n");
+        PGOTO_ERROR(FAIL, "Failed to close object o2");
     else
         LOG_INFO("Successfully closed object o2\n");
 
     // close a container
     if (PDCcont_close(cont) < 0)
-        LOG_ERROR("Failed to close container c1\n");
+        PGOTO_ERROR(FAIL, "Failed to close container c1");
     else
         LOG_INFO("Successfully closed container c1\n");
 
     // close a container property
     if (PDCprop_close(obj_prop1) < 0)
-        LOG_ERROR("Failed to close property");
+        PGOTO_ERROR(FAIL, "Failed to close property");
     else
         LOG_INFO("Successfully closed object property\n");
 
     if (PDCprop_close(obj_prop2) < 0)
-        LOG_ERROR("Failed to close property");
+        PGOTO_ERROR(FAIL, "Failed to close property");
     else
         LOG_INFO("Successfully closed object property\n");
 
     if (PDCprop_close(cont_prop) < 0)
-        LOG_ERROR("Failed to close property");
+        PGOTO_ERROR(FAIL, "Failed to close property");
     else
         LOG_INFO("Successfully closed container property\n");
 
     // close pdc
     if (PDCclose(pdc) < 0)
-        LOG_ERROR("Failed to close PDC\n");
+        PGOTO_ERROR(FAIL, "Failed to close PDC");
 
-    return 0;
+done:
+    return ret_value;
 }

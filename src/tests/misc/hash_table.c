@@ -74,16 +74,15 @@ main(int argc, char *argv[])
 {
     hg_hash_table_t *hash_table = NULL;
 
-    int *                  key1, *key2;
+    int                   *key1, *key2;
     hash_value_metadata_t *value1, *value2;
     const int              num = 100;
-    int *                  keys[num];
+    int                   *keys[num];
     int                    i;
     hash_value_metadata_t *values[num];
     hash_value_metadata_t *lookup_value = NULL;
     int                    lookup_key;
 
-    /* int *value1, *value2; */
     int ret = EXIT_SUCCESS;
 
     (void)argc;
@@ -94,9 +93,6 @@ main(int argc, char *argv[])
 
     key1 = (int *)malloc(sizeof(int));
     key2 = (int *)malloc(sizeof(int));
-
-    /* value1 = (int *) malloc(sizeof(int)); */
-    /* value2 = (int *) malloc(sizeof(int)); */
 
     value1 = (hash_value_metadata_t *)malloc(sizeof(hash_value_metadata_t));
     value2 = (hash_value_metadata_t *)malloc(sizeof(hash_value_metadata_t));
