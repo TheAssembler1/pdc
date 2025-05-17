@@ -356,7 +356,7 @@ main(int argc, char *argv[])
     if (world_rank == 0)
         LOG_INFO("Initialization Done!\n");
 
-    // No need to create any object for testing only the index.
+        // No need to create any object for testing only the index.
 #ifdef ENABLE_MPI
     MPI_Barrier(MPI_COMM_WORLD);
     stime = MPI_Wtime();

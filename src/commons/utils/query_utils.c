@@ -19,8 +19,8 @@ _gen_affix_for_token(char *token_str, int affix_type, size_t affix_len, char **o
 
     affix_len        = affix_len < token_len ? affix_len : token_len;
     size_t copy_len  = affix_type == 0 ? token_len : affix_len;
-    char  *source    = affix_type <= 1 ? token_str : &(token_str[token_len - affix_len]);
-    char  *affix_str = (char *)calloc(copy_len + 3, sizeof(char));
+    char * source    = affix_type <= 1 ? token_str : &(token_str[token_len - affix_len]);
+    char * affix_str = (char *)calloc(copy_len + 3, sizeof(char));
 
     strncpy(affix_str, source, copy_len + 1);
 
@@ -59,9 +59,9 @@ _gen_affix_for_token(char *token_str, int affix_type, size_t affix_len, char **o
 void
 gen_query_key_value(query_gen_input_t *input, query_gen_output_t *output)
 {
-    char  *key_ptr       = NULL;
+    char * key_ptr       = NULL;
     size_t key_ptr_len   = 0;
-    char  *value_ptr     = NULL;
+    char * value_ptr     = NULL;
     size_t value_ptr_len = 0;
     // check base_tag->name length
     if (strlen(input->base_tag->name) < 3) {
@@ -90,7 +90,7 @@ gen_query_key_value(query_gen_input_t *input, query_gen_output_t *output)
     if (is_PDC_STRING(input->base_tag->type)) {
         char *temp_value = NULL;
         value_ptr_len    = _gen_affix_for_token((char *)input->base_tag->value, input->value_query_type,
-                                                affix_len, &temp_value);
+                                             affix_len, &temp_value);
         value_ptr        = (char *)calloc(value_ptr_len + 3, sizeof(char));
         value_ptr[0]     = '"';
         strcat(value_ptr, temp_value);
@@ -368,7 +368,7 @@ int
 is_value_in_range(const char *tagslist, const char *tagname, int from, int to)
 {
     const char *matched_kv = k_v_matches_p(tagslist, tagname, NULL);
-    char       *value      = get_value(matched_kv, '=');
+    char *      value      = get_value(matched_kv, '=');
     int         v          = atoi(value);
     return (v >= from && v <= to);
 }
@@ -404,7 +404,7 @@ parse_and_run_number_value_query(char *num_val_query, pdc_c_var_type_t num_type,
     void *val2;
     if (startsWith(num_val_query, "|") && startsWith(num_val_query, "|")) { // EXACT
         // exact number search
-        char  *num_str = substring(num_val_query, 1, strlen(num_val_query) - 1);
+        char * num_str = substring(num_val_query, 1, strlen(num_val_query) - 1);
         size_t klen1   = get_number_from_string(num_str, num_type, &val1);
 
         action_collection->exact_action(val1, NULL, NULL, 1, 1, num_type, cb_input, cb_out, cb_out_len);
@@ -413,7 +413,7 @@ parse_and_run_number_value_query(char *num_val_query, pdc_c_var_type_t num_type,
         int endInclusive = num_val_query[1] == '|';
         // find all numbers that are smaller than the given number
         int    beginPos = endInclusive ? 2 : 1;
-        char  *numstr   = substring(num_val_query, beginPos, strlen(num_val_query));
+        char * numstr   = substring(num_val_query, beginPos, strlen(num_val_query));
         size_t klen1    = get_number_from_string(numstr, num_type, &val1);
         action_collection->lt_action(NULL, NULL, val1, 0, endInclusive, num_type, cb_input, cb_out,
                                      cb_out_len);
@@ -422,7 +422,7 @@ parse_and_run_number_value_query(char *num_val_query, pdc_c_var_type_t num_type,
         int beginInclusive = num_val_query[strlen(num_val_query) - 2] == '|';
         int endPos         = beginInclusive ? strlen(num_val_query) - 2 : strlen(num_val_query) - 1;
         // find all numbers that are greater than the given number
-        char  *numstr = substring(num_val_query, 0, endPos);
+        char * numstr = substring(num_val_query, 0, endPos);
         size_t klen1  = get_number_from_string(numstr, num_type, &val1);
 
         action_collection->gt_action(NULL, val1, NULL, beginInclusive, 0, num_type, cb_input, cb_out,
@@ -442,8 +442,8 @@ parse_and_run_number_value_query(char *num_val_query, pdc_c_var_type_t num_type,
         // lo_tok might be ended with '|', and hi_tok might be started with '|', to indicate inclusivity.
         int    beginInclusive = endsWith(lo_tok, "|");
         int    endInclusive   = startsWith(hi_tok, "|");
-        char  *lo_num_str     = beginInclusive ? substring(lo_tok, 0, strlen(lo_tok) - 1) : lo_tok;
-        char  *hi_num_str     = endInclusive ? substring(hi_tok, 1, strlen(hi_tok)) : hi_tok;
+        char * lo_num_str     = beginInclusive ? substring(lo_tok, 0, strlen(lo_tok) - 1) : lo_tok;
+        char * hi_num_str     = endInclusive ? substring(hi_tok, 1, strlen(hi_tok)) : hi_tok;
         size_t klen1          = get_number_from_string(lo_num_str, num_type, &val1);
         size_t klen2          = get_number_from_string(hi_num_str, num_type, &val2);
 
@@ -453,7 +453,7 @@ parse_and_run_number_value_query(char *num_val_query, pdc_c_var_type_t num_type,
     else {
         // exact query by default
         // exact number search
-        char  *num_str = strdup(num_val_query);
+        char * num_str = strdup(num_val_query);
         size_t klen1   = get_number_from_string(num_str, num_type, &val1);
 
         action_collection->exact_action(val1, NULL, NULL, 1, 1, num_type, cb_input, cb_out, cb_out_len);
