@@ -4,10 +4,11 @@
 #include <string.h>
 #include "pdc_region.h"
 #include "pdc_logger.h"
+#include "pdc_malloc.h"
 
 typedef struct pdc_region_metadata_pkg {
-    uint64_t *                      reg_offset;
-    uint64_t *                      reg_size;
+    uint64_t                       *reg_offset;
+    uint64_t                       *reg_size;
     uint32_t                        data_server_id;
     struct pdc_region_metadata_pkg *next;
 } pdc_region_metadata_pkg;
@@ -15,8 +16,8 @@ typedef struct pdc_region_metadata_pkg {
 typedef struct pdc_obj_metadata_pkg {
     int                          ndim;
     uint64_t                     obj_id;
-    pdc_region_metadata_pkg *    regions;
-    pdc_region_metadata_pkg *    regions_end;
+    pdc_region_metadata_pkg     *regions;
+    pdc_region_metadata_pkg     *regions_end;
     struct pdc_obj_metadata_pkg *next;
 } pdc_obj_metadata_pkg;
 
@@ -29,13 +30,13 @@ typedef struct pdc_obj_region_metadata {
 
 typedef struct pdc_metadata_query_buf {
     uint64_t                       id;
-    char *                         buf;
+    char                          *buf;
     struct pdc_metadata_query_buf *next;
 } pdc_metadata_query_buf;
 
-static pdc_obj_metadata_pkg *  metadata_server_objs;
-static pdc_obj_metadata_pkg *  metadata_server_objs_end;
-static uint64_t *              data_server_bytes;
+static pdc_obj_metadata_pkg   *metadata_server_objs;
+static pdc_obj_metadata_pkg   *metadata_server_objs_end;
+static uint64_t               *data_server_bytes;
 static int                     pdc_server_size;
 static uint64_t                query_id_g;
 static pdc_metadata_query_buf *metadata_query_buf_head;
@@ -59,7 +60,7 @@ perr_t
 transfer_request_metadata_query_init(int pdc_server_size_input, char *checkpoint)
 {
     hg_return_t ret_value = HG_SUCCESS;
-    char *      ptr;
+    char       *ptr;
     int         n_objs, reg_count;
     int         i, j;
     FUNC_ENTER(NULL);
@@ -79,11 +80,12 @@ transfer_request_metadata_query_init(int pdc_server_size_input, char *checkpoint
         ptr += sizeof(int);
         for (i = 0; i < n_objs; ++i) {
             if (metadata_server_objs) {
-                metadata_server_objs_end->next = (pdc_obj_metadata_pkg *)malloc(sizeof(pdc_obj_metadata_pkg));
-                metadata_server_objs_end       = metadata_server_objs_end->next;
+                metadata_server_objs_end->next =
+                    (pdc_obj_metadata_pkg *)PDC_malloc(sizeof(pdc_obj_metadata_pkg));
+                metadata_server_objs_end = metadata_server_objs_end->next;
             }
             else {
-                metadata_server_objs     = (pdc_obj_metadata_pkg *)malloc(sizeof(pdc_obj_metadata_pkg));
+                metadata_server_objs     = (pdc_obj_metadata_pkg *)PDC_malloc(sizeof(pdc_obj_metadata_pkg));
                 metadata_server_objs_end = metadata_server_objs;
             }
 
@@ -95,12 +97,12 @@ transfer_request_metadata_query_init(int pdc_server_size_input, char *checkpoint
             ptr += sizeof(int);
 
             metadata_server_objs_end->regions =
-                (pdc_region_metadata_pkg *)malloc(sizeof(pdc_region_metadata_pkg));
+                (pdc_region_metadata_pkg *)PDC_malloc(sizeof(pdc_region_metadata_pkg));
             metadata_server_objs_end->regions_end = metadata_server_objs_end->regions;
 
             metadata_server_objs_end->regions_end->next = NULL;
             metadata_server_objs_end->regions_end->reg_offset =
-                (uint64_t *)malloc(sizeof(uint64_t) * metadata_server_objs_end->ndim * 2);
+                (uint64_t *)PDC_malloc(sizeof(uint64_t) * metadata_server_objs_end->ndim * 2);
             metadata_server_objs_end->regions_end->reg_size =
                 metadata_server_objs_end->regions_end->reg_offset + metadata_server_objs_end->ndim;
             metadata_server_objs_end->regions_end->data_server_id = *(uint32_t *)ptr;
@@ -111,12 +113,12 @@ transfer_request_metadata_query_init(int pdc_server_size_input, char *checkpoint
 
             for (j = 1; j < reg_count; ++j) {
                 metadata_server_objs_end->regions->next =
-                    (pdc_region_metadata_pkg *)malloc(sizeof(pdc_region_metadata_pkg));
+                    (pdc_region_metadata_pkg *)PDC_malloc(sizeof(pdc_region_metadata_pkg));
                 metadata_server_objs_end->regions_end = metadata_server_objs_end->regions_end->next;
 
                 metadata_server_objs_end->regions_end->next = NULL;
                 metadata_server_objs_end->regions_end->reg_offset =
-                    (uint64_t *)malloc(sizeof(uint64_t) * metadata_server_objs_end->ndim * 2);
+                    (uint64_t *)PDC_malloc(sizeof(uint64_t) * metadata_server_objs_end->ndim * 2);
                 metadata_server_objs_end->regions_end->reg_size =
                     metadata_server_objs_end->regions_end->reg_offset + metadata_server_objs_end->ndim;
                 metadata_server_objs_end->regions_end->data_server_id = *(uint32_t *)ptr;
@@ -139,7 +141,7 @@ perr_t
 transfer_request_metadata_query_finalize()
 {
     hg_return_t              ret_value = HG_SUCCESS;
-    pdc_obj_metadata_pkg *   obj_temp, *obj_temp2;
+    pdc_obj_metadata_pkg    *obj_temp, *obj_temp2;
     pdc_region_metadata_pkg *region_temp, *region_temp2;
     FUNC_ENTER(NULL);
 
@@ -147,14 +149,14 @@ transfer_request_metadata_query_finalize()
     while (obj_temp) {
         region_temp = obj_temp->regions;
         while (region_temp) {
-            region_temp2 = region_temp;
-            region_temp  = region_temp->next;
-            free(region_temp2->reg_offset);
-            free(region_temp2);
+            region_temp2             = region_temp;
+            region_temp              = region_temp->next;
+            region_temp2->reg_offset = (uint64_t *)PDC_free(region_temp2->reg_offset);
+            region_temp2             = (pdc_region_metadata_pkg *)PDC_free(region_temp2);
         }
         obj_temp2 = obj_temp;
         obj_temp  = obj_temp->next;
-        free(obj_temp2);
+        obj_temp2 = (pdc_obj_metadata_pkg *)PDC_free(obj_temp2);
     }
     metadata_server_objs = NULL;
 
@@ -177,9 +179,9 @@ perr_t
 transfer_request_metadata_query_checkpoint(char **checkpoint, uint64_t *checkpoint_size)
 {
     hg_return_t              ret_value = HG_SUCCESS;
-    pdc_obj_metadata_pkg *   obj_temp;
+    pdc_obj_metadata_pkg    *obj_temp;
     pdc_region_metadata_pkg *region_temp;
-    char *                   ptr;
+    char                    *ptr;
     int                      reg_count, obj_count;
     FUNC_ENTER(NULL);
     pthread_mutex_lock(&metadata_query_mutex);
@@ -201,7 +203,7 @@ transfer_request_metadata_query_checkpoint(char **checkpoint, uint64_t *checkpoi
         obj_temp = obj_temp->next;
         obj_count++;
     }
-    *checkpoint = (char *)malloc(*checkpoint_size);
+    *checkpoint = (char *)PDC_malloc(*checkpoint_size);
     ptr         = *checkpoint;
     memcpy(ptr, &obj_count, sizeof(int));
     ptr += sizeof(int);
@@ -245,15 +247,15 @@ transfer_request_metadata_query_checkpoint(char **checkpoint, uint64_t *checkpoi
 static uint64_t
 metadata_query_buf_create(pdc_obj_region_metadata *regions, int size, uint64_t *total_buf_size_ptr)
 {
-    pdc_obj_metadata_pkg *   temp;
+    pdc_obj_metadata_pkg    *temp;
     pdc_region_metadata_pkg *region_metadata;
     int                      i;
     uint64_t                 total_data_size;
-    pdc_metadata_query_buf * query_buf;
+    pdc_metadata_query_buf  *query_buf;
     uint64_t                 query_id;
-    uint64_t *               overlap_offset, *overlap_size;
-    char *                   ptr;
-    int *                    transfer_request_counters;
+    uint64_t                *overlap_offset, *overlap_size;
+    char                    *ptr;
+    int                     *transfer_request_counters;
     int                      transfer_request_counter_total;
 
     FUNC_ENTER(NULL);
@@ -296,9 +298,9 @@ metadata_query_buf_create(pdc_obj_region_metadata *regions, int size, uint64_t *
         goto done;
     }
 
-    query_buf = (pdc_metadata_query_buf *)malloc(sizeof(pdc_metadata_query_buf));
+    query_buf = (pdc_metadata_query_buf *)PDC_malloc(sizeof(pdc_metadata_query_buf));
     // Free query_buf->buf in transfer_request_metadata_query2_bulk_transfer_cb.
-    query_buf->buf  = (char *)malloc(total_data_size);
+    query_buf->buf  = (char *)PDC_malloc(total_data_size);
     query_buf->next = NULL;
     query_buf->id   = query_id_g;
     query_id_g++;
@@ -334,7 +336,7 @@ metadata_query_buf_create(pdc_obj_region_metadata *regions, int size, uint64_t *
                     ptr += sizeof(uint64_t) * regions[i].ndim;
                 }
                 // overlap_size is freed together.
-                free(overlap_offset);
+                overlap_offset  = (uint64_t *)PDC_free(overlap_offset);
                 region_metadata = region_metadata->next;
             }
         }
@@ -351,14 +353,13 @@ metadata_query_buf_create(pdc_obj_region_metadata *regions, int size, uint64_t *
 done:
     *total_buf_size_ptr = total_data_size;
 
-    free(transfer_request_counters);
+    transfer_request_counters = (int *)PDC_free(transfer_request_counters);
     FUNC_LEAVE(query_id);
 }
 
 /**
  * Find previously stored query buffer and return the buffer. Delete the entry from the linked list.
  */
-
 perr_t
 transfer_request_metadata_query_lookup_query_buf(uint64_t query_id, char **buf_ptr)
 {
@@ -383,7 +384,7 @@ transfer_request_metadata_query_lookup_query_buf(uint64_t query_id, char **buf_p
             if (metadata_query_buf_end == metadata_query) {
                 metadata_query_buf_end = previous;
             }
-            free(metadata_query);
+            metadata_query = (pdc_metadata_query_buf *)PDC_free(metadata_query);
             goto done;
         }
         i++;
@@ -406,7 +407,7 @@ uint64_t
 transfer_request_metadata_query_parse(int32_t n_objs, char *buf, uint8_t is_write,
                                       uint64_t *total_buf_size_ptr)
 {
-    char *                   ptr = buf;
+    char                    *ptr = buf;
     int                      i;
     uint64_t                 query_id = 0;
     size_t                   unit;
@@ -415,9 +416,8 @@ transfer_request_metadata_query_parse(int32_t n_objs, char *buf, uint8_t is_writ
     pdc_obj_region_metadata *region_metadata;
 
     FUNC_ENTER(NULL);
-    /* pthread_mutex_lock(&metadata_query_mutex); */
 
-    region_metadata = (pdc_obj_region_metadata *)malloc(sizeof(pdc_obj_region_metadata) * n_objs);
+    region_metadata = (pdc_obj_region_metadata *)PDC_malloc(sizeof(pdc_obj_region_metadata) * n_objs);
 
     for (i = 0; i < n_objs; ++i) {
         region_metadata[i].obj_id = *((uint64_t *)ptr);
@@ -440,9 +440,8 @@ transfer_request_metadata_query_parse(int32_t n_objs, char *buf, uint8_t is_writ
                                                    unit, data_server_id, region_partition);
         }
     }
-    query_id = metadata_query_buf_create(region_metadata, n_objs, total_buf_size_ptr);
-    free(region_metadata);
-    /* pthread_mutex_unlock(&metadata_query_mutex); */
+    query_id        = metadata_query_buf_create(region_metadata, n_objs, total_buf_size_ptr);
+    region_metadata = (pdc_obj_region_metadata *)PDC_free(region_metadata);
     fflush(stdout);
     FUNC_LEAVE(query_id);
 }
@@ -461,7 +460,7 @@ transfer_request_metadata_reg_append(pdc_region_metadata_pkg *regions, int ndim,
 
     regions->next = NULL;
 
-    regions->reg_offset = (uint64_t *)malloc(sizeof(uint64_t) * ndim * 2);
+    regions->reg_offset = (uint64_t *)PDC_malloc(sizeof(uint64_t) * ndim * 2);
     regions->reg_size   = regions->reg_offset + ndim;
 
     memcpy(regions->reg_offset, reg_offset, sizeof(uint64_t) * ndim);
@@ -497,7 +496,7 @@ static uint64_t
 transfer_request_metadata_query_append(uint64_t obj_id, int ndim, uint64_t *reg_offset, uint64_t *reg_size,
                                        size_t unit, uint32_t data_server_id, uint8_t region_partition)
 {
-    pdc_obj_metadata_pkg *   temp;
+    pdc_obj_metadata_pkg    *temp;
     pdc_region_metadata_pkg *region_metadata;
     pdc_region_metadata_pkg *temp_region_metadata;
 
@@ -510,7 +509,7 @@ transfer_request_metadata_query_append(uint64_t obj_id, int ndim, uint64_t *reg_
         temp = temp->next;
     }
     if (temp == NULL) {
-        temp = (pdc_obj_metadata_pkg *)malloc(sizeof(pdc_obj_metadata_pkg));
+        temp = (pdc_obj_metadata_pkg *)PDC_malloc(sizeof(pdc_obj_metadata_pkg));
         if (metadata_server_objs) {
             metadata_server_objs_end->next = temp;
             metadata_server_objs_end       = temp;
@@ -534,7 +533,7 @@ transfer_request_metadata_query_append(uint64_t obj_id, int ndim, uint64_t *reg_
         region_metadata = region_metadata->next;
     }
     // Reaching this line means that we are creating a new region and append it to the end of the object list.
-    temp_region_metadata = (pdc_region_metadata_pkg *)malloc(sizeof(pdc_region_metadata_pkg));
+    temp_region_metadata = (pdc_region_metadata_pkg *)PDC_malloc(sizeof(pdc_region_metadata_pkg));
     if (temp->regions) {
         temp->regions_end->next = temp_region_metadata;
         temp->regions_end       = temp_region_metadata;

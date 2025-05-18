@@ -2,11 +2,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "pdc_logger.h"
+#include "pdc_malloc.h"
 
 #define MACRO_SAMPLE_MIN_MAX(TYPE, n, data, sample_pct, min, max)                                            \
     ({                                                                                                       \
         uint64_t i, sample_n, iter = 0;                                                                      \
-        TYPE *   ldata = (TYPE *)data;                                                                       \
+        TYPE    *ldata = (TYPE *)data;                                                                       \
         (min)          = ldata[0];                                                                           \
         (max)          = ldata[0];                                                                           \
         sample_n       = (n) * (sample_pct);                                                                 \
@@ -123,7 +124,7 @@ PDC_create_hist(pdc_var_type_t dtype, int nbin, double min, double max)
     bin_incr = floor_power_of_2((max - min) / (nbin - 2)); // Excluding first and last bin (open ended)
     nbin     = ceil((max - min) / bin_incr);
 
-    hist        = (pdc_histogram_t *)malloc(sizeof(pdc_histogram_t));
+    hist        = (pdc_histogram_t *)PDC_malloc(sizeof(pdc_histogram_t));
     hist->incr  = bin_incr;
     hist->dtype = dtype;
     hist->range = (double *)calloc(sizeof(double), nbin * 2);
@@ -162,7 +163,7 @@ done:
     ({                                                                                                       \
         uint64_t i;                                                                                          \
         int      lo, mid = 0, hi;                                                                            \
-        TYPE *   ldata = (TYPE *)(_data);                                                                    \
+        TYPE    *ldata = (TYPE *)(_data);                                                                    \
         if ((hist)->incr > 0) {                                                                              \
             for (i = 0; i < (n); i++) {                                                                      \
                 if (ldata[i] < (hist)->range[1]) {                                                           \
@@ -292,9 +293,9 @@ PDC_free_hist(pdc_histogram_t *hist)
     if (NULL == hist)
         PGOTO_DONE_VOID;
 
-    free(hist->range);
-    free(hist->bin);
-    free(hist);
+    hist->range = (double *)PDC_free(hist->range);
+    hist->bin   = (uint64_t *)PDC_free(hist->bin);
+    hist        = (pdc_histogram_t *)PDC_free(hist);
 
 done:
     fflush(stdout);
@@ -337,7 +338,7 @@ PDC_dup_hist(pdc_histogram_t *hist)
         PGOTO_DONE(NULL);
 
     nbin       = hist->nbin;
-    res        = (pdc_histogram_t *)malloc(sizeof(pdc_histogram_t));
+    res        = (pdc_histogram_t *)PDC_malloc(sizeof(pdc_histogram_t));
     res->dtype = hist->dtype;
     res->nbin  = nbin;
     res->range = (double *)calloc(sizeof(double), nbin * 2);

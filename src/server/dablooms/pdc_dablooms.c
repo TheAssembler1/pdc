@@ -13,8 +13,8 @@
 #include <sys/mman.h>
 #include <unistd.h>
 #include <errno.h>
-#include "pdc_malloc.h"
 
+#include "pdc_malloc.h"
 #include "pdc_murmur.h"
 #include "pdc_dablooms.h"
 #include "pdc_logger.h"
@@ -33,7 +33,7 @@ dablooms_version(void)
 void
 free_bitmap(bitmap_t *bitmap)
 {
-    free(bitmap);
+    bitmap = (bitmap_t *)PDC_free(bitmap);
 }
 
 bitmap_t *
@@ -169,10 +169,10 @@ int
 free_counting_bloom(counting_bloom_t *bloom)
 {
     if (bloom != NULL) {
-        free(bloom->hashes);
+        bloom->hashes = (uint32_t *)PDC_free(bloom->hashes);
         bloom->hashes = NULL;
-        free(bloom->bitmap);
-        free(bloom);
+        bloom->bitmap = (bitmap_t *)PDC_free(bloom->bitmap);
+        bloom = (counting_bloom_t *)PDC_free(bloom);
         bloom = NULL;
     }
     return 0;
@@ -276,9 +276,9 @@ free_scaling_bloom(scaling_bloom_t *bloom)
         free(bloom->blooms[i]);
         bloom->blooms[i] = NULL;
     }
-    free(bloom->blooms);
+    bloom->blooms = (counting_bloom_t **)PDC_free(bloom->blooms);
     free_bitmap(bloom->bitmap);
-    free(bloom);
+    bloom = (scaling_bloom_t *)PDC_free(bloom);
     return 0;
 }
 
@@ -404,7 +404,7 @@ scaling_bloom_t *
 new_scaling_bloom(unsigned int capacity, double error_rate)
 {
 
-    scaling_bloom_t * bloom;
+    scaling_bloom_t  *bloom;
     counting_bloom_t *cur_bloom;
 
     bloom = scaling_bloom_init(capacity, error_rate);

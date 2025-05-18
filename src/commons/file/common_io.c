@@ -5,6 +5,7 @@
 #include <errno.h>
 #include <unistd.h>
 #include "pdc_logger.h"
+#include "pdc_malloc.h"
 
 FILE *
 open_file(char *filename, char *mode)
@@ -36,7 +37,7 @@ read_file(FILE *fp, io_buffer_t *buffer)
     rewind(fp);
 
     // Allocate memory for the buffer
-    buffer->buffer = (char *)malloc(buffer->size + 1);
+    buffer->buffer = (char *)PDC_malloc(buffer->size + 1);
     if (buffer->buffer == NULL) {
         LOG_ERROR("Error allocating memory for file buffer\n");
         return 1;
@@ -105,8 +106,8 @@ print_error(char *message)
 int
 read_text_file(char *filename, void (*callback)(char *line))
 {
-    FILE *  fp   = open_file(filename, IO_MODE_READ);
-    char *  line = NULL;
+    FILE   *fp   = open_file(filename, IO_MODE_READ);
+    char   *line = NULL;
     size_t  len  = 0;
     ssize_t read;
     while ((read = getline(&line, &len, fp)) != -1) {
@@ -119,7 +120,7 @@ read_text_file(char *filename, void (*callback)(char *line))
         LOG_ERROR("Error reading file\n");
         return 1;
     }
-    free(line);
+    line = (char *)PDC_free(line);
     close_file(fp);
     return 0;
 }

@@ -37,7 +37,7 @@ struct _SetEntry {
 };
 
 struct _Set {
-    SetEntry **  table;
+    SetEntry   **table;
     unsigned int entries;
     unsigned int table_size;
     unsigned int prime_index;
@@ -93,7 +93,7 @@ set_free_entry(Set *set, SetEntry *entry)
 
     /* Free the entry structure */
 
-    free(entry);
+    entry = (SetEntry *)PDC_free(entry);
 }
 
 Set *
@@ -118,7 +118,7 @@ set_new(SetHashFunc hash_func, SetEqualFunc equal_func)
     /* Allocate the table */
 
     if (!set_allocate_table(new_set)) {
-        free(new_set);
+        new_set = (Set *)PDC_free(new_set);
         return NULL;
     }
 
@@ -128,8 +128,8 @@ set_new(SetHashFunc hash_func, SetEqualFunc equal_func)
 void
 set_free(Set *set)
 {
-    SetEntry *   rover;
-    SetEntry *   next;
+    SetEntry    *rover;
+    SetEntry    *next;
     unsigned int i;
 
     /* Free all entries in all chains */
@@ -151,12 +151,10 @@ set_free(Set *set)
     }
 
     /* Free the table */
-
-    free(set->table);
+    set->table = (SetEntry **)PDC_free(set->table);
 
     /* Free the set structure */
-
-    free(set);
+    set = (Set *)PDC_free(set);
 }
 
 void
@@ -168,9 +166,9 @@ set_register_free_function(Set *set, SetFreeFunc free_func)
 static int
 set_enlarge(Set *set)
 {
-    SetEntry *   rover;
-    SetEntry *   next;
-    SetEntry **  old_table;
+    SetEntry    *rover;
+    SetEntry    *next;
+    SetEntry   **old_table;
     unsigned int old_table_size;
     unsigned int old_prime_index;
     unsigned int index;
@@ -222,19 +220,17 @@ set_enlarge(Set *set)
     }
 
     /* Free back the old table */
-
-    free(old_table);
+    old_table = (SetEntry **)PDC_free(old_table);
 
     /* Resized successfully */
-
     return 1;
 }
 
 int
 set_insert(Set *set, SetValue data)
 {
-    SetEntry *   newentry;
-    SetEntry *   rover;
+    SetEntry    *newentry;
+    SetEntry    *rover;
     unsigned int index;
 
     /* The hash table becomes less efficient as the number of entries
@@ -301,8 +297,8 @@ set_insert(Set *set, SetValue data)
 int
 set_remove(Set *set, SetValue data)
 {
-    SetEntry **  rover;
-    SetEntry *   entry;
+    SetEntry   **rover;
+    SetEntry    *entry;
     unsigned int index;
 
     /* Look up the data by its hash key */
@@ -348,7 +344,7 @@ set_remove(Set *set, SetValue data)
 int
 set_query(Set *set, SetValue data)
 {
-    SetEntry *   rover;
+    SetEntry    *rover;
     unsigned int index;
 
     /* Look up the data by its hash key */
@@ -386,10 +382,10 @@ set_num_entries(Set *set)
 SetValue *
 set_to_array(Set *set)
 {
-    SetValue *   array;
+    SetValue    *array;
     int          array_counter;
     unsigned int i;
-    SetEntry *   rover;
+    SetEntry    *rover;
 
     /* Create an array to hold the set entries */
 
@@ -427,7 +423,7 @@ Set *
 set_union(Set *set1, Set *set2)
 {
     SetIterator iterator;
-    Set *       new_set;
+    Set        *new_set;
     SetValue    value;
 
     new_set = set_new(set1->hash_func, set1->equal_func);
@@ -487,7 +483,7 @@ set_union(Set *set1, Set *set2)
 Set *
 set_intersection(Set *set1, Set *set2)
 {
-    Set *       new_set;
+    Set        *new_set;
     SetIterator iterator;
     SetValue    value;
 
@@ -552,9 +548,9 @@ set_iterate(Set *set, SetIterator *iter)
 SetValue
 set_iter_next(SetIterator *iterator)
 {
-    Set *        set;
+    Set         *set;
     SetValue     result;
-    SetEntry *   current_entry;
+    SetEntry    *current_entry;
     unsigned int chain;
 
     set = iterator->set;

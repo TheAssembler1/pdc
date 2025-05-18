@@ -7,7 +7,7 @@ print_query_output(query_gen_output_t *output)
     println("value query: %s, len: %lu", output->value_query, output->value_query_len);
     char *final_query_str = gen_query_str(output);
     println("final query: %s, len: %lu", final_query_str, strlen(final_query_str));
-    free(final_query_str);
+    final_query_str = (char *)PDC_free(final_query_str);
 }
 
 int

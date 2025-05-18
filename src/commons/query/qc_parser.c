@@ -1,5 +1,6 @@
 #include "qc_parser.h"
 #include "pdc_logger.h"
+#include "pdc_malloc.h"
 
 void
 printSubExpression(char *expression, Condition *condition)
@@ -24,7 +25,7 @@ printSubExpression(char *expression, Condition *condition)
 Condition *
 createSubCondition(int start, int end, int level)
 {
-    Condition *condition = (Condition *)malloc(sizeof(Condition));
+    Condition *condition = (Condition *)PDC_malloc(sizeof(Condition));
     condition->start     = start;
     condition->end       = end;
     condition->level     = level;

@@ -567,11 +567,11 @@ BULKI_Entity_free(BULKI_Entity *bulk_entity, int free_struct)
                 "bulki_entity->class: %d, bulki_entity->class: %d, bulki_entity->data: %p, bulki_entity: "
                 "%p\n",
                 bulk_entity->pdc_class, bulk_entity->pdc_type, bulk_entity->data, bulk_entity);
-            free(bulk_entity->data);
+            bulk_entity->data = (void *)PDC_free(bulk_entity->data);
             bulk_entity->data = NULL;
         }
         if (free_struct) {
-            free(bulk_entity);
+            bulk_entity = (BULKI_Entity *)PDC_free(bulk_entity);
             bulk_entity = NULL;
         }
     }
@@ -586,10 +586,10 @@ BULKI_free(BULKI *bulki, int free_struct)
                 for (size_t i = 0; i < bulki->numKeys; i++) {
                     BULKI_Entity_free(&bulki->header->keys[i], 0);
                 }
-                free(bulki->header->keys);
+                bulki->header->keys = (BULKI_Entity *)PDC_free(bulki->header->keys);
                 bulki->header->keys = NULL;
             }
-            free(bulki->header);
+            bulki->header = (BULKI_Header *)PDC_free(bulki->header);
             bulki->header = NULL;
         }
         if (bulki->data != NULL) {
@@ -597,14 +597,14 @@ BULKI_free(BULKI *bulki, int free_struct)
                 for (size_t i = 0; i < bulki->numKeys; i++) {
                     BULKI_Entity_free(&bulki->data->values[i], 0);
                 }
-                free(bulki->data->values);
+                bulki->data->values = (BULKI_Entity *)PDC_free(bulki->data->values);
                 bulki->data->values = NULL;
             }
-            free(bulki->data);
+            bulki->data = (BULKI_Data *)PDC_free(bulki->data);
             bulki->data = NULL;
         }
         if (free_struct) {
-            free(bulki);
+            bulki = (BULKI *)PDC_free(bulki);
             bulki = NULL;
         }
     }

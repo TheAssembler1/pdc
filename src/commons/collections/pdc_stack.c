@@ -3,6 +3,7 @@
 #include <string.h>
 #include "pdc_logger.h"
 #include "pdc_stack.h"
+#include "pdc_malloc.h"
 
 #define DEFAULT_CAPACITY 16
 
@@ -43,5 +44,5 @@ stack_pop(PDC_stack_t *stack)
 void
 stack_free(PDC_stack_t *stack)
 {
-    free(stack->data);
+    stack->data = (void **)PDC_free(stack->data);
 }

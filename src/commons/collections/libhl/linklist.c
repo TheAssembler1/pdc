@@ -1,7 +1,7 @@
 /* linked list management library - by xant
  */
 
-//#include <stdio.h>
+// #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <errno.h>
@@ -14,9 +14,9 @@
 
 typedef struct _list_entry_s {
     struct _linked_list_s *list;
-    struct _list_entry_s * prev;
-    struct _list_entry_s * next;
-    void *                 value;
+    struct _list_entry_s  *prev;
+    struct _list_entry_s  *next;
+    void                  *value;
     int                    tagged;
 } list_entry_t;
 
@@ -31,7 +31,7 @@ struct _linked_list_s {
 #endif
     free_value_callback_t free_value_cb;
     int                   refcnt;
-    list_entry_t *        slices;
+    list_entry_t         *slices;
 };
 
 struct _slice_s {
@@ -74,7 +74,7 @@ list_create()
     linked_list_t *list = (linked_list_t *)PDC_calloc(1, sizeof(linked_list_t));
     if (list) {
         if (list_init(list) != 0) {
-            free(list);
+            list = (linked_list_t *)PDC_free(list);
             return NULL;
         }
     }
@@ -115,7 +115,7 @@ list_destroy(linked_list_t *list)
 #ifdef THREAD_SAFE
         MUTEX_DESTROY(list->lock);
 #endif
-        free(list);
+        list = (linked_list_t *)PDC_free(list);
     }
 }
 
@@ -123,16 +123,16 @@ static void
 list_destroy_tagged_value_internal(tagged_value_t *tval, void (*free_cb)(void *v))
 {
     if (tval) {
-        free(tval->tag);
+        tval->tag = (char *)PDC_free(tval->tag);
         if (tval->value) {
             if (tval->type == TV_TYPE_LIST)
                 list_destroy((linked_list_t *)tval->value);
             else if (free_cb)
                 free_cb(tval->value);
             else if (tval->vlen)
-                free(tval->value);
+                tval->value = (void *)PDC_free(tval->value);
         }
-        free(tval);
+        tval = (tagged_value_t *)PDC_free(tval);
     }
 }
 
@@ -217,7 +217,7 @@ destroy_entry(list_entry_t *entry)
             if (pos >= 0)
                 remove_entry(entry->list, pos);
         }
-        free(entry);
+        entry = (list_entry_t *)PDC_free(entry);
     }
 }
 
@@ -564,7 +564,7 @@ get_entry_position(list_entry_t *entry)
 {
     int            i = 0;
     linked_list_t *list;
-    list_entry_t * p;
+    list_entry_t  *p;
     list = entry->list;
 
     if (!list)
@@ -589,7 +589,7 @@ get_entry_position(list_entry_t *entry)
 void *
 list_pop_value(linked_list_t *list)
 {
-    void *        val   = NULL;
+    void         *val   = NULL;
     list_entry_t *entry = pop_entry(list);
     if (entry) {
         val = entry->value;
@@ -629,7 +629,7 @@ list_unshift_value(linked_list_t *list, void *val)
 void *
 list_shift_value(linked_list_t *list)
 {
-    void *        val   = NULL;
+    void         *val   = NULL;
     list_entry_t *entry = shift_entry(list);
     if (entry) {
         val = entry->value;
@@ -664,7 +664,7 @@ list_pick_value(linked_list_t *list, size_t pos)
 void *
 list_fetch_value(linked_list_t *list, size_t pos)
 {
-    void *        val   = NULL;
+    void         *val   = NULL;
     list_entry_t *entry = fetch_entry(list, pos);
     if (entry) {
         val = entry->value;
@@ -769,8 +769,8 @@ list_create_tagged_value(char *tag, void *val, size_t vlen)
                 newval->vlen = vlen;
             }
             else {
-                free(newval->tag);
-                free(newval);
+                newval->tag = (char *)PDC_free(newval->tag);
+                newval      = (tagged_value_t *)PDC_free(newval);
                 return NULL;
             }
             newval->type = TV_TYPE_BINARY;
@@ -997,7 +997,7 @@ list_quick_sort(list_entry_t *head, list_entry_t *tail, list_entry_t *pivot, int
         return;
     }
 
-    void *        pvalue = pivot->value;
+    void         *pvalue = pivot->value;
     list_entry_t *p1 = head, *p2 = tail;
 
     for (;;) {
@@ -1153,8 +1153,8 @@ void
 slice_destroy(slice_t *slice)
 {
     linked_list_t *list = slice->list;
-    list_entry_t * cur  = list->slices;
-    list_entry_t * prev = NULL;
+    list_entry_t  *cur  = list->slices;
+    list_entry_t  *prev = NULL;
     while (cur) {
         if (cur->value == slice) {
             if (prev) {
@@ -1170,7 +1170,7 @@ slice_destroy(slice_t *slice)
         prev = cur;
         cur  = cur->next;
     }
-    free(slice);
+    slice = (slice_t *)PDC_free(slice);
 }
 
 int

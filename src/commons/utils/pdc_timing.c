@@ -41,6 +41,7 @@ PDC_timing_init()
 
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
     gethostname(hostname, HOST_NAME_MAX);
+    strcpy(hostname, "eno1");
     if (!(rank % 31)) {
         LOG_INFO("client process rank %d, hostname = %s\n", rank, hostname);
     }
@@ -119,13 +120,14 @@ PDC_timing_report(const char *prefix)
     pdc_timing max_timings;
     int        rank;
     char       filename[256], header[256];
-    FILE *     stream;
+    FILE      *stream;
     char       hostname[HOST_NAME_MAX];
     time_t     now;
 
     time(&now);
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
     gethostname(hostname, HOST_NAME_MAX);
+    strcpy(hostname, "eno1");
     if (!(rank % 32)) {
         LOG_INFO("client process rank %d, hostname = %s\n", rank, hostname);
     }
@@ -261,17 +263,9 @@ PDC_server_timing_init()
 
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
     gethostname(hostname, HOST_NAME_MAX);
+    strcpy(hostname, "eno1");
 
     LOG_INFO("server process rank %d, hostname = %s\n", rank, hostname);
-    /*
-        LOG_INFO("rank = %d, hostname = %s, PDCbuf_obj_map_rpc = %lf, PDCreg_obtain_lock_rpc = %lf, "
-               "PDCreg_release_lock_write_rpc = "
-               "%lf, PDCreg_release_lock_read_rpc = %lf, PDCbuf_obj_unmap_rpc = %lf, "
-               "region_release_bulk_transfer_cb = %lf\n",
-               rank, hostname, server_timings->PDCbuf_obj_map_rpc, server_timings->PDCreg_obtain_lock_rpc,
-               server_timings->PDCreg_release_lock_write_rpc, server_timings->PDCreg_release_lock_read_rpc,
-               server_timings->PDCbuf_obj_unmap_rpc, server_timings->PDCreg_release_lock_bulk_transfer_rpc);
-    */
     MPI_Barrier(MPI_COMM_WORLD);
 
     pdc_server_timings         = calloc(1, sizeof(pdc_server_timing));
@@ -342,12 +336,12 @@ pdc_timestamp_register(pdc_timestamp *timestamp, double start, double end)
 
     if (timestamp->timestamp_max_size == 0) {
         timestamp->timestamp_max_size = 256;
-        timestamp->start              = (double *)malloc(sizeof(double) * timestamp->timestamp_max_size * 2);
-        timestamp->end                = timestamp->start + timestamp->timestamp_max_size;
-        timestamp->timestamp_size     = 0;
+        timestamp->start          = (double *)PDC_malloc(sizeof(double) * timestamp->timestamp_max_size * 2);
+        timestamp->end            = timestamp->start + timestamp->timestamp_max_size;
+        timestamp->timestamp_size = 0;
     }
     else if (timestamp->timestamp_size == timestamp->timestamp_max_size) {
-        temp = (double *)malloc(sizeof(double) * timestamp->timestamp_max_size * 4);
+        temp = (double *)PDC_malloc(sizeof(double) * timestamp->timestamp_max_size * 4);
         memcpy(temp, timestamp->start, sizeof(double) * timestamp->timestamp_max_size);
         memcpy(temp + timestamp->timestamp_max_size * 2, timestamp->end,
                sizeof(double) * timestamp->timestamp_max_size);
@@ -367,7 +361,7 @@ PDC_server_timing_report()
     pdc_server_timing max_timings;
     int               rank;
     char              filename[256];
-    FILE *            stream;
+    FILE             *stream;
 
     //    char              hostname[HOST_NAME_MAX];
     time_t now;

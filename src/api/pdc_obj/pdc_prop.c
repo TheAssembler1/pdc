@@ -58,9 +58,9 @@ PDCprop_create(pdc_prop_type_t type, pdcid_t pdcid)
 {
     pdcid_t                ret_value = 0;
     struct _pdc_cont_prop *p         = NULL;
-    struct _pdc_obj_prop * q         = NULL;
-    struct _pdc_id_info *  id_info   = NULL;
-    struct _pdc_class *    pdc_class;
+    struct _pdc_obj_prop  *q         = NULL;
+    struct _pdc_id_info   *id_info   = NULL;
+    struct _pdc_class     *pdc_class;
     pdcid_t                new_id_c;
     pdcid_t                new_id_o;
 
@@ -130,7 +130,7 @@ PDCprop_obj_dup(pdcid_t prop_id)
     pdcid_t               ret_value = 0;
     struct _pdc_obj_prop *q         = NULL;
     struct _pdc_obj_prop *info      = NULL;
-    struct _pdc_id_info * prop      = NULL;
+    struct _pdc_id_info  *prop      = NULL;
     pdcid_t               new_id;
     size_t                i;
 
@@ -159,7 +159,7 @@ PDCprop_obj_dup(pdcid_t prop_id)
     new_id                            = PDC_id_register(PDC_OBJ_PROP, q);
     q->obj_prop_pub->obj_prop_id      = new_id;
     q->obj_prop_pub->ndim             = info->obj_prop_pub->ndim;
-    q->obj_prop_pub->dims             = (uint64_t *)malloc(info->obj_prop_pub->ndim * sizeof(uint64_t));
+    q->obj_prop_pub->dims             = (uint64_t *)PDC_malloc(info->obj_prop_pub->ndim * sizeof(uint64_t));
     q->obj_prop_pub->type             = PDC_UNKNOWN;
     q->obj_prop_pub->region_partition = info->obj_prop_pub->region_partition;
     for (i = 0; i < info->obj_prop_pub->ndim; i++)
@@ -227,9 +227,9 @@ pdc_prop_cont_close(struct _pdc_cont_prop *cp)
 
     FUNC_ENTER(NULL);
 
-    free(cp->pdc->name);
-    cp->pdc = (struct _pdc_class *)(intptr_t)PDC_free(cp->pdc);
-    cp      = (struct _pdc_cont_prop *)(intptr_t)PDC_free(cp);
+    cp->pdc->name = (char *)PDC_free(cp->pdc->name);
+    cp->pdc       = (struct _pdc_class *)(intptr_t)PDC_free(cp->pdc);
+    cp            = (struct _pdc_cont_prop *)(intptr_t)PDC_free(cp);
 
     FUNC_LEAVE(ret_value);
 }
@@ -241,16 +241,16 @@ pdc_prop_obj_close(struct _pdc_obj_prop *cp)
 
     FUNC_ENTER(NULL);
 
-    free(cp->pdc->name);
-    cp->pdc = (struct _pdc_class *)(intptr_t)PDC_free(cp->pdc);
+    cp->pdc->name = (char *)PDC_free(cp->pdc->name);
+    cp->pdc       = (struct _pdc_class *)(intptr_t)PDC_free(cp->pdc);
     if (cp->obj_prop_pub->dims != NULL) {
-        free(cp->obj_prop_pub->dims);
+        cp->obj_prop_pub->dims = (uint64_t *)PDC_free(cp->obj_prop_pub->dims);
         cp->obj_prop_pub->dims = NULL;
     }
-    free(cp->app_name);
-    free(cp->tags);
-    free(cp->data_loc);
-    cp = (struct _pdc_obj_prop *)(intptr_t)PDC_free(cp);
+    cp->app_name = (char *)PDC_free(cp->app_name);
+    cp->tags     = (char *)PDC_free(cp->tags);
+    cp->data_loc = (char *)PDC_free(cp->data_loc);
+    cp           = (struct _pdc_obj_prop *)(intptr_t)PDC_free(cp);
 
     FUNC_LEAVE(ret_value);
 }
@@ -294,7 +294,7 @@ PDCcont_prop_get_info(pdcid_t cont_prop)
 {
     struct _pdc_cont_prop *ret_value = NULL;
     struct _pdc_cont_prop *info      = NULL;
-    struct _pdc_id_info *  prop;
+    struct _pdc_id_info   *prop;
 
     FUNC_ENTER(NULL);
 
@@ -324,9 +324,9 @@ done:
 struct pdc_obj_prop *
 PDCobj_prop_get_info(pdcid_t obj_prop)
 {
-    struct pdc_obj_prop * ret_value = NULL;
+    struct pdc_obj_prop  *ret_value = NULL;
     struct _pdc_obj_prop *info      = NULL;
-    struct _pdc_id_info * prop;
+    struct _pdc_id_info  *prop;
     size_t                i;
 
     FUNC_ENTER(NULL);
@@ -357,7 +357,7 @@ PDC_obj_prop_get_info(pdcid_t obj_prop)
 {
     struct _pdc_obj_prop *ret_value = NULL;
     struct _pdc_obj_prop *info      = NULL;
-    struct _pdc_id_info * prop;
+    struct _pdc_id_info  *prop;
     size_t                i;
 
     FUNC_ENTER(NULL);

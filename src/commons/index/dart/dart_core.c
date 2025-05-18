@@ -2,6 +2,7 @@
 #include "dart_algo.h"
 #include "dart_math.h"
 #include "dart_core.h"
+#include "pdc_malloc.h"
 
 #ifdef PDC_DART_MAX_SERVER_NUM_TO_ADAPT
 #define DART_MAX_SERVER_NUM_TO_ADAPT PDC_DART_MAX_SERVER_NUM_TO_ADAPT
@@ -107,7 +108,7 @@ dart_determine_query_token_by_key_query(char *k_query, char **out_token, dart_op
             break;
     }
     if (affix != NULL) {
-        free(affix);
+        affix = (char *)PDC_free(affix);
         affix = NULL;
     }
 }
@@ -140,7 +141,7 @@ get_vnode_ids_by_serverID(DART *dart, uint32_t serverID, uint64_t **out)
     }
     out[0] = (uint64_t *)calloc(num_result, sizeof(uint64_t));
     memcpy(out[0], temp_out, num_result * sizeof(uint64_t));
-    free(temp_out);
+    temp_out = (uint64_t *)PDC_free(temp_out);
     return num_result;
 }
 
@@ -532,7 +533,7 @@ DART_hash(DART *dart_g, char *key, dart_op_type_t op_type, get_server_info_callb
 
     uint64_t *temp_out    = NULL;
     int       tmp_out_len = 0;
-    char *    tok         = NULL;
+    char     *tok         = NULL;
     *out                  = NULL;
 
     // regardless of suffix tree mode, we only need to get the DART hash result for one time for query
@@ -586,7 +587,7 @@ DART_hash(DART *dart_g, char *key, dart_op_type_t op_type, get_server_info_callb
             (*out)[ret_value - tmp_out_len + j].is_suffix = is_suffix;
         }
         if (temp_out != NULL)
-            free(temp_out);
+            temp_out = (uint64_t *)PDC_free(temp_out);
     }
     return ret_value;
 }

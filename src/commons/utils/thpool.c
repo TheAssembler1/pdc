@@ -29,6 +29,7 @@
 
 #include "thpool.h"
 #include "pdc_logger.h"
+#include "pdc_malloc.h"
 
 #ifdef THPOOL_DEBUG
 #define THPOOL_DEBUG 1
@@ -64,9 +65,9 @@ typedef struct job {
 /* Job queue */
 typedef struct jobqueue {
     pthread_mutex_t rwmutex;  /* used for queue r/w access */
-    job *           front;    /* pointer to front of queue */
-    job *           rear;     /* pointer to rear  of queue */
-    bsem *          has_jobs; /* flag as binary semaphore  */
+    job            *front;    /* pointer to front of queue */
+    job            *rear;     /* pointer to rear  of queue */
+    bsem           *has_jobs; /* flag as binary semaphore  */
     int             len;      /* number of jobs in queue   */
 } jobqueue;
 
@@ -79,7 +80,7 @@ typedef struct thread {
 
 /* Threadpool */
 typedef struct thpool_ {
-    thread **       threads;             /* pointer to threads        */
+    thread        **threads;             /* pointer to threads        */
     volatile int    num_threads_alive;   /* threads currently alive   */
     volatile int    num_threads_working; /* threads currently working */
     pthread_mutex_t thcount_lock;        /* used for thread count etc */
@@ -122,7 +123,7 @@ thpool_init(int num_threads)
 
     /* Make new thread pool */
     thpool_ *thpool_p;
-    thpool_p = (struct thpool_ *)malloc(sizeof(struct thpool_));
+    thpool_p = (struct thpool_ *)PDC_malloc(sizeof(struct thpool_));
     if (thpool_p == NULL) {
         err("thpool_init(): Could not allocate memory for thread pool\n");
         return NULL;
@@ -133,16 +134,16 @@ thpool_init(int num_threads)
     /* Initialise the job queue */
     if (jobqueue_init(&thpool_p->jobqueue) == -1) {
         err("thpool_init(): Could not allocate memory for job queue\n");
-        free(thpool_p);
+        thpool_p = (thpool_ *)PDC_free(thpool_p);
         return NULL;
     }
 
     /* Make threads in pool */
-    thpool_p->threads = (struct thread **)malloc(num_threads * sizeof(struct thread *));
+    thpool_p->threads = (struct thread **)PDC_malloc(num_threads * sizeof(struct thread *));
     if (thpool_p->threads == NULL) {
         err("thpool_init(): Could not allocate memory for threads\n");
         jobqueue_destroy(&thpool_p->jobqueue);
-        free(thpool_p);
+        thpool_p = (thpool_ *)PDC_free(thpool_p);
         return NULL;
     }
 
@@ -171,7 +172,7 @@ thpool_add_work(thpool_ *thpool_p, void (*function_p)(void *), void *arg_p)
 {
     job *newjob;
 
-    newjob = (struct job *)malloc(sizeof(struct job));
+    newjob = (struct job *)PDC_malloc(sizeof(struct job));
     if (newjob == NULL) {
         err("thpool_add_work(): Could not allocate memory for new job\n");
         return -1;
@@ -235,8 +236,8 @@ thpool_destroy(thpool_ *thpool_p)
     for (n = 0; n < threads_total; n++) {
         thread_destroy(thpool_p->threads[n]);
     }
-    free(thpool_p->threads);
-    free(thpool_p);
+    thpool_p->threads = (thread **)PDC_free(thpool_p->threads);
+    thpool_p          = (thpool_ *)PDC_free(thpool_p);
 }
 
 /* Pause all threads in threadpool */
@@ -279,7 +280,7 @@ static int
 thread_init(thpool_ *thpool_p, struct thread **thread_p, int id)
 {
 
-    *thread_p = (struct thread *)malloc(sizeof(struct thread));
+    *thread_p = (struct thread *)PDC_malloc(sizeof(struct thread));
     if (thread_p == NULL) {
         err("thread_init(): Could not allocate memory for thread\n");
         return -1;
@@ -359,12 +360,12 @@ thread_do(struct thread *thread_p)
             /* Read job from queue and execute it */
             void (*func_buff)(void *);
             void *arg_buff;
-            job * job_p = jobqueue_pull(&thpool_p->jobqueue);
+            job  *job_p = jobqueue_pull(&thpool_p->jobqueue);
             if (job_p) {
                 func_buff = job_p->function;
                 arg_buff  = job_p->arg;
                 func_buff(arg_buff);
-                free(job_p);
+                job_p = (job *)PDC_free(job_p);
             }
 
             pthread_mutex_lock(&thpool_p->thcount_lock);
@@ -386,7 +387,7 @@ thread_do(struct thread *thread_p)
 static void
 thread_destroy(thread *thread_p)
 {
-    free(thread_p);
+    thread_p = (thread *)PDC_free(thread_p);
 }
 
 /* ============================ JOB QUEUE =========================== */
@@ -399,7 +400,7 @@ jobqueue_init(jobqueue *jobqueue_p)
     jobqueue_p->front = NULL;
     jobqueue_p->rear  = NULL;
 
-    jobqueue_p->has_jobs = (struct bsem *)malloc(sizeof(struct bsem));
+    jobqueue_p->has_jobs = (struct bsem *)PDC_malloc(sizeof(struct bsem));
     if (jobqueue_p->has_jobs == NULL) {
         return -1;
     }

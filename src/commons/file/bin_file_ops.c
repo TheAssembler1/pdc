@@ -1,4 +1,5 @@
 #include "bin_file_ops.h"
+#include "pdc_malloc.h"
 
 // type 1 int, 2 double, 3 string, 4 uint64, 5 size_t
 
@@ -130,7 +131,7 @@ miqs_skip_field(FILE *stream)
         fread(_data, sizeof(size_t), length, stream);
         rst += sizeof(size_t) * length;
     }
-    free(_data);
+    _data = (void *)PDC_free(_data);
     return rst;
 }
 

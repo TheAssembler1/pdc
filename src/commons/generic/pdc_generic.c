@@ -1,4 +1,5 @@
 #include "pdc_generic.h"
+#include "pdc_malloc.h"
 
 size_t
 get_number_from_string(char *str, pdc_c_var_type_t type, void **val_ptr)
@@ -7,7 +8,7 @@ get_number_from_string(char *str, pdc_c_var_type_t type, void **val_ptr)
         return 0;
     }
 
-    void * k       = NULL;
+    void  *k       = NULL;
     size_t key_len = get_size_by_dtype(type);
 
     k = malloc(key_len);
@@ -52,7 +53,7 @@ get_number_from_string(char *str, pdc_c_var_type_t type, void **val_ptr)
             *((double *)k) = strtod(str, NULL);
             break;
         default:
-            free(k);
+            k = (void *)PDC_free(k);
             return 0;
     }
 

@@ -4,6 +4,7 @@
 
 #include "string_utils.h"
 #include "pdc_logger.h"
+#include "pdc_malloc.h"
 #include <regex.h>
 
 const char *VISIBLE_ALPHABET =
@@ -69,7 +70,7 @@ simple_matches(const char *str, const char *pattern)
             break;
     }
     if (tok != NULL) {
-        free(tok);
+        tok = (char *)PDC_free(tok);
     }
     return result;
 }
@@ -126,7 +127,7 @@ substring(const char *str, int start, int end)
     int substr_len = end - start;
 
     // Allocate memory for the new string (including null-terminator)
-    char *substr = (char *)malloc((substr_len + 1) * sizeof(char));
+    char *substr = (char *)PDC_malloc((substr_len + 1) * sizeof(char));
     if (substr == NULL) { // Check if malloc succeeded
         return NULL;
     }
@@ -216,7 +217,7 @@ reverse_str(char *str)
     }
 
     int   length   = strlen(str);
-    char *reversed = (char *)malloc(length + 1); // +1 for the null-terminator
+    char *reversed = (char *)PDC_malloc(length + 1); // +1 for the null-terminator
 
     if (reversed == NULL) {
         return NULL; // Return NULL if memory allocation fails
@@ -259,7 +260,7 @@ split_string(const char *str, const char *delim, char ***result, int *result_len
     }
 
     *result_len = count + 1;
-    *result     = (char **)malloc((*result_len) * sizeof(char *));
+    *result     = (char **)PDC_malloc((*result_len) * sizeof(char *));
     if (!*result) {
         return -1; // Memory allocation failed
     }
@@ -271,12 +272,12 @@ split_string(const char *str, const char *delim, char ***result, int *result_len
     while (i < count && regexec(&regex, tmp, 1, pmatch, 0) != REG_NOMATCH) {
         int len = pmatch[0].rm_so;
 
-        (*result)[i] = (char *)malloc((len + 1) * sizeof(char));
+        (*result)[i] = (char *)PDC_malloc((len + 1) * sizeof(char));
         if (!(*result)[i]) {
             for (int j = 0; j < i; j++) {
-                free((*result)[j]);
+                (*result)[j] = (char *)PDC_free((*result)[j]);
             }
-            free(*result);
+            *result = (char **)PDC_free(*result);
             *result = NULL;
             regfree(&regex);
             return -1;
@@ -293,9 +294,9 @@ split_string(const char *str, const char *delim, char ***result, int *result_len
     (*result)[i] = strdup(start);
     if (!(*result)[i]) {
         for (int j = 0; j < i; j++) {
-            free((*result)[j]);
+            (*result)[j] = (char *)PDC_free((*result)[j]);
         }
-        free(*result);
+        *result = (char **)PDC_free(*result);
         *result = NULL;
         regfree(&regex);
         return -1;

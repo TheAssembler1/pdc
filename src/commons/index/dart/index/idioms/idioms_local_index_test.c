@@ -8,23 +8,23 @@ typedef enum { IDIOMS_INSERT = 1, IDIOMS_DELETE = 2, IDIOMS_QUERY = 3 } IDIOMS_O
 
 typedef struct {
     IDIOMS_t *idioms;
-    void *    buffer_in;
+    void     *buffer_in;
     size_t    buffer_in_size;
-    void *    buffer_out;
+    void     *buffer_out;
     size_t    buffer_out_size;
     int       id;
 } dummy_server_t;
 
 typedef struct {
-    DART * dart;
+    DART  *dart;
     int    DART_ALPHABET_SIZE;
     int    num_servers;
     int    extra_tree_height;
     int    replication_factor;
     int    dart_insert_count;
-    void * buffer_in;
+    void  *buffer_in;
     size_t buffer_in_size;
-    void * buffer_out;
+    void  *buffer_out;
     size_t buffer_out_size;
     int    id;
 } dummy_client_t;
@@ -36,7 +36,7 @@ void
 init_servers(int num_servers)
 {
     // create an array of dummy_server_t
-    servers = (dummy_server_t *)malloc(num_servers * sizeof(dummy_server_t));
+    servers = (dummy_server_t *)PDC_malloc(num_servers * sizeof(dummy_server_t));
     // initialize each server, simulating the initialization of every single process
     for (int i = 0; i < num_servers; i++) {
         servers[i].id     = i;
@@ -48,7 +48,7 @@ void
 init_clients(int num_clients, int num_servers)
 {
     // create an array of dummy_client_t
-    clients = (dummy_client_t *)malloc(num_clients * sizeof(dummy_client_t));
+    clients = (dummy_client_t *)PDC_malloc(num_clients * sizeof(dummy_client_t));
     // initialize each client, simulating the initialization of every single process
     for (int i = 0; i < num_clients; i++) {
         clients[i].id                 = i;
@@ -105,7 +105,7 @@ client_select_server(dummy_client_t *client, char *attr_key, IDIOMS_OP_TYPE op_t
 {
     // select a server based on the key
     dart_op_type_t           dart_op   = OP_INSERT;
-    char *                   input_key = attr_key;
+    char                    *input_key = attr_key;
     get_server_info_callback gsi_cp    = NULL;
     if (op_type == IDIOMS_INSERT) {
         dart_op = OP_INSERT;
@@ -125,9 +125,9 @@ sending_request_to_server(dummy_client_t *client, dummy_server_t *server)
 {
     // memcpy to simulate the sending of the request to the server
     server->buffer_in_size = client->buffer_out_size;
-    server->buffer_in      = (void *)malloc(server->buffer_in_size);
+    server->buffer_in      = (void *)PDC_malloc(server->buffer_in_size);
     memcpy(server->buffer_in, client->buffer_out, server->buffer_in_size);
-    free(client->buffer_out);
+    client->buffer_out = (void *)PDC_free(client->buffer_out);
 }
 
 void
@@ -135,9 +135,9 @@ get_response_from_server(dummy_client_t *client, dummy_server_t *server)
 {
     // memcpy to simulate the receiving of the response from the server
     client->buffer_in_size = server->buffer_out_size;
-    client->buffer_in      = (void *)malloc(client->buffer_in_size);
+    client->buffer_in      = (void *)PDC_malloc(client->buffer_in_size);
     memcpy(client->buffer_in, server->buffer_out, client->buffer_in_size);
-    free(server->buffer_out);
+    server->buffer_out = (void*)PDC_free(server->buffer_out);
 }
 
 perr_t
@@ -185,14 +185,14 @@ server_perform_delete(dummy_server_t *server, char *key, BULKI_Entity *value_ent
 void
 server_perform_operation(dummy_server_t *server)
 {
-    BULKI_Entity * resultBent  = empty_Bent_Array_Entity();
-    BULKI_Entity * bentArr     = BULKI_Entity_deserialize(server->buffer_in);
-    BULKI_Entity * opType_ent  = BULKI_ENTITY_get_BULKI_Entity(bentArr, 0);
-    BULKI_Entity * key_ent     = BULKI_ENTITY_get_BULKI_Entity(bentArr, 1);
-    char *         key         = (char *)key_ent->data;
+    BULKI_Entity  *resultBent  = empty_Bent_Array_Entity();
+    BULKI_Entity  *bentArr     = BULKI_Entity_deserialize(server->buffer_in);
+    BULKI_Entity  *opType_ent  = BULKI_ENTITY_get_BULKI_Entity(bentArr, 0);
+    BULKI_Entity  *key_ent     = BULKI_ENTITY_get_BULKI_Entity(bentArr, 1);
+    char          *key         = (char *)key_ent->data;
     perr_t         result      = SUCCEED;
     IDIOMS_OP_TYPE opType      = *(int8_t *)opType_ent->data;
-    uint64_t *     obj_id_list = NULL;
+    uint64_t      *obj_id_list = NULL;
     uint64_t       count       = 0;
     if (opType == IDIOMS_QUERY) {
         result = server_perform_query(server, key, &obj_id_list, &count);
@@ -214,7 +214,7 @@ server_perform_operation(dummy_server_t *server)
                                          BULKI_ENTITY(obj_id_list, count, PDC_UINT64, PDC_CLS_ARRAY));
     }
     server->buffer_out = BULKI_Entity_serialize(resultBent, &server->buffer_out_size);
-    free(server->buffer_in);
+    server->buffer_in  = (void *)PDC_free(server->buffer_in);
 }
 
 perr_t
@@ -229,7 +229,7 @@ client_parse_response(dummy_client_t *client, uint64_t **obj_id_list, uint64_t *
             *count       = obj_id_bent->count;
         }
     }
-    free(client->buffer_in);
+    client->buffer_in = (void *)PDC_free(client->buffer_in);
     return result;
 }
 
@@ -302,7 +302,7 @@ client_perform_search(dummy_client_t *client, char *query, uint64_t **rst_ids)
         if (result == SUCCEED && count > 0) {
             rst_count += count;
             if (*rst_ids == NULL) {
-                *rst_ids = (uint64_t *)malloc(rst_count * sizeof(uint64_t));
+                *rst_ids = (uint64_t *)PDC_malloc(rst_count * sizeof(uint64_t));
             }
             else {
                 *rst_ids = (uint64_t *)realloc(*rst_ids, rst_count * sizeof(uint64_t));
