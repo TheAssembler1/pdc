@@ -172,8 +172,8 @@ free_counting_bloom(counting_bloom_t *bloom)
         bloom->hashes = (uint32_t *)PDC_free(bloom->hashes);
         bloom->hashes = NULL;
         bloom->bitmap = (bitmap_t *)PDC_free(bloom->bitmap);
-        bloom = (counting_bloom_t *)PDC_free(bloom);
-        bloom = NULL;
+        bloom         = (counting_bloom_t *)PDC_free(bloom);
+        bloom         = NULL;
     }
     return 0;
 }
@@ -271,10 +271,10 @@ free_scaling_bloom(scaling_bloom_t *bloom)
 {
     int i;
     for (i = bloom->num_blooms - 1; i >= 0; i--) {
-        free(bloom->blooms[i]->hashes);
+        bloom->blooms[i]->hashes = (uint32_t *)PDC_free(bloom->blooms[i]->hashes);
         bloom->blooms[i]->hashes = NULL;
-        free(bloom->blooms[i]);
-        bloom->blooms[i] = NULL;
+        bloom->blooms[i]         = (counting_bloom_t *)PDC_free(bloom->blooms[i]);
+        bloom->blooms[i]         = NULL;
     }
     bloom->blooms = (counting_bloom_t **)PDC_free(bloom->blooms);
     free_bitmap(bloom->bitmap);

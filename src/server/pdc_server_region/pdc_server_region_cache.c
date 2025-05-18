@@ -404,7 +404,7 @@ PDC_region_cache_copy(char *buf, char *buf2, const uint64_t *offset, const uint6
             }
         }
     }
-    free(local_offset);
+    local_offset = (uint64_t *)PDC_free(local_offset);
     return 0;
 }
 
@@ -523,14 +523,15 @@ PDC_region_cache_free()
     while (obj_cache_iter != NULL) {
         region_cache_iter = obj_cache_iter->region_cache;
         while (region_cache_iter != NULL) {
-            free(region_cache_iter->region_cache_info);
+            region_cache_iter->region_cache_info =
+                (struct pdc_region_info *)PDC_free(region_cache_iter->region_cache_info);
             region_temp       = region_cache_iter;
             region_cache_iter = region_cache_iter->next;
-            free(region_temp);
+            region_temp       = (pdc_region_cache *)PDC_free(region_temp);
         }
         obj_temp       = obj_cache_iter;
         obj_cache_iter = obj_cache_iter->next;
-        free(obj_temp);
+        obj_temp       = (pdc_obj_cache *)PDC_free(obj_temp);
     }
     return 0;
 }
@@ -595,7 +596,7 @@ PDC_transfer_request_data_write_out(uint64_t obj_id, int obj_ndim, const uint64_
                     region_info->ndim, unit, buf, region_info->offset, region_info->size,
                     region_cache_iter->region_cache_info->buf, region_cache_iter->region_cache_info->offset,
                     region_cache_iter->region_cache_info->size, overlap_offset, overlap_size);
-                free(overlap_offset);
+                overlap_offset = (uint64_t *)PDC_free(overlap_offset);
                 if (flag) {
                     break;
                 }

@@ -417,7 +417,8 @@ jobqueue_clear(jobqueue *jobqueue_p)
 {
 
     while (jobqueue_p->len) {
-        free(jobqueue_pull(jobqueue_p));
+        struct job *j = jobqueue_pull(jobqueue_p);
+        j             = (struct job *)PDC_free(j);
     }
 
     jobqueue_p->front = NULL;
@@ -486,7 +487,7 @@ static void
 jobqueue_destroy(jobqueue *jobqueue_p)
 {
     jobqueue_clear(jobqueue_p);
-    free(jobqueue_p->has_jobs);
+    jobqueue_p->has_jobs = (bsem *)PDC_free(jobqueue_p->has_jobs);
 }
 
 /* ======================== SYNCHRONISATION ========================= */

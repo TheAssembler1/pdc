@@ -2,6 +2,7 @@
 #include "pdc_compare.h"
 #include "pdc_hash.h"
 #include "pdc_logger.h"
+#include "pdc_malloc.h"
 #include <inttypes.h>
 #include <stdlib.h>
 #include <string.h>
@@ -11,7 +12,7 @@
 void
 set_value_free(SetValue value)
 {
-    value = (void *)PDC_free((void *)value);
+    value = (SetValue)PDC_free((void *)value);
 }
 
 int

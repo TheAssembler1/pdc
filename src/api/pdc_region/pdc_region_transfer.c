@@ -1853,9 +1853,14 @@ PDCregion_transfer_wait_all(pdcid_t *transfer_request_id, int size)
                                 ->transfer_request->output_sizes[transfer_requests[j]->index]);
                     }
                     if (transfer_requests[j]->transfer_request->output_buf) {
-                        free(transfer_requests[j]->transfer_request->output_buf[transfer_requests[j]->index]);
+                        transfer_requests[j]->transfer_request->output_buf[transfer_requests[j]->index] =
+                            (char *)PDC_free(transfer_requests[j]
+                                                 ->transfer_request->output_buf[transfer_requests[j]->index]);
                     }
-                    free(transfer_requests[j]->transfer_request->output_offsets[transfer_requests[j]->index]);
+                    transfer_requests[j]->transfer_request->output_offsets[transfer_requests[j]->index] =
+                        (uint64_t *)PDC_free(
+                            transfer_requests[j]
+                                ->transfer_request->output_offsets[transfer_requests[j]->index]);
                 }
             }
             index = i;
@@ -1888,9 +1893,13 @@ PDCregion_transfer_wait_all(pdcid_t *transfer_request_id, int size)
                         transfer_requests[j]->transfer_request->output_sizes[transfer_requests[j]->index]);
                 }
                 if (transfer_requests[j]->transfer_request->output_buf) {
-                    free(transfer_requests[j]->transfer_request->output_buf[transfer_requests[j]->index]);
+                    transfer_requests[j]->transfer_request->output_buf[transfer_requests[j]->index] =
+                        (char *)PDC_free(
+                            transfer_requests[j]->transfer_request->output_buf[transfer_requests[j]->index]);
                 }
-                free(transfer_requests[j]->transfer_request->output_offsets[transfer_requests[j]->index]);
+                transfer_requests[j]->transfer_request->output_offsets[transfer_requests[j]->index] =
+                    (uint64_t *)PDC_free(
+                        transfer_requests[j]->transfer_request->output_offsets[transfer_requests[j]->index]);
             }
         }
     }
@@ -2005,9 +2014,10 @@ PDCregion_transfer_wait(pdcid_t transfer_request_id)
                                      transfer_request->sub_offsets[i], transfer_request->output_sizes[i]);
                 }
                 if (transfer_request->output_buf) {
-                    free(transfer_request->output_buf[i]);
+                    transfer_request->output_buf[i] = (char *)PDC_free(transfer_request->output_buf[i]);
                 }
-                free(transfer_request->output_offsets[i]);
+                transfer_request->output_offsets[i] =
+                    (uint64_t *)PDC_free(transfer_request->output_offsets[i]);
             }
             // Copy read data from a contiguous buffer back to the user buffer using local data information.
             release_region_buffer(
@@ -2015,13 +2025,13 @@ PDCregion_transfer_wait(pdcid_t transfer_request_id)
                 transfer_request->local_region_offset, transfer_request->local_region_size, unit,
                 transfer_request->access_type, transfer_request->n_obj_servers, transfer_request->new_buf,
                 transfer_request->bulk_buf, transfer_request->bulk_buf_ref, transfer_request->read_bulk_buf);
-            free(transfer_request->output_offsets);
-            free(transfer_request->output_sizes);
-            free(transfer_request->sub_offsets);
+            transfer_request->output_offsets = (uint64_t **)PDC_free(transfer_request->output_offsets);
+            transfer_request->output_sizes   = (uint64_t **)PDC_free(transfer_request->output_sizes);
+            transfer_request->sub_offsets    = (uint64_t **)PDC_free(transfer_request->sub_offsets);
             if (transfer_request->output_buf) {
-                free(transfer_request->output_buf);
+                transfer_request->output_buf = (char **)PDC_free(transfer_request->output_buf);
             }
-            free(transfer_request->obj_servers);
+            transfer_request->obj_servers = (uint32_t *)PDC_free(transfer_request->obj_servers);
         }
         else if (transfer_request->region_partition == PDC_OBJ_STATIC) {
             ret_value = PDC_Client_transfer_request_wait(transfer_request->metadata_id[0],
@@ -2037,7 +2047,7 @@ PDCregion_transfer_wait(pdcid_t transfer_request_id)
                 transfer_request->access_type, transfer_request->n_obj_servers, transfer_request->new_buf,
                 transfer_request->bulk_buf, transfer_request->bulk_buf_ref, transfer_request->read_bulk_buf);
         }
-        free(transfer_request->metadata_id);
+        transfer_request->metadata_id = (uint64_t *)PDC_free(transfer_request->metadata_id);
         transfer_request->metadata_id = NULL;
         transfer_request->is_done     = 1;
         remove_local_transfer_request(transfer_request->obj_pointer, transfer_request_id);

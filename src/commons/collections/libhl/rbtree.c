@@ -471,8 +471,8 @@ rbt_add_internal(rbt_t *rbt, rbt_node_t *cur_node, rbt_node_t *new_node)
         if (new_node->value != cur_node->value && rbt->free_value_cb)
             rbt->free_value_cb(cur_node->value);
 
-        free(cur_node->key);
-        free(cur_node);
+        cur_node->key = (void *)PDC_free(cur_node->key);
+        cur_node      = (rbt_node_t *)PDC_free(cur_node);
         return 1;
     }
     else if (rc > 0) {
@@ -572,7 +572,7 @@ rbt_add(rbt_t *rbt, void *k, size_t klen, void *v)
     node->key = PDC_malloc(klen);
     mem_usage_by_all_rbtrees += klen;
     if (!node->key) {
-        free(node);
+        node = (rbt_node_t *)PDC_free(node);
         return -1;
     }
     memcpy(node->key, k, klen);
@@ -799,7 +799,7 @@ rbt_paint_onremove(rbt_t *rbt, rbt_node_t *node)
 void
 rbt_free_node(rbt_t *rbt, rbt_node_t **node_ptr, void **node_v, void **rtn_v)
 {
-    free((*node_ptr)->key);
+    (*node_ptr)->key = (void *)PDC_free((*node_ptr)->key);
     (*node_ptr)->key = NULL;
     if (rtn_v)
         *rtn_v = *node_v;
@@ -807,7 +807,7 @@ rbt_free_node(rbt_t *rbt, rbt_node_t **node_ptr, void **node_v, void **rtn_v)
         rbt->free_value_cb(*node_v);
         *node_v = NULL;
     }
-    free(*node_ptr);
+    *node_ptr = (rbt_node_t *)PDC_free(*node_ptr);
     *node_ptr = NULL;
 }
 

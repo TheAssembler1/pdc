@@ -1,6 +1,7 @@
 #include "bulki.h"
 #include "bulki_vle_util.h"
 #include "pdc_logger.h"
+#include "pdc_malloc.h"
 
 size_t
 get_BULKI_Entity_size(BULKI_Entity *bulk_entity)

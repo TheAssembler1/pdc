@@ -1,4 +1,5 @@
 #include "query_utils.h"
+#include "pdc_malloc.h"
 
 void
 print_query_output(query_gen_output_t *output)

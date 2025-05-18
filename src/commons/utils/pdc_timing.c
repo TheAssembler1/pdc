@@ -1,4 +1,6 @@
 #include "pdc_timing.h"
+#include "pdc_malloc.h"
+#include "pdc_logger.h"
 #include "assert.h"
 #include "mpi.h"
 
@@ -9,7 +11,7 @@ static int
 pdc_timestamp_clean(pdc_timestamp *timestamp)
 {
     if (timestamp->timestamp_size) {
-        free(timestamp->start);
+        timestamp->start = (double *)PDC_free(timestamp->start);
     }
     return 0;
 }
@@ -110,7 +112,7 @@ PDC_timing_finalize()
     pdc_timestamp_clean(pdc_client_transfer_request_wait_all_timestamps);
     pdc_timestamp_clean(pdc_client_transfer_request_metadata_query_timestamps);
 
-    free(pdc_client_buf_obj_map_timestamps);
+    pdc_client_buf_obj_map_timestamps = (pdc_timestamp *)PDC_free(pdc_client_buf_obj_map_timestamps);
     return 0;
 }
 
@@ -487,7 +489,7 @@ PDC_server_timing_report()
 
     fclose(stream);
 
-    free(pdc_server_timings);
+    pdc_server_timings = (pdc_server_timing *)PDC_free(pdc_server_timings);
     pdc_timestamp_clean(pdc_buf_obj_map_timestamps);
     pdc_timestamp_clean(pdc_buf_obj_unmap_timestamps);
 
@@ -520,7 +522,7 @@ PDC_server_timing_report()
     /* pdc_timestamp_clean(pdc_create_obj_timestamps); */
     /* pdc_timestamp_clean(pdc_create_cont_timestamps); */
 
-    free(pdc_buf_obj_map_timestamps);
+    pdc_buf_obj_map_timestamps = (pdc_timestamp *)PDC_free(pdc_buf_obj_map_timestamps);
     return 0;
 }
 

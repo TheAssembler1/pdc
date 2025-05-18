@@ -159,10 +159,10 @@ void
 free_query_output(query_gen_output_t *output)
 {
     if (output->key_query != NULL) {
-        free(output->key_query);
+        output->key_query = (char *)PDC_free(output->key_query);
     }
     if (output->value_query != NULL) {
-        free(output->value_query);
+        output->value_query = (char *)PDC_free(output->value_query);
     }
 }
 

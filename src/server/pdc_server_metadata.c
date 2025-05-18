@@ -159,7 +159,7 @@ PDC_Server_container_hash_value_free(void *value)
 {
     pdc_cont_hash_table_entry_t *head = (pdc_cont_hash_table_entry_t *)value;
     if (head->obj_ids != NULL)
-        free(head->obj_ids);
+        head->obj_ids = (uint64_t *)PDC_free(head->obj_ids);
 }
 
 /*
@@ -2122,7 +2122,7 @@ PDC_Server_get_metadata_by_id_cb(const struct hg_cb_info *callback_info)
 
 done:
     HG_Free_output(handle, &output);
-    free(cb_args);
+    cb_args = (get_metadata_by_id_args_t *)PDC_free(cb_args);
     HG_Destroy(handle);
 
     FUNC_LEAVE(ret_value);

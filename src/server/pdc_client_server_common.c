@@ -2032,9 +2032,9 @@ pdc_region_write_out_progress(void *arg)
 
     PDC_Server_release_lock_request(bulk_args->remote_obj_id, remote_reg_info);
 
-    free(remote_reg_info->offset);
-    free(remote_reg_info->size);
-    free(remote_reg_info);
+    remote_reg_info->offset = (uint64_t *)PDC_free(remote_reg_info->offset);
+    remote_reg_info->size   = (uint64_t *)PDC_free(remote_reg_info->size);
+    remote_reg_info         = (pdc_region_info *)PDC_free(remote_reg_info);
 
 done:
     fflush(stdout);
@@ -2078,9 +2078,9 @@ obj_map_region_release_bulk_transfer_thread_cb(const struct hg_cb_info *hg_cb_in
 
 done:
     fflush(stdout);
-    free(bulk_args->remote_reg_info->offset);
-    free(bulk_args->remote_reg_info->size);
-    free(bulk_args->remote_reg_info);
+    bulk_args->remote_reg_info->offset = (uint64_t *)PDC_free(bulk_args->remote_reg_info->offset);
+    bulk_args->remote_reg_info->size   = (uint64_t *)PDC_free(bulk_args->remote_reg_info->size);
+    bulk_args->remote_reg_info         = (struct pdc_region_info *)PDC_free(bulk_args->remote_reg_info);
 
     HG_Bulk_free(bulk_args->remote_bulk_handle);
     HG_Free_input(bulk_args->handle, &(bulk_args->in));
@@ -2266,8 +2266,8 @@ transform_and_region_release_bulk_transfer_cb(const struct hg_cb_info *hg_cb_inf
                 LOG_INFO("==PDC_SERVER: transform returned %ld\n", result);
                 puts("----------------");
 
-                if ((use_transform_size == 0) && dims)
-                    free(dims);
+                if (use_transform_size == 0 && dims)
+                    dims = (uint64_t *)PDC_free(dims);
                 use_transform_size = 0;
             }
         }
@@ -2317,14 +2317,14 @@ done:
 
 #ifndef ENABLE_MULTITHREAD
     if (remote_reg_info) {
-        free(remote_reg_info->offset);
-        free(remote_reg_info->size);
-        free(remote_reg_info);
+        remote_reg_info->offset = (uint64_t *)PDC_free(remote_reg_info->offset);
+        remote_reg_info->size   = (uint64_t *)PDC_free(remote_reg_info->size);
+        remote_reg_info         = (struct pdc_region_info *)PDC_free(remote_reg_info);
     }
     HG_Bulk_free(bulk_args->remote_bulk_handle);
     HG_Free_input(bulk_args->handle, &(bulk_args->in));
     HG_Destroy(bulk_args->handle);
-    free(bulk_args);
+    bulk_args = (struct buf_map_transform_and_release_bulk_args *)PDC_free(bulk_args);
 #endif
 
     FUNC_LEAVE(ret_value);
@@ -2468,18 +2468,18 @@ done:
     fflush(stdout);
 
 #ifndef ENABLE_MULTITHREAD
-    free(remote_reg_info->offset);
-    free(remote_reg_info->size);
-    free(remote_reg_info);
+    remote_reg_info->offset = (uint64_t *)PDC_free(remote_reg_info->offset);
+    remote_reg_info->size   = (uint64_t *)PDC_free(remote_reg_info->size);
+    remote_reg_info         = (struct pdc_region_info *)PDC_free(remote_reg_info);
 
-    free(local_reg_info->offset);
-    free(local_reg_info->size);
-    free(local_reg_info);
+    local_reg_info->offset = (uint64_t *)PDC_free(local_reg_info->offset);
+    local_reg_info->size   = (uint64_t *)PDC_free(local_reg_info->size);
+    local_reg_info         = (struct pdc_region_info *)PDC_free(local_reg_info);
 
     HG_Bulk_free(bulk_args->remote_bulk_handle);
     HG_Free_input(bulk_args->handle, &(bulk_args->in));
     HG_Destroy(bulk_args->handle);
-    free(bulk_args);
+    bulk_args = (struct buf_map_analysis_and_release_bulk_args *)PDC_free(bulk_args);
 #endif
 
     FUNC_LEAVE(ret_value);
@@ -2574,14 +2574,14 @@ done:
     fflush(stdout);
 
 #ifndef ENABLE_MULTITHREAD
-    free(remote_reg_info->offset);
-    free(remote_reg_info->size);
-    free(remote_reg_info);
+    remote_reg_info->offset = (uint64_t *)PDC_free(remote_reg_info->offset);
+    remote_reg_info->size   = (uint64_t *)PDC_free(remote_reg_info->size);
+    remote_reg_info         = (struct pdc_region_info *)PDC_free(remote_reg_info);
 
     HG_Bulk_free(bulk_args->remote_bulk_handle);
     HG_Free_input(bulk_args->handle, &(bulk_args->in));
     HG_Destroy(bulk_args->handle);
-    free(bulk_args);
+    bulk_args = (struct buf_map_release_bulk_args *)PDC_free(bulk_args);
 #endif
 
     FUNC_LEAVE(ret_value);
@@ -2630,10 +2630,10 @@ obj_map_region_release_bulk_transfer_cb(const struct hg_cb_info *hg_cb_info)
 
 done:
     fflush(stdout);
-    free(bulk_args->remote_reg_info);
+    bulk_args->remote_reg_info = (struct pdc_region_info *)PDC_free(bulk_args->remote_reg_info);
     HG_Free_input(bulk_args->handle, &(bulk_args->in));
     HG_Destroy(bulk_args->handle);
-    free(bulk_args);
+    bulk_args = (struct buf_map_release_bulk_args *)PDC_free(bulk_args);
 
     FUNC_LEAVE(ret_value);
 }
@@ -2660,14 +2660,14 @@ region_release_update_bulk_transfer_cb(const struct hg_cb_info *hg_cb_info)
     PDC_Server_notify_region_update_to_client(bulk_args->remote_obj_id, bulk_args->remote_reg_id,
                                               bulk_args->remote_client_id);
 
-    free(bulk_args->server_region->size);
-    free(bulk_args->server_region->offset);
-    free(bulk_args->server_region);
-    free(bulk_args->data_buf);
+    bulk_args->server_region->size   = (uint64_t *)PDC_free(bulk_args->server_region->size);
+    bulk_args->server_region->offset = (uint64_t *)PDC_free(bulk_args->server_region->offset);
+    bulk_args->server_region         = (struct pdc_region_info *)PDC_free(bulk_args->server_region);
+    bulk_args->data_buf              = (void *)PDC_free(bulk_args->data_buf);
 
     HG_Free_input(handle, &(bulk_args->in));
     HG_Destroy(handle);
-    free(bulk_args);
+    bulk_args = (struct region_lock_update_bulk_args *)PDC_free(bulk_args);
 
     FUNC_LEAVE(hg_ret);
 }
@@ -2787,8 +2787,8 @@ HG_TEST_RPC_CB(region_release, handle)
                             error = 1;
                             PGOTO_ERROR(hg_ret, "==PDC SERVER: obj map Could not create bulk data handle");
                         }
-                        free(data_ptrs_to);
-                        free(data_size_to);
+                        data_ptrs_to = (void **)PDC_free(data_ptrs_to);
+                        data_size_to = (size_t *)PDC_free(data_size_to);
 
                         remote_reg_info =
                             (struct pdc_region_info *)PDC_malloc(sizeof(struct pdc_region_info));
@@ -2871,13 +2871,13 @@ HG_TEST_RPC_CB(region_release, handle)
                         break;
                     }
                 }
-                free(tmp);
+                tmp = (region_list_t *)PDC_free(tmp);
             }
         }
 #ifdef ENABLE_MULTITHREAD
         hg_thread_mutex_unlock(&lock_list_mutex_g);
 #endif
-        free(request_region);
+        request_region = (region_list_t *)PDC_free(request_region);
 
         if (dirty_reg == 0) {
             // Perform lock release function
@@ -2926,8 +2926,8 @@ HG_TEST_RPC_CB(region_release, handle)
                             error = 1;
                             PGOTO_ERROR(hg_ret, "==PDC SERVER ERROR: Could not create bulk data handle");
                         }
-                        free(data_ptrs_to);
-                        free(data_size_to);
+                        data_ptrs_to = (void **)PDC_free(data_ptrs_to);
+                        data_size_to = (size_t *)PDC_free(data_size_to);
 
                         buf_map_bulk_args = (struct buf_map_release_bulk_args *)PDC_malloc(
                             sizeof(struct buf_map_release_bulk_args));
@@ -2974,14 +2974,14 @@ HG_TEST_RPC_CB(region_release, handle)
                         break;
                     }
                 }
-                free(tmp);
+                tmp = (region_list_t *)PDC_free(tmp);
                 break;
             }
         }
 #ifdef ENABLE_MULTITHREAD
         hg_thread_mutex_unlock(&lock_list_mutex_g);
 #endif
-        free(request_region);
+        request_region = (region_list_t *)PDC_free(request_region);
 
         if (dirty_reg == 0) {
             // Perform lock release function
@@ -3106,8 +3106,8 @@ region_read_transform_release(region_transform_and_lock_in_t *in, hg_handle_t ha
                     if (hg_ret != HG_SUCCESS)
                         PGOTO_ERROR(hg_ret, "==PDC SERVER: Could not create bulk data handle");
 
-                    free(data_ptrs_to);
-                    free(data_size_to);
+                    data_ptrs_to = (void **)PDC_free(data_ptrs_to);
+                    data_size_to = (size_t *)PDC_free(data_size_to);
 
                     remote_reg_info = (struct pdc_region_info *)PDC_malloc(sizeof(struct pdc_region_info));
                     transform_release_bulk_args =
@@ -3175,7 +3175,7 @@ region_read_transform_release(region_transform_and_lock_in_t *in, hg_handle_t ha
 #endif
                 }
             }
-            free(tmp);
+            tmp = (region_list_t *)PDC_free(tmp);
         }
     }
 #ifdef ENABLE_MULTITHREAD
@@ -3183,7 +3183,7 @@ region_read_transform_release(region_transform_and_lock_in_t *in, hg_handle_t ha
 #endif
 
 done:
-    free(request_region);
+    request_region = (region_list_t *)PDC_free(request_region);
     if (dirty_reg == 0) {
         // Perform lock release function
         PDC_Data_Server_region_release((region_lock_in_t *)in, &out);
@@ -3286,8 +3286,8 @@ HG_TEST_RPC_CB(transform_region_release, handle)
                         hg_thread_mutex_init(&(buf_map_bulk_args->work_mutex));
                         hg_thread_cond_init(&(buf_map_bulk_args->work_cond));
 #endif
-                        free(data_ptrs_to);
-                        free(data_size_to);
+                        data_ptrs_to = (void **)PDC_free(data_ptrs_to);
+                        data_size_to = (size_t *)PDC_free(data_size_to);
 
                         /* Pull bulk data */
                         size = in.transform_data_size;
@@ -3308,14 +3308,14 @@ HG_TEST_RPC_CB(transform_region_release, handle)
                         }
                     }
                 }
-                free(tmp);
+                tmp = (region_list_t *)PDC_free(tmp);
             }
         }
 #ifdef ENABLE_MULTITHREAD
         hg_thread_mutex_unlock(&lock_list_mutex_g);
 #endif
 
-        free(request_region);
+        request_region = (region_list_t *)PDC_free(request_region);
 
         if (dirty_reg == 0) {
             // Perform lock release function
@@ -3431,8 +3431,8 @@ HG_TEST_RPC_CB(region_transform_release, handle)
                             error = 1;
                             PGOTO_ERROR(FAIL, "==PDC SERVER ERROR: Could not create bulk data handle");
                         }
-                        free(data_ptrs_to);
-                        free(data_size_to);
+                        data_ptrs_to = (void **)PDC_free(data_ptrs_to);
+                        data_size_to = (size_t *)PDC_free(data_size_to);
 
                         buf_map_bulk_args = (struct buf_map_release_bulk_args *)PDC_malloc(
                             sizeof(struct buf_map_release_bulk_args));
@@ -3471,13 +3471,13 @@ HG_TEST_RPC_CB(region_transform_release, handle)
                         }
                     }
                 }
-                free(tmp);
+                tmp = (region_list_t *)PDC_free(tmp);
             }
         }
 #ifdef ENABLE_MULTITHREAD
         hg_thread_mutex_unlock(&lock_list_mutex_g);
 #endif
-        free(request_region);
+        request_region = (region_list_t *)PDC_free(request_region);
 
         if (dirty_reg == 0) {
             // Perform lock release function
@@ -3617,8 +3617,8 @@ HG_TEST_RPC_CB(region_analysis_release, handle)
                             error = 1;
                             PGOTO_ERROR(hg_ret, "==PDC SERVER: obj map Could not create bulk data handle");
                         }
-                        free(data_ptrs_to);
-                        free(data_size_to);
+                        data_ptrs_to = (void **)PDC_free(data_ptrs_to);
+                        data_size_to = (size_t *)PDC_free(data_size_to);
 
                         remote_reg_info =
                             (struct pdc_region_info *)PDC_malloc(sizeof(struct pdc_region_info));
@@ -3692,13 +3692,13 @@ HG_TEST_RPC_CB(region_analysis_release, handle)
 #endif
                     }
                 }
-                free(tmp);
+                tmp = (region_list_t *)PDC_free(tmp);
             }
         }
 #ifdef ENABLE_MULTITHREAD
         hg_thread_mutex_unlock(&lock_list_mutex_g);
 #endif
-        free(request_region);
+        request_region = (region_list_t *)PDC_free(request_region);
 
         if (dirty_reg == 0) {
             // Perform lock release function
@@ -3792,8 +3792,8 @@ HG_TEST_RPC_CB(region_analysis_release, handle)
                             error = 1;
                             PGOTO_ERROR(hg_ret, "==PDC SERVER ERROR: Could not create bulk data handle");
                         }
-                        free(data_ptrs_to);
-                        free(data_size_to);
+                        data_ptrs_to = (void **)PDC_free(data_ptrs_to);
+                        data_size_to = (size_t *)PDC_free(data_size_to);
 
                         buf_map_bulk_args = (struct buf_map_analysis_and_release_bulk_args *)PDC_malloc(
                             sizeof(struct buf_map_analysis_and_release_bulk_args));
@@ -3835,13 +3835,13 @@ HG_TEST_RPC_CB(region_analysis_release, handle)
                         }
                     }
                 }
-                free(tmp);
+                tmp = (region_list_t *)PDC_free(tmp);
             }
         }
 #ifdef ENABLE_MULTITHREAD
         hg_thread_mutex_unlock(&lock_list_mutex_g);
 #endif
-        free(request_region);
+        request_region = (region_list_t *)PDC_free(request_region);
 
         if (dirty_reg == 0) {
             // Perform lock release function
@@ -4025,7 +4025,7 @@ HG_TEST_RPC_CB(buf_unmap_server, handle)
         if (in.remote_obj_id == elt->remote_obj_id &&
             PDC_region_info_transfer_t_is_equal(&(in.remote_region), &(elt->remote_region_unit))) {
             DL_DELETE(target_obj->region_buf_map_head, elt);
-            free(elt);
+            elt     = (region_buf_map_t *)PDC_free(elt);
             out.ret = 1;
         }
     }
@@ -4094,8 +4094,8 @@ HG_TEST_RPC_CB(buf_map_server, handle)
     hg_thread_mutex_unlock(&meta_buf_map_mutex_g);
 #endif
 
-    out.ret = 1;
-    free(request_region);
+    out.ret        = 1;
+    request_region = (region_list_t *)PDC_free(request_region);
 
 done:
     fflush(stdout);
@@ -4148,8 +4148,8 @@ HG_TEST_RPC_CB(buf_map, handle)
     new_buf_map_ptr = PDC_Data_Server_buf_map(info, &in, request_region, data_ptr);
 
     if (new_buf_map_ptr == NULL) {
-        out.ret = 1;
-        free(data_ptr);
+        out.ret  = 1;
+        data_ptr = (void *)PDC_free(data_ptr);
         HG_Respond(handle, NULL, NULL, &out);
         HG_Free_input(handle, &in);
         HG_Destroy(handle);
@@ -4370,7 +4370,7 @@ update_storage_meta_bulk_cb(const struct hg_cb_info *hg_cb_info)
         if (PDC_Server_update_region_storage_meta_bulk_local((update_region_storage_meta_bulk_t **)buf,
                                                              cnt) == SUCCEED) {
 
-            free(buf);
+            buf            = (void **)PDC_free(buf);
             out_struct.ret = 9999;
         }
     } // end of else
@@ -4380,7 +4380,7 @@ done:
     HG_Bulk_free(local_bulk_handle);
     HG_Respond(bulk_args->handle, NULL, NULL, &out_struct);
     HG_Destroy(bulk_args->handle);
-    free(bulk_args);
+    bulk_args = (struct bulk_args_t *)PDC_free(bulk_args);
 
     FUNC_LEAVE(ret_value);
 }
@@ -4630,7 +4630,7 @@ HG_TEST_RPC_CB(update_region_loc, handle)
     HG_Free_input(handle, &in);
     HG_Destroy(handle);
 
-    free(input_region);
+    input_region = (region_list_t *)PDC_free(input_region);
 
 done:
     fflush(stdout);
@@ -4851,7 +4851,7 @@ done:
     HG_Bulk_free(local_bulk_handle);
     HG_Respond(bulk_args->handle, NULL, NULL, &out_struct);
     HG_Destroy(bulk_args->handle);
-    free(bulk_args);
+    bulk_args = (struct bulk_args_t *)PDC_free(bulk_args);
     fflush(stdout);
 
     FUNC_LEAVE(ret_value);
@@ -4994,7 +4994,7 @@ query_read_obj_name_bulk_cb(const struct hg_cb_info *hg_cb_info)
 done:
     fflush(stdout);
     HG_Destroy(bulk_args->handle);
-    free(bulk_args);
+    bulk_args = (struct bulk_args_t *)PDC_free(bulk_args);
 
     FUNC_LEAVE(ret_value);
 }
@@ -5179,7 +5179,7 @@ get_storage_meta_bulk_cb(const struct hg_cb_info *hg_cb_info)
 done:
     fflush(stdout);
     HG_Destroy(bulk_args->handle);
-    free(bulk_args);
+    bulk_args = (struct bulk_args_t *)PDC_free(bulk_args);
 
     FUNC_LEAVE(ret_value);
 }
@@ -5276,7 +5276,7 @@ notify_client_multi_io_complete_bulk_cb(const struct hg_cb_info *hg_cb_info)
 done:
     fflush(stdout);
     HG_Destroy(bulk_args->handle);
-    free(bulk_args);
+    bulk_args = (struct bulk_args_t *)PDC_free(bulk_args);
 
     FUNC_LEAVE(ret_value);
 }
@@ -5397,7 +5397,7 @@ PDC_del_task_from_list(pdc_task_list_t **target_list, pdc_task_list_t *del,
 #ifdef ENABLE_MULTITHREAD
     hg_thread_mutex_unlock(mutex);
 #endif
-    free(tmp);
+    tmp = (pdc_task_list_t *)PDC_free(tmp);
 
 done:
     fflush(stdout);
@@ -5482,7 +5482,7 @@ PDC_del_task_from_list_id(pdc_task_list_t **target_list, int id, hg_thread_mutex
 
     hg_thread_mutex_unlock(mutex);
 #endif
-    free(tmp);
+    tmp = (pdc_task_list_t *)PDC_free(tmp);
 
 done:
     fflush(stdout);
@@ -5610,7 +5610,7 @@ query_read_obj_name_client_bulk_cb(const struct hg_cb_info *hg_cb_info)
 done:
     fflush(stdout);
     HG_Destroy(bulk_args->handle);
-    free(bulk_args);
+    bulk_args = (struct bulk_args_t *)PDC_free(bulk_args);
 
     FUNC_LEAVE(ret_value);
 }
@@ -5704,7 +5704,7 @@ done:
     /* Free bulk handle */
     HG_Bulk_free(local_bulk_handle);
     HG_Destroy(bulk_args->handle);
-    free(bulk_args);
+    bulk_args = (struct bulk_args_t *)PDC_free(bulk_args);
 
     FUNC_LEAVE(ret_value);
 }
@@ -5802,7 +5802,7 @@ done:
     /* Free bulk handle */
     HG_Bulk_free(local_bulk_handle);
     HG_Destroy(bulk_args->handle);
-    free(bulk_args);
+    bulk_args = (struct bulk_args_t *)PDC_free(bulk_args);
 
     FUNC_LEAVE(ret_value);
 }
@@ -6629,10 +6629,10 @@ PDC_free_kvtag(pdc_kvtag_t **kvtag)
 
     FUNC_ENTER(NULL);
 
-    free((void *)(*kvtag)->name);
-    free((void *)(*kvtag)->value);
-    free((void *)*kvtag);
-    *kvtag = NULL;
+    (*kvtag)->name  = (char *)PDC_free((*kvtag)->name);
+    (*kvtag)->value = (void *)PDC_free((*kvtag)->value);
+    *kvtag          = (pdc_kvtag_t *)PDC_free(*kvtag);
+    *kvtag          = NULL;
 
     FUNC_LEAVE(ret_value);
 }
@@ -6907,14 +6907,14 @@ PDCquery_free_all(pdc_query_t *root)
         PGOTO_DONE_VOID;
 
     if (root->sel && root->sel->coords_alloc > 0 && root->sel->coords != NULL) {
-        free(root->sel->coords);
+        root->sel->coords       = (uint64_t *)PDC_free(root->sel->coords);
         root->sel->coords_alloc = 0;
         root->sel->coords       = NULL;
     }
 
     if (root->left == NULL && root->right == NULL) {
         if (root->constraint) {
-            free(root->constraint);
+            root->constraint = (pdc_query_constraint_t *)PDC_free(root->constraint);
             root->constraint = NULL;
         }
     }
@@ -6936,7 +6936,7 @@ PDC_query_xfer_free(pdc_query_xfer_t *query_xfer)
 
     if (NULL != query_xfer) {
         query_xfer->combine_ops = (int *)PDC_free(query_xfer->combine_ops);
-        query_xfer              = (pdc_query_constraint_t *)PDC_free(query_xfer->constraints);
+        query_xfer->constraints = (pdc_query_constraint_t *)PDC_free(query_xfer->constraints);
         query_xfer              = (pdc_query_xfer_t *)PDC_free(query_xfer);
     }
 
