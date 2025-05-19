@@ -41,14 +41,30 @@
         TGOTO_DONE_VOID;                                                                                     \
     } while (0)
 
+#ifdef ENABLE_MPI
+
 #define TASSERT(status, success_message, fail_message)                                                       \
     do {                                                                                                     \
         if (!(status)) {                                                                                     \
-            TGOTO_ERROR(TFAIL, fail_message);                                                                \
+            TGOTO_ERROR(TFAIL, "Rank [%d]: %s", rank, fail_message);                                         \
+        }                                                                                                    \
+        else {                                                                                               \
+            LOG_INFO("Rank [%d]: %s\n", rank, success_message);                                              \
+        }                                                                                                    \
+    } while (0)
+
+#else
+
+#define TASSERT(status, success_message, fail_message)                                                       \
+    do {                                                                                                     \
+        if (!(status)) {                                                                                     \
+            TGOTO_ERROR(TFAIL, "%s", fail_message);                                                          \
         }                                                                                                    \
         else {                                                                                               \
             LOG_INFO("%s\n", success_message);                                                               \
         }                                                                                                    \
     } while (0)
+
+#endif
 
 #endif

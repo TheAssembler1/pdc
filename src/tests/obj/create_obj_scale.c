@@ -136,7 +136,6 @@ main(int argc, char **argv)
     // create an object property
     TASSERT((obj_prop = PDCprop_create(PDC_OBJ_CREATE, pdc)) != 0, "Call to PDCprop_create succeeded",
             "Call to PDCprop_create failed");
-
     TASSERT(PDCprop_set_obj_type(obj_prop, PDC_INT) >= 0, "Call to PDCprop_set_obj_type succeeded",
             "Call to PDCprop_set_obj_type failed");
     TASSERT(PDCprop_set_obj_dims(obj_prop, 3, dims) >= 0, "Call to PDCprop_set_obj_dims succeeded",
@@ -219,6 +218,8 @@ main(int argc, char **argv)
     if (rank == 0)
         LOG_INFO("Time to create %d obj/rank with %d ranks: %.5e\n", count, size, ht_total_sec);
 
+    // close object
+    TASSERT(PDCobj_close(test_obj) >= 0, "Call to PDCobj_close succeeded", "Call to PDCobj_close failed");
     // close a container
     TASSERT(PDCcont_close(cont) >= 0, "Call to PDCcont_close succeeded", "Call to PDCcont_close failed");
     // close a container property
