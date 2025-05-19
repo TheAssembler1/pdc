@@ -30,8 +30,6 @@
 #include <ctype.h>
 #include <unistd.h>
 #include "pdc.h"
-#include "pdc_client_server_common.h"
-#include "pdc_client_connect.h"
 
 static char *
 rand_string(char *str, size_t size)
@@ -70,9 +68,9 @@ main(int argc, char **argv)
     char           tmp_str[128];
     int            use_name = -1;
     int            progress_factor;
-    char *         env_str;
+    char          *env_str;
     char           name_mode[6][32] = {"Random Obj Names", "INVALID!", "One Obj Name",
-                             "INVALID!",         "INVALID!", "Four Obj Names"};
+                                       "INVALID!",         "INVALID!", "Four Obj Names"};
 
 #ifdef ENABLE_MPI
     MPI_Init(&argc, &argv);

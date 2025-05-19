@@ -26,6 +26,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "pdc.h"
+#include "test_helper.h"
 
 int
 main(int argc, char **argv)
@@ -42,168 +43,48 @@ main(int argc, char **argv)
     MPI_Comm_size(MPI_COMM_WORLD, &size);
 #endif
     // create a pdc
-    pdc = PDCinit("pdc");
-    LOG_INFO("create a new pdc\n");
-
+    TASSERT((pdc = PDCinit("pdc")) != 0, "Call to PDCinit succeeded", "Call to PDCinit failed");
     // create a container property
-    cont_prop = PDCprop_create(PDC_CONT_CREATE, pdc);
-    if (cont_prop > 0) {
-        LOG_INFO("Rank %d Create a container property\n", rank);
-    }
-    else {
-        LOG_ERROR("Rank %d Fail to create container property!\n", rank);
-        ret_value = 1;
-    }
+    TASSERT((cont_prop = PDCprop_create(PDC_CONT_CREATE, pdc)) != 0, "Call to PDCprop_create succeeded",
+            "Call to PDCprop_create failed");
     // create a container
     sprintf(cont_name, "c%d", rank);
-    cont = PDCcont_create(cont_name, cont_prop);
-    if (cont > 0) {
-        LOG_INFO("Rank %d Create a container c1\n", rank);
-    }
-    else {
-        LOG_ERROR("Rank %d Fail to create container!\n", rank);
-        ret_value = 1;
-    }
+    TASSERT((cont = PDCcont_create(cont_name, cont_prop)) != 0, "Call to PDCcont_create succeeded",
+            "Call to PDCcont_create failed");
     // create an object property
-    obj_prop = PDCprop_create(PDC_OBJ_CREATE, pdc);
-    if (obj_prop > 0) {
-        LOG_INFO("Rank %d Create an object property\n", rank);
-    }
-    else {
-        LOG_ERROR("Rank %d Fail to create object property!\n", rank);
-        ret_value = 1;
-    }
+    TASSERT((obj_prop = PDCprop_create(PDC_OBJ_CREATE, pdc)) != 0, "Call to PDCprop_create succeeded",
+            "Call to PDCprop_create failed");
     // create first object
     sprintf(obj_name1, "o1_%d", rank);
-    obj1 = PDCobj_create(cont, obj_name1, obj_prop);
-    if (obj1 > 0) {
-        LOG_INFO("Rank %d Create an object o1\n", rank);
-    }
-    else {
-        LOG_ERROR("Rank %d Fail to create object!\n", rank);
-        ret_value = 1;
-        goto done;
-    }
+    TASSERT((obj1 = PDCobj_create(cont, obj_name1, obj_prop)) != 0, "Call to PDCobj_create succeeded",
+            "Call to PDCobj_create failed");
     // create second object
     sprintf(obj_name2, "o2_%d", rank);
-    obj2 = PDCobj_create(cont, obj_name2, obj_prop);
-    if (obj2 > 0) {
-        LOG_INFO("Rank %d Create an object o2\n", rank);
-    }
-    else {
-        LOG_ERROR("Rank %d Fail to create object!\n", rank);
-        ret_value = 1;
-        goto done;
-    }
-
+    TASSERT((obj2 = PDCobj_create(cont, obj_name2, obj_prop)) != 0, "Call to PDCobj_create succeeded",
+            "Call to PDCobj_create failed");
     // open first object twice
-    open11 = PDCobj_open(obj_name1, cont);
-    if (open11 == 0) {
-        LOG_ERROR("Rank %d Fail to open object o1\n", rank);
-        ret_value = 1;
-        goto done;
-    }
-    else {
-        LOG_INFO("Rank %d Open object o1\n", rank);
-    }
-    open12 = PDCobj_open(obj_name1, cont);
-    if (open12 == 0) {
-        LOG_ERROR("Rank %d Fail to open object o1\n", rank);
-        ret_value = 1;
-        goto done;
-    }
-    else if (open12 != open11) {
-        LOG_ERROR("Rank %d opened object o1 with different ID %llu / %llu\n", rank, open12, open11);
-        ret_value = 1;
-        goto done;
-    }
-    else {
-        LOG_INFO("Rank %d Re-open object o1\n", rank);
-    }
+    TASSERT((open11 = PDCobj_open(obj_name1, pdc)) != 0, "Call to PDCobj_open succeeded",
+            "Call to PDCobj_open failed");
+    TASSERT((open12 = PDCobj_open(obj_name1, pdc)) != 0, "Call to PDCobj_open succeeded",
+            "Call to PDCobj_open failed");
+    LOG_INFO("Rank [%d]: Re-open object o1\n", rank);
     // open second object once
-    open21 = PDCobj_open(obj_name2, cont);
-    if (open21 == 0) {
-        LOG_ERROR("Rank %d Fail to open object o2\n", rank);
-        ret_value = 1;
-        goto done;
-    }
-    else {
-        LOG_INFO("Rank %d Open object o2\n", rank);
-    }
+    TASSERT((open21 = PDCobj_open(obj_name2, pdc)) != 0, "Call to PDCobj_open succeeded",
+            "Call to PDCobj_open failed");
     // close object
-    if (PDCobj_close(obj1) < 0) {
-        LOG_ERROR("Rank %d Fail to close object o1\n", rank);
-        ret_value = 1;
-        goto done;
-    }
-    else {
-        LOG_INFO("Rank %d Successfully closed object o1\n", rank);
-    }
-    if (PDCobj_close(open11) < 0) {
-        LOG_ERROR("Rank %d Fail to close object open11\n", rank);
-        ret_value = 1;
-        goto done;
-    }
-    else {
-        LOG_INFO("Rank %d Successfully closed object open11\n", rank);
-    }
-    if (PDCobj_close(open12) < 0) {
-        LOG_ERROR("Rank %d Fail to close object open12\n", rank);
-        ret_value = 1;
-        goto done;
-    }
-    else {
-        LOG_INFO("Rank %d Successfully closed object open12\n", rank);
-    }
-    if (PDCobj_close(obj2) < 0) {
-        LOG_ERROR("Rank %d Fail to close object o2\n", rank);
-        ret_value = 1;
-        goto done;
-    }
-    else {
-        LOG_INFO("Rank %d Successfully closed object o2\n", rank);
-    }
-    if (PDCobj_close(open21) < 0) {
-        LOG_ERROR("Rank %d Fail to close object open21\n", rank);
-        ret_value = 1;
-        goto done;
-    }
-    else {
-        LOG_INFO("Rank %d Successfully closed object open21\n", rank);
-    }
+    TASSERT(PDCobj_close(obj1) >= 0, "Call to PDCobj_close succeeded", "Call to PDCobj_close failed");
+    TASSERT(PDCobj_close(open11) >= 0, "Call to PDCobj_close succeeded", "Call to PDCobj_close failed");
+    TASSERT(PDCobj_close(open12) >= 0, "Call to PDCobj_close succeeded", "Call to PDCobj_close failed");
+    TASSERT(PDCobj_close(obj2) >= 0, "Call to PDCobj_close succeeded", "Call to PDCobj_close failed");
+    TASSERT(PDCobj_close(open21) >= 0, "Call to PDCobj_close succeeded", "Call to PDCobj_close failed");
     // close a container
-    if (PDCcont_close(cont) < 0) {
-        LOG_ERROR("Rank %d Fail to close container c1\n", rank);
-        ret_value = 1;
-        goto done;
-    }
-    else {
-        LOG_INFO("Rank %d Successfully closed container c1\n", rank);
-    }
+    TASSERT(PDCcont_close(cont) >= 0, "Call to PDCcont_close succeeded", "Call to PDCcont_close failed");
     // close a object property
-    if (PDCprop_close(obj_prop) < 0) {
-        LOG_ERROR("Rank %d Fail to close property\n", rank);
-        ret_value = 1;
-        goto done;
-    }
-    else {
-        LOG_INFO("Rank %d Successfully closed object property\n", rank);
-    }
+    TASSERT(PDCprop_close(obj_prop) >= 0, "Call to PDCprop_close succeeded", "Call to PDCobj_create failed");
     // close a container property
-    if (PDCprop_close(cont_prop) < 0) {
-        LOG_ERROR("Rank %d Fail to close property\n", rank);
-        ret_value = 1;
-        goto done;
-    }
-    else {
-        LOG_INFO("Rank %d Successfully closed container property\n", rank);
-    }
+    TASSERT(PDCprop_close(cont_prop) >= 0, "Call to PDCprop_close succeeded", "Call to PDCobj_create failed");
     // close pdc
-    if (PDCclose(pdc) < 0) {
-        LOG_ERROR("Rank %d Fail to close PDC\n", rank);
-        ret_value = 1;
-        goto done;
-    }
+    TASSERT(PDCclose(pdc) >= 0, "Call to PDCclose succeeded", "Call to PDCclose failed");
 
 done:
 #ifdef ENABLE_MPI
