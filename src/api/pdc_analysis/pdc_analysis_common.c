@@ -42,7 +42,7 @@
 size_t            analysis_registry_size  = 0;
 size_t            transform_registry_size = 0;
 hg_atomic_int32_t registered_transform_ftn_count_g;
-int *             i_cache_freed          = NULL;
+int              *i_cache_freed          = NULL;
 size_t            iterator_cache_entries = CACHE_SIZE;
 hg_atomic_int32_t i_cache_index;
 hg_atomic_int32_t i_free_index;
@@ -58,7 +58,7 @@ compare_gt(int *a, int b)
 {
     return (*a) > (b);
 }
-struct _pdc_region_analysis_ftn_info ** pdc_region_analysis_registry  = NULL;
+struct _pdc_region_analysis_ftn_info  **pdc_region_analysis_registry  = NULL;
 struct _pdc_region_transform_ftn_info **pdc_region_transform_registry = NULL;
 
 #ifndef IS_PDC_SERVER
@@ -166,7 +166,6 @@ pdc_analysis_registry_finalize_()
             if (pdc_region_analysis_registry[i - 1])
                 pdc_region_analysis_registry[i - 1] =
                     (struct _pdc_region_analysis_ftn_info *)PDC_free(pdc_region_analysis_registry[i - 1]);
-            pdc_region_analysis_registry[i - 1] = NULL;
             hg_atomic_decr32(&i);
         }
         pdc_region_analysis_registry =
@@ -248,7 +247,7 @@ PDCiter_get_nextId(void)
 {
     int                        ret_value              = 0;
     size_t                     nextId                 = 0;
-    int *                      previous_i_cache_freed = 0;
+    int                       *previous_i_cache_freed = 0;
     int                        next_free              = 0;
     struct _pdc_iterator_info *previous_state;
 
@@ -428,8 +427,8 @@ PDC_get_ftnPtr_(const char *ftn, const char *loadpath, void **ftnPtr)
 {
     int          ret_value  = 0;
     static void *appHandle  = NULL;
-    void *       ftnHandle  = NULL;
-    char *       this_error = NULL;
+    void        *ftnHandle  = NULL;
+    char        *this_error = NULL;
 
     FUNC_ENTER(NULL);
 
@@ -462,7 +461,7 @@ HG_TEST_RPC_CB(analysis_ftn, handle)
     int                                   nulliter_count = 0;
     pdcid_t                               iterIn = -1, iterOut = -1;
     pdcid_t                               registrationId = -1;
-    void *                                ftnHandle      = NULL;
+    void                                 *ftnHandle      = NULL;
     int (*ftnPtr)(pdcid_t, pdcid_t)                      = NULL;
     int result;
 
@@ -611,7 +610,6 @@ PDC_free_analysis_registry()
         }
         pdc_region_analysis_registry =
             (struct _pdc_region_analysis_ftn_info **)PDC_free(pdc_region_analysis_registry);
-        pdc_region_analysis_registry = NULL;
     }
 
     FUNC_LEAVE_VOID;
@@ -631,7 +629,6 @@ PDC_free_transform_registry()
         }
         pdc_region_transform_registry =
             (struct _pdc_region_transform_ftn_info **)PDC_free(pdc_region_transform_registry);
-        pdc_region_transform_registry = NULL;
     }
 
     FUNC_LEAVE_VOID;
@@ -645,7 +642,6 @@ PDC_free_iterator_cache()
 
     if (PDC_Block_iterator_cache != NULL)
         PDC_Block_iterator_cache = (struct _pdc_iterator_info *)PDC_free(PDC_Block_iterator_cache);
-    PDC_Block_iterator_cache = NULL;
 
     FUNC_LEAVE_VOID;
 }

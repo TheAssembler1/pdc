@@ -1381,7 +1381,6 @@ PDC_Client_mercury_init(hg_class_t **hg_class, hg_context_t **hg_context, int po
     }
     memset(hostname, 0, sizeof(hostname));
     gethostname(hostname, sizeof(hostname));
-    strcpy(hostname, "eno1");
     sprintf(na_info_string, "%s://%s:%d", hg_transport, hostname, port);
     if (pdc_client_mpi_rank_g == 0) {
         LOG_INFO("==PDC_CLIENT: using %.7s\n", na_info_string);
@@ -7757,7 +7756,6 @@ PDC_Client_get_sel_data(pdcid_t obj_id, pdc_selection_t *sel, void *data)
                     memcpy(data + off, result_elt->data_arr[i], result_elt->data_arr_size[i]);
                     off += result_elt->data_arr_size[i];
                     result_elt->data_arr[i] = (void **)PDC_free(result_elt->data_arr[i]);
-                    result_elt->data_arr[i] = NULL;
                 }
             }
             result_elt->recv_data_nhits = 0;
