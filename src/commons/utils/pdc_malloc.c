@@ -104,7 +104,7 @@ PDC_realloc_knowing_oldsize(void *ptr, size_t size, size_t old_size)
     assert(size);
     size_t _old_size = old_size;
     if (size)
-        ret_value = PDC_realloc(ptr, size);
+        ret_value = realloc(ptr, size);
     else
         ret_value = NULL;
 
@@ -132,7 +132,7 @@ void *
 PDC_realloc_addsize_knowing_oldsize(void *ptr, size_t size, size_t old_size, size_t *mem_usage_ptr)
 {
     size_t _old_size = old_size;
-    void * ret_value = PDC_realloc_knowing_oldsize(ptr, size, _old_size);
+    void  *ret_value = PDC_realloc_knowing_oldsize(ptr, size, _old_size);
     if (ret_value && mem_usage_ptr) {
         *mem_usage_ptr += size;
         if (_old_size) {
