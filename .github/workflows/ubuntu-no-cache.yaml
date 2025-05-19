@@ -2,10 +2,10 @@ name: Ubuntu (no-cache)
 
 on:
   pull_request:
-    branches: [ stable, develop, pdc_malloc_free_calloc ]
+    branches: [ stable, develop ]
 
   push:
-    branches: [ stable, develop, pdc_malloc_free_calloc ]
+    branches: [ stable, develop ]
 
   workflow_dispatch:
 
