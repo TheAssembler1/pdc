@@ -3,6 +3,9 @@
 
 #include "pdc.h"
 
+#define TSUCCEED 0
+#define TFAIL    1
+
 /*
  * TGOTO_DONE macro. The argument is the return value which is
  * assigned to the `ret_value' variable.  Control branches to
@@ -41,7 +44,7 @@
 #define TASSERT(status, success_message, fail_message)                                                       \
     do {                                                                                                     \
         if (!(status)) {                                                                                     \
-            TGOTO_ERROR(FAIL, fail_message);                                                                 \
+            TGOTO_ERROR(TFAIL, fail_message);                                                                \
         }                                                                                                    \
         else {                                                                                               \
             LOG_INFO("%s\n", success_message);                                                               \

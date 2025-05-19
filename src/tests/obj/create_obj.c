@@ -36,7 +36,7 @@ main(int argc, char **argv)
     pdcid_t pdc, cont_prop, cont, obj_prop, obj1, obj2;
     int     rank = 0;
     char    cont_name[128], obj_name1[128], obj_name2[128];
-    int     ret_value = SUCCEED;
+    int     ret_value = TSUCCEED;
 
     // create a pdc
 #ifdef ENABLE_MPI
