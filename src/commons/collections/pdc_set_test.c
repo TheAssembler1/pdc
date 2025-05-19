@@ -19,7 +19,7 @@ int
 main(int argc, char **argv)
 {
     // read the max id from the command line
-    char    *endptr;
+    char *   endptr;
     uint64_t max_id = strtoull(argv[1], &endptr, 10);
     if (*endptr != '\0') {
         LOG_ERROR("Invalid number: %s\n", argv[1]);
