@@ -8,7 +8,7 @@
 void
 PDC_deque_init(PDC_deque_t *deque)
 {
-    deque->data     = malloc(sizeof(void *) * DEFAULT_CAPACITY);
+    deque->data     = PDC_malloc(sizeof(void *) * DEFAULT_CAPACITY);
     deque->size     = 0;
     deque->capacity = DEFAULT_CAPACITY;
     deque->head     = 0;
@@ -18,7 +18,7 @@ PDC_deque_init(PDC_deque_t *deque)
 static void
 resize_deque(PDC_deque_t *deque, size_t new_capacity)
 {
-    void **new_data = malloc(sizeof(void *) * new_capacity);
+    void **new_data = PDC_malloc(sizeof(void *) * new_capacity);
     if (new_data == NULL) {
         LOG_ERROR("Failed to allocate memory for deque!\n");
         exit(1);

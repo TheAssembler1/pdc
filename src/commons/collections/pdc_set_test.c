@@ -19,7 +19,7 @@ int
 main(int argc, char **argv)
 {
     // read the max id from the command line
-    char *   endptr;
+    char    *endptr;
     uint64_t max_id = strtoull(argv[1], &endptr, 10);
     if (*endptr != '\0') {
         LOG_ERROR("Invalid number: %s\n", argv[1]);
@@ -30,7 +30,7 @@ main(int argc, char **argv)
     set_register_free_function(set, set_value_free);
 
     for (uint64_t i = 0; i < max_id; i++) {
-        uint64_t *value = malloc(sizeof(uint64_t));
+        uint64_t *value = PDC_malloc(sizeof(uint64_t));
         *value          = i;
         set_insert(set, value);
     }
@@ -44,7 +44,7 @@ main(int argc, char **argv)
 
     // retrieve all values from the set
     for (uint64_t i = 0; i < max_id; i++) {
-        uint64_t *value = malloc(sizeof(uint64_t));
+        uint64_t *value = PDC_malloc(sizeof(uint64_t));
         *value          = i;
         if (!set_query(set, value)) {
             LOG_ERROR("Error: value %" PRIu64 " not found in the set\n", i);

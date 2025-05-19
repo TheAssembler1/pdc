@@ -9,7 +9,7 @@ test_base_type()
     BULKI *bulki = BULKI_init(2);
 
     // Create and append key-value pairs for different data types
-    char *        intKey_str = "int";
+    char         *intKey_str = "int";
     int           intVal     = 42;
     BULKI_Entity *intKey     = BULKI_ENTITY(intKey_str, 1, PDC_STRING, PDC_CLS_ITEM);
     BULKI_Entity *intValue   = BULKI_ENTITY(&intVal, 1, PDC_INT, PDC_CLS_ITEM);
@@ -25,21 +25,21 @@ test_base_type()
     // freeing issue.
     BULKI_put(bulki, intArrKey, BULKI_ENTITY(&intVal, 1, PDC_INT, PDC_CLS_ARRAY));
 
-    char *        doubleKey_str = "double";
+    char         *doubleKey_str = "double";
     double        doubleVal     = 3.14159;
     BULKI_Entity *doubleKey     = BULKI_ENTITY(doubleKey_str, 1, PDC_STRING, PDC_CLS_ITEM);
     BULKI_Entity *doubleValue   = BULKI_ENTITY(&doubleVal, 1, PDC_DOUBLE, PDC_CLS_ITEM);
     BULKI_put(bulki, doubleKey, doubleValue);
 
-    char *        strKey_str = "string";
-    char *        strVal     = "Hello, World!";
+    char         *strKey_str = "string";
+    char         *strVal     = "Hello, World!";
     BULKI_Entity *strKey     = BULKI_ENTITY(strKey_str, 1, PDC_STRING, PDC_CLS_ITEM);
     BULKI_Entity *strValue   = BULKI_ENTITY(strVal, 1, PDC_STRING, PDC_CLS_ITEM);
     BULKI_put(bulki, strKey, strValue);
 
     // Serialize the data
     size_t size;
-    void * buffer = BULKI_serialize(bulki, &size);
+    void  *buffer = BULKI_serialize(bulki, &size);
 
     // Do some I/O if you like
     FILE *fp = fopen("test_bulki.bin", "wb");
@@ -54,7 +54,7 @@ test_base_type()
     long fsize = ftell(fp);
     fseek(fp, 0, SEEK_SET); /* same as rewind(f); */
     // read the file into the buffer
-    void *buffer2 = malloc(fsize + 1);
+    void *buffer2 = PDC_malloc(fsize + 1);
     fread(buffer2, fsize, 1, fp);
     fclose(fp);
 
@@ -105,7 +105,7 @@ test_base_array_entitiy()
     BULKI *bulki = BULKI_init(2);
 
     // Create and append key-value pairs for different data types
-    char *        intKey_str = "int";
+    char         *intKey_str = "int";
     int           intVal     = 42;
     uint64_t      intObjID   = 12416574651687;
     BULKI_Entity *intKey     = BULKI_ENTITY(intKey_str, 1, PDC_STRING, PDC_CLS_ITEM);
@@ -114,7 +114,7 @@ test_base_array_entitiy()
     BULKI_ENTITY_append_BULKI_Entity(intArr, BULKI_ENTITY(&intObjID, 1, PDC_UINT64, PDC_CLS_ITEM));
     BULKI_put(bulki, intKey, intArr);
 
-    char *        doubleKey_str = "double";
+    char         *doubleKey_str = "double";
     double        doubleVal     = 3.14159;
     uint64_t      doubleObjID   = 564987951987494;
     BULKI_Entity *doubleKey     = BULKI_ENTITY(doubleKey_str, 1, PDC_STRING, PDC_CLS_ITEM);
@@ -132,7 +132,7 @@ test_base_array_entitiy()
     BULKI_ENTITY_append_BULKI_Entity(strArr, BULKI_ENTITY(&intObjID, 1, PDC_UINT64, PDC_CLS_ITEM));
     BULKI_put(bulki, strKey, strArr);
 
-    char *        mixedKey_str = "mixed";
+    char         *mixedKey_str = "mixed";
     BULKI_Entity *mixedKey     = BULKI_ENTITY(mixedKey_str, 1, PDC_STRING, PDC_CLS_ITEM);
     BULKI_Entity *mixedArr     = empty_Bent_Array_Entity();
     BULKI_ENTITY_append_BULKI_Entity(mixedArr, BULKI_ENTITY(&intVal, 1, PDC_INT, PDC_CLS_ITEM));
@@ -145,7 +145,7 @@ test_base_array_entitiy()
     BULKI *bulki2 = BULKI_init(2);
 
     // Create and append key-value pairs for different data types
-    char *        intKey_str2 = "int";
+    char         *intKey_str2 = "int";
     int           intVal2     = 42;
     BULKI_Entity *intKey2     = BULKI_ENTITY(intKey_str, 1, PDC_STRING, PDC_CLS_ITEM);
     BULKI_Entity *intArr2     = empty_BULKI_Array_Entity();
@@ -155,7 +155,7 @@ test_base_array_entitiy()
 
     // Serialize the data
     size_t size;
-    void * buffer = BULKI_serialize(bulki2, &size);
+    void  *buffer = BULKI_serialize(bulki2, &size);
 
     // Deserialize the buffer
     BULKI *deserializedBulki = BULKI_deserialize(buffer);
@@ -178,7 +178,7 @@ test_embedded_entitiy()
     BULKI *bulki = BULKI_init(2);
 
     // Create and append key-value pairs for different data types
-    char *        intKey_str = "int";
+    char         *intKey_str = "int";
     int           intVal     = 42;
     uint64_t      intObjID   = 12416574651687;
     BULKI_Entity *intKey     = BULKI_ENTITY(intKey_str, 1, PDC_STRING, PDC_CLS_ITEM);
@@ -187,7 +187,7 @@ test_embedded_entitiy()
     BULKI_ENTITY_append_BULKI_Entity(intArr, BULKI_ENTITY(&intObjID, 1, PDC_UINT64, PDC_CLS_ITEM));
     BULKI_put(bulki, intKey, intArr);
 
-    char *        doubleKey_str = "double";
+    char         *doubleKey_str = "double";
     double        doubleVal     = 3.14159;
     uint64_t      doubleObjID   = 564987951987494;
     BULKI_Entity *doubleKey     = BULKI_ENTITY(doubleKey_str, 1, PDC_STRING, PDC_CLS_ITEM);
@@ -207,7 +207,7 @@ test_embedded_entitiy()
 
     // Serialize the data
     size_t size;
-    void * buffer = BULKI_serialize(bulki, &size);
+    void  *buffer = BULKI_serialize(bulki, &size);
 
     // Deserialize the buffer
     BULKI *deserializedBulki = BULKI_deserialize(buffer);
@@ -232,7 +232,7 @@ test_bulki_in_entitiy()
     // BULKI in BULKI_Entity
     BULKI_Entity *nestEntity = BULKI_ENTITY(bulki, 1, PDC_BULKI, PDC_CLS_ITEM);
     size_t        size;
-    void *        buffer         = BULKI_Entity_serialize(nestEntity, &size);
+    void         *buffer         = BULKI_Entity_serialize(nestEntity, &size);
     BULKI_Entity *des_nestEntity = BULKI_Entity_deserialize(buffer);
 
     int equal = BULKI_Entity_equal(nestEntity, des_nestEntity);
@@ -302,7 +302,7 @@ bulki_small_json_serialization_test()
 
     BULKI_Entity *property_array = empty_BULKI_Array_Entity();
 
-    BULKI *       property1 = BULKI_init(2); // 2 fields: name, value
+    BULKI        *property1 = BULKI_init(2); // 2 fields: name, value
     BULKI_Entity *name      = BULKI_singleton_ENTITY("AIRMASS", PDC_STRING);
     BULKI_Entity *data      = BULKI_ENTITY(&(float){1.19428}, 1, PDC_FLOAT, PDC_CLS_ITEM);
     BULKI_put(property1, name, data);

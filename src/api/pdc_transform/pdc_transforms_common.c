@@ -42,14 +42,14 @@ HG_TEST_RPC_CB(transform_ftn, handle)
     transform_ftn_in_t                     in;
     transform_ftn_out_t                    out       = {0, 0, 0, -1};
     struct _pdc_region_transform_ftn_info *thisFtn   = NULL;
-    void *                                 ftnHandle = NULL;
+    void                                  *ftnHandle = NULL;
 
     FUNC_ENTER(NULL);
 
     HG_Get_input(handle, &in);
 
     if (PDC_get_ftnPtr_(in.ftn_name, in.loadpath, &ftnHandle) >= 0) {
-        thisFtn = malloc(sizeof(struct _pdc_region_transform_ftn_info));
+        thisFtn = PDC_malloc(sizeof(struct _pdc_region_transform_ftn_info));
         if (thisFtn == NULL)
             PGOTO_ERROR(HG_OTHER_ERROR, "transform_ftn_cb: Memory allocation failed");
         /* This sets up the index return for the client!
@@ -71,7 +71,7 @@ HG_TEST_RPC_CB(transform_ftn, handle)
          * the client to include the cached index value
          * as part of a future data movement request.
          */
-        thisFtn->ftnPtr    = (size_t(*)())ftnHandle;
+        thisFtn->ftnPtr    = (size_t (*)())ftnHandle;
         thisFtn->object_id = in.object_id;
         thisFtn->region_id = in.region_id;
         thisFtn->op_type   = (pdc_obj_transform_t)in.op_type;

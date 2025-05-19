@@ -381,7 +381,7 @@ scaling_bloom_init(unsigned int capacity, double error_rate)
 {
     scaling_bloom_t *bloom;
 
-    if ((bloom = malloc(sizeof(scaling_bloom_t))) == NULL) {
+    if ((bloom = PDC_malloc(sizeof(scaling_bloom_t))) == NULL) {
         return NULL;
     }
     if ((bloom->bitmap = new_bitmap(sizeof(scaling_bloom_header_t))) == NULL) {
@@ -404,7 +404,7 @@ scaling_bloom_t *
 new_scaling_bloom(unsigned int capacity, double error_rate)
 {
 
-    scaling_bloom_t * bloom;
+    scaling_bloom_t  *bloom;
     counting_bloom_t *cur_bloom;
 
     bloom = scaling_bloom_init(capacity, error_rate);

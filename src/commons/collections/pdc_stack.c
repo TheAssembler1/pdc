@@ -10,7 +10,7 @@
 void
 stack_init(PDC_stack_t *stack)
 {
-    stack->data     = malloc(sizeof(void *) * DEFAULT_CAPACITY);
+    stack->data     = PDC_malloc(sizeof(void *) * DEFAULT_CAPACITY);
     stack->size     = 0;
     stack->capacity = DEFAULT_CAPACITY;
 }
