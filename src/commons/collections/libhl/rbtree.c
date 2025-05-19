@@ -52,7 +52,7 @@ struct _rbt_s {
 rbt_t *
 rbt_create_by_dtype(pdc_c_var_type_t dtype, rbt_free_value_callback_t free_value_cb)
 {
-    rbt_t *rbt = calloc(1, sizeof(rbt_t));
+    rbt_t *rbt = PDC_calloc(1, sizeof(rbt_t));
     // INIT_PERF_INFO_FIELDS(rbt, rbt_t);
     // rbt->time_for_rotate = 0;
     // mem_usage_by_all_rbtrees += sizeof(rbt_t);
@@ -68,10 +68,7 @@ rbt_create_by_dtype(pdc_c_var_type_t dtype, rbt_free_value_callback_t free_value
 rbt_t *
 rbt_create(libhl_cmp_callback_t cmp_keys_cb, rbt_free_value_callback_t free_value_cb)
 {
-    rbt_t *rbt = calloc(1, sizeof(rbt_t));
-    // INIT_PERF_INFO_FIELDS(rbt, rbt_t);
-    // rbt->time_for_rotate = 0;
-    // mem_usage_by_all_rbtrees += sizeof(rbt_t);
+    rbt_t *rbt = PDC_calloc(1, sizeof(rbt_t));
 
     if (!rbt)
         return NULL;

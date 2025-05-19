@@ -101,7 +101,8 @@ iterator_init(pdcid_t objectId, pdcid_t reg_id, int blocks, struct _pdc_iterator
             }
         }
         iter->totalElements = 1;
-        if ((iter->srcDims = (size_t *)calloc(obj_prop_ptr->obj_prop_pub->ndim, sizeof(size_t))) != NULL) {
+        if ((iter->srcDims = (size_t *)PDC_calloc(obj_prop_ptr->obj_prop_pub->ndim, sizeof(size_t))) !=
+            NULL) {
             iter->ndim = obj_prop_ptr->obj_prop_pub->ndim;
             for (i = 0; i < iter->ndim; i++) {
                 iter->srcDims[i] = (size_t)obj_prop_ptr->obj_prop_pub->dims[i];
@@ -460,7 +461,7 @@ PDCobj_analysis_register(char *func, pdcid_t iterIn, pdcid_t iterOut)
     thisFtn->ftnPtr = (int (*)())ftnPtr;
     thisFtn->n_args = 2;
     /* Allocate for iterator ids and region ids */
-    if ((thisFtn->object_id = (pdcid_t *)calloc(4, sizeof(pdcid_t))) != NULL) {
+    if ((thisFtn->object_id = (pdcid_t *)PDC_calloc(4, sizeof(pdcid_t))) != NULL) {
         thisFtn->object_id[0] = iterIn;
         thisFtn->object_id[1] = iterOut;
     }

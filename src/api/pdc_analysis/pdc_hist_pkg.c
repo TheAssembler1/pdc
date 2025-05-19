@@ -127,8 +127,8 @@ PDC_create_hist(pdc_var_type_t dtype, int nbin, double min, double max)
     hist        = (pdc_histogram_t *)PDC_malloc(sizeof(pdc_histogram_t));
     hist->incr  = bin_incr;
     hist->dtype = dtype;
-    hist->range = (double *)calloc(sizeof(double), nbin * 2);
-    hist->bin   = (uint64_t *)calloc(sizeof(uint64_t), nbin);
+    hist->range = (double *)PDC_calloc(sizeof(double), nbin * 2);
+    hist->bin   = (uint64_t *)PDC_calloc(sizeof(uint64_t), nbin);
     hist->nbin  = nbin;
 
     min_bin = floor(min);
@@ -341,8 +341,8 @@ PDC_dup_hist(pdc_histogram_t *hist)
     res        = (pdc_histogram_t *)PDC_malloc(sizeof(pdc_histogram_t));
     res->dtype = hist->dtype;
     res->nbin  = nbin;
-    res->range = (double *)calloc(sizeof(double), nbin * 2);
-    res->bin   = (uint64_t *)calloc(sizeof(uint64_t), nbin);
+    res->range = (double *)PDC_calloc(sizeof(double), nbin * 2);
+    res->bin   = (uint64_t *)PDC_calloc(sizeof(uint64_t), nbin);
     res->incr  = hist->incr;
 
     memcpy(res->range, hist->range, sizeof(double) * nbin * 2);
@@ -435,10 +435,10 @@ PDC_copy_hist(pdc_histogram_t *to, pdc_histogram_t *from)
     to->incr  = from->incr;
     to->dtype = from->dtype;
     if (NULL == to->range)
-        to->range = (double *)calloc(sizeof(double), nbin * 2);
+        to->range = (double *)PDC_calloc(sizeof(double), nbin * 2);
     memcpy(to->range, from->range, sizeof(double) * nbin * 2);
     if (NULL == to->bin)
-        to->bin = (uint64_t *)calloc(sizeof(uint64_t), nbin);
+        to->bin = (uint64_t *)PDC_calloc(sizeof(uint64_t), nbin);
     memcpy(to->bin, from->bin, sizeof(uint64_t) * nbin);
     to->nbin = from->nbin;
 

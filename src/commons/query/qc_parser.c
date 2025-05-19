@@ -213,10 +213,10 @@ subClauseExtractor(char *expression, int start, int end, int level, subClause **
             levelCounter++;
             if (levelCounter == level + 1) {
                 // Allocate or reallocate space for a new subclause.
-                *subPtr              = (subClause *)realloc(*subPtr, sizeof(subClause) * (numSubClauses + 1));
-                subClause *newClause = &((*subPtr)[numSubClauses]);
-                newClause->start     = i + 1;
-                newClause->level     = levelCounter;
+                *subPtr = (subClause *)PDC_realloc(*subPtr, sizeof(subClause) * (numSubClauses + 1));
+                subClause *newClause      = &((*subPtr)[numSubClauses]);
+                newClause->start          = i + 1;
+                newClause->level          = levelCounter;
                 newClause->subClauseArray = NULL; // Important to initialize.
             }
         }

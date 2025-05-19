@@ -491,7 +491,7 @@ static_region_partition(char *buf, int ndim, uint64_t unit, pdc_access_t access_
             // subregion is computed using the output region by aligning the offsets to its begining.
             if (set_output_buf) {
                 // Copy subregion from input region to the new overlapping region.
-                output_buf[0][n_data_servers[0]] = (char *)calloc(region_size * unit, sizeof(char));
+                output_buf[0][n_data_servers[0]] = (char *)PDC_calloc(region_size * unit, sizeof(char));
                 if (access_type == PDC_WRITE) {
                     memcpy_subregion(ndim, unit, PDC_WRITE, buf, size, output_buf[0][n_data_servers[0]],
                                      sub_offsets[0][n_data_servers[0]], output_sizes[0][*n_data_servers]);
@@ -502,13 +502,13 @@ static_region_partition(char *buf, int ndim, uint64_t unit, pdc_access_t access_
     }
     // Shrink memory size if necessary.
     if (*n_data_servers != pdc_server_num_g) {
-        *data_server_ids = (uint32_t *)realloc(*data_server_ids, sizeof(uint32_t) * n_data_servers[0]);
-        *output_offsets  = (uint64_t **)realloc(*output_offsets, sizeof(uint64_t *) * n_data_servers[0]);
-        *output_sizes    = (uint64_t **)realloc(*output_sizes, sizeof(uint64_t *) * n_data_servers[0]);
+        *data_server_ids = (uint32_t *)PDC_realloc(*data_server_ids, sizeof(uint32_t) * n_data_servers[0]);
+        *output_offsets  = (uint64_t **)PDC_realloc(*output_offsets, sizeof(uint64_t *) * n_data_servers[0]);
+        *output_sizes    = (uint64_t **)PDC_realloc(*output_sizes, sizeof(uint64_t *) * n_data_servers[0]);
 
-        *sub_offsets = (uint64_t **)realloc(*sub_offsets, sizeof(uint64_t *) * n_data_servers[0]);
+        *sub_offsets = (uint64_t **)PDC_realloc(*sub_offsets, sizeof(uint64_t *) * n_data_servers[0]);
         if (set_output_buf) {
-            *output_buf = (char **)realloc(*output_buf, sizeof(char *) * n_data_servers[0]);
+            *output_buf = (char **)PDC_realloc(*output_buf, sizeof(char *) * n_data_servers[0]);
         }
     }
 

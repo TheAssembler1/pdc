@@ -20,7 +20,7 @@ stack_push(PDC_stack_t *stack, void *value)
 {
     if (stack->size == stack->capacity) {
         size_t new_capacity = stack->capacity * 2;
-        void **new_data     = realloc(stack->data, sizeof(void *) * new_capacity);
+        void **new_data     = PDC_realloc(stack->data, sizeof(void *) * new_capacity);
         if (new_data == NULL) {
             LOG_ERROR("Failed to reallocate memory for stack!\n");
             exit(1);

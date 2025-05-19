@@ -807,10 +807,10 @@ PDC_region_transfer_t_to_region_info(region_info_transfer_t *transfer)
     if (NULL == transfer)
         PGOTO_ERROR(NULL, "PDC_region_transfer_t_to_region_info(): NULL input!");
 
-    region = (struct pdc_region_info *)calloc(1, sizeof(struct pdc_region_info));
+    region = (struct pdc_region_info *)PDC_calloc(1, sizeof(struct pdc_region_info));
     ndim = region->ndim = transfer->ndim;
-    region->offset      = (uint64_t *)calloc(sizeof(uint64_t), ndim);
-    region->size        = (uint64_t *)calloc(sizeof(uint64_t), ndim);
+    region->offset      = (uint64_t *)PDC_calloc(sizeof(uint64_t), ndim);
+    region->size        = (uint64_t *)PDC_calloc(sizeof(uint64_t), ndim);
 
     PDC_copy_region_desc(transfer->start, region->offset, ndim, ndim);
     PDC_copy_region_desc(transfer->count, region->size, ndim, ndim);
@@ -1508,7 +1508,8 @@ HG_TEST_RPC_CB(client_test_connect, handle)
     hg_return_t               ret_value = HG_SUCCESS;
     client_test_connect_in_t  in;
     client_test_connect_out_t out;
-    client_test_connect_args *args = (client_test_connect_args *)calloc(1, sizeof(client_test_connect_args));
+    client_test_connect_args *args =
+        (client_test_connect_args *)PDC_calloc(1, sizeof(client_test_connect_args));
 
     FUNC_ENTER(NULL);
 
@@ -1830,7 +1831,7 @@ HG_TEST_RPC_CB(notify_io_complete, handle)
     HG_Get_input(handle, &in);
     pdc_access_t type = (pdc_access_t)in.io_type;
 
-    client_read_info_t *read_info = (client_read_info_t *)calloc(1, sizeof(client_read_info_t));
+    client_read_info_t *read_info = (client_read_info_t *)PDC_calloc(1, sizeof(client_read_info_t));
     read_info->obj_id             = in.obj_id;
     strcpy(read_info->shm_addr, in.shm_addr);
     if (ret_value != HG_SUCCESS)
@@ -2012,16 +2013,16 @@ pdc_region_write_out_progress(void *arg)
     remote_reg_info->offset = (uint64_t *)PDC_malloc(remote_reg_info->ndim * sizeof(uint64_t));
     remote_reg_info->size   = (uint64_t *)PDC_malloc(remote_reg_info->ndim * sizeof(uint64_t));
     if (remote_reg_info->ndim >= 1) {
-        (remote_reg_info->offset)[0] = (bulk_args->remote_region_nounit).start_0;
-        (remote_reg_info->size)[0]   = (bulk_args->remote_region_nounit).count_0;
+        (remote_reg_info->offset)[0] = (bulk_args->remote_region_nounit).start[0];
+        (remote_reg_info->size)[0]   = (bulk_args->remote_region_nounit).count[0];
     }
     if (remote_reg_info->ndim >= 2) {
-        (remote_reg_info->offset)[1] = (bulk_args->remote_region_nounit).start_1;
-        (remote_reg_info->size)[1]   = (bulk_args->remote_region_nounit).count_1;
+        (remote_reg_info->offset)[1] = (bulk_args->remote_region_nounit).start[1];
+        (remote_reg_info->size)[1]   = (bulk_args->remote_region_nounit).count[1];
     }
     if (remote_reg_info->ndim >= 3) {
-        (remote_reg_info->offset)[2] = (bulk_args->remote_region_nounit).start_2;
-        (remote_reg_info->size)[2]   = (bulk_args->remote_region_nounit).count_2;
+        (remote_reg_info->offset)[2] = (bulk_args->remote_region_nounit).start[2];
+        (remote_reg_info->size)[2]   = (bulk_args->remote_region_nounit).count[2];
     }
 
     PDC_Server_data_write_out(bulk_args->remote_obj_id, remote_reg_info, bulk_args->data_buf,
@@ -2034,7 +2035,7 @@ pdc_region_write_out_progress(void *arg)
 
     remote_reg_info->offset = (uint64_t *)PDC_free(remote_reg_info->offset);
     remote_reg_info->size   = (uint64_t *)PDC_free(remote_reg_info->size);
-    remote_reg_info         = (pdc_region_info *)PDC_free(remote_reg_info);
+    remote_reg_info         = (struct pdc_region_info *)PDC_free(remote_reg_info);
 
 done:
     fflush(stdout);
@@ -2247,7 +2248,7 @@ transform_and_region_release_bulk_transfer_cb(const struct hg_cb_info *hg_cb_inf
 
             else {
                 /* Prepare for the transform */
-                dims = (uint64_t *)calloc(ndim, sizeof(uint64_t));
+                dims = (uint64_t *)PDC_calloc(ndim, sizeof(uint64_t));
                 if (dims == NULL)
                     PGOTO_ERROR(HG_OTHER_ERROR, "TRANSFORM memory allocation failed");
                 dims[0] = bulk_args->remote_region.count[0] / type_extent;
@@ -2280,12 +2281,12 @@ transform_and_region_release_bulk_transfer_cb(const struct hg_cb_info *hg_cb_inf
     target_reg = PDC_Server_get_obj_region(bulk_args->remote_obj_id);
     DL_FOREACH(target_reg->region_buf_map_head, elt)
     {
-        if ((bulk_args->remote_region).start_0 == elt->remote_region_unit.start_0 &&
-            (bulk_args->remote_region).count_0 == elt->remote_region_unit.count_0) {
+        if ((bulk_args->remote_region).start[0] == elt->remote_region_unit.start[0] &&
+            (bulk_args->remote_region).count[0] == elt->remote_region_unit.count[0]) {
             // replace the count_0 value with the transform_size
             if (use_transform_size) {
-                (bulk_args->remote_region).count_0 = transform_size;
-                (bulk_args->remote_region).ndim    = 1;
+                (bulk_args->remote_region).count[0] = transform_size;
+                (bulk_args->remote_region).ndim     = 1;
             }
             elt->bulk_args = (struct buf_map_release_bulk_args *)bulk_args;
         }
@@ -2361,7 +2362,7 @@ analysis_and_region_release_bulk_transfer_cb(const struct hg_cb_info *hg_cb_info
 
     /* Prepare for the transform */
     ndim        = bulk_args->remote_region.ndim;
-    dims        = (uint64_t *)calloc(ndim, sizeof(uint64_t));
+    dims        = (uint64_t *)PDC_calloc(ndim, sizeof(uint64_t));
     type_extent = bulk_args->in.type_extent;
     /* FIXME: Support ONLY up to 4 dimensions */
     if (dims) {
@@ -2420,8 +2421,8 @@ analysis_and_region_release_bulk_transfer_cb(const struct hg_cb_info *hg_cb_info
      * multiply all size argments to find the byte length of the data_buf...
      */
     remote_reg_info->ndim   = (bulk_args->remote_region).ndim;
-    remote_reg_info->offset = (uint64_t *)calloc(remote_reg_info->ndim, sizeof(uint64_t));
-    remote_reg_info->size   = (uint64_t *)calloc(remote_reg_info->ndim, sizeof(uint64_t));
+    remote_reg_info->offset = (uint64_t *)PDC_calloc(remote_reg_info->ndim, sizeof(uint64_t));
+    remote_reg_info->size   = (uint64_t *)PDC_calloc(remote_reg_info->ndim, sizeof(uint64_t));
 
     PDC_copy_region_desc((bulk_args->remote_region).start, remote_reg_info->offset, remote_reg_info->ndim,
                          remote_reg_info->ndim);
@@ -2440,8 +2441,8 @@ analysis_and_region_release_bulk_transfer_cb(const struct hg_cb_info *hg_cb_info
         PGOTO_ERROR(HG_OTHER_ERROR, "local_reg_info memory allocation failed");
 
     local_reg_info->ndim   = bulk_args->in.region.ndim;
-    local_reg_info->offset = (uint64_t *)calloc(local_reg_info->ndim, sizeof(uint64_t));
-    local_reg_info->size   = (uint64_t *)calloc(local_reg_info->ndim, sizeof(uint64_t));
+    local_reg_info->offset = (uint64_t *)PDC_calloc(local_reg_info->ndim, sizeof(uint64_t));
+    local_reg_info->size   = (uint64_t *)PDC_calloc(local_reg_info->ndim, sizeof(uint64_t));
 
     PDC_copy_region_desc(bulk_args->in.region.start, local_reg_info->offset, local_reg_info->ndim,
                          local_reg_info->ndim);
@@ -2530,7 +2531,8 @@ buf_map_region_release_bulk_transfer_cb(const struct hg_cb_info *hg_cb_info)
     target_reg = PDC_Server_get_obj_region(bulk_args->remote_obj_id);
     DL_FOREACH(target_reg->region_buf_map_head, elt)
     {
-        if (PDC_region_info_transfer_t_is_equal(bulk_args->remote_region_unit, elt->remote_region_unit)) {
+        if (PDC_region_info_transfer_t_is_equal(&(bulk_args->remote_region_unit),
+                                                &(elt->remote_region_unit))) {
             elt->bulk_args = bulk_args;
         }
     }
@@ -2725,7 +2727,7 @@ HG_TEST_RPC_CB(region_release, handle)
                 hg_atomic_get32(&(elt->buf_map_refcount)) == 0) {
                 dirty_reg = 1;
                 size      = HG_Bulk_get_size(elt->bulk_handle);
-                data_buf  = (void *)calloc(1, size);
+                data_buf  = (void *)PDC_calloc(1, size);
                 // data transfer
                 server_region         = (struct pdc_region_info *)PDC_malloc(sizeof(struct pdc_region_info));
                 server_region->ndim   = 1;
@@ -3554,7 +3556,7 @@ HG_TEST_RPC_CB(region_analysis_release, handle)
                 hg_atomic_get32(&(elt->buf_map_refcount)) == 0) {
                 dirty_reg = 1;
                 size      = HG_Bulk_get_size(elt->bulk_handle);
-                data_buf  = (void *)calloc(1, size);
+                data_buf  = (void *)PDC_calloc(1, size);
                 // data transfer
                 server_region         = (struct pdc_region_info *)PDC_malloc(sizeof(struct pdc_region_info));
                 server_region->ndim   = 1;
@@ -4350,7 +4352,7 @@ update_storage_meta_bulk_cb(const struct hg_cb_info *hg_cb_info)
         PGOTO_ERROR(HG_PROTOCOL_ERROR, "Error in callback");
     else {
         cnt = bulk_args->cnt;
-        buf = (void **)calloc(sizeof(void *), cnt);
+        buf = (void **)PDC_calloc(sizeof(void *), cnt);
 
         HG_Bulk_access(local_bulk_handle, 0, bulk_args->nbytes, HG_BULK_READWRITE, 1, &buf_1d, NULL, NULL);
 
@@ -4542,7 +4544,7 @@ HG_TEST_RPC_CB(data_server_read_check, handle)
     // Decode input
     data_server_read_check_in_t  in;
     data_server_read_check_out_t out;
-    server_read_check_out_t     *read_out = calloc(1, sizeof(server_read_check_out_t));
+    server_read_check_out_t     *read_out = PDC_calloc(1, sizeof(server_read_check_out_t));
 
     FUNC_ENTER(NULL);
 
@@ -4575,7 +4577,7 @@ HG_TEST_RPC_CB(data_server_write_check, handle)
     // Decode input
     data_server_write_check_in_t   in;
     data_server_write_check_out_t *out =
-        (data_server_write_check_out_t *)calloc(sizeof(data_server_write_check_out_t), 1);
+        (data_server_write_check_out_t *)PDC_calloc(sizeof(data_server_write_check_out_t), 1);
 
     FUNC_ENTER(NULL);
 
@@ -4611,7 +4613,7 @@ HG_TEST_RPC_CB(update_region_loc, handle)
 
     if (in.has_hist == 1) {
 
-        input_region->region_hist = (pdc_histogram_t *)calloc(1, sizeof(pdc_histogram_t));
+        input_region->region_hist = (pdc_histogram_t *)PDC_calloc(1, sizeof(pdc_histogram_t));
         PDC_copy_hist(input_region->region_hist, &in.hist);
     }
 
@@ -4823,7 +4825,7 @@ cont_add_del_objs_bulk_cb(const struct hg_cb_info *hg_cb_info)
 
         op      = bulk_args->op;
         cont_id = bulk_args->cont_id;
-        obj_ids = (uint64_t *)calloc(sizeof(uint64_t), cnt);
+        obj_ids = (uint64_t *)PDC_calloc(sizeof(uint64_t), cnt);
 
         HG_Bulk_access(local_bulk_handle, 0, bulk_args->nbytes, HG_BULK_READWRITE, 1, (void **)&obj_ids, NULL,
                        NULL);
@@ -4959,13 +4961,13 @@ query_read_obj_name_bulk_cb(const struct hg_cb_info *hg_cb_info)
         PGOTO_ERROR(HG_PROTOCOL_ERROR, "Error in callback");
     }
     else {
-        query_read_names_args      = (query_read_names_args_t *)calloc(1, sizeof(query_read_names_args_t));
-        query_read_names_args->cnt = bulk_args->cnt;
+        query_read_names_args = (query_read_names_args_t *)PDC_calloc(1, sizeof(query_read_names_args_t));
+        query_read_names_args->cnt           = bulk_args->cnt;
         query_read_names_args->client_seq_id = bulk_args->client_seq_id;
         query_read_names_args->client_id     = bulk_args->origin;
         query_read_names_args->is_select_all = 1;
-        query_read_names_args->obj_names     = (char **)calloc(sizeof(char *), bulk_args->cnt);
-        query_read_names_args->obj_names_1d  = (char *)calloc(sizeof(char), bulk_args->nbytes);
+        query_read_names_args->obj_names     = (char **)PDC_calloc(sizeof(char *), bulk_args->cnt);
+        query_read_names_args->obj_names_1d  = (char *)PDC_calloc(sizeof(char), bulk_args->nbytes);
 
         HG_Bulk_access(local_bulk_handle, 0, bulk_args->nbytes, HG_BULK_READWRITE, 1, (void **)&tmp_buf, NULL,
                        NULL);
@@ -5065,7 +5067,7 @@ HG_TEST_RPC_CB(storage_meta_name_query_rpc, handle)
 
     HG_Get_input(handle, &in);
     // Duplicate the structure so we can continue to use it after leaving this function
-    args            = (storage_meta_name_query_in_t *)calloc(1, sizeof(storage_meta_name_query_in_t));
+    args            = (storage_meta_name_query_in_t *)PDC_calloc(1, sizeof(storage_meta_name_query_in_t));
     args->obj_name  = strdup(in.obj_name);
     args->task_id   = in.task_id;
     args->origin_id = in.origin_id;
@@ -5132,7 +5134,7 @@ get_storage_meta_bulk_cb(const struct hg_cb_info *hg_cb_info)
     }
     else {
         n_regions = bulk_args->cnt;
-        buf       = (void *)calloc(1, bulk_args->nbytes);
+        buf       = (void *)PDC_calloc(1, bulk_args->nbytes);
 
         HG_Bulk_access(local_bulk_handle, 0, bulk_args->nbytes, HG_BULK_READWRITE, 1, &buf, NULL, NULL);
 
@@ -5150,7 +5152,7 @@ get_storage_meta_bulk_cb(const struct hg_cb_info *hg_cb_info)
             offset     = *uint64_ptr;
             uint64_ptr++;
             region_info_ptr = (region_info_transfer_t *)uint64_ptr;
-            region_list     = (region_list_t *)calloc(1, sizeof(region_list_t));
+            region_list     = (region_list_t *)PDC_calloc(1, sizeof(region_list_t));
             PDC_init_region_list(region_list);
             PDC_region_transfer_t_to_list_t(region_info_ptr, region_list);
             strcpy(region_list->storage_location, file_path);
@@ -5345,7 +5347,7 @@ PDC_add_task_to_list(pdc_task_list_t **target_list, perr_t (*cb)(), void *cb_arg
     if (target_list == NULL)
         PGOTO_ERROR(-1, "== NULL input!");
 
-    new_task          = (pdc_task_list_t *)calloc(1, sizeof(pdc_task_list_t));
+    new_task          = (pdc_task_list_t *)PDC_calloc(1, sizeof(pdc_task_list_t));
     new_task->cb      = cb;
     new_task->cb_args = cb_args;
 
@@ -5538,7 +5540,7 @@ HG_TEST_RPC_CB(send_shm, handle)
 
     HG_Get_input(handle, &in);
 
-    shm_info            = (pdc_shm_info_t *)calloc(sizeof(pdc_shm_info_t), 1);
+    shm_info            = (pdc_shm_info_t *)PDC_calloc(sizeof(pdc_shm_info_t), 1);
     shm_info->client_id = in.client_id;
     shm_info->size      = in.size;
     strcpy(shm_info->shm_addr, in.shm_addr);
@@ -5574,13 +5576,13 @@ query_read_obj_name_client_bulk_cb(const struct hg_cb_info *hg_cb_info)
         PGOTO_ERROR(HG_PROTOCOL_ERROR, "Error in callback");
     }
     else {
-        query_read_names_args      = (query_read_names_args_t *)calloc(1, sizeof(query_read_names_args_t));
-        query_read_names_args->cnt = bulk_args->cnt;
+        query_read_names_args = (query_read_names_args_t *)PDC_calloc(1, sizeof(query_read_names_args_t));
+        query_read_names_args->cnt           = bulk_args->cnt;
         query_read_names_args->client_seq_id = bulk_args->client_seq_id;
         query_read_names_args->client_id     = bulk_args->origin;
         query_read_names_args->is_select_all = 1;
-        query_read_names_args->obj_names     = (char **)calloc(sizeof(char *), bulk_args->cnt);
-        query_read_names_args->obj_names_1d  = (char *)calloc(sizeof(char), bulk_args->nbytes);
+        query_read_names_args->obj_names     = (char **)PDC_calloc(sizeof(char *), bulk_args->cnt);
+        query_read_names_args->obj_names_1d  = (char *)PDC_calloc(sizeof(char), bulk_args->nbytes);
 
         HG_Bulk_access(local_bulk_handle, 0, bulk_args->nbytes, HG_BULK_READWRITE, 1, (void **)&tmp_buf, NULL,
                        NULL);
@@ -5689,7 +5691,7 @@ send_client_storage_meta_bulk_cb(const struct hg_cb_info *hg_cb_info)
         memcpy(buf_cp, buf, bulk_args->nbytes);
 
         process_args =
-            (process_bulk_storage_meta_args_t *)calloc(sizeof(process_bulk_storage_meta_args_t), 1);
+            (process_bulk_storage_meta_args_t *)PDC_calloc(sizeof(process_bulk_storage_meta_args_t), 1);
         process_args->origin_id        = bulk_args->origin;
         process_args->n_storage_meta   = bulk_args->cnt;
         process_args->seq_id           = *((int *)buf_cp);
@@ -5993,7 +5995,7 @@ HG_TEST_RPC_CB(send_bulk_rpc, handle)
     if (ret_value != HG_SUCCESS)
         PGOTO_ERROR(ret_value, "Could not get input");
 
-    bulk_arg                = (struct bulk_args_t *)calloc(1, sizeof(struct bulk_args_t));
+    bulk_arg                = (struct bulk_args_t *)PDC_calloc(1, sizeof(struct bulk_args_t));
     bulk_arg->cnt           = in_struct.cnt;
     bulk_arg->total         = in_struct.total;
     bulk_arg->origin        = in_struct.origin;
@@ -6091,8 +6093,8 @@ HG_TEST_RPC_CB(dart_perform_one_server, handle)
     // Extract input from handle
     HG_Get_input(handle, &in);
 
-    n_obj_ids_ptr = (uint64_t *)calloc(1, sizeof(uint64_t));
-    buf_ptrs      = (uint64_t **)calloc(1, sizeof(uint64_t *));
+    n_obj_ids_ptr = (uint64_t *)PDC_calloc(1, sizeof(uint64_t));
+    buf_ptrs      = (uint64_t **)PDC_calloc(1, sizeof(uint64_t *));
 
     stopwatch_t server_timer;
     timer_start(&server_timer);
@@ -6113,7 +6115,7 @@ HG_TEST_RPC_CB(dart_perform_one_server, handle)
     }
 
     n_buf        = 1;
-    buf_sizes    = (size_t *)calloc(n_buf, sizeof(size_t));
+    buf_sizes    = (size_t *)PDC_calloc(n_buf, sizeof(size_t));
     buf_sizes[0] = sizeof(uint64_t) * (*n_obj_ids_ptr);
 
     // Create bulk handle
@@ -6711,12 +6713,12 @@ deSerialize(pdc_query_t **root, pdc_query_constraint_t *constraints, int *constr
         PGOTO_DONE_VOID;
     }
 
-    *root               = (pdc_query_t *)calloc(1, sizeof(pdc_query_t));
+    *root               = (pdc_query_t *)PDC_calloc(1, sizeof(pdc_query_t));
     (*root)->combine_op = combine_ops[*order_idx];
 
     if (combine_ops[*order_idx] == 0) {
         // Current node is leaf
-        (*root)->constraint = (pdc_query_constraint_t *)calloc(1, sizeof(pdc_query_constraint_t));
+        (*root)->constraint = (pdc_query_constraint_t *)PDC_calloc(1, sizeof(pdc_query_constraint_t));
         memcpy((*root)->constraint, &constraints[*constraint_idx], sizeof(pdc_query_constraint_t));
         (*constraint_idx)++;
     }
@@ -6834,17 +6836,17 @@ PDC_serialize_query(pdc_query_t *query)
     if (NULL == query)
         PGOTO_ERROR(NULL, "NULL input");
 
-    query_xfer = (pdc_query_xfer_t *)calloc(1, sizeof(pdc_query_xfer_t));
+    query_xfer = (pdc_query_xfer_t *)PDC_calloc(1, sizeof(pdc_query_xfer_t));
     nnode      = PDC_query_get_nnode(query);
 
     nleaf = 0;
     PDC_query_get_nleaf(query, &nleaf);
 
     query_xfer->n_constraints = nleaf;
-    query_xfer->constraints   = (pdc_query_constraint_t *)calloc(nleaf, sizeof(pdc_query_constraint_t));
+    query_xfer->constraints   = (pdc_query_constraint_t *)PDC_calloc(nleaf, sizeof(pdc_query_constraint_t));
 
     query_xfer->n_combine_ops = nnode * 2 + 1;
-    query_xfer->combine_ops   = (int *)calloc(nnode * 2 + 1, sizeof(int));
+    query_xfer->combine_ops   = (int *)PDC_calloc(nnode * 2 + 1, sizeof(int));
 
     ops_cnt = constraint_cnt = 0;
     serialize(query, query_xfer->combine_ops, &ops_cnt, query_xfer->constraints, &constraint_cnt);

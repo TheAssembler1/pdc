@@ -58,7 +58,7 @@ pdc_vector_add(PDC_VECTOR *vector, void *item)
     // Expand the array of items if necessary.
     if (vector->item_count >= vector->capacity) {
         vector->capacity *= vector->expansion_factor;
-        vector->items = (void **)realloc(vector->items, vector->capacity * sizeof(void *));
+        vector->items = (void **)PDC_realloc(vector->items, vector->capacity * sizeof(void *));
         if (vector->items == NULL) {
             return;
         }

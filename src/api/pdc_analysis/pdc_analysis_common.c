@@ -91,7 +91,7 @@ pdc_analysis_registry_init_(size_t newSize)
     FUNC_ENTER(NULL);
 
     if (pdc_region_analysis_registry == NULL) {
-        new_registry = (struct _pdc_region_analysis_ftn_info **)calloc(sizeof(void *), newSize);
+        new_registry = (struct _pdc_region_analysis_ftn_info **)PDC_calloc(sizeof(void *), newSize);
         if (new_registry) {
             hg_atomic_init32(&registered_analysis_ftn_count_g, 0);
             pdc_region_analysis_registry = new_registry;
@@ -100,7 +100,7 @@ pdc_analysis_registry_init_(size_t newSize)
         }
     }
     else if (newSize > analysis_registry_size) {
-        new_registry = (struct _pdc_region_analysis_ftn_info **)calloc(sizeof(void *), newSize);
+        new_registry = (struct _pdc_region_analysis_ftn_info **)PDC_calloc(sizeof(void *), newSize);
         if (new_registry) {
             size_t copysize = analysis_registry_size * sizeof(void *);
             memcpy(new_registry, pdc_region_analysis_registry, copysize);
@@ -127,7 +127,7 @@ pdc_transform_registry_init_(size_t newSize)
     FUNC_ENTER(NULL);
 
     if (pdc_region_transform_registry == NULL) {
-        new_registry = (struct _pdc_region_transform_ftn_info **)calloc(sizeof(void *), newSize);
+        new_registry = (struct _pdc_region_transform_ftn_info **)PDC_calloc(sizeof(void *), newSize);
         if (new_registry) {
             hg_atomic_init32(&registered_transform_ftn_count_g, 0);
             pdc_region_transform_registry = new_registry;
@@ -136,7 +136,7 @@ pdc_transform_registry_init_(size_t newSize)
         }
     }
     else if (newSize > transform_registry_size) {
-        new_registry = (struct _pdc_region_transform_ftn_info **)calloc(sizeof(void *), newSize);
+        new_registry = (struct _pdc_region_transform_ftn_info **)PDC_calloc(sizeof(void *), newSize);
         if (new_registry) {
             copysize = transform_registry_size * sizeof(void *);
             memcpy(new_registry, pdc_region_transform_registry, copysize);
@@ -255,12 +255,12 @@ PDCiter_get_nextId(void)
     FUNC_ENTER(NULL);
 
     if (PDC_Block_iterator_cache == NULL) {
-        PDC_Block_iterator_cache =
-            (struct _pdc_iterator_info *)calloc(iterator_cache_entries, sizeof(struct _pdc_iterator_info));
+        PDC_Block_iterator_cache = (struct _pdc_iterator_info *)PDC_calloc(iterator_cache_entries,
+                                                                           sizeof(struct _pdc_iterator_info));
         if (PDC_Block_iterator_cache == NULL)
             PGOTO_ERROR(-1, "calloc failed");
 
-        i_cache_freed = (int *)calloc(iterator_cache_entries, sizeof(int));
+        i_cache_freed = (int *)PDC_calloc(iterator_cache_entries, sizeof(int));
         /* Index 0 is NOT-USED other than to indicate an empty iterator */
         hg_atomic_init32(&i_cache_index, 1);
         hg_atomic_init32(&i_free_index, 0);
@@ -279,11 +279,11 @@ PDCiter_get_nextId(void)
         /* Realloc the cache and free list */
         previous_i_cache_freed   = i_cache_freed;
         previous_state           = PDC_Block_iterator_cache;
-        PDC_Block_iterator_cache = (struct _pdc_iterator_info *)calloc(iterator_cache_entries * 2,
-                                                                       sizeof(struct _pdc_iterator_info));
+        PDC_Block_iterator_cache = (struct _pdc_iterator_info *)PDC_calloc(iterator_cache_entries * 2,
+                                                                           sizeof(struct _pdc_iterator_info));
         memcpy(PDC_Block_iterator_cache, previous_state,
                iterator_cache_entries * sizeof(struct _pdc_iterator_info));
-        i_cache_freed = (int *)calloc(iterator_cache_entries * 2, sizeof(int));
+        i_cache_freed = (int *)PDC_calloc(iterator_cache_entries * 2, sizeof(int));
         memcpy(i_cache_freed, previous_i_cache_freed, iterator_cache_entries * sizeof(int));
         iterator_cache_entries *= 2;
         previous_i_cache_freed = (int *)PDC_free(previous_i_cache_freed);
@@ -497,11 +497,11 @@ HG_TEST_RPC_CB(analysis_ftn, handle)
          * Otherwise, go ahead and register...
          */
         if (nulliter_count < 2) {
-            if ((thisFtn = (struct _pdc_region_analysis_ftn_info *)calloc(
+            if ((thisFtn = (struct _pdc_region_analysis_ftn_info *)PDC_calloc(
                      sizeof(struct _pdc_region_analysis_ftn_info), 1)) != NULL) {
                 thisFtn->ftnPtr    = (int (*)())ftnPtr;
                 thisFtn->n_args    = 2;
-                thisFtn->object_id = (pdcid_t *)calloc(2, sizeof(pdcid_t));
+                thisFtn->object_id = (pdcid_t *)PDC_calloc(2, sizeof(pdcid_t));
                 registrationId     = PDC_add_analysis_ptr_to_registry_(thisFtn);
                 out.remote_ftn_id  = registrationId;
             }

@@ -170,7 +170,7 @@ dsprintf(const char *format, ...)
     va_start(args, format);
     // 3. get arguments value
     int numbytes = vsnprintf((char *)NULL, 0, format, args);
-    ret          = (char *)calloc((numbytes + 1), sizeof(char));
+    ret          = (char *)PDC_calloc((numbytes + 1), sizeof(char));
 
     va_start(args, format);
     vsprintf(ret, format, args);
@@ -311,13 +311,13 @@ gen_random_strings(int count, int minlen, int maxlen, int alphabet_size)
 {
     int    c        = 0;
     int    i        = 0;
-    char **result   = (char **)calloc(count, sizeof(char *));
+    char **result   = (char **)PDC_calloc(count, sizeof(char *));
     int    abc_size = alphabet_size > strlen(VISIBLE_ALPHABET) ? strlen(VISIBLE_ALPHABET) : alphabet_size;
     abc_size        = abc_size < 1 ? 26 : abc_size; // the minimum alphabet size is 26
     for (c = 0; c < count; c++) {
         int len   = (rand() % maxlen) + 1;
         len       = len < minlen ? minlen : len; // Ensure at least minlen character
-        char *str = (char *)calloc(len + 1, sizeof(char));
+        char *str = (char *)PDC_calloc(len + 1, sizeof(char));
         for (i = 0; i < len; i++) {
             int randnum = rand();
             if (randnum < 0)

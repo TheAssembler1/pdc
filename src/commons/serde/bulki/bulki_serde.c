@@ -115,11 +115,11 @@ void *
 BULKI_Entity_serialize(BULKI_Entity *entity, size_t *size)
 {
     size_t estimated_size = get_BULKI_Entity_size(entity);
-    void  *buffer         = calloc(1, estimated_size);
+    void  *buffer         = PDC_calloc(1, estimated_size);
     size_t offset         = 0;
     BULKI_Entity_serialize_to_buffer(entity, buffer, &offset);
     if (offset < estimated_size) {
-        void *small_buffer = realloc(buffer, offset);
+        void *small_buffer = PDC_realloc(buffer, offset);
         if (small_buffer != NULL) {
             buffer = small_buffer;
         }
@@ -168,11 +168,11 @@ void *
 BULKI_serialize(BULKI *data, size_t *size)
 {
     size_t estimated_size = get_BULKI_size(data);
-    void  *buffer         = calloc(1, estimated_size);
+    void  *buffer         = PDC_calloc(1, estimated_size);
     size_t offset         = 0;
     BULKI_serialize_to_buffer(data, buffer, &offset);
     if (offset < estimated_size) {
-        void *small_buffer = realloc(buffer, offset);
+        void *small_buffer = PDC_realloc(buffer, offset);
         if (small_buffer != NULL) {
             buffer = small_buffer;
         }

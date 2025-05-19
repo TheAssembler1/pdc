@@ -293,7 +293,7 @@ new_counting_bloom_from_scale(scaling_bloom_t *bloom)
 
     error_rate = bloom->error_rate * (pow(ERROR_TIGHTENING_RATIO, bloom->num_blooms + 1));
 
-    if ((bloom->blooms = realloc(bloom->blooms, (bloom->num_blooms + 1) * sizeof(counting_bloom_t *))) ==
+    if ((bloom->blooms = PDC_realloc(bloom->blooms, (bloom->num_blooms + 1) * sizeof(counting_bloom_t *))) ==
         NULL) {
         LOG_ERROR("Error, could not realloc a new bloom filter\n");
         return NULL;

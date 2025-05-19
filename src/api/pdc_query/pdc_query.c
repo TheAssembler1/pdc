@@ -40,8 +40,8 @@ PDCquery_create(pdcid_t obj_id, pdc_query_op_t op, pdc_var_type_t type, void *va
     else
         meta_id = obj_id;
 
-    query                     = (pdc_query_t *)calloc(1, sizeof(pdc_query_t));
-    query->constraint         = (pdc_query_constraint_t *)calloc(1, sizeof(pdc_query_constraint_t));
+    query                     = (pdc_query_t *)PDC_calloc(1, sizeof(pdc_query_t));
+    query->constraint         = (pdc_query_constraint_t *)PDC_calloc(1, sizeof(pdc_query_constraint_t));
     query->constraint->obj_id = meta_id; // Use global ID
     query->constraint->op     = op;
     query->constraint->type   = type;
@@ -199,11 +199,11 @@ PDCquery_and(pdc_query_t *q1, pdc_query_t *q2)
         }
     }
 
-    query         = (pdc_query_t *)calloc(1, sizeof(pdc_query_t));
+    query         = (pdc_query_t *)PDC_calloc(1, sizeof(pdc_query_t));
     query->region = q1->region != NULL ? q1->region : q2->region;
 
     if (can_combine == 1) {
-        query->constraint = (pdc_query_constraint_t *)calloc(1, sizeof(pdc_query_constraint_t));
+        query->constraint = (pdc_query_constraint_t *)PDC_calloc(1, sizeof(pdc_query_constraint_t));
         memcpy(query->constraint, q1->constraint, sizeof(pdc_query_constraint_t));
         query->constraint->is_range = 1;
         query->constraint->op2      = q2->constraint->op;
@@ -238,7 +238,7 @@ PDCquery_or(pdc_query_t *q1, pdc_query_t *q2)
     if (NULL == q1 || NULL == q2)
         PGOTO_DONE(NULL);
 
-    query             = (pdc_query_t *)calloc(1, sizeof(pdc_query_t));
+    query             = (pdc_query_t *)PDC_calloc(1, sizeof(pdc_query_t));
     query->left       = q1;
     query->right      = q2;
     query->constraint = NULL;

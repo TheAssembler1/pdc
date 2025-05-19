@@ -1520,9 +1520,9 @@ PDC_Server_get_partial_query_result(metadata_query_transfer_in_t *in, uint32_t *
 
     // n_buf = n_metadata_g + 1 for potential padding array
     n_buf     = n_metadata_g + 1;
-    *buf_ptrs = (void **)calloc(n_buf, sizeof(void *));
+    *buf_ptrs = (void **)PDC_calloc(n_buf, sizeof(void *));
     for (i = 0; i < n_buf; i++) {
-        (*buf_ptrs)[i] = (void *)calloc(1, sizeof(void *));
+        (*buf_ptrs)[i] = (void *)PDC_calloc(1, sizeof(void *));
     }
     // TODO: free buf_ptrs
     if (metadata_hash_table_g != NULL) {
@@ -1567,7 +1567,7 @@ num_query_action_someta(void *cond_exact, void *cond_lo, void *cond_hi, int lo_i
     size_t               input_size = ((pdc_kvtag_t *)input)->size;
     libhl_cmp_callback_t cmp_func   = LIBHL_CMP_CB(num_type);
     *out_len                        = 1;
-    *out                            = calloc(1, sizeof(uint64_t));
+    *out                            = PDC_calloc(1, sizeof(uint64_t));
     pbool_t ret_value               = FALSE;
     if (cond_exact != NULL) { // Exact
         ret_value = cmp_func(input_val, input_size, cond_exact, get_size_by_dtype(num_type)) == 0;
@@ -1643,7 +1643,7 @@ sqlite_query_kvtag_callback(void *data, int argc, char **argv, char **colName)
         pdcid_t id = strtoull(argv[0], NULL, 10);
         if (query_data->nobj >= query_data->nalloc) {
             query_data->nalloc *= 2;
-            *query_data->obj_ids = realloc(*query_data->obj_ids, query_data->nalloc * sizeof(uint64_t));
+            *query_data->obj_ids = PDC_realloc(*query_data->obj_ids, query_data->nalloc * sizeof(uint64_t));
         }
         (*query_data->obj_ids)[query_data->nobj] = id;
         query_data->nobj += 1;
@@ -1686,7 +1686,7 @@ PDC_Server_query_kvtag_rocksdb(pdc_kvtag_t *in, uint32_t *n_meta, uint64_t **obj
         if (_is_matching_kvtag(in, &tmp) == TRUE) {
             if (iter >= alloc_size) {
                 alloc_size *= 2;
-                *obj_ids = (void *)realloc(*obj_ids, alloc_size * sizeof(uint64_t));
+                *obj_ids = (void *)PDC_realloc(*obj_ids, alloc_size * sizeof(uint64_t));
             }
             (*obj_ids)[iter++] = obj_id;
         }
@@ -1845,7 +1845,7 @@ PDC_Server_query_kvtag_someta(pdc_kvtag_t *in, uint32_t *n_meta, uint64_t **obj_
 #endif
                         if (iter >= alloc_size) {
                             alloc_size *= 2;
-                            *obj_ids = (void *)realloc(*obj_ids, alloc_size * sizeof(uint64_t));
+                            *obj_ids = (void *)PDC_realloc(*obj_ids, alloc_size * sizeof(uint64_t));
                         }
                         (*obj_ids)[iter++] = elt->obj_id;
                         // break; // FIXME: shall we break here? or continue to check other kvtags?
@@ -1882,7 +1882,7 @@ PDC_Server_get_kvtag_query_result(pdc_kvtag_t *in /*FIXME: query input should be
     FUNC_ENTER(NULL);
 
     *n_meta  = 0;
-    *obj_ids = (void *)calloc(alloc_size, sizeof(uint64_t));
+    *obj_ids = (void *)PDC_calloc(alloc_size, sizeof(uint64_t));
 
     char *v_query = (char *)in->value;
     LOG_INFO("==PDC_SERVER[%d] before stripQuotes: Querying kvtag with key [%s], value [%s]\n",
@@ -2239,7 +2239,7 @@ PDC_Server_create_container(gen_cont_id_in_t *in, gen_cont_id_out_t *out)
             *hash_key = in->hash_value;
 
             pdc_cont_hash_table_entry_t *entry =
-                (pdc_cont_hash_table_entry_t *)calloc(1, sizeof(pdc_cont_hash_table_entry_t));
+                (pdc_cont_hash_table_entry_t *)PDC_calloc(1, sizeof(pdc_cont_hash_table_entry_t));
             strcpy(entry->cont_name, in->cont_name);
             entry->n_obj       = 0;
             entry->n_allocated = 0;
@@ -2588,7 +2588,7 @@ PDC_copy_all_storage_meta(pdc_metadata_t *meta, region_storage_meta_t **storage_
     region_head = meta->storage_region_list_head;
     DL_COUNT(region_head, region_elt, region_cnt);
     *n_region     = region_cnt;
-    *storage_meta = (region_storage_meta_t *)calloc(sizeof(region_storage_meta_t), region_cnt);
+    *storage_meta = (region_storage_meta_t *)PDC_calloc(sizeof(region_storage_meta_t), region_cnt);
 
     i = 0;
     DL_FOREACH(region_head, region_elt)
@@ -2633,8 +2633,8 @@ PDC_Server_get_storage_meta_by_names(query_read_names_args_t *args)
     FUNC_ENTER(NULL);
 
     // Get the storage meta for each queried object name
-    all_storage_meta = (region_storage_meta_t **)calloc(sizeof(region_storage_meta_t *), args->cnt);
-    all_nregion      = (int *)calloc(sizeof(int), args->cnt);
+    all_storage_meta = (region_storage_meta_t **)PDC_calloc(sizeof(region_storage_meta_t *), args->cnt);
+    all_nregion      = (int *)PDC_calloc(sizeof(int), args->cnt);
 
     total_region = 0;
     for (i = 0; i < args->cnt; i++) {
@@ -2679,8 +2679,8 @@ PDC_Server_get_storage_meta_by_names(query_read_names_args_t *args)
     // bulk transfer to args->origin_id
     // Prepare bulk ptrs, buf_ptrs[0] is task_id
     int nbuf  = total_region + 1;
-    buf_sizes = (hg_size_t *)calloc(nbuf, sizeof(hg_size_t));
-    buf_ptrs  = (void **)calloc(nbuf, sizeof(void *));
+    buf_sizes = (hg_size_t *)PDC_calloc(nbuf, sizeof(hg_size_t));
+    buf_ptrs  = (void **)PDC_calloc(nbuf, sizeof(void *));
 
     buf_ptrs[0]  = &(args->client_seq_id);
     buf_sizes[0] = sizeof(int);

@@ -286,7 +286,7 @@ transfer_request_wait_all_bulk_transfer_cb(const struct hg_cb_info *info)
 
     // free is in PDC_finish_request
     fast_return = 1;
-    handle_ref  = (int *)calloc(1, sizeof(int));
+    handle_ref  = (int *)PDC_calloc(1, sizeof(int));
     pthread_mutex_lock(&transfer_request_status_mutex);
     ptr = local_bulk_args->data_buf;
     for (i = 0; i < local_bulk_args->in.n_objs; ++i) {
@@ -471,7 +471,7 @@ HG_TEST_RPC_CB(transfer_request_wait, handle)
     pthread_mutex_lock(&transfer_request_status_mutex);
     status = PDC_check_request(in.transfer_request_id);
     if (status == PDC_TRANSFER_STATUS_PENDING) {
-        handle_ref = (int *)calloc(1, sizeof(int));
+        handle_ref = (int *)PDC_calloc(1, sizeof(int));
         PDC_try_finish_request(in.transfer_request_id, handle, handle_ref, 0);
     }
     else {

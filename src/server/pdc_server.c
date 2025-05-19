@@ -295,7 +295,7 @@ PDC_Server_get_client_addr(const struct hg_cb_info *callback_info)
 #endif
     if (pdc_client_info_g == NULL) {
         pdc_client_num_g  = in->nclient;
-        pdc_client_info_g = (pdc_client_info_t *)calloc(sizeof(pdc_client_info_t), in->nclient);
+        pdc_client_info_g = (pdc_client_info_t *)PDC_calloc(sizeof(pdc_client_info_t), in->nclient);
         if (pdc_client_info_g == NULL) {
             LOG_ERROR("==PDC_SERVER: PDC_Server_get_client_addr - unable to allocate space\n");
             ret_value = FAIL;
@@ -538,7 +538,7 @@ PDC_Server_lookup_server_id(int remote_server_id)
     if (remote_server_id == pdc_server_rank_g || pdc_remote_server_info_g[remote_server_id].addr_valid == 1)
         return SUCCEED;
 
-    lookup_args = (server_lookup_args_t *)calloc(1, sizeof(server_lookup_args_t));
+    lookup_args = (server_lookup_args_t *)PDC_calloc(1, sizeof(server_lookup_args_t));
 
     lookup_args->server_id = remote_server_id;
     hg_ret                 = HG_Addr_lookup(hg_context_g, lookup_remote_server_cb, lookup_args,
@@ -810,8 +810,8 @@ PDC_Server_init(int port, hg_class_t **hg_class, hg_context_t **hg_context)
     // Create server tmp dir
     PDC_mkdir(pdc_server_tmp_dir_g);
 
-    all_addr_strings_1d_g = (char *)calloc(sizeof(char), pdc_server_size_g * ADDR_MAX);
-    all_addr_strings_g    = (char **)calloc(sizeof(char *), pdc_server_size_g);
+    all_addr_strings_1d_g = (char *)PDC_calloc(sizeof(char), pdc_server_size_g * ADDR_MAX);
+    all_addr_strings_g    = (char **)PDC_calloc(sizeof(char *), pdc_server_size_g);
     total_mem_usage_g += (sizeof(char) + sizeof(char *));
 
     if ((hg_transport = getenv("HG_TRANSPORT")) == NULL) {
@@ -887,7 +887,7 @@ drc_access_again:
 
     // Init server to server communication.
     pdc_remote_server_info_g =
-        (pdc_remote_server_info_t *)calloc(sizeof(pdc_remote_server_info_t), pdc_server_size_g);
+        (pdc_remote_server_info_t *)PDC_calloc(sizeof(pdc_remote_server_info_t), pdc_server_size_g);
 
     for (i = 0; i < pdc_server_size_g; i++) {
         ret_value = PDC_Server_remote_server_info_init(&pdc_remote_server_info_g[i]);
@@ -1534,7 +1534,7 @@ PDC_Server_restart(char *filename)
         // Init hash table metadata (w/ bloom) with first obj
         PDC_Server_hash_table_list_init(entry, hash_key);
 
-        metadata = (pdc_metadata_t *)calloc(sizeof(pdc_metadata_t), count);
+        metadata = (pdc_metadata_t *)PDC_calloc(sizeof(pdc_metadata_t), count);
         for (i = 0; i < count; i++) {
             if (fread(metadata + i, sizeof(pdc_metadata_t), 1, file) != 1) {
                 LOG_ERROR("Read failed for metadata\n");
@@ -1555,7 +1555,7 @@ PDC_Server_restart(char *filename)
                 LOG_ERROR("Read failed for n_kvtag\n");
             }
             for (j = 0; j < n_kvtag; j++) {
-                pdc_kvtag_list_t *kvtag_list = (pdc_kvtag_list_t *)calloc(1, sizeof(pdc_kvtag_list_t));
+                pdc_kvtag_list_t *kvtag_list = (pdc_kvtag_list_t *)PDC_calloc(1, sizeof(pdc_kvtag_list_t));
                 kvtag_list->kvtag            = (pdc_kvtag_t *)PDC_malloc(sizeof(pdc_kvtag_t));
                 if (fread(&key_len, sizeof(int), 1, file) != 1) {
                     LOG_ERROR("Read failed for key_len\n");
@@ -1698,7 +1698,7 @@ PDC_Server_restart(char *filename)
 
     for (i = 0; i < n_objs; ++i) {
         data_server_region_t *new_obj_reg =
-            (data_server_region_t *)calloc(1, sizeof(struct data_server_region_t));
+            (data_server_region_t *)PDC_calloc(1, sizeof(struct data_server_region_t));
         new_obj_reg->fd               = -1;
         new_obj_reg->storage_location = (char *)PDC_malloc(sizeof(char) * ADDR_MAX);
         if (fread(&new_obj_reg->obj_id, sizeof(uint64_t), 1, file) != 1) {

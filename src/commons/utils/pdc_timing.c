@@ -43,7 +43,6 @@ PDC_timing_init()
 
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
     gethostname(hostname, HOST_NAME_MAX);
-    strcpy(hostname, "eno1");
     if (!(rank % 31)) {
         LOG_INFO("client process rank %d, hostname = %s\n", rank, hostname);
     }
@@ -51,7 +50,7 @@ PDC_timing_init()
 
     memset(&pdc_timings, 0, sizeof(pdc_timing));
 
-    pdc_client_buf_obj_map_timestamps   = calloc(16, sizeof(pdc_timestamp));
+    pdc_client_buf_obj_map_timestamps   = PDC_calloc(16, sizeof(pdc_timestamp));
     ptr                                 = pdc_client_buf_obj_map_timestamps + 1;
     pdc_client_buf_obj_unmap_timestamps = ptr;
     ptr++;
@@ -129,7 +128,6 @@ PDC_timing_report(const char *prefix)
     time(&now);
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
     gethostname(hostname, HOST_NAME_MAX);
-    strcpy(hostname, "eno1");
     if (!(rank % 32)) {
         LOG_INFO("client process rank %d, hostname = %s\n", rank, hostname);
     }
@@ -265,13 +263,12 @@ PDC_server_timing_init()
 
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
     gethostname(hostname, HOST_NAME_MAX);
-    strcpy(hostname, "eno1");
 
     LOG_INFO("server process rank %d, hostname = %s\n", rank, hostname);
     MPI_Barrier(MPI_COMM_WORLD);
 
-    pdc_server_timings         = calloc(1, sizeof(pdc_server_timing));
-    pdc_timestamp *ptr         = calloc(25, sizeof(pdc_timestamp));
+    pdc_server_timings         = PDC_calloc(1, sizeof(pdc_server_timing));
+    pdc_timestamp *ptr         = PDC_calloc(25, sizeof(pdc_timestamp));
     pdc_buf_obj_map_timestamps = ptr;
     ptr++;
     pdc_buf_obj_unmap_timestamps = ptr;

@@ -76,7 +76,7 @@ set_allocate_table(Set *set)
 
     /* Allocate the table and initialise to NULL */
 
-    set->table = calloc(set->table_size, sizeof(SetEntry *));
+    set->table = PDC_calloc(set->table_size, sizeof(SetEntry *));
 
     return set->table != NULL;
 }

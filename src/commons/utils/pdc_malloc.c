@@ -104,7 +104,7 @@ PDC_realloc_knowing_oldsize(void *ptr, size_t size, size_t old_size)
     assert(size);
     size_t _old_size = old_size;
     if (size)
-        ret_value = realloc(ptr, size);
+        ret_value = PDC_realloc(ptr, size);
     else
         ret_value = NULL;
 
@@ -162,7 +162,7 @@ PDC_free_knowing_old_size(void *mem, size_t old_size)
     FUNC_ENTER(NULL);
 
     if (mem) {
-        mem = (void *)PDC_free(mem);
+        free(mem);
         if (_old_size)
             PDC_mem_usage_g -= _old_size;
     }

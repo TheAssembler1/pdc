@@ -204,7 +204,7 @@ uint32_t
 md5_hash(int prefix_len, char *word)
 {
 
-    char *prefix = (char *)calloc(prefix_len + 1, sizeof(char));
+    char *prefix = (char *)PDC_calloc(prefix_len + 1, sizeof(char));
     strncpy(prefix, word, prefix_len);
     uint8_t digest;
     md5((uint8_t *)prefix, strlen(prefix), &digest);

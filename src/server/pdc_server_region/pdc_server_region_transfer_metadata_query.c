@@ -70,7 +70,7 @@ transfer_request_metadata_query_init(int pdc_server_size_input, char *checkpoint
     metadata_query_buf_head  = NULL;
     metadata_query_buf_end   = NULL;
     pdc_server_size          = pdc_server_size_input;
-    data_server_bytes        = (uint64_t *)calloc(pdc_server_size, sizeof(uint64_t));
+    data_server_bytes        = (uint64_t *)PDC_calloc(pdc_server_size, sizeof(uint64_t));
     query_id_g               = 100000;
     ptr                      = checkpoint;
     pthread_mutex_init(&metadata_query_mutex, NULL);
@@ -262,7 +262,7 @@ metadata_query_buf_create(pdc_obj_region_metadata *regions, int size, uint64_t *
     // Iterate through all input regions. We compute the total buf size in this loop
     total_data_size                = sizeof(int);
     transfer_request_counter_total = 0;
-    transfer_request_counters      = (int *)calloc(size, sizeof(int));
+    transfer_request_counters      = (int *)PDC_calloc(size, sizeof(int));
     for (i = 0; i < size; ++i) {
         temp = metadata_server_objs;
         // First check which obj list

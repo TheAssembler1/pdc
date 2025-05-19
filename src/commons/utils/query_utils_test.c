@@ -16,7 +16,7 @@ main(int argc, char *argv[])
 {
     int          affix_length = atoi(argv[1]);
     pdc_kvtag_t *base_string_tag;
-    base_string_tag        = (pdc_kvtag_t *)calloc(1, sizeof(pdc_kvtag_t));
+    base_string_tag        = (pdc_kvtag_t *)PDC_calloc(1, sizeof(pdc_kvtag_t));
     base_string_tag->name  = "testname";
     base_string_tag->type  = PDC_STRING;
     base_string_tag->value = "testvalue";
@@ -37,10 +37,10 @@ main(int argc, char *argv[])
 
     pdc_kvtag_t *base_int_tag;
     int          int_value          = 234;
-    base_int_tag                    = (pdc_kvtag_t *)calloc(1, sizeof(pdc_kvtag_t));
+    base_int_tag                    = (pdc_kvtag_t *)PDC_calloc(1, sizeof(pdc_kvtag_t));
     base_int_tag->name              = "testname";
     base_int_tag->type              = PDC_INT;
-    base_int_tag->value             = (void *)calloc(1, sizeof(int));
+    base_int_tag->value             = (void *)PDC_calloc(1, sizeof(int));
     ((int *)base_int_tag->value)[0] = int_value;
 
     for (int i = 4; i < 6; i++) {

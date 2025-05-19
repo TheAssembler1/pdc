@@ -200,7 +200,7 @@ PDC_Client_attach_metadata_to_local_obj(const char *obj_name, uint64_t obj_id, u
 
     FUNC_ENTER(NULL);
 
-    obj_info->metadata                              = (pdc_metadata_t *)calloc(1, sizeof(pdc_metadata_t));
+    obj_info->metadata                              = (pdc_metadata_t *)PDC_calloc(1, sizeof(pdc_metadata_t));
     ((pdc_metadata_t *)obj_info->metadata)->user_id = obj_info->obj_pt->user_id;
     if (NULL != obj_info->obj_pt->app_name)
         strcpy(((pdc_metadata_t *)obj_info->metadata)->app_name, obj_info->obj_pt->app_name);

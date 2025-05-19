@@ -184,7 +184,7 @@ hash_table_allocate_table(HashTable *hash_table)
     hash_table->table_size = new_table_size;
 
     /* Allocate the table and initialise to NULL for all entries */
-    hash_table->table = calloc(hash_table->table_size, sizeof(HashTableEntry *));
+    hash_table->table = PDC_calloc(hash_table->table_size, sizeof(HashTableEntry *));
 
     return hash_table->table != NULL;
 }
@@ -234,7 +234,6 @@ hash_table_new(HashTableHashFunc hash_func, HashTableEqualFunc equal_func)
     /* Allocate the table */
     if (!hash_table_allocate_table(hash_table)) {
         hash_table = (HashTable *)PDC_free(hash_table);
-
         return NULL;
     }
 

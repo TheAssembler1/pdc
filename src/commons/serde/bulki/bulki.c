@@ -131,7 +131,7 @@ BULKI_print(BULKI *bulki)
 BULKI_Entity *
 empty_BULKI_Array_Entity()
 {
-    BULKI_Entity *bulki_entity = (BULKI_Entity *)calloc(1, sizeof(BULKI_Entity));
+    BULKI_Entity *bulki_entity = (BULKI_Entity *)PDC_calloc(1, sizeof(BULKI_Entity));
     bulki_entity->pdc_type     = PDC_BULKI;
     bulki_entity->pdc_class    = PDC_CLS_ARRAY;
     bulki_entity->count        = 0;
@@ -143,7 +143,7 @@ empty_BULKI_Array_Entity()
 BULKI_Entity *
 empty_Bent_Array_Entity()
 {
-    BULKI_Entity *bulki_entity = (BULKI_Entity *)calloc(1, sizeof(BULKI_Entity));
+    BULKI_Entity *bulki_entity = (BULKI_Entity *)PDC_calloc(1, sizeof(BULKI_Entity));
     bulki_entity->pdc_type     = PDC_BULKI_ENT;
     bulki_entity->pdc_class    = PDC_CLS_ARRAY;
     bulki_entity->count        = 0;
@@ -164,7 +164,7 @@ BULKI_ENTITY_append_BULKI(BULKI_Entity *dest, BULKI *src)
         return NULL;
     }
     dest->count = dest->count + 1;
-    dest->data  = realloc(dest->data, dest->count * sizeof(BULKI));
+    dest->data  = PDC_realloc(dest->data, dest->count * sizeof(BULKI));
     memcpy(dest->data + (dest->count - 1) * sizeof(BULKI), src, sizeof(BULKI));
     get_BULKI_Entity_size(dest);
     return dest;
@@ -201,7 +201,7 @@ BULKI_ENTITY_append_BULKI_Entity(BULKI_Entity *dest, BULKI_Entity *src)
         return NULL;
     }
     dest->count = dest->count + 1;
-    dest->data  = realloc(dest->data, dest->count * sizeof(BULKI_Entity));
+    dest->data  = PDC_realloc(dest->data, dest->count * sizeof(BULKI_Entity));
     memcpy(dest->data + (dest->count - 1) * sizeof(BULKI_Entity), src, sizeof(BULKI_Entity));
     get_BULKI_Entity_size(dest);
     return dest;
@@ -231,7 +231,7 @@ BULKI_ENTITY(void *data, uint64_t count, pdc_c_var_type_t pdc_type, pdc_c_var_cl
         LOG_ERROR("Error: BULKI_Entity cannot be an single item in another BULKI_Entity\n");
         return NULL;
     }
-    BULKI_Entity *bulki_entity = (BULKI_Entity *)calloc(1, sizeof(BULKI_Entity));
+    BULKI_Entity *bulki_entity = (BULKI_Entity *)PDC_calloc(1, sizeof(BULKI_Entity));
     bulki_entity->pdc_type     = pdc_type;
     bulki_entity->pdc_class    = pdc_class;
     bulki_entity->count        = (pdc_class == PDC_CLS_ITEM) ? 1 : count;
@@ -245,7 +245,7 @@ BULKI_ENTITY(void *data, uint64_t count, pdc_c_var_type_t pdc_type, pdc_c_var_cl
         bulki_entity->data = data;
     }
     else {
-        bulki_entity->data = calloc(1, size);
+        bulki_entity->data = PDC_calloc(1, size);
         memcpy(bulki_entity->data, data, size);
     }
 
@@ -268,14 +268,14 @@ BULKI_array_ENTITY(void *data, uint64_t count, pdc_c_var_type_t pdc_type)
 BULKI *
 BULKI_init(int initial_field_count)
 {
-    BULKI *buiki              = calloc(1, sizeof(BULKI));
+    BULKI *buiki              = PDC_calloc(1, sizeof(BULKI));
     buiki->numKeys            = 0;
     buiki->capacity           = initial_field_count;
-    buiki->header             = calloc(1, sizeof(BULKI_Header));
-    buiki->header->keys       = calloc(buiki->capacity, sizeof(BULKI_Entity));
+    buiki->header             = PDC_calloc(1, sizeof(BULKI_Header));
+    buiki->header->keys       = PDC_calloc(buiki->capacity, sizeof(BULKI_Entity));
     buiki->header->headerSize = 0;
-    buiki->data               = calloc(1, sizeof(BULKI_Data));
-    buiki->data->values       = calloc(buiki->capacity, sizeof(BULKI_Entity));
+    buiki->data               = PDC_calloc(1, sizeof(BULKI_Data));
+    buiki->data->values       = PDC_calloc(buiki->capacity, sizeof(BULKI_Entity));
     buiki->data->dataSize     = 0;
     get_BULKI_size(buiki);
     return buiki;
@@ -368,8 +368,8 @@ BULKI_put(BULKI *bulki, BULKI_Entity *key, BULKI_Entity *value)
     }
     if (bulki->numKeys >= bulki->capacity) {
         bulki->capacity *= 2;
-        bulki->header->keys = realloc(bulki->header->keys, bulki->capacity * sizeof(BULKI_Entity));
-        bulki->data->values = realloc(bulki->data->values, bulki->capacity * sizeof(BULKI_Entity));
+        bulki->header->keys = PDC_realloc(bulki->header->keys, bulki->capacity * sizeof(BULKI_Entity));
+        bulki->data->values = PDC_realloc(bulki->data->values, bulki->capacity * sizeof(BULKI_Entity));
     }
     memcpy(&bulki->header->keys[bulki->numKeys], key, sizeof(BULKI_Entity));
     // append bytes for type, size, and key
@@ -409,7 +409,7 @@ Bent_iterator_init(BULKI_Entity *array, void *filter, pdc_c_var_type_t filter_ty
         LOG_ERROR("Error: not a proper array\n");
         return NULL;
     }
-    BULKI_Entity_Iterator *iter = (BULKI_Entity_Iterator *)calloc(1, sizeof(BULKI_Entity_Iterator));
+    BULKI_Entity_Iterator *iter = (BULKI_Entity_Iterator *)PDC_calloc(1, sizeof(BULKI_Entity_Iterator));
     iter->entity_array          = array;
     iter->total_size            = array->count;
     iter->current_idx           = 0;
@@ -496,7 +496,7 @@ BULKI_KV_Pair_iterator_init(BULKI *bulki)
         LOG_ERROR("Error: bulki is NULL\n");
         return NULL;
     }
-    BULKI_KV_Pair_Iterator *iter = (BULKI_KV_Pair_Iterator *)calloc(1, sizeof(BULKI_KV_Pair_Iterator));
+    BULKI_KV_Pair_Iterator *iter = (BULKI_KV_Pair_Iterator *)PDC_calloc(1, sizeof(BULKI_KV_Pair_Iterator));
     iter->bulki                  = bulki;
     iter->total_size             = bulki->numKeys;
     iter->current_idx            = 0;
@@ -513,7 +513,7 @@ BULKI_KV_Pair *
 BULKI_KV_Pair_iterator_next(BULKI_KV_Pair_Iterator *it)
 {
     if (it->current_idx < it->total_size) {
-        BULKI_KV_Pair *pair = (BULKI_KV_Pair *)calloc(1, sizeof(BULKI_KV_Pair));
+        BULKI_KV_Pair *pair = (BULKI_KV_Pair *)PDC_calloc(1, sizeof(BULKI_KV_Pair));
         pair->key           = it->bulki->header->keys[it->current_idx];
         pair->value         = it->bulki->data->values[it->current_idx];
         it->current_idx++;
