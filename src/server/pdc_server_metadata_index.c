@@ -48,8 +48,8 @@ PDC_Server_dart_perform_one_server(dart_perform_one_server_in_t *in, dart_perfor
     perr_t                 result     = SUCCEED;
     dart_op_type_t         op_type    = in->op_type;
     dart_hash_algo_t       hash_algo  = in->hash_algo;
-    char                  *attr_key   = (char *)in->attr_key;
-    void                  *attr_val   = in->attr_val;
+    char *                 attr_key   = (char *)in->attr_key;
+    void *                 attr_val   = in->attr_val;
     uint32_t               attr_vsize = in->attr_vsize;
     pdc_c_var_type_t       attr_dtype = in->attr_vtype;
     dart_object_ref_type_t ref_type   = in->obj_ref_type;

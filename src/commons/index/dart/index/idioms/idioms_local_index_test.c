@@ -8,23 +8,23 @@ typedef enum { IDIOMS_INSERT = 1, IDIOMS_DELETE = 2, IDIOMS_QUERY = 3 } IDIOMS_O
 
 typedef struct {
     IDIOMS_t *idioms;
-    void     *buffer_in;
+    void *    buffer_in;
     size_t    buffer_in_size;
-    void     *buffer_out;
+    void *    buffer_out;
     size_t    buffer_out_size;
     int       id;
 } dummy_server_t;
 
 typedef struct {
-    DART  *dart;
+    DART * dart;
     int    DART_ALPHABET_SIZE;
     int    num_servers;
     int    extra_tree_height;
     int    replication_factor;
     int    dart_insert_count;
-    void  *buffer_in;
+    void * buffer_in;
     size_t buffer_in_size;
-    void  *buffer_out;
+    void * buffer_out;
     size_t buffer_out_size;
     int    id;
 } dummy_client_t;
@@ -105,7 +105,7 @@ client_select_server(dummy_client_t *client, char *attr_key, IDIOMS_OP_TYPE op_t
 {
     // select a server based on the key
     dart_op_type_t           dart_op   = OP_INSERT;
-    char                    *input_key = attr_key;
+    char *                   input_key = attr_key;
     get_server_info_callback gsi_cp    = NULL;
     if (op_type == IDIOMS_INSERT) {
         dart_op = OP_INSERT;
@@ -188,14 +188,14 @@ server_perform_delete(dummy_server_t *server, char *key, BULKI_Entity *value_ent
 void
 server_perform_operation(dummy_server_t *server)
 {
-    BULKI_Entity  *resultBent  = empty_Bent_Array_Entity();
-    BULKI_Entity  *bentArr     = BULKI_Entity_deserialize(server->buffer_in);
-    BULKI_Entity  *opType_ent  = BULKI_ENTITY_get_BULKI_Entity(bentArr, 0);
-    BULKI_Entity  *key_ent     = BULKI_ENTITY_get_BULKI_Entity(bentArr, 1);
-    char          *key         = (char *)key_ent->data;
+    BULKI_Entity * resultBent  = empty_Bent_Array_Entity();
+    BULKI_Entity * bentArr     = BULKI_Entity_deserialize(server->buffer_in);
+    BULKI_Entity * opType_ent  = BULKI_ENTITY_get_BULKI_Entity(bentArr, 0);
+    BULKI_Entity * key_ent     = BULKI_ENTITY_get_BULKI_Entity(bentArr, 1);
+    char *         key         = (char *)key_ent->data;
     perr_t         result      = SUCCEED;
     IDIOMS_OP_TYPE opType      = *(int8_t *)opType_ent->data;
-    uint64_t      *obj_id_list = NULL;
+    uint64_t *     obj_id_list = NULL;
     uint64_t       count       = 0;
     if (opType == IDIOMS_QUERY) {
         result = server_perform_query(server, key, &obj_id_list, &count);

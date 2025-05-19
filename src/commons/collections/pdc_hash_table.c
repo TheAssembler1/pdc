@@ -37,7 +37,7 @@ struct _HashTableEntry {
 };
 
 struct _HashTable {
-    HashTableEntry       **table;
+    HashTableEntry **      table;
     unsigned int           table_size;
     HashTableHashFunc      hash_func;
     HashTableEqualFunc     equal_func;
@@ -65,7 +65,7 @@ static const unsigned int hash_table_num_primes = sizeof(hash_table_primes) / si
 unsigned int
 pdc_default_string_hash_func(HashTableKey value)
 {
-    char        *str  = (char *)value;
+    char *       str  = (char *)value;
     unsigned int hash = 5381;
     int          c;
 
@@ -278,9 +278,9 @@ hash_table_enlarge(HashTable *hash_table)
     HashTableEntry **old_table;
     unsigned int     old_table_size;
     unsigned int     old_prime_index;
-    HashTableEntry  *rover;
-    HashTablePair   *pair;
-    HashTableEntry  *next;
+    HashTableEntry * rover;
+    HashTablePair *  pair;
+    HashTableEntry * next;
     unsigned int     index;
     unsigned int     i;
 
@@ -335,7 +335,7 @@ int
 hash_table_insert(HashTable *hash_table, HashTableKey key, HashTableValue value)
 {
     HashTableEntry *rover;
-    HashTablePair  *pair;
+    HashTablePair * pair;
     HashTableEntry *newentry;
     unsigned int    index;
 
@@ -419,7 +419,7 @@ HashTableValue
 hash_table_lookup(HashTable *hash_table, HashTableKey key)
 {
     HashTableEntry *rover;
-    HashTablePair  *pair;
+    HashTablePair * pair;
     unsigned int    index;
 
     /* Generate the hash of the key and hence the index into the table */
@@ -449,8 +449,8 @@ int
 hash_table_remove(HashTable *hash_table, HashTableKey key)
 {
     HashTableEntry **rover;
-    HashTableEntry  *entry;
-    HashTablePair   *pair;
+    HashTableEntry * entry;
+    HashTablePair *  pair;
     unsigned int     index;
     int              result;
 
@@ -533,7 +533,7 @@ HashTablePair
 hash_table_iter_next(HashTableIterator *iterator)
 {
     HashTableEntry *current_entry;
-    HashTable      *hash_table;
+    HashTable *     hash_table;
     HashTablePair   pair = {NULL, NULL};
     unsigned int    chain;
 

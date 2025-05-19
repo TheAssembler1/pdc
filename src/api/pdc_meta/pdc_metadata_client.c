@@ -38,7 +38,7 @@ void
 splitExpression(const char *expression, char conditions[][CONDITION_LENGTH], int *count)
 {
     char       tempExpr[1024];
-    char      *token;
+    char *     token;
     const char delimiters[] = "AND OR";
     int        index        = 0;
 

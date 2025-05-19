@@ -9,8 +9,8 @@
 void
 delete_kv_from_index(char *kv, uint64_t obj_id)
 {
-    char  *key      = NULL;
-    char  *value    = NULL;
+    char * key      = NULL;
+    char * value    = NULL;
     int8_t kv_dtype = PDC_STRING;
 
     dart_perform_one_server_in_t  input;
@@ -75,8 +75,8 @@ void
 insert_kv_to_index(char *kv, uint64_t obj_id)
 {
 
-    char  *key      = NULL;
-    void  *value    = NULL;
+    char * key      = NULL;
+    void * value    = NULL;
     int8_t kv_dtype = PDC_STRING;
 
     dart_perform_one_server_in_t  input;

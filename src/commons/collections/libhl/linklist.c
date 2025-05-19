@@ -14,9 +14,9 @@
 
 typedef struct _list_entry_s {
     struct _linked_list_s *list;
-    struct _list_entry_s  *prev;
-    struct _list_entry_s  *next;
-    void                  *value;
+    struct _list_entry_s * prev;
+    struct _list_entry_s * next;
+    void *                 value;
     int                    tagged;
 } list_entry_t;
 
@@ -31,7 +31,7 @@ struct _linked_list_s {
 #endif
     free_value_callback_t free_value_cb;
     int                   refcnt;
-    list_entry_t         *slices;
+    list_entry_t *        slices;
 };
 
 struct _slice_s {
@@ -564,7 +564,7 @@ get_entry_position(list_entry_t *entry)
 {
     int            i = 0;
     linked_list_t *list;
-    list_entry_t  *p;
+    list_entry_t * p;
     list = entry->list;
 
     if (!list)
@@ -589,7 +589,7 @@ get_entry_position(list_entry_t *entry)
 void *
 list_pop_value(linked_list_t *list)
 {
-    void         *val   = NULL;
+    void *        val   = NULL;
     list_entry_t *entry = pop_entry(list);
     if (entry) {
         val = entry->value;
@@ -629,7 +629,7 @@ list_unshift_value(linked_list_t *list, void *val)
 void *
 list_shift_value(linked_list_t *list)
 {
-    void         *val   = NULL;
+    void *        val   = NULL;
     list_entry_t *entry = shift_entry(list);
     if (entry) {
         val = entry->value;
@@ -664,7 +664,7 @@ list_pick_value(linked_list_t *list, size_t pos)
 void *
 list_fetch_value(linked_list_t *list, size_t pos)
 {
-    void         *val   = NULL;
+    void *        val   = NULL;
     list_entry_t *entry = fetch_entry(list, pos);
     if (entry) {
         val = entry->value;
@@ -997,7 +997,7 @@ list_quick_sort(list_entry_t *head, list_entry_t *tail, list_entry_t *pivot, int
         return;
     }
 
-    void         *pvalue = pivot->value;
+    void *        pvalue = pivot->value;
     list_entry_t *p1 = head, *p2 = tail;
 
     for (;;) {
@@ -1153,8 +1153,8 @@ void
 slice_destroy(slice_t *slice)
 {
     linked_list_t *list = slice->list;
-    list_entry_t  *cur  = list->slices;
-    list_entry_t  *prev = NULL;
+    list_entry_t * cur  = list->slices;
+    list_entry_t * prev = NULL;
     while (cur) {
         if (cur->value == slice) {
             if (prev) {

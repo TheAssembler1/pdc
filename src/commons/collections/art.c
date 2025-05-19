@@ -105,9 +105,9 @@ destroy_node(art_node *n)
     // Handle each node type
     int i, idx;
     union {
-        art_node4   *p1;
-        art_node16  *p2;
-        art_node48  *p3;
+        art_node4 *  p1;
+        art_node16 * p2;
+        art_node48 * p3;
         art_node256 *p4;
     } p;
     switch (n->type) {
@@ -178,9 +178,9 @@ find_child(art_node *n, unsigned char c)
 {
     int i, mask, bitfield;
     union {
-        art_node4   *p1;
-        art_node16  *p2;
-        art_node48  *p3;
+        art_node4 *  p1;
+        art_node16 * p2;
+        art_node48 * p3;
         art_node256 *p4;
     } p;
     switch (n->type) {
@@ -311,7 +311,7 @@ void *
 art_search(const art_tree *t, const unsigned char *key, int key_len)
 {
     art_node **child;
-    art_node  *n = t->root;
+    art_node * n = t->root;
     int        prefix_len, depth = 0;
     while (n) {
         // Might be a leaf
@@ -1045,7 +1045,7 @@ int
 art_iter_prefix(art_tree *t, const unsigned char *key, int key_len, art_callback cb, void *data)
 {
     art_node **child;
-    art_node  *n = t->root;
+    art_node * n = t->root;
     int        prefix_len, depth = 0;
     while (n) {
         // Might be a leaf

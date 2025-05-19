@@ -106,8 +106,8 @@ print_error(char *message)
 int
 read_text_file(char *filename, void (*callback)(char *line))
 {
-    FILE   *fp   = open_file(filename, IO_MODE_READ);
-    char   *line = NULL;
+    FILE *  fp   = open_file(filename, IO_MODE_READ);
+    char *  line = NULL;
     size_t  len  = 0;
     ssize_t read;
     while ((read = getline(&line, &len, fp)) != -1) {
