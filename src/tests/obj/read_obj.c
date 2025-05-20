@@ -9,6 +9,7 @@
 #include "pdc.h"
 #include "pdc_client_connect.h"
 #include "pdc_client_server_common.h"
+#include "test_helper.h"
 
 void
 print_usage()
@@ -23,7 +24,7 @@ main(int argc, char **argv)
     uint64_t size_MB, size_B;
     perr_t   ret;
     int      ndim      = 1;
-    int      ret_value = 0;
+    int      ret_value = TSUCCEED;
 #ifdef ENABLE_MPI
     MPI_Comm comm;
 #else
@@ -59,11 +60,10 @@ main(int argc, char **argv)
 
     if (argc != 4) {
         print_usage();
-        ret_value = 1;
 #ifdef ENABLE_MPI
         MPI_Finalize();
 #endif
-        return ret_value;
+        TGOTO_DONE(TFAIL);
     }
 
     sprintf(obj_name, "%s_%d", argv[1], rank);
@@ -112,40 +112,36 @@ main(int argc, char **argv)
     size_B = size_MB * 1048576;
 
     // create a pdc
-    pdc = PDCinit("pdc");
-    LOG_INFO("create a new pdc\n");
+    TASSERT((pdc = PDCinit("pdc")) != 0, "Call to PDCinit succeeded", "Call to PDCinit failed");
 
     // create a container property
-    cont_prop = PDCprop_create(PDC_CONT_CREATE, pdc);
-    if (cont_prop <= 0) {
-        LOG_ERROR("Failed to create container property");
-        ret_value = 1;
-    }
+    TASSERT((cont_prop = PDCprop_create(PDC_CONT_CREATE, pdc)) != 0, "Call to PDCprop_create succeeded",
+            "Call to PDCprop_create failed");
     // create a container
     sprintf(cont_name, "c%d", rank);
-    cont = PDCcont_create(cont_name, cont_prop);
-    if (cont <= 0) {
-        LOG_ERROR("Failed to create container");
-        ret_value = 1;
-    }
+    TASSERT((cont = PDCcont_create_col(cont_name, cont_prop)) != 0, "Call to PDCcont_create_col succeeded",
+            "Call to PDCcont_create_col failed");
     // create an object property
-    obj_prop = PDCprop_create(PDC_OBJ_CREATE, pdc);
-    if (obj_prop <= 0) {
-        LOG_ERROR("Failed to create object property");
-        ret_value = 1;
-    }
+    TASSERT((obj_prop = PDCprop_create(PDC_OBJ_CREATE, pdc)) != 0, "Call to PDCprop_create succeeded",
+            "Call to PDCprop_create failed");
     dims[0]      = size_B;
     my_data_size = size_B / size;
     LOG_INFO("my_data_size at rank %d is %llu\n", rank, (long long unsigned)my_data_size);
 
     mydata = (char *)malloc(my_data_size * type_size);
 
-    PDCprop_set_obj_type(obj_prop, var_type);
-    PDCprop_set_obj_dims(obj_prop, 1, dims);
-    PDCprop_set_obj_user_id(obj_prop, getuid());
-    PDCprop_set_obj_time_step(obj_prop, 0);
-    PDCprop_set_obj_app_name(obj_prop, "DataServerTest");
-    PDCprop_set_obj_tags(obj_prop, "tag0=1");
+    TASSERT(PDCprop_set_obj_type(obj_prop, var_type) >= 0, "Call to PDCprop_set_obj_type succeeded",
+            "Call to PDCprop_set_obj_type failed");
+    TASSERT(PDCprop_set_obj_dims(obj_prop, 1, dims) >= 0, "Call to PDCprop_set_obj_dims succeeded",
+            "Call to PDCprop_set_obj_dims failed");
+    TASSERT(PDCprop_set_obj_user_id(obj_prop, getuid()) >= 0, "Call to (PDCprop_set_obj_user_id succeeded",
+            "Call to (PDCprop_set_obj_user_id failed");
+    TASSERT(PDCprop_set_obj_time_step(obj_prop, 0) >= 0, "Call to PDCprop_set_obj_time_step succeeded",
+            "Call to PDCprop_set_obj_time_step failed");
+    TASSERT(PDCprop_set_obj_app_name(obj_prop, "DataServerTest") >= 0,
+            "Call to (PDCprop_set_obj_user_id succeeded", "Call to (PDCprop_set_obj_user_id failed");
+    TASSERT(PDCprop_set_obj_tags(obj_prop, "tag0=1") >= 0, "Call to (PDCprop_set_obj_tags succeeded",
+            "Call to (PDCprop_set_obj_tags failed");
 
     // Create a object
 #ifdef ENABLE_MPI
@@ -154,10 +150,8 @@ main(int argc, char **argv)
     global_obj = PDCobj_create(cont, obj_name, obj_prop);
 #endif
 
-    if (global_obj <= 0) {
-        LOG_ERROR("Error creating an object [%s], exit...\n", obj_name);
-        ret_value = 1;
-    }
+    if (global_obj <= 0)
+        TGOTO_ERROR(TFAIL, "Error creating an object [%s]\n", obj_name);
 
     offset          = (uint64_t *)malloc(sizeof(uint64_t) * ndim);
     local_offset    = (uint64_t *)malloc(sizeof(uint64_t) * ndim);
@@ -166,41 +160,30 @@ main(int argc, char **argv)
     local_offset[0] = 0;
     mysize[0]       = my_data_size;
 
-    local_region  = PDCregion_create(ndim, local_offset, mysize);
-    global_region = PDCregion_create(ndim, offset, mysize);
+    TASSERT((local_region = PDCregion_create(ndim, local_offset, mysize)) != 0,
+            "Call to PDCregion_create succeeded", "Call to PDCregion_create failed");
+    TASSERT((global_region = PDCregion_create(ndim, offset, mysize)) != 0,
+            "Call to PDCregion_create succeeded", "Call to PDCregion_create failed");
 
     for (i = 0; i < (int)my_data_size; i++) {
         for (j = 0; j < (int)type_size; ++j) {
             mydata[i * type_size + j] = i;
         }
     }
-    transfer_request = PDCregion_transfer_create(mydata, PDC_WRITE, global_obj, local_region, global_region);
-    if (transfer_request == 0) {
-        LOG_ERROR("PDCregion_transfer_create failed");
-        ret_value = 1;
-    }
 
+    TASSERT((transfer_request =
+                 PDCregion_transfer_create(mydata, PDC_WRITE, global_obj, local_region, global_region)) != 0,
+            "Call to PDCregion_transfer_create succeeded", "Call to PDCregion_transfer_create failed");
 #ifdef ENABLE_MPI
     MPI_Barrier(MPI_COMM_WORLD);
 #endif
     gettimeofday(&pdc_timer_start, 0);
-    ret = PDCregion_transfer_start(transfer_request);
-    if (ret != SUCCEED) {
-        LOG_ERROR("Failed to region_transfer_start for region");
-        ret_value = 1;
-    }
-
-    ret = PDCregion_transfer_wait(transfer_request);
-    if (ret != SUCCEED) {
-        LOG_ERROR("Failed to region_transfer_wait for region");
-        ret_value = 1;
-    }
-
-    ret = PDCregion_transfer_close(transfer_request);
-    if (ret != SUCCEED) {
-        LOG_ERROR("PDCregion_transfer_closefailed");
-        ret_value = 1;
-    }
+    TASSERT(PDCregion_transfer_start(transfer_request) >= 0, "Call to PDCregion_transfer_start succeeded",
+            "Call to PDCregion_transfer_start failed");
+    TASSERT(PDCregion_transfer_wait(transfer_request) >= 0, "Call to PDCregion_transfer_wait succeeded",
+            "Call to PDCregion_transfer_wait failed");
+    TASSERT(PDCregion_transfer_close(transfer_request) >= 0, "Call to PDCregion_close succeeded",
+            "Call to PDCregion_close failed");
 #ifdef ENABLE_MPI
     MPI_Barrier(MPI_COMM_WORLD);
 #endif
@@ -210,33 +193,21 @@ main(int argc, char **argv)
     if (rank == 0)
         LOG_INFO("Time to process write data with %d ranks: %.5e\n", size, write_time);
 
-    transfer_request = PDCregion_transfer_create(mydata, PDC_READ, global_obj, local_region, global_region);
-    if (transfer_request == 0) {
-        LOG_INFO("PDCregion_transfer_create failed");
-        ret_value = 1;
-    }
+    TASSERT((transfer_request =
+                 PDCregion_transfer_create(mydata, PDC_READ, global_obj, local_region, global_region)) != 0,
+            "Call to PDCregion_transfer_create succeeded", "Call to PDCregion_transfer_create failed");
 
 #ifdef ENABLE_MPI
     MPI_Barrier(MPI_COMM_WORLD);
 #endif
+
     gettimeofday(&pdc_timer_start, 0);
-    ret = PDCregion_transfer_start(transfer_request);
-    if (ret != SUCCEED) {
-        LOG_ERROR("Failed to region_transfer_start for region");
-        ret_value = 1;
-    }
-
-    ret = PDCregion_transfer_wait(transfer_request);
-    if (ret != SUCCEED) {
-        LOG_ERROR("Failed to region_transfer_wait for region");
-        ret_value = 1;
-    }
-
-    ret = PDCregion_transfer_close(transfer_request);
-    if (ret != SUCCEED) {
-        LOG_ERROR("PDCregion_transfer_close failed");
-        ret_value = 1;
-    }
+    TASSERT(PDCregion_transfer_start(transfer_request) >= 0, "Call to PDCregion_transfer_start succeeded",
+            "Call to PDCregion_transfer_start failed");
+    TASSERT(PDCregion_transfer_wait(transfer_request) >= 0, "Call to PDCregion_transfer_wait succeeded",
+            "Call to PDCregion_transfer_wait failed");
+    TASSERT(PDCregion_transfer_close(transfer_request) >= 0, "Call to PDCregion_close succeeded",
+            "Call to PDCregion_close failed");
 
     for (i = 0; i < (int)my_data_size; i++) {
         for (j = 0; j < (int)type_size; ++j) {
@@ -252,6 +223,7 @@ main(int argc, char **argv)
 #ifdef ENABLE_MPI
     MPI_Barrier(MPI_COMM_WORLD);
 #endif
+
     gettimeofday(&pdc_timer_end, 0);
     write_time = PDC_get_elapsed_time_double(&pdc_timer_start, &pdc_timer_end);
 
@@ -263,32 +235,16 @@ main(int argc, char **argv)
     free(mysize);
     free(mydata);
 
-    if (PDCobj_close(global_obj) < 0) {
-        LOG_ERROR("Failed to close global obj");
-        ret_value = 1;
-    }
+    TASSERT(PDCobj_close(global_obj) >= 0, "Call to PDCobj_close succeeded", "Call to PDCobj_close failed");
+    TASSERT(PDCregion_close(local_region) >= 0, "Call to PDCregion_close succeeded",
+            "Call to PDCregion_close failed");
+    TASSERT(PDCregion_close(global_region) >= 0, "Call to PDCregion_close succeeded",
+            "Call to PDCregion_close failed");
+    TASSERT(PDCcont_close(cont) >= 0, "Call to PDCcont_close succeeded", "Call to PDCcont_close failed");
+    TASSERT(PDCprop_close(cont_prop) >= 0, "Call to PDCprop_close succeeded", "Call to PDCobj_create failed");
+    TASSERT(PDCclose(pdc) >= 0, "Call to PDCclose succeeded", "Call to PDCclose failed");
 
-    if (PDCregion_close(local_region) < 0) {
-        LOG_ERROR("Failed to close local region");
-        ret_value = 1;
-    }
-
-    if (PDCregion_close(global_region) < 0) {
-        LOG_ERROR("Failed to close global region");
-        ret_value = 1;
-    }
-    if (PDCcont_close(cont) < 0) {
-        LOG_ERROR("Failed to close container");
-        ret_value = 1;
-    }
-    if (PDCprop_close(cont_prop) < 0) {
-        LOG_ERROR("Failed to close property");
-        ret_value = 1;
-    }
-    if (PDCclose(pdc) < 0) {
-        LOG_ERROR("Failed to close PDC");
-        ret_value = 1;
-    }
+done:
 #ifdef ENABLE_MPI
     MPI_Finalize();
 #endif
