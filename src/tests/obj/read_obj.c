@@ -27,7 +27,7 @@ main(int argc, char **argv)
 #ifdef ENABLE_MPI
     MPI_Comm comm;
 #else
-    int comm   = 1;
+    int comm = 1;
 #endif
     struct timeval pdc_timer_start;
     struct timeval pdc_timer_end;
@@ -39,7 +39,7 @@ main(int argc, char **argv)
     uint64_t *offset, *local_offset;
     uint64_t *mysize;
     int       i, j;
-    char *    mydata;
+    char     *mydata;
     char      obj_name[128], cont_name[128];
 
     uint64_t my_data_size;
@@ -157,6 +157,7 @@ main(int argc, char **argv)
     if (global_obj <= 0) {
         LOG_ERROR("Error creating an object [%s], exit...\n", obj_name);
         ret_value = 1;
+        goto done;
     }
 
     offset          = (uint64_t *)malloc(sizeof(uint64_t) * ndim);
@@ -293,6 +294,8 @@ main(int argc, char **argv)
         LOG_ERROR("Failed to close PDC");
         ret_value = 1;
     }
+
+done:
 #ifdef ENABLE_MPI
     MPI_Finalize();
 #endif
