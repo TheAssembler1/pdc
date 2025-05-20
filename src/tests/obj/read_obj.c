@@ -157,6 +157,7 @@ main(int argc, char **argv)
     if (global_obj <= 0) {
         LOG_ERROR("Error creating an object [%s], exit...\n", obj_name);
         ret_value = 1;
+        goto done;
     }
 
     offset          = (uint64_t *)malloc(sizeof(uint64_t) * ndim);
@@ -293,6 +294,8 @@ main(int argc, char **argv)
         LOG_ERROR("Failed to close PDC");
         ret_value = 1;
     }
+
+done:
 #ifdef ENABLE_MPI
     MPI_Finalize();
 #endif
