@@ -42,7 +42,6 @@
     } while (0)
 
 #ifdef ENABLE_MPI
-
 #define TASSERT(status, success_message, fail_message)                                                       \
     do {                                                                                                     \
         if (!(status)) {                                                                                     \
@@ -64,7 +63,6 @@
             LOG_INFO("%s\n", success_message);                                                               \
         }                                                                                                    \
     } while (0)
-
 #endif
 
 #endif
