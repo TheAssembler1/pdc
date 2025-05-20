@@ -2013,16 +2013,16 @@ pdc_region_write_out_progress(void *arg)
     remote_reg_info->offset = (uint64_t *)malloc(remote_reg_info->ndim * sizeof(uint64_t));
     remote_reg_info->size   = (uint64_t *)malloc(remote_reg_info->ndim * sizeof(uint64_t));
     if (remote_reg_info->ndim >= 1) {
-        (remote_reg_info->offset)[0] = (bulk_args->remote_region_nounit).start_0;
-        (remote_reg_info->size)[0]   = (bulk_args->remote_region_nounit).count_0;
+        (remote_reg_info->offset)[0] = (bulk_args->remote_region_nounit).start[0];
+        (remote_reg_info->size)[0]   = (bulk_args->remote_region_nounit).count[0];
     }
     if (remote_reg_info->ndim >= 2) {
-        (remote_reg_info->offset)[1] = (bulk_args->remote_region_nounit).start_1;
-        (remote_reg_info->size)[1]   = (bulk_args->remote_region_nounit).count_1;
+        (remote_reg_info->offset)[1] = (bulk_args->remote_region_nounit).start[1];
+        (remote_reg_info->size)[1]   = (bulk_args->remote_region_nounit).count[1];
     }
     if (remote_reg_info->ndim >= 3) {
-        (remote_reg_info->offset)[2] = (bulk_args->remote_region_nounit).start_2;
-        (remote_reg_info->size)[2]   = (bulk_args->remote_region_nounit).count_2;
+        (remote_reg_info->offset)[2] = (bulk_args->remote_region_nounit).start[2];
+        (remote_reg_info->size)[2]   = (bulk_args->remote_region_nounit).count[2];
     }
 
     PDC_Server_data_write_out(bulk_args->remote_obj_id, remote_reg_info, bulk_args->data_buf,
@@ -2281,12 +2281,12 @@ transform_and_region_release_bulk_transfer_cb(const struct hg_cb_info *hg_cb_inf
     target_reg = PDC_Server_get_obj_region(bulk_args->remote_obj_id);
     DL_FOREACH(target_reg->region_buf_map_head, elt)
     {
-        if ((bulk_args->remote_region).start_0 == elt->remote_region_unit.start_0 &&
-            (bulk_args->remote_region).count_0 == elt->remote_region_unit.count_0) {
+        if ((bulk_args->remote_region).start[0] == elt->remote_region_unit.start[0] &&
+            (bulk_args->remote_region).count[0] == elt->remote_region_unit.count[0]) {
             // replace the count_0 value with the transform_size
             if (use_transform_size) {
-                (bulk_args->remote_region).count_0 = transform_size;
-                (bulk_args->remote_region).ndim    = 1;
+                (bulk_args->remote_region).count[0] = transform_size;
+                (bulk_args->remote_region).ndim     = 1;
             }
             elt->bulk_args = (struct buf_map_release_bulk_args *)bulk_args;
         }
@@ -2531,7 +2531,8 @@ buf_map_region_release_bulk_transfer_cb(const struct hg_cb_info *hg_cb_info)
     target_reg = PDC_Server_get_obj_region(bulk_args->remote_obj_id);
     DL_FOREACH(target_reg->region_buf_map_head, elt)
     {
-        if (PDC_region_info_transfer_t_is_equal(bulk_args->remote_region_unit, elt->remote_region_unit)) {
+        if (PDC_region_info_transfer_t_is_equal(&(bulk_args->remote_region_unit),
+                                                &(elt->remote_region_unit))) {
             elt->bulk_args = bulk_args;
         }
     }

@@ -873,7 +873,7 @@ PDC_Data_Server_check_unmap()
         DL_FOREACH_SAFE(target_obj->region_buf_map_head, elt, tmp)
         {
             if (remote_obj_id == elt->remote_obj_id &&
-                PDC_region_is_identical(elt1->unmap_region, elt->remote_region_unit)) {
+                PDC_region_info_transfer_t_is_equal(&(elt1->unmap_region), &(elt->remote_region_unit))) {
                 hg_thread_mutex_lock(&(elt->bulk_args->work_mutex));
                 if (!elt->bulk_args->work_completed)
                     // wait for 100ms for work completed
