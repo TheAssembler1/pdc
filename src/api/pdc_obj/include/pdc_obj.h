@@ -227,7 +227,7 @@ perr_t PDCprop_set_obj_tags(pdcid_t obj_prop, char *tags);
  * Set object dimension
  *
  * \param obj_prop [IN]         ID of object property, returned by PDCprop_create(PDC_OBJ_CREATE)
- * \param ndim [IN]             Number of dimensions
+ * \param ndim [IN]             Number of dimensions, must be greater than 0
  * \param dims [IN]             Size of each dimension, positive value, can be PDC_SIZE_UNLIMITED
  *
  * \return Non-negative on success/Negative on failure
