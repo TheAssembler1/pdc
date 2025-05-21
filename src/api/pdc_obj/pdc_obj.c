@@ -202,7 +202,6 @@ PDC_obj_create(pdcid_t cont_id, const char *obj_name, pdcid_t obj_prop_id, _pdc_
     if (!p->obj_pt->obj_prop_pub)
         PGOTO_ERROR(0, "cannot allocate ret_value->obj_pt->obj_prop_pub");
     p->obj_pt->obj_prop_pub->ndim = obj_prop->obj_prop_pub->ndim;
-    LOG_INFO("ATTEMPTING TO ALLOCATE NDIM: %d\n", obj_prop->obj_prop_pub->ndim);
     p->obj_pt->obj_prop_pub->dims = PDC_malloc(obj_prop->obj_prop_pub->ndim * sizeof(uint64_t));
     if (!p->obj_pt->obj_prop_pub->dims)
         PGOTO_ERROR(0, "cannot allocate ret_value->dims");
