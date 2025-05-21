@@ -19,8 +19,6 @@ Byna, Suren, Dong, Bin, Tang, Houjun, Koziol, Quincey, Mu, Jingqing, Soumagne, J
    :caption: Getting Started
 
    getting_started
-   .. definitions
-   .. assumptions
 
 .. toctree::
    :maxdepth: 2
@@ -28,17 +26,15 @@ Byna, Suren, Dong, Bin, Tang, Houjun, Koziol, Quincey, Mu, Jingqing, Soumagne, J
    
    introduction
    hdf5vol
-   .. performance
 
 .. toctree::
    :maxdepth: 2
    :caption: Resources
 
    hellopdcexample
+   examples
    api
    tools
-   .. inflightanalysis
-   .. futurework
 
 
 .. toctree::

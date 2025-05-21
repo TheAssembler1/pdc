@@ -11,6 +11,7 @@ The following macros are defined in the header file `src/commons/logging/include
 The available macros, which follow a similar usage to `printf`, are:
 
 .. code-block:: C
+
     LOG_ERROR
     LOG_WARNING
     LOG_INFO
@@ -20,6 +21,7 @@ The available macros, which follow a similar usage to `printf`, are:
 Each of these macros automatically prepends a timestamp and log level prefix to the output:
 
 .. code-block:: C
+
     [year-month-day hour:minute:second] [ERROR] 
     [year-month-day hour:minute:second] [WARNING] 
     [year-month-day hour:minute:second] [INFO] 
@@ -429,6 +431,7 @@ How to set up code formatter for PDC on Mac?
     3. Then follow instruction here to install clang-format: https://clang.llvm.org/get_started.html. I would suggest you do the following (suppose if you already have homebrew installed)
     
     .. code-block:: Bash
+
         cd $LLVM_SRC_ROOT
         mkdir build
         cd build
@@ -441,6 +444,7 @@ How to set up code formatter for PDC on Mac?
     4. To format all your source code, do the following
     
     .. code-block:: Bash
+
         cd pdc
         clang-format-v10 -i -style=file src/*
         find src -iname *.h -o -iname *.c | xargs clang-format-v10 -i -style=file
@@ -483,6 +487,7 @@ When calling your bridging functions, the best example you can follow is `src/te
 Remember, you must include all your bridging function calls inside the following code blocks, so that the process can have its own Julia runtime loaded. 
 
 .. code-block:: C
+
     jl_module_list_t modules = {.julia_modules = (char *[]){JULIA_HELPER_NAME}, .num_modules = 1};
     init_julia(&modules);
     ......
@@ -505,6 +510,7 @@ We provide docker support for PDC on such purpose.
 To build the docker image, you can run the following command in the root directory of PDC project:
 
 .. code-block:: Bash
+
     .docker/run_dev_base.sh
 
 This will mount your PDC project directory to `/workspaces/pdc` directory in the docker container and an initial step will be performed once you attach to the container. 
@@ -533,6 +539,7 @@ We currently only support to architectures, amd64 and arm64v8.
 To build the architecture-specific docker image on the machine with specific CPU architecture, you can run the following command in the root directory of PDC project:
 
 .. code-block:: Bash
+
     .docker/publish_dev_base.sh <docker_registry_namespace> <version>
 
 If you run the above command on an ARM64v8 CPU (say, Apple Silicon Mac), it will generate an image named '<docker_registry_namespace>/pdc_dev_base:<version>-arm64v8'. 
@@ -540,6 +547,7 @@ If you run the above command on any Intel X64/AMD x64 CPU (say, Microsoft surfac
 Once the above is done, you can pick the image build machine with fastest network and run the following
 
 .. code-block:: Bash
+
     .docker/publish_dev_base.sh <docker_registry_namespace> <version> 1
 
 This will create a multi-arch image with both amd64 and arm64v8 architectures in your registry under your namespace. 
@@ -565,11 +573,13 @@ Debugging PDC on Perlmutter with LinaroForge
 First, you need to start an interactive session on Perlmutter:
 
 .. code-block:: Bash
+
     salloc -N 1 -C cpu -q interactive -t 1:00:00
 
 Then, you can load the ``forge`` module:
 
 .. code-block:: Bash
+
     module load forge
     module list
 
@@ -582,6 +592,7 @@ Go to this website https://www.linaroforge.com/download-documentation and find t
 To run a test, let's lunch pdc_server with 4 cores:
 
 .. code-block:: Bash
+
     cd $PDC_HOME/build
     rm -rf ./pdc_tmp # optional if you need to clean up the PDC tmp directory
     srun -N 1 -n  4 -c 2 --mem=25600 --cpu_bind=cores ./bin/pdc_server.exe &
@@ -589,12 +600,14 @@ To run a test, let's lunch pdc_server with 4 cores:
 To debug the client, you can run the following command:
 
 .. code-block:: Bash
+
     cd $PDC_HOME/build
     ddt --connect srun -N 1 -n  4 -c 2 --mem=25600 --cpu_bind=cores ./bin/pdc_client.exe
 
 But if you need to debug the server, you can prepend ``srun`` with ``ddt --connect``:
 
 .. code-block:: Bash
+
     cd $PDC_HOME/build
     rm -rf ./pdc_tmp # optional if you need to clean up the PDC tmp directory
     ddt --connect srun -N 1 -n  4 -c 2 --mem=25600 --cpu_bind=cores ./bin/pdc_server.exe &
