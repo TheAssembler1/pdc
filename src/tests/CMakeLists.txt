@@ -58,7 +58,6 @@ set(PROGRAMS
   obj/open_obj
   obj/open_existing_obj
   obj/obj_info
-  obj/delete_obj_scale # FIXME: NOAH
   obj/obj_del
   obj/obj_iter
   obj/obj_life

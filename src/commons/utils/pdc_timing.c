@@ -41,7 +41,6 @@ PDC_timing_init()
 
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
     gethostname(hostname, HOST_NAME_MAX);
-    strcpy(hostname, "eno1");
     if (!(rank % 31)) {
         LOG_INFO("client process rank %d, hostname = %s\n", rank, hostname);
     }
@@ -120,14 +119,13 @@ PDC_timing_report(const char *prefix)
     pdc_timing max_timings;
     int        rank;
     char       filename[256], header[256];
-    FILE *     stream;
+    FILE      *stream;
     char       hostname[HOST_NAME_MAX];
     time_t     now;
 
     time(&now);
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
     gethostname(hostname, HOST_NAME_MAX);
-    strcpy(hostname, "eno1");
     if (!(rank % 32)) {
         LOG_INFO("client process rank %d, hostname = %s\n", rank, hostname);
     }
@@ -263,7 +261,6 @@ PDC_server_timing_init()
 
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
     gethostname(hostname, HOST_NAME_MAX);
-    strcpy(hostname, "eno1");
 
     LOG_INFO("server process rank %d, hostname = %s\n", rank, hostname);
     /*
@@ -370,7 +367,7 @@ PDC_server_timing_report()
     pdc_server_timing max_timings;
     int               rank;
     char              filename[256];
-    FILE *            stream;
+    FILE             *stream;
 
     //    char              hostname[HOST_NAME_MAX];
     time_t now;
