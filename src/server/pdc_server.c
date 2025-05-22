@@ -58,6 +58,7 @@
 #include "pdc_server_region_cache.h"
 #include "pdc_server_region_transfer_metadata_query.h"
 #include "pdc_logger.h"
+#include "pdc_malloc.h"
 
 #ifdef PDC_HAS_CRAY_DRC
 #include <rdmacred.h>
@@ -776,7 +777,7 @@ PDC_Server_init(int port, hg_class_t **hg_class, hg_context_t **hg_context)
     int                 i         = 0;
     char                self_addr_string[ADDR_MAX];
     char                na_info_string[NA_STRING_INFO_LEN];
-    char                hostname[HOSTNAME_LEN];
+    char *              hostname;
     struct hg_init_info init_info = {0};
 
     /* Set the default mercury transport
@@ -810,11 +811,16 @@ PDC_Server_init(int port, hg_class_t **hg_class, hg_context_t **hg_context)
     if ((hg_transport = getenv("HG_TRANSPORT")) == NULL) {
         hg_transport = default_hg_transport;
     }
-    memset(hostname, 0, HOSTNAME_LEN);
-    gethostname(hostname, HOSTNAME_LEN - 1);
+    if ((hostname = getenv("HG_HOST")) == NULL) {
+        hostname = PDC_malloc(HOSTNAME_LEN);
+        memset(hostname, 0, HOSTNAME_LEN);
+        gethostname(hostname, HOSTNAME_LEN - 1);
+    }
     snprintf(na_info_string, NA_STRING_INFO_LEN, "%s://%s:%d", hg_transport, hostname, port);
     if (pdc_server_rank_g == 0)
-        LOG_INFO("==PDC_SERVER[%d]: using %.7s\n", pdc_server_rank_g, na_info_string);
+        LOG_INFO("==PDC_SERVER[%d]: using %s\n", pdc_server_rank_g, na_info_string);
+
+    free(hostname);
 
     // Clean up all the tmp files etc
     HG_Cleanup();

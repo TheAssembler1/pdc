@@ -32,10 +32,10 @@
 pdcid_t
 PDCobj_create_mpi(pdcid_t cont_id, const char *obj_name, pdcid_t obj_prop_id, int rank_id, MPI_Comm comm)
 {
-    pdcid_t               ret_value = SUCCEED;
-    struct _pdc_obj_info *p         = NULL;
-    struct _pdc_id_info * id_info   = NULL;
+    struct _pdc_obj_info *p       = NULL;
+    struct _pdc_id_info * id_info = NULL;
     int                   rank;
+    pdcid_t               ret_value;
 
     FUNC_ENTER(NULL);
 
@@ -46,14 +46,21 @@ PDCobj_create_mpi(pdcid_t cont_id, const char *obj_name, pdcid_t obj_prop_id, in
     else
         ret_value = PDC_obj_create(cont_id, obj_name, obj_prop_id, PDC_OBJ_LOCAL);
 
+    if (ret_value == 0)
+        PGOTO_ERROR(ret_value, "PDC_obj_create failed");
+
     id_info = PDC_find_id(ret_value);
-    p       = (struct _pdc_obj_info *)(id_info->obj_ptr);
+    if (id_info == NULL)
+        PGOTO_ERROR(0, "PDC_find_id failed for object id: %d", ret_value);
+
+    p = (struct _pdc_obj_info *)(id_info->obj_ptr);
 
     MPI_Bcast(&(p->obj_info_pub->meta_id), 1, MPI_LONG_LONG, rank_id, comm);
     MPI_Bcast(&(p->obj_info_pub->metadata_server_id), 1, MPI_UINT32_T, rank_id, comm);
     MPI_Bcast(&(((pdc_metadata_t *)p->metadata)->data_server_id), 1, MPI_UINT32_T, rank_id, comm);
     MPI_Bcast(&(((pdc_metadata_t *)p->metadata)->region_partition), 1, MPI_UINT8_T, rank_id, comm);
 
+done:
     FUNC_LEAVE(ret_value);
 }
 
