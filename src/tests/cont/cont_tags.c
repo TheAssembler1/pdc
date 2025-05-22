@@ -26,12 +26,13 @@
 #include <stdlib.h>
 #include <string.h>
 #include "pdc.h"
+#include "test_helper.h"
 
 int
 main(int argc, char **argv)
 {
     pdcid_t pdc, cont_prop, cont, cont2;
-    perr_t  ret;
+    int     ret_value = TSUCCEED;
 
     int rank = 0, size = 1;
 
@@ -47,163 +48,91 @@ main(int argc, char **argv)
     MPI_Comm_size(MPI_COMM_WORLD, &size);
 #endif
     // create a pdc
-    pdc = PDCinit("pdc");
-    LOG_INFO("create a new pdc\n");
+    TASSERT((pdc = PDCinit("pdc")) != 0, "Call to PDCinit succeeded", "Call to PDCinit failed");
 
     // create a container property
-    cont_prop = PDCprop_create(PDC_CONT_CREATE, pdc);
-    if (cont_prop > 0) {
-        LOG_INFO("Create a container property\n");
-    }
-    else {
-        LOG_ERROR("Failed to create container property");
-        return -1;
-    }
+    TASSERT((cont_prop = PDCprop_create(PDC_CONT_CREATE, pdc)) != 0, "Call to PDCprop_create succeeded",
+            "Call to PDCprop_create failed");
     // create a container
-    cont = PDCcont_create("c1", cont_prop);
-    if (cont > 0) {
-        LOG_INFO("Create a container c1\n");
-    }
-    else {
-        LOG_ERROR("Failed to create container");
-        return -1;
-    }
+    TASSERT((cont = PDCcont_create("c1", cont_prop)) != 0, "Call to PDCcont_create succeeded",
+            "Call to PDCcont_create failed");
+    TASSERT((cont2 = PDCcont_create("c2", cont_prop)) != 0, "Call to PDCcont_create succeeded",
+            "Call to PDCcont_create failed");
 
-    cont2 = PDCcont_create("c2", cont_prop);
-    if (cont > 0) {
-        LOG_INFO("Create a container c2\n");
-    }
-    else {
-        LOG_ERROR("Failed to create container");
-        return -1;
-    }
+    TASSERT(PDCcont_put_tag(cont, "some tag", tag_value, PDC_STRING, strlen(tag_value) + 1) >= 0,
+            "Call to PDCcont_put_tag succeeded for container 1",
+            "Call to PDCcont_put_tag failed for container 1");
+    TASSERT(PDCcont_put_tag(cont, "some tag 2", tag_value2, PDC_STRING, strlen(tag_value2) + 1) >= 0,
+            "Call to PDCcont_put_tag succeeded for container 2",
+            "Call to PDCcont_put_tag failed for container 1");
 
-    ret = PDCcont_put_tag(cont, "some tag", tag_value, PDC_STRING, strlen(tag_value) + 1);
+    TASSERT(PDCcont_put_tag(cont2, "some tag", tag_value, PDC_STRING, strlen(tag_value) + 1) >= 0,
+            "Call to PDCcont_put_tag succeeded for container 1",
+            "Call to PDCcont_put_tag failed for container 2");
+    TASSERT(PDCcont_put_tag(cont2, "some tag 2", tag_value2, PDC_STRING, strlen(tag_value2) + 1) >= 0,
+            "Call to PDCcont_put_tag succeeded for container 2",
+            "Call to PDCcont_put_tag failed for container 2");
+    TASSERT(PDCcont_get_tag(cont, "some tag", (void **)&tag_value_ret, &value_type, &value_size) >= 0,
+            "Call to PDCcont_get_tag succeeded for container 1",
+            "Call to PDCcont_get_tag failed for container 1");
 
-    if (ret != SUCCEED) {
-        LOG_ERROR("Put tag failed at container 1\n");
-        return -1;
-    }
-    ret = PDCcont_put_tag(cont, "some tag 2", tag_value2, PDC_STRING, strlen(tag_value2) + 1);
-    if (ret != SUCCEED) {
-        LOG_ERROR("Put tag failed at container 1\n");
-        return -1;
-    }
+    if (strcmp(tag_value, tag_value_ret) != 0)
+        TGOTO_ERROR(TFAIL, "Wrong tag value at container 1, expected = [%s], get [%s]", tag_value,
+                    tag_value_ret);
 
-    ret = PDCcont_put_tag(cont2, "some tag", tag_value, PDC_STRING, strlen(tag_value) + 1);
-    if (ret != SUCCEED) {
-        LOG_ERROR("Put tag failed at container 2\n");
-        return -1;
-    }
+    TASSERT(PDCcont_get_tag(cont, "some tag 2", (void **)&tag_value_ret, &value_type, &value_size) >= 0,
+            "Call to PDCcont_get_tag succeeded for container 1",
+            "Call to PDCcont_get_tag failed for container 1");
 
-    ret = PDCcont_put_tag(cont2, "some tag 2", tag_value2, PDC_STRING, strlen(tag_value2) + 1);
-    if (ret != SUCCEED) {
-        LOG_ERROR("Put tag failed at container 2\n");
-        return -1;
-    }
+    if (strcmp(tag_value2, tag_value_ret) != 0)
+        TGOTO_ERROR(TFAIL, "Wrong tag value at container 1, expected = [%s], get [%s]", tag_value2,
+                    tag_value_ret);
 
-    ret = PDCcont_get_tag(cont, "some tag", (void **)&tag_value_ret, &value_type, &value_size);
-    if (ret != SUCCEED) {
-        LOG_ERROR("Get tag failed at container 1\n");
-        return -1;
-    }
-    if (strcmp(tag_value, tag_value_ret) != 0) {
-        LOG_ERROR("Wrong tag value at container 1, expected = [%s], get [%s]\n", tag_value, tag_value_ret);
-        return -1;
-    }
+    TASSERT(PDCcont_get_tag(cont2, "some tag", (void **)&tag_value_ret, &value_type, &value_size) >= 0,
+            "Call to PDCcont_get_tag succeeded for container 2",
+            "Call to PDCcont_get_tag failed for container 2");
 
-    ret = PDCcont_get_tag(cont, "some tag 2", (void **)&tag_value_ret, &value_type, &value_size);
-    if (ret != SUCCEED) {
-        LOG_ERROR("Get tag failed at container 1\n");
-        return -1;
-    }
+    if (strcmp(tag_value, tag_value_ret) != 0)
+        TGOTO_ERROR(TFAIL, "Wrong tag value at container 2, expected = [%s], get [%s]", tag_value,
+                    tag_value_ret);
 
-    if (strcmp(tag_value2, tag_value_ret) != 0) {
-        LOG_ERROR("Wrong tag value at container 1, expected = [%s], get [%s]\n", tag_value2, tag_value_ret);
-        return -1;
-    }
-
-    ret = PDCcont_get_tag(cont2, "some tag", (void **)&tag_value_ret, &value_type, &value_size);
-    if (ret != SUCCEED) {
-        LOG_ERROR("Get tag failed at container 2\n");
-        return -1;
-    }
-
-    if (strcmp(tag_value, tag_value_ret) != 0) {
-        LOG_ERROR("Wrong tag value at container 2, expected = [%s], get [%s]\n", tag_value, tag_value_ret);
-        return -1;
-    }
-
-    ret = PDCcont_get_tag(cont2, "some tag 2", (void **)&tag_value_ret, &value_type, &value_size);
-    if (ret != SUCCEED) {
-        LOG_ERROR("Get tag failed at container 2\n");
-        return -1;
-    }
+    TASSERT(PDCcont_get_tag(cont2, "some tag 2", (void **)&tag_value_ret, &value_type, &value_size) >= 0,
+            "Call to PDCcont_get_tag succeeded for container 2",
+            "Call to PDCcont_get_tag failed for container 2");
 
     if (strcmp(tag_value2, tag_value_ret) != 0) {
         LOG_ERROR("Wrong tag value at container 2, expected = [%s], get [%s]\n", tag_value2, tag_value_ret);
         return -1;
     }
-
-    ret = PDCcont_del_tag(cont2, "some tag 2");
-    if (ret != SUCCEED) {
-        LOG_ERROR("Delete tag failed at container 2\n");
-        return -1;
-    }
-    else {
-        LOG_INFO("successfully deleted a tag from container c2\n");
-    }
+    TASSERT(PDCcont_del_tag(cont2, "some tag 2") >= 0, "Call to PDCcont_del_tag succeeded for container 2",
+            "Call to PDCcont_del_tag failed for container 2");
 
 #ifdef ENABLE_MPI
     MPI_Barrier(MPI_COMM_WORLD);
 #endif
 
-    ret = PDCcont_get_tag(cont2, "some tag 2", (void **)&tag_value_ret, &value_type, &value_size);
-    if (ret != SUCCEED) {
-        LOG_ERROR("Get tag failed at container 2\n");
-        return -1;
-    }
+    TASSERT(PDCcont_get_tag(cont2, "some tag 2", (void **)&tag_value_ret, &value_type, &value_size) >= 0,
+            "Call to PDCcont_get_tag succeeded for container 2",
+            "Call to PDCcont_get_tag failed for container 2");
 
-    if (tag_value_ret != NULL || value_size != 0) {
-        LOG_ERROR("Error: got non-empty tag after deletion\n");
-        return -1;
-    }
-    else {
-        LOG_INFO("verified the tag has been deleted successfully\n");
-    }
+    if (tag_value_ret != NULL || value_size != 0)
+        TGOTO_ERROR(TFAIL, "Error: got non-empty tag after deletion");
+    else
+        LOG_INFO("Verified the tag has been deleted successfully\n");
 
     // close a container
-    if (PDCcont_close(cont) < 0) {
-        LOG_ERROR("Failed to close container c1\n");
-        return -1;
-    }
-    else {
-        LOG_INFO("Successfully closed container c1\n");
-    }
+    TASSERT(PDCcont_close(cont) >= 0, "Call to PDCcont_close succeeded", "Call to PDCcont_close failed");
     // close a container
-    if (PDCcont_close(cont2) < 0) {
-        LOG_ERROR("Failed to close container c1\n");
-        return -1;
-    }
-    else {
-        LOG_INFO("Successfully closed container c1\n");
-    }
+    TASSERT(PDCcont_close(cont2) >= 0, "Call to PDCcont_close succeeded", "Call to PDCcont_close failed");
 
     // close a container property
-    if (PDCprop_close(cont_prop) < 0) {
-        LOG_ERROR("Failed to close property");
-        return -1;
-    }
-    else {
-        LOG_INFO("Successfully closed container property\n");
-    }
+    TASSERT(PDCprop_close(cont_prop) >= 0, "Call to PDCprop_close succeeded", "Call to PDCprop_close failed");
     // close pdc
-    if (PDCclose(pdc) < 0) {
-        LOG_ERROR("Failed to close PDC\n");
-        return -1;
-    }
+    TASSERT(PDCclose(pdc) >= 0, "Call to PDCclose succeeded", "Call to PDCclose failed");
+
+done:
 #ifdef ENABLE_MPI
     MPI_Finalize();
 #endif
-    return 0;
+    return ret_value;
 }

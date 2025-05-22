@@ -63,7 +63,7 @@ main(int argc, char **argv)
 
     // close a container property
     TASSERT(PDCprop_close(create_prop) >= 0, "Call to PDCprop_close succeeded",
-            "Call to PDCobj_create failed");
+            "Call to PDCprop_close failed");
     // close pdc
     TASSERT(PDCclose(pdc) >= 0, "Call to PDCclose succeeded", "Call to PDCclose failed");
 

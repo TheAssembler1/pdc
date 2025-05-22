@@ -74,7 +74,7 @@ main(int argc, char **argv)
     TASSERT(PDCcont_close(cont_id) >= 0, "Call to PDCcont_close succeeded", "Call to PDCcont_close failed");
     TASSERT(PDCcont_close(cont_id2) >= 0, "Call to PDCcont_close succeeded", "Call to PDCcont_close failed");
     // close a container property
-    TASSERT(PDCprop_close(cont_prop) >= 0, "Call to PDCprop_close succeeded", "Call to PDCobj_create failed");
+    TASSERT(PDCprop_close(cont_prop) >= 0, "Call to PDCprop_close succeeded", "Call to PDCprop_close failed");
     // close pdc
     TASSERT(PDCclose(pdc_id) >= 0, "Call to PDCclose succeeded", "Call to PDCclose failed");
 

@@ -28,7 +28,7 @@ main(int argc, char **argv)
 #ifdef ENABLE_MPI
     MPI_Comm comm;
 #else
-    int comm   = 1;
+    int comm = 1;
 #endif
     struct timeval pdc_timer_start;
     struct timeval pdc_timer_end;
@@ -40,7 +40,7 @@ main(int argc, char **argv)
     uint64_t *offset, *local_offset;
     uint64_t *mysize;
     int       i, j;
-    char *    mydata;
+    char     *mydata;
     char      obj_name[128], cont_name[128];
 
     uint64_t my_data_size;
@@ -241,7 +241,7 @@ main(int argc, char **argv)
     TASSERT(PDCregion_close(global_region) >= 0, "Call to PDCregion_close succeeded",
             "Call to PDCregion_close failed");
     TASSERT(PDCcont_close(cont) >= 0, "Call to PDCcont_close succeeded", "Call to PDCcont_close failed");
-    TASSERT(PDCprop_close(cont_prop) >= 0, "Call to PDCprop_close succeeded", "Call to PDCobj_create failed");
+    TASSERT(PDCprop_close(cont_prop) >= 0, "Call to PDCprop_close succeeded", "Call to PDCprop_close failed");
     TASSERT(PDCclose(pdc) >= 0, "Call to PDCclose succeeded", "Call to PDCclose failed");
 
 done:
