@@ -15,7 +15,7 @@ Proactive Data Containers (PDC) software provides an object-focused data managem
 
 Full documentation of PDC with installation instructions, code examples for using PDC API, and research publications are available at [pdc.readthedocs.io](https://pdc.readthedocs.io)
 
-More information and publications on PDC is available at https://sdm.lbl.gov/pdc
+More information and publications on PDC are available at https://sdm.lbl.gov/pdc
 
 If you use PDC in your research, please use the following citations:
 

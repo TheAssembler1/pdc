@@ -256,7 +256,7 @@ fill_set_from_BULKI_Entity(value_index_leaf_content_t *value_index_leaf, BULKI_E
     BULKI_Entity_Iterator *it = Bent_iterator_init(data_entity, NULL, PDC_UNKNOWN);
     while (Bent_iterator_has_next_Bent(it)) {
         BULKI_Entity *id_entity = Bent_iterator_next_Bent(it);
-        uint64_t *    obj_id    = calloc(1, sizeof(uint64_t));
+        uint64_t *    obj_id    = PDC_calloc(1, sizeof(uint64_t));
         memcpy(obj_id, id_entity->data, sizeof(uint64_t));
         set_insert(value_index_leaf->obj_id_set, obj_id);
         value_index_leaf->indexed_item_count++;
@@ -277,7 +277,7 @@ read_attr_value_node(key_index_leaf_content_t *leaf_cnt, int value_tree_idx, BUL
         BULKI_Entity * data_entity = &(kv_pair->value);
 
         value_index_leaf_content_t *value_index_leaf =
-            (value_index_leaf_content_t *)calloc(1, sizeof(value_index_leaf_content_t));
+            (value_index_leaf_content_t *)PDC_calloc(1, sizeof(value_index_leaf_content_t));
         value_index_leaf->obj_id_set = set_new(ui64_hash, ui64_equal);
         set_register_free_function(value_index_leaf->obj_id_set, free);
 
@@ -315,13 +315,13 @@ read_value_tree(key_index_leaf_content_t *leaf_cnt, int value_tree_idx, BULKI *v
 
     switch (value_tree_idx) {
         case 0:
-            leaf_cnt->primary_trie = (art_tree *)calloc(1, sizeof(art_tree));
+            leaf_cnt->primary_trie = (art_tree *)PDC_calloc(1, sizeof(art_tree));
             art_tree_init(leaf_cnt->primary_trie);
             _encodeTypeToBitmap(&(leaf_cnt->val_idx_dtype), PDC_STRING);
             rst = read_attr_value_node(leaf_cnt, 0, v_id_bulki, index_record_count);
             break;
         case 1:
-            leaf_cnt->secondary_trie = (art_tree *)calloc(1, sizeof(art_tree));
+            leaf_cnt->secondary_trie = (art_tree *)PDC_calloc(1, sizeof(art_tree));
             art_tree_init(leaf_cnt->secondary_trie);
             _encodeTypeToBitmap(&(leaf_cnt->val_idx_dtype), PDC_STRING);
             rst = read_attr_value_node(leaf_cnt, 1, v_id_bulki, index_record_count);
@@ -387,7 +387,7 @@ read_attr_name_node(IDIOMS_t *idioms, char *dir_path, char *base_name, uint32_t 
         BULKI_Entity * data_entity = &(kv_pair->value);
 
         key_index_leaf_content_t *leafcnt =
-            (key_index_leaf_content_t *)calloc(1, sizeof(key_index_leaf_content_t));
+            (key_index_leaf_content_t *)PDC_calloc(1, sizeof(key_index_leaf_content_t));
         art_insert(art_key_index, (const unsigned char *)key_entity->data, strlen(key_entity->data), leafcnt);
 
         BULKI *tree_bulki = (BULKI *)data_entity->data;

@@ -309,7 +309,6 @@ read_csv_from_buffer(char *data, char ***csv_header, char ****csv_data, int *num
         line = strtok(NULL, "\n");
         if (line == NULL) {
             LOG_ERROR("Error reading data from CSV\n");
-            // free(buffer);
             return -1;
         }
         if (data_line_count % proc_num == my_rank) {

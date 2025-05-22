@@ -1,7 +1,7 @@
 /* linked list management library - by xant
  */
 
-//#include <stdio.h>
+// #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <errno.h>
@@ -74,7 +74,7 @@ list_create()
     linked_list_t *list = (linked_list_t *)PDC_calloc(1, sizeof(linked_list_t));
     if (list) {
         if (list_init(list) != 0) {
-            free(list);
+            list = (linked_list_t *)PDC_free(list);
             return NULL;
         }
     }
@@ -115,7 +115,7 @@ list_destroy(linked_list_t *list)
 #ifdef THREAD_SAFE
         MUTEX_DESTROY(list->lock);
 #endif
-        free(list);
+        list = (linked_list_t *)PDC_free(list);
     }
 }
 
@@ -123,16 +123,16 @@ static void
 list_destroy_tagged_value_internal(tagged_value_t *tval, void (*free_cb)(void *v))
 {
     if (tval) {
-        free(tval->tag);
+        tval->tag = (char *)PDC_free(tval->tag);
         if (tval->value) {
             if (tval->type == TV_TYPE_LIST)
                 list_destroy((linked_list_t *)tval->value);
             else if (free_cb)
                 free_cb(tval->value);
             else if (tval->vlen)
-                free(tval->value);
+                tval->value = (void *)PDC_free(tval->value);
         }
-        free(tval);
+        tval = (tagged_value_t *)PDC_free(tval);
     }
 }
 
@@ -217,7 +217,7 @@ destroy_entry(list_entry_t *entry)
             if (pos >= 0)
                 remove_entry(entry->list, pos);
         }
-        free(entry);
+        entry = (list_entry_t *)PDC_free(entry);
     }
 }
 
@@ -769,8 +769,8 @@ list_create_tagged_value(char *tag, void *val, size_t vlen)
                 newval->vlen = vlen;
             }
             else {
-                free(newval->tag);
-                free(newval);
+                newval->tag = (char *)PDC_free(newval->tag);
+                newval      = (tagged_value_t *)PDC_free(newval);
                 return NULL;
             }
             newval->type = TV_TYPE_BINARY;
@@ -1170,7 +1170,7 @@ slice_destroy(slice_t *slice)
         prev = cur;
         cur  = cur->next;
     }
-    free(slice);
+    slice = (slice_t *)PDC_free(slice);
 }
 
 int

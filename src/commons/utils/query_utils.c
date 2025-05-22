@@ -5,6 +5,7 @@
 #include <inttypes.h>
 #include <stdint.h>
 #include "pdc_logger.h"
+#include "pdc_malloc.h"
 
 int
 _gen_affix_for_token(char *token_str, int affix_type, size_t affix_len, char **out_str)
@@ -20,7 +21,7 @@ _gen_affix_for_token(char *token_str, int affix_type, size_t affix_len, char **o
     affix_len        = affix_len < token_len ? affix_len : token_len;
     size_t copy_len  = affix_type == 0 ? token_len : affix_len;
     char * source    = affix_type <= 1 ? token_str : &(token_str[token_len - affix_len]);
-    char * affix_str = (char *)calloc(copy_len + 3, sizeof(char));
+    char * affix_str = (char *)PDC_calloc(copy_len + 3, sizeof(char));
 
     strncpy(affix_str, source, copy_len + 1);
 
@@ -65,14 +66,14 @@ gen_query_key_value(query_gen_input_t *input, query_gen_output_t *output)
     size_t value_ptr_len = 0;
     // check base_tag->name length
     if (strlen(input->base_tag->name) < 3) {
-        char *new_tag_name = (char *)calloc(4, sizeof(char));
+        char *new_tag_name = (char *)PDC_calloc(4, sizeof(char));
         memset(new_tag_name, input->base_tag->name[0], 3);
         input->base_tag->name = new_tag_name;
         input->affix_len      = 1;
     }
     // check base_tag->value length if it is a string
     if (input->base_tag->type == PDC_STRING && strlen((char *)input->base_tag->value) < 3) {
-        char *new_tag_value = (char *)calloc(4, sizeof(char));
+        char *new_tag_value = (char *)PDC_calloc(4, sizeof(char));
         memset(new_tag_value, ((char *)input->base_tag->value)[0], 3);
         input->base_tag->value = (void *)new_tag_value;
         input->affix_len       = 1;
@@ -91,7 +92,7 @@ gen_query_key_value(query_gen_input_t *input, query_gen_output_t *output)
         char *temp_value = NULL;
         value_ptr_len    = _gen_affix_for_token((char *)input->base_tag->value, input->value_query_type,
                                              affix_len, &temp_value);
-        value_ptr        = (char *)calloc(value_ptr_len + 3, sizeof(char));
+        value_ptr        = (char *)PDC_calloc(value_ptr_len + 3, sizeof(char));
         value_ptr[0]     = '"';
         strcat(value_ptr, temp_value);
         value_ptr[value_ptr_len + 1] = '"';
@@ -119,14 +120,14 @@ gen_query_key_value(query_gen_input_t *input, query_gen_output_t *output)
         char *format_str = get_format_by_dtype(input->base_tag->type);
         if (input->value_query_type == 4) {
             value_ptr_len = snprintf(NULL, 0, format_str, ((int64_t *)input->base_tag->value)[0]);
-            value_ptr     = (char *)calloc(value_ptr_len + 1, sizeof(char));
+            value_ptr     = (char *)PDC_calloc(value_ptr_len + 1, sizeof(char));
             snprintf(value_ptr, value_ptr_len + 1, format_str, ((int64_t *)input->base_tag->value)[0]);
         }
         else if (input->value_query_type == 5) {
             size_t lo_len = snprintf(NULL, 0, format_str, input->range_lo);
             size_t hi_len = snprintf(NULL, 0, format_str, input->range_hi);
             value_ptr_len = lo_len + hi_len + 1;
-            value_ptr     = (char *)calloc(value_ptr_len + 1, sizeof(char));
+            value_ptr     = (char *)PDC_calloc(value_ptr_len + 1, sizeof(char));
             char fmt_str[20];
             snprintf(fmt_str, 20, "%s~%s", format_str, format_str);
             snprintf(value_ptr, value_ptr_len + 1, fmt_str, input->range_lo, input->range_hi);
@@ -146,8 +147,8 @@ gen_query_key_value(query_gen_input_t *input, query_gen_output_t *output)
 char *
 gen_query_str(query_gen_output_t *query_gen_output)
 {
-    char *final_query_str =
-        (char *)calloc(query_gen_output->key_query_len + query_gen_output->value_query_len + 2, sizeof(char));
+    char *final_query_str = (char *)PDC_calloc(
+        query_gen_output->key_query_len + query_gen_output->value_query_len + 2, sizeof(char));
     strcat(final_query_str, query_gen_output->key_query);
     strcat(final_query_str, "=");
     strcat(final_query_str, query_gen_output->value_query);
@@ -158,10 +159,10 @@ void
 free_query_output(query_gen_output_t *output)
 {
     if (output->key_query != NULL) {
-        free(output->key_query);
+        output->key_query = (char *)PDC_free(output->key_query);
     }
     if (output->value_query != NULL) {
-        free(output->value_query);
+        output->value_query = (char *)PDC_free(output->value_query);
     }
 }
 
@@ -231,7 +232,7 @@ gen_tags(int obj_id)
         char *fspace = ret;
         ret          = dsprintf("%stag%d=%d%d,", ret, j, obj_id, j);
         if (strlen(fspace) > 0) {
-            free(fspace);
+            fspace = (char *)PDC_free(fspace);
         }
     }
     ret[strlen(ret) - 1] = '\0';
@@ -254,7 +255,7 @@ gen_tags_in_loop()
         char *ret     = gen_tags(tag_num);
         println("helloworld, %s", ret);
         if (ret != NULL) {
-            free(ret);
+            ret = (char *)PDC_free(ret);
         }
     }
 }
@@ -326,10 +327,10 @@ k_v_matches_p(const char *tagslist, const char *key_pattern, const char *value_p
                 (value_pattern == NULL ? is_key_matched : (is_key_matched && is_value_matched));
 
             if (key != NULL) {
-                free(key);
+                key = (char *)PDC_free(key);
             }
             if (value != NULL) {
-                free(value);
+                value = (char *)PDC_free(value);
             }
 
             if (pattern_matches) {
@@ -339,25 +340,12 @@ k_v_matches_p(const char *tagslist, const char *key_pattern, const char *value_p
         }
         tag_kv = strtok(NULL, TAG_DELIMITER);
     }
-
-    if (_tags_list != NULL) {
-        // free(_tags_list);
-    }
     return rst_kv;
 }
 
 int
 is_value_match(const char *tagslist, const char *tagname, const char *val)
 {
-    /*
-    char *pattern = strdup(val);
-    if (startsWith("*", pattern)) {
-        pattern = &pattern[1];
-    }
-    if (endsWith("*", pattern)) {
-        pattern[strlen(pattern)]='\0';
-    }
-     */
     return is_value_match_p(tagslist, tagname, val);
 }
 int
@@ -471,12 +459,6 @@ parse_and_run_number_value_query(char *num_val_query, pdc_c_var_type_t num_type,
         size_t klen1   = get_number_from_string(num_str, num_type, &val1);
 
         action_collection->exact_action(val1, NULL, NULL, 1, 1, num_type, cb_input, cb_out, cb_out_len);
-        // value_index_leaf_content_t *value_index_leaf = NULL;
-        // rbt_find(leafcnt->primary_rbt, val1, klen1, (void **)&value_index_leaf);
-        // if (value_index_leaf != NULL) {
-        //     collect_obj_ids(value_index_leaf, idx_record);
-        // }
-        // free(num_str);
     }
     return 0;
 }

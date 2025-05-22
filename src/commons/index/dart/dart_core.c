@@ -2,6 +2,7 @@
 #include "dart_algo.h"
 #include "dart_math.h"
 #include "dart_core.h"
+#include "pdc_malloc.h"
 
 #ifdef PDC_DART_MAX_SERVER_NUM_TO_ADAPT
 #define DART_MAX_SERVER_NUM_TO_ADAPT PDC_DART_MAX_SERVER_NUM_TO_ADAPT
@@ -53,7 +54,7 @@ __dart_space_init(DART *dart, int num_server, int alphabet_size, int extra_tree_
                   int replication_factor, int max_server_num_to_adapt)
 {
     if (dart == NULL) {
-        dart = (DART *)calloc(1, sizeof(DART));
+        dart = (DART *)PDC_calloc(1, sizeof(DART));
     }
     dart->alphabet_size = alphabet_size;
     // initialize servers;
@@ -107,7 +108,7 @@ dart_determine_query_token_by_key_query(char *k_query, char **out_token, dart_op
             break;
     }
     if (affix != NULL) {
-        free(affix);
+        affix = (char *)PDC_free(affix);
         affix = NULL;
     }
 }
@@ -130,7 +131,7 @@ get_vnode_ids_by_serverID(DART *dart, uint32_t serverID, uint64_t **out)
         return 0;
     }
     size_t    num_result = 0;
-    uint64_t *temp_out   = (uint64_t *)calloc(dart->num_vnode, sizeof(uint64_t));
+    uint64_t *temp_out   = (uint64_t *)PDC_calloc(dart->num_vnode, sizeof(uint64_t));
     int       vid        = 0;
     for (vid = 0; vid < dart->num_vnode; vid++) {
         if (get_server_id_by_vnode_id(dart, vid) == serverID) {
@@ -138,9 +139,9 @@ get_vnode_ids_by_serverID(DART *dart, uint32_t serverID, uint64_t **out)
             num_result++;
         }
     }
-    out[0] = (uint64_t *)calloc(num_result, sizeof(uint64_t));
+    out[0] = (uint64_t *)PDC_calloc(num_result, sizeof(uint64_t));
     memcpy(out[0], temp_out, num_result * sizeof(uint64_t));
-    free(temp_out);
+    temp_out = (uint64_t *)PDC_free(temp_out);
     return num_result;
 }
 
@@ -314,7 +315,7 @@ get_replica_node_ids(DART *dart, uint64_t master_node_id, int is_physical, uint6
     if (out == NULL) {
         return 0;
     }
-    out[0] = (uint64_t *)calloc(dart->replication_factor, sizeof(uint64_t));
+    out[0] = (uint64_t *)PDC_calloc(dart->replication_factor, sizeof(uint64_t));
 
     out[0][0] = master_node_id;
 
@@ -405,7 +406,7 @@ get_server_ids_for_query(DART *dart_g, char *token, dart_op_type_t op_type, uint
     // Note: if suffix tree mode is ON, we don't have to search all servers.
 #ifndef PDC_DART_SFX_TREE
     if (op_type == OP_INFIX_QUERY) {
-        out[0] = (uint64_t *)calloc(dart_g->num_server, sizeof(uint64_t));
+        out[0] = (uint64_t *)PDC_calloc(dart_g->num_server, sizeof(uint64_t));
         int i  = 0;
         for (i = 0; i < dart_g->num_server; i++) {
             out[0][i] = i;
@@ -434,7 +435,7 @@ get_server_ids_for_query(DART *dart_g, char *token, dart_op_type_t op_type, uint
         uint64_t server_end   = get_server_id_by_vnode_id(dart_g, region_start + region_size - 1);
 
         int num_srvs    = server_end - server_start + 1;
-        out[0]          = (uint64_t *)calloc(num_srvs, sizeof(uint64_t));
+        out[0]          = (uint64_t *)PDC_calloc(num_srvs, sizeof(uint64_t));
         int num_srv_ids = 0;
 
         uint64_t srvId = server_start;
@@ -474,7 +475,7 @@ get_server_ids_for_query(DART *dart_g, char *token, dart_op_type_t op_type, uint
         int num_alter_reps = get_replica_node_ids(dart_g, reconciled_vnode_id, is_physical, &alter_replicas);
         if (op_type == OP_DELETE) {
             // for delete operations, we need to perform delete on all replicas
-            out[0] = (uint64_t *)calloc(num_base_reps + num_alter_reps, sizeof(uint64_t));
+            out[0] = (uint64_t *)PDC_calloc(num_base_reps + num_alter_reps, sizeof(uint64_t));
             int i  = 0;
             for (i = 0; i < num_base_reps; i++) {
                 out[0][i] = base_replicas[i];
@@ -489,7 +490,7 @@ get_server_ids_for_query(DART *dart_g, char *token, dart_op_type_t op_type, uint
             // and the server has to be any two of the possible replicas.
             int req_count = dart_client_request_count_incr(dart_g);
             int rep_index = req_count % num_base_reps;
-            out[0]        = (uint64_t *)calloc(2, sizeof(uint64_t));
+            out[0]        = (uint64_t *)PDC_calloc(2, sizeof(uint64_t));
             int rst_size  = 1;
             out[0][0]     = base_replicas[rep_index];
             if (base_replicas[rep_index] != alter_replicas[rep_index]) {
@@ -574,10 +575,10 @@ DART_hash(DART *dart_g, char *key, dart_op_type_t op_type, get_server_info_callb
         // now we have the result of DART hash, we need to merge it with the previous results.
         ret_value += tmp_out_len;
         if (*out == NULL) {
-            *out = (index_hash_result_t *)calloc(ret_value, sizeof(index_hash_result_t));
+            *out = (index_hash_result_t *)PDC_calloc(ret_value, sizeof(index_hash_result_t));
         }
         else {
-            *out = (index_hash_result_t *)realloc(*out, ret_value * sizeof(index_hash_result_t));
+            *out = (index_hash_result_t *)PDC_realloc(*out, ret_value * sizeof(index_hash_result_t));
         }
         for (int j = 0; j < tmp_out_len; j++) {
             (*out)[ret_value - tmp_out_len + j].virtual_node_id = temp_out[j];
@@ -586,7 +587,7 @@ DART_hash(DART *dart_g, char *key, dart_op_type_t op_type, get_server_info_callb
             (*out)[ret_value - tmp_out_len + j].is_suffix = is_suffix;
         }
         if (temp_out != NULL)
-            free(temp_out);
+            temp_out = (uint64_t *)PDC_free(temp_out);
     }
     return ret_value;
 }
@@ -629,7 +630,7 @@ DHT_hash(DART *dart_g, size_t len, char *key, dart_op_type_t op_type, index_hash
     // according to different scan type, we return different results.
     if (is_full_scan) {
         ret_value = dart_g->num_server;
-        *out      = (index_hash_result_t *)calloc(ret_value, sizeof(index_hash_result_t));
+        *out      = (index_hash_result_t *)PDC_calloc(ret_value, sizeof(index_hash_result_t));
         for (i = 0; i < dart_g->num_server; i++) {
             (*out)[i].server_id = i;
             (*out)[i].key       = key;
@@ -637,7 +638,7 @@ DHT_hash(DART *dart_g, size_t len, char *key, dart_op_type_t op_type, index_hash
     }
     else {
         ret_value           = 1;
-        *out                = (index_hash_result_t *)calloc(ret_value, sizeof(index_hash_result_t));
+        *out                = (index_hash_result_t *)PDC_calloc(ret_value, sizeof(index_hash_result_t));
         (*out)[0].server_id = server_id;
         (*out)[0].key       = key;
     }

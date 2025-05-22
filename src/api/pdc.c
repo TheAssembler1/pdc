@@ -130,8 +130,8 @@ PDC_class__close(struct _pdc_class *p)
     PDC_timing_finalize();
 #endif
 
-    free(p->name);
-    p = (struct _pdc_class *)(intptr_t)PDC_free(p);
+    p->name = (char *)PDC_free(p->name);
+    p       = (struct _pdc_class *)(intptr_t)PDC_free(p);
 
     FUNC_LEAVE(ret_value);
 }

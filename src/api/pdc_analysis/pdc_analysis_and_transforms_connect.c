@@ -63,7 +63,7 @@ PDC_Client_send_iter_recv_id(pdcid_t iter_id, pdcid_t *meta_id)
         hg_atomic_init32(atomic_work_todo_g, 0);
     }
 
-    my_rpc_state_p = (struct _pdc_my_rpc_state *)calloc(1, sizeof(struct _pdc_my_rpc_state));
+    my_rpc_state_p = (struct _pdc_my_rpc_state *)PDC_calloc(1, sizeof(struct _pdc_my_rpc_state));
     if (my_rpc_state_p == NULL)
         PGOTO_ERROR(FAIL, "PDC_Client_send_iter_recv_id(): Could not allocate my_rpc_state");
 
@@ -130,7 +130,7 @@ PDC_Client_send_iter_recv_id(pdcid_t iter_id, pdcid_t *meta_id)
 done:
     fflush(stdout);
     HG_Destroy(my_rpc_state_p->handle);
-    free(my_rpc_state_p);
+    my_rpc_state_p = (struct _pdc_my_rpc_state *)PDC_free(my_rpc_state_p);
 
     FUNC_LEAVE(ret_value);
 }
@@ -183,7 +183,7 @@ PDC_Client_register_obj_analysis(struct _pdc_region_analysis_ftn_info *thisFtn, 
         hg_atomic_init32(atomic_work_todo_g, 0);
     }
 
-    my_rpc_state_p = (struct _pdc_my_rpc_state *)calloc(1, sizeof(struct _pdc_my_rpc_state));
+    my_rpc_state_p = (struct _pdc_my_rpc_state *)PDC_calloc(1, sizeof(struct _pdc_my_rpc_state));
     if (my_rpc_state_p == NULL)
         PGOTO_ERROR(FAIL, "PDC_Client_register_obj_analysis(): Could not allocate my_rpc_state");
 
@@ -250,7 +250,7 @@ PDC_Client_register_obj_analysis(struct _pdc_region_analysis_ftn_info *thisFtn, 
 done:
     fflush(stdout);
     HG_Destroy(my_rpc_state_p->handle);
-    free(my_rpc_state_p);
+    my_rpc_state_p = (struct _pdc_my_rpc_state *)PDC_free(my_rpc_state_p);
 
     FUNC_LEAVE(ret_value);
 }
@@ -301,7 +301,7 @@ PDC_Client_register_region_transform(const char *func, const char *loadpath,
         hg_atomic_init32(atomic_work_todo_g, 0);
     }
 
-    my_rpc_state_p = (struct _pdc_my_rpc_state *)calloc(1, sizeof(struct _pdc_my_rpc_state));
+    my_rpc_state_p = (struct _pdc_my_rpc_state *)PDC_calloc(1, sizeof(struct _pdc_my_rpc_state));
     if (my_rpc_state_p == NULL)
         PGOTO_ERROR(FAIL, "Could not allocate my_rpc_state");
 
@@ -345,7 +345,7 @@ done:
     if (object_info)
         PDC_free_obj_info(object_info);
     HG_Destroy(my_rpc_state_p->handle);
-    free(my_rpc_state_p);
+    my_rpc_state_p = (struct _pdc_my_rpc_state *)PDC_free(my_rpc_state_p);
 
     FUNC_LEAVE(ret_value);
 }

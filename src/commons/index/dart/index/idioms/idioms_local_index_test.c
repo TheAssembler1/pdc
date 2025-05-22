@@ -36,7 +36,7 @@ void
 init_servers(int num_servers)
 {
     // create an array of dummy_server_t
-    servers = (dummy_server_t *)malloc(num_servers * sizeof(dummy_server_t));
+    servers = (dummy_server_t *)PDC_malloc(num_servers * sizeof(dummy_server_t));
     // initialize each server, simulating the initialization of every single process
     for (int i = 0; i < num_servers; i++) {
         servers[i].id     = i;
@@ -48,11 +48,11 @@ void
 init_clients(int num_clients, int num_servers)
 {
     // create an array of dummy_client_t
-    clients = (dummy_client_t *)malloc(num_clients * sizeof(dummy_client_t));
+    clients = (dummy_client_t *)PDC_malloc(num_clients * sizeof(dummy_client_t));
     // initialize each client, simulating the initialization of every single process
     for (int i = 0; i < num_clients; i++) {
         clients[i].id                 = i;
-        clients[i].dart               = (DART *)calloc(1, sizeof(DART));
+        clients[i].dart               = (DART *)PDC_calloc(1, sizeof(DART));
         clients[i].num_servers        = num_servers;
         clients[i].DART_ALPHABET_SIZE = 27;
         clients[i].extra_tree_height  = 0;
@@ -125,9 +125,9 @@ sending_request_to_server(dummy_client_t *client, dummy_server_t *server)
 {
     // memcpy to simulate the sending of the request to the server
     server->buffer_in_size = client->buffer_out_size;
-    server->buffer_in      = (void *)malloc(server->buffer_in_size);
+    server->buffer_in      = (void *)PDC_malloc(server->buffer_in_size);
     memcpy(server->buffer_in, client->buffer_out, server->buffer_in_size);
-    free(client->buffer_out);
+    client->buffer_out = (void *)PDC_free(client->buffer_out);
 }
 
 void
@@ -135,16 +135,17 @@ get_response_from_server(dummy_client_t *client, dummy_server_t *server)
 {
     // memcpy to simulate the receiving of the response from the server
     client->buffer_in_size = server->buffer_out_size;
-    client->buffer_in      = (void *)malloc(client->buffer_in_size);
+    client->buffer_in      = (void *)PDC_malloc(client->buffer_in_size);
     memcpy(client->buffer_in, server->buffer_out, client->buffer_in_size);
-    free(server->buffer_out);
+    server->buffer_out = (void *)PDC_free(server->buffer_out);
 }
 
 perr_t
 server_perform_query(dummy_server_t *server, char *query_str, uint64_t **object_id_list, uint64_t *count)
 {
-    IDIOMS_md_idx_record_t *idx_record = (IDIOMS_md_idx_record_t *)calloc(1, sizeof(IDIOMS_md_idx_record_t));
-    idx_record->key                    = query_str;
+    IDIOMS_md_idx_record_t *idx_record =
+        (IDIOMS_md_idx_record_t *)PDC_calloc(1, sizeof(IDIOMS_md_idx_record_t));
+    idx_record->key = query_str;
     idioms_local_index_search(server->idioms, idx_record);
     *object_id_list = idx_record->obj_ids;
     *count          = idx_record->num_obj_ids;
@@ -155,14 +156,15 @@ perr_t
 server_perform_insert(dummy_server_t *server, char *key, BULKI_Entity *value_ent, uint64_t id)
 {
     // we assume that the count of value_ent is 1.
-    IDIOMS_md_idx_record_t *idx_record = (IDIOMS_md_idx_record_t *)calloc(1, sizeof(IDIOMS_md_idx_record_t));
-    idx_record->key                    = key;
-    idx_record->value                  = value_ent->data;
-    idx_record->value_len              = value_ent->size;
-    idx_record->type                   = value_ent->pdc_type;
-    idx_record->num_obj_ids            = 1;
-    idx_record->obj_ids                = (uint64_t *)calloc(1, sizeof(uint64_t));
-    idx_record->obj_ids[0]             = id;
+    IDIOMS_md_idx_record_t *idx_record =
+        (IDIOMS_md_idx_record_t *)PDC_calloc(1, sizeof(IDIOMS_md_idx_record_t));
+    idx_record->key         = key;
+    idx_record->value       = value_ent->data;
+    idx_record->value_len   = value_ent->size;
+    idx_record->type        = value_ent->pdc_type;
+    idx_record->num_obj_ids = 1;
+    idx_record->obj_ids     = (uint64_t *)PDC_calloc(1, sizeof(uint64_t));
+    idx_record->obj_ids[0]  = id;
     idioms_local_index_create(server->idioms, idx_record);
     return SUCCEED;
 }
@@ -170,14 +172,15 @@ server_perform_insert(dummy_server_t *server, char *key, BULKI_Entity *value_ent
 perr_t
 server_perform_delete(dummy_server_t *server, char *key, BULKI_Entity *value_ent, uint64_t id)
 {
-    IDIOMS_md_idx_record_t *idx_record = (IDIOMS_md_idx_record_t *)calloc(1, sizeof(IDIOMS_md_idx_record_t));
-    idx_record->key                    = key;
-    idx_record->value                  = value_ent->data;
-    idx_record->value_len              = value_ent->size;
-    idx_record->type                   = value_ent->pdc_type;
-    idx_record->num_obj_ids            = 1;
-    idx_record->obj_ids                = (uint64_t *)calloc(1, sizeof(uint64_t));
-    idx_record->obj_ids[0]             = id;
+    IDIOMS_md_idx_record_t *idx_record =
+        (IDIOMS_md_idx_record_t *)PDC_calloc(1, sizeof(IDIOMS_md_idx_record_t));
+    idx_record->key         = key;
+    idx_record->value       = value_ent->data;
+    idx_record->value_len   = value_ent->size;
+    idx_record->type        = value_ent->pdc_type;
+    idx_record->num_obj_ids = 1;
+    idx_record->obj_ids     = (uint64_t *)PDC_calloc(1, sizeof(uint64_t));
+    idx_record->obj_ids[0]  = id;
     idioms_local_index_delete(server->idioms, idx_record);
     return SUCCEED;
 }
@@ -214,7 +217,7 @@ server_perform_operation(dummy_server_t *server)
                                          BULKI_ENTITY(obj_id_list, count, PDC_UINT64, PDC_CLS_ARRAY));
     }
     server->buffer_out = BULKI_Entity_serialize(resultBent, &server->buffer_out_size);
-    free(server->buffer_in);
+    server->buffer_in  = (void *)PDC_free(server->buffer_in);
 }
 
 perr_t
@@ -229,7 +232,7 @@ client_parse_response(dummy_client_t *client, uint64_t **obj_id_list, uint64_t *
             *count       = obj_id_bent->count;
         }
     }
-    free(client->buffer_in);
+    client->buffer_in = (void *)PDC_free(client->buffer_in);
     return result;
 }
 
@@ -302,10 +305,10 @@ client_perform_search(dummy_client_t *client, char *query, uint64_t **rst_ids)
         if (result == SUCCEED && count > 0) {
             rst_count += count;
             if (*rst_ids == NULL) {
-                *rst_ids = (uint64_t *)malloc(rst_count * sizeof(uint64_t));
+                *rst_ids = (uint64_t *)PDC_malloc(rst_count * sizeof(uint64_t));
             }
             else {
-                *rst_ids = (uint64_t *)realloc(*rst_ids, rst_count * sizeof(uint64_t));
+                *rst_ids = (uint64_t *)PDC_realloc(*rst_ids, rst_count * sizeof(uint64_t));
             }
             memcpy(*rst_ids + rst_count - count, obj_id_list, count * sizeof(uint64_t));
         }
