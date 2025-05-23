@@ -27,6 +27,7 @@
 #include <string.h>
 #include <inttypes.h>
 #include "pdc.h"
+#include "test_helper.h"
 
 int
 main(int argc, char **argv)
@@ -34,7 +35,7 @@ main(int argc, char **argv)
     pdcid_t      pdc, create_prop, cont1, cont2, cont3;
     cont_handle *ch;
     int          rank = 0, size = 1;
-    int          ret_value = 0;
+    int          ret_value = TSUCCEED;
 
 #ifdef ENABLE_MPI
     MPI_Init(&argc, &argv);
@@ -42,92 +43,45 @@ main(int argc, char **argv)
     MPI_Comm_size(MPI_COMM_WORLD, &size);
 #endif
     // create a pdc
-    pdc = PDCinit("pdc");
-    LOG_INFO("create a new pdc\n");
+    TASSERT((pdc = PDCinit("pdc")) != 0, "Call to PDCinit succeeded", "Call to PDCinit failed");
 
     // create a container property
-    create_prop = PDCprop_create(PDC_CONT_CREATE, pdc);
-    if (create_prop > 0) {
-        LOG_INFO("Create a container property\n");
-    }
-    else {
-        LOG_ERROR("Failed to create container property");
-        ret_value = 1;
-    }
+    TASSERT((create_prop = PDCprop_create(PDC_CONT_CREATE, pdc)) != 0, "Call to PDCprop_create succeeded",
+            "Call to PDCprop_create failed");
     // create a container
-    cont1 = PDCcont_create("c1", create_prop);
-    if (cont1 > 0) {
-        LOG_INFO("Create a container c1\n");
-    }
-    else {
-        LOG_ERROR("Failed to create container");
-        ret_value = 1;
-    }
+    TASSERT((cont1 = PDCcont_create("c1", create_prop)) != 0, "Call to PDCcont_create succeeded for c1",
+            "Call to PDCcont_create failed for c1");
     // create second container
-    cont2 = PDCcont_create("c2", create_prop);
-    if (cont2 > 0) {
-        LOG_INFO("Create a container c2\n");
-    }
-    else {
-        LOG_ERROR("Failed to create container");
-        ret_value = 1;
-    }
+    TASSERT((cont2 = PDCcont_create("c2", create_prop)) != 0, "Call to PDCcont_create succeeded for c2",
+            "Call to PDCcont_create failed for c2");
     // create third container
-    cont3 = PDCcont_create("c3", create_prop);
-    if (cont3 > 0) {
-        LOG_INFO("Create a container c3\n");
-    }
-    else {
-        LOG_ERROR("Failed to create container");
-        ret_value = 1;
-    }
+    TASSERT((cont3 = PDCcont_create("c3", create_prop)) != 0, "Call to PDCcont_create succeeded for c3",
+            "Call to PDCcont_create failed for c3");
+
     // start container iteration
     ch = PDCcont_iter_start(pdc);
-
     while (!PDCcont_iter_null(ch)) {
         PDCcont_iter_get_info(ch);
-        LOG_INFO("container property id is");
-
+        LOG_INFO("Container property id is %d\n", ch);
         ch = PDCcont_iter_next(ch);
     }
 
     // close cont1
-    if (PDCcont_close(cont1) < 0) {
-        LOG_ERROR("Failed to close container c1\n");
-        ret_value = 1;
-    }
-    else {
-        LOG_INFO("Successfully closed container c1\n");
-    }
+    TASSERT(PDCcont_close(cont1) >= 0, "Call to PDCcont_close succeeded for c1",
+            "Call to PDCcont_close failed for c1");
     // close cont2
-    if (PDCcont_close(cont2) < 0) {
-        LOG_ERROR("Failed to close container c2\n");
-        ret_value = 1;
-    }
-    else {
-        LOG_INFO("Successfully closed container c2\n");
-    }
+    TASSERT(PDCcont_close(cont2) >= 0, "Call to PDCcont_close succeeded for c2",
+            "Call to PDCcont_close failed for c2");
     // close cont3
-    if (PDCcont_close(cont3) < 0) {
-        LOG_ERROR("Failed to close container c3\n");
-        ret_value = 1;
-    }
-    else {
-        LOG_INFO("Successfully closed container c3\n");
-    }
+    TASSERT(PDCcont_close(cont3) >= 0, "Call to PDCcont_close succeeded for c3",
+            "Call to PDCcont_close failed for c3");
     // close a container property
-    if (PDCprop_close(create_prop) < 0) {
-        LOG_ERROR("Failed to close property");
-        ret_value = 1;
-    }
-    else {
-        LOG_INFO("Successfully closed container property\n");
-    }
+    TASSERT(PDCprop_close(create_prop) >= 0, "Call to PDCprop_close succeeded",
+            "Call to PDCprop_close failed");
     // close pdc
-    if (PDCclose(pdc) < 0) {
-        LOG_ERROR("Failed to close PDC\n");
-        ret_value = 1;
-    }
+    TASSERT(PDCclose(pdc) >= 0, "Call to PDCclose succeeded", "Call to PDCclose failed");
+
+done:
 #ifdef ENABLE_MPI
     MPI_Finalize();
 #endif

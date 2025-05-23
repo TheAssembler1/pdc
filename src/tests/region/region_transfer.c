@@ -31,7 +31,7 @@
 #include <unistd.h>
 #include <sys/time.h>
 #include "pdc.h"
-#include "pdc_client_connect.h"
+
 #define BUF_LEN 128
 
 int

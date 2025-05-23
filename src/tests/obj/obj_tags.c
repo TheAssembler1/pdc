@@ -26,6 +26,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "pdc.h"
+#include "test_helper.h"
 
 int
 main(int argc, char **argv)
@@ -33,7 +34,7 @@ main(int argc, char **argv)
     pdcid_t pdc, cont_prop, cont, obj_prop;
     perr_t  ret;
     pdcid_t obj1, obj2;
-    int     ret_value = 0;
+    int     ret_value = TSUCCEED;
 
     int rank = 0, size = 1;
 
@@ -56,181 +57,86 @@ main(int argc, char **argv)
     MPI_Comm_size(MPI_COMM_WORLD, &size);
 #endif
     // create a pdc
-    pdc = PDCinit("pdc");
-    LOG_ERROR("create a new pdc\n");
-
+    TASSERT((pdc = PDCinit("pdc")) != 0, "Call to PDCinit succeeded", "Call to PDCinit failed");
     // create a container property
-    cont_prop = PDCprop_create(PDC_CONT_CREATE, pdc);
-    if (cont_prop > 0) {
-        LOG_ERROR("Create a container property\n");
-    }
-    else {
-        LOG_ERROR("Failed to create container property");
-        ret_value = 1;
-    }
+    TASSERT((cont_prop = PDCprop_create(PDC_CONT_CREATE, pdc)) != 0, "Call to PDCprop_create succeeded",
+            "Call to PDCprop_create failed");
+
     // create a container
     sprintf(cont_name, "c%d", rank);
-    cont = PDCcont_create(cont_name, cont_prop);
-    if (cont > 0) {
-        LOG_ERROR("Create a container c1\n");
-    }
-    else {
-        LOG_ERROR("Failed to create container");
-        ret_value = 1;
-    }
+    TASSERT((cont = PDCcont_create(cont_name, cont_prop)) != 0, "Call to PDCcont_create succeeded",
+            "Call to PDCcont_create failed");
     // create an object property
-    obj_prop = PDCprop_create(PDC_OBJ_CREATE, pdc);
-    if (obj_prop > 0) {
-        LOG_ERROR("Create an object property\n");
-    }
-    else {
-        LOG_ERROR("Failed to create object property");
-        ret_value = 1;
-    }
-
-    ret = PDCprop_set_obj_dims(obj_prop, ndim, dims);
-    if (ret != SUCCEED) {
-        LOG_ERROR("Failed to set obj dim");
-        ret_value = 1;
-    }
-    ret = PDCprop_set_obj_type(obj_prop, PDC_DOUBLE);
-    if (ret != SUCCEED) {
-        LOG_ERROR("Failed to set obj type");
-        ret_value = 1;
-    }
+    TASSERT((obj_prop = PDCprop_create(PDC_OBJ_CREATE, pdc)) != 0, "Call to PDCprop_create succeeded",
+            "Call to PDCprop_create failed");
+    TASSERT(PDCprop_set_obj_dims(obj_prop, ndim, dims) >= 0, "Call to PDCprop_set_obj_dims succeeded",
+            "Call to PDCprop_set_obj_dims failed");
+    TASSERT(PDCprop_set_obj_type(obj_prop, PDC_DOUBLE) >= 0, "Call to PDCprop_set_obj_type succeeded",
+            "Call to PDCprop_set_obj_type failed");
 
     // create first object
     sprintf(obj_name1, "o1_%d", rank);
-    obj1 = PDCobj_create(cont, obj_name1, obj_prop);
-    if (obj1 > 0) {
-        LOG_ERROR("Create an object o1\n");
-    }
-    else {
-        LOG_ERROR("Failed to create object");
-        ret_value = 1;
-    }
+    TASSERT((obj1 = PDCobj_create(cont, obj_name1, obj_prop)) != 0,
+            "Call to PDCobj_create succeeded for obj1", "Call to PDCobj_create failed for obj1");
     // create second object
     sprintf(obj_name2, "o2_%d", rank);
-    obj2 = PDCobj_create(cont, obj_name2, obj_prop);
-    if (obj2 > 0) {
-        LOG_ERROR("Create an object o2\n");
-    }
-    else {
-        LOG_ERROR("Failed to create object");
-        ret_value = 1;
-    }
+    TASSERT((obj2 = PDCobj_create(cont, obj_name2, obj_prop)) != 0,
+            "Call to PDCobj_create succeeded for obj2", "Call to PDCobj_create failed for obj2");
 
-    ret = PDCobj_put_tag(obj1, "some tag", tag_value, PDC_STRING, strlen(tag_value) + 1);
-    if (ret != SUCCEED) {
-        LOG_ERROR("Put tag failed at object 1\n");
-        ret_value = 1;
-    }
-    ret = PDCobj_put_tag(obj1, "some tag 2", tag_value2, PDC_STRING, strlen(tag_value2) + 1);
-    if (ret != SUCCEED) {
-        LOG_ERROR("Put tag failed at object 1\n");
-        ret_value = 1;
-    }
+    // put tags in obj1
+    TASSERT(PDCobj_put_tag(obj1, "some tag", tag_value, PDC_STRING, strlen(tag_value) + 1) >= 0,
+            "Call to PDCobj_put_tag succeeded for obj1", "Call to PDCobj_put_tag failed for obj1");
+    TASSERT(PDCobj_put_tag(obj1, "some tag 2", tag_value2, PDC_STRING, strlen(tag_value2) + 1) >= 0,
+            "Call to PDCobj_put_tag succeeded for obj1", "Call to PDCobj_put_tag failed for obj1");
 
-    ret = PDCobj_put_tag(obj2, "some tag", tag_value, PDC_STRING, strlen(tag_value) + 1);
-    if (ret != SUCCEED) {
-        LOG_ERROR("Put tag failed at object 2\n");
-        ret_value = 1;
-    }
+    // put tags in obj2
+    TASSERT(PDCobj_put_tag(obj2, "some tag", tag_value, PDC_STRING, strlen(tag_value) + 1) >= 0,
+            "Call to PDCobj_put_tag succeeded for obj2", "Call to PDCobj_put_tag failed for obj2");
+    TASSERT(PDCobj_put_tag(obj2, "some tag 2", tag_value2, PDC_STRING, strlen(tag_value2) + 1) >= 0,
+            "Call to PDCobj_put_tag succeeded for obj2", "Call to PDCobj_put_tag failed for obj2");
 
-    ret = PDCobj_put_tag(obj2, "some tag 2", tag_value2, PDC_STRING, strlen(tag_value2) + 1);
-    if (ret != SUCCEED) {
-        LOG_ERROR("Put tag failed at object 2\n");
-        ret_value = 1;
-    }
-
-    ret = PDCobj_get_tag(obj1, "some tag", (void **)&tag_value_ret, &value_type, &value_size);
-    if (ret != SUCCEED) {
-        LOG_ERROR("Get tag failed at object 1\n");
-        ret_value = 1;
-    }
-
+    // get tags in obj1
+    TASSERT(PDCobj_get_tag(obj1, "some tag", (void **)&tag_value_ret, &value_type, &value_size) >= 0,
+            "Call to PDCobj_get_tag succeeded for obj1", "Call to PDCobj_get_tag failed for obj1");
     if (strcmp(tag_value, tag_value_ret) != 0) {
         LOG_ERROR("Wrong tag value at object 1, expected = %s, get %s\n", tag_value, tag_value_ret);
-        ret_value = 1;
+        PGOTO_DONE(TFAIL);
     }
-
-    ret = PDCobj_get_tag(obj1, "some tag 2", (void **)&tag_value_ret, &value_type, &value_size);
-    if (ret != SUCCEED) {
-        LOG_ERROR("Get tag failed at object 1\n");
-        ret_value = 1;
-    }
-
+    TASSERT(PDCobj_get_tag(obj1, "some tag 2", (void **)&tag_value_ret, &value_type, &value_size) >= 0,
+            "Call to PDCobj_get_tag succeeded for obj1", "Call to PDCobj_get_tag failed for obj1");
     if (strcmp(tag_value2, tag_value_ret) != 0) {
         LOG_ERROR("Wrong tag value 2 at object 1, expected = %s, get %s\n", tag_value2, tag_value_ret);
-        ret_value = 1;
+        PGOTO_DONE(TFAIL);
     }
 
-    ret = PDCobj_get_tag(obj2, "some tag", (void **)&tag_value_ret, &value_type, &value_size);
-    if (ret != SUCCEED) {
-        LOG_ERROR("Get tag failed at object 2\n");
-        ret_value = 1;
-    }
-
+    // get tags in obj2
+    TASSERT(PDCobj_get_tag(obj2, "some tag", (void **)&tag_value_ret, &value_type, &value_size) >= 0,
+            "Call to PDCobj_get_tag succeeded for obj2", "Call to PDCobj_get_tag failed for obj2");
     if (strcmp(tag_value, tag_value_ret) != 0) {
         LOG_ERROR("Wrong tag value at object 2, expected = %s, get %s\n", tag_value, tag_value_ret);
-        ret_value = 1;
+        PGOTO_DONE(TFAIL);
     }
-
-    ret = PDCobj_get_tag(obj2, "some tag 2", (void **)&tag_value_ret, &value_type, &value_size);
-    if (ret != SUCCEED) {
-        LOG_ERROR("Get tag failed at object 2\n");
-        ret_value = 1;
-    }
-
+    TASSERT(PDCobj_get_tag(obj2, "some tag 2", (void **)&tag_value_ret, &value_type, &value_size) >= 0,
+            "Call to PDCobj_get_tag succeeded for obj2", "Call to PDCobj_get_tag failed for obj2");
     if (strcmp(tag_value2, tag_value_ret) != 0) {
         LOG_ERROR("Wrong tag value 2 at object 2, expected = %s, get %s\n", tag_value2, tag_value_ret);
-        ret_value = 1;
+        PGOTO_DONE(TFAIL);
     }
 
-    // close object
-    if (PDCobj_close(obj1) < 0) {
-        LOG_ERROR("Failed to close object o1\n");
-        ret_value = 1;
-    }
-    else {
-        LOG_INFO("Successfully closed object o1\n");
-    }
-    if (PDCobj_close(obj2) < 0) {
-        LOG_ERROR("Failed to close object o2\n");
-        ret_value = 1;
-    }
-    else {
-        LOG_INFO("Successfully closed object o2\n");
-    }
-    // close a container
-    if (PDCcont_close(cont) < 0) {
-        LOG_ERROR("Failed to close container c1\n");
-        ret_value = 1;
-    }
-    else {
-        LOG_INFO("Successfully closed container c1\n");
-    }
-    // close a object property
-    if (PDCprop_close(obj_prop) < 0) {
-        LOG_ERROR("Failed to close property");
-        ret_value = 1;
-    }
-    else {
-        LOG_INFO("Successfully closed object property\n");
-    }
-    // close a container property
-    if (PDCprop_close(cont_prop) < 0) {
-        LOG_ERROR("Failed to close property");
-        ret_value = 1;
-    }
-    else {
-        LOG_INFO("Successfully closed container property\n");
-    }
+    // close objects
+    TASSERT(PDCobj_close(obj1) >= 0, "Call to PDCobj_close succeeded for obj1",
+            "Call to PDCobj_close failed for obj1");
+    TASSERT(PDCobj_close(obj2) >= 0, "Call to PDCobj_close succeeded for obj2",
+            "Call to PDCobj_close failed for obj2");
+    // close container
+    TASSERT(PDCcont_close(cont) >= 0, "Call to PDCcont_close succeeded", "Call to PDCcont_close failed");
+    // close properties
+    TASSERT(PDCprop_close(obj_prop) >= 0, "Call to PDCprop_close succeeded", "Call to PDCprop_close failed");
+    TASSERT(PDCprop_close(cont_prop) >= 0, "Call to PDCprop_close succeeded", "Call to PDCprop_close failed");
     // close pdc
-    if (PDCclose(pdc) < 0) {
-        LOG_ERROR("Failed to close PDC\n");
-        ret_value = 1;
-    }
+    TASSERT(PDCclose(pdc) >= 0, "Call to PDCclose succeeded", "Call to PDCclose failed");
+
+done:
 #ifdef ENABLE_MPI
     MPI_Finalize();
 #endif

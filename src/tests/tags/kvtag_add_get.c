@@ -28,65 +28,41 @@
 #include <getopt.h>
 #include <time.h>
 #include "pdc.h"
-#include "pdc_client_connect.h"
+#include "test_helper.h"
 
 int
 main()
 {
     pdcid_t        pdc, cont_prop, cont, obj_prop1, obj_prop2, obj1, obj2;
     pdc_kvtag_t    kvtag1, kvtag2, kvtag3;
-    char *         v1 = "value1";
+    char          *v1 = "value1";
     int            v2 = 2;
     double         v3 = 3.45;
     pdc_var_type_t type1, type2, type3;
-    void *         value1, *value2, *value3;
+    void          *value1, *value2, *value3;
     psize_t        value_size;
     int            ret_value = SUCCEED;
+    int            rank      = 0;
 
     // create a pdc
-    pdc = PDCinit("pdc");
-    LOG_INFO("create a new pdc\n");
-
+    TASSERT((pdc = PDCinit("pdc")) != 0, "Call to PDCinit succeeded", "Call to PDCinit failed");
     // create a container property
-    cont_prop = PDCprop_create(PDC_CONT_CREATE, pdc);
-    if (cont_prop > 0)
-        LOG_INFO("Create a container property\n");
-    else
-        PGOTO_ERROR(FAIL, "Failed to create container property");
-
+    TASSERT((cont_prop = PDCprop_create(PDC_CONT_CREATE, pdc)) != 0, "Call to PDCprop_create succeeded",
+            "Call to PDCprop_create failed");
     // create a container
-    cont = PDCcont_create("c1", cont_prop);
-    if (cont > 0)
-        LOG_INFO("Create a container c1\n");
-    else
-        PGOTO_ERROR(FAIL, "Failed to create container");
-
-    // create an object property
-    obj_prop1 = PDCprop_create(PDC_OBJ_CREATE, pdc);
-    if (obj_prop1 > 0)
-        LOG_INFO("Create an object property\n");
-    else
-        PGOTO_ERROR(FAIL, "Failed to create object property");
-
-    obj_prop2 = PDCprop_create(PDC_OBJ_CREATE, pdc);
-    if (obj_prop2 > 0)
-        LOG_INFO("Create an object property\n");
-    else
-        PGOTO_ERROR(FAIL, "Failed to create object property");
-
+    TASSERT((cont = PDCcont_create("c1", cont_prop)) != 0, "Call to PDCcont_create succeeded",
+            "Call to PDCcont_create failed");
+    // create object properties
+    TASSERT((obj_prop1 = PDCprop_create(PDC_OBJ_CREATE, pdc)) != 0, "Call to PDCprop_create succeeded",
+            "Call to PDCprop_create failed");
+    TASSERT((obj_prop2 = PDCprop_create(PDC_OBJ_CREATE, pdc)) != 0, "Call to PDCprop_create succeeded",
+            "Call to PDCprop_create failed");
     // create first object
-    obj1 = PDCobj_create(cont, "o1", obj_prop1);
-    if (obj1 > 0)
-        LOG_INFO("Create an object o1\n");
-    else
-        PGOTO_ERROR(FAIL, "Failed to create object");
-
+    TASSERT((obj1 = PDCobj_create(cont, "o1", obj_prop1)) != 0, "Call to PDCobj_create succeeded for obj1",
+            "Call to PDCobj_create failed for obj1");
     // create second object
-    obj2 = PDCobj_create(cont, "o2", obj_prop2);
-    if (obj2 > 0)
-        LOG_INFO("Create an object o2\n");
-    else
-        PGOTO_ERROR(FAIL, "Failed to create object");
+    TASSERT((obj2 = PDCobj_create(cont, "o2", obj_prop2)) != 0, "Call to PDCobj_create succeeded for obj2",
+            "Call to PDCobj_create failed for obj2");
 
     kvtag1.name  = "key1string";
     kvtag1.value = (void *)v1;
@@ -103,92 +79,48 @@ main()
     kvtag3.type  = PDC_DOUBLE;
     kvtag3.size  = sizeof(double);
 
-    if (PDCobj_put_tag(obj1, kvtag1.name, kvtag1.value, kvtag1.type, kvtag1.size) < 0)
-        PGOTO_ERROR(FAIL, "Failed to add a kvtag to o1");
-    else
-        LOG_INFO("successfully added a kvtag to o1\n");
-
-    if (PDCobj_put_tag(obj2, kvtag2.name, kvtag2.value, kvtag2.type, kvtag2.size) < 0)
-        PGOTO_ERROR(FAIL, "Failed to add a kvtag to o1");
-    else
-        LOG_INFO("successfully added a kvtag to o1\n");
-
-    if (PDCobj_put_tag(obj2, kvtag3.name, kvtag3.value, kvtag3.type, kvtag3.size) < 0)
-        PGOTO_ERROR(FAIL, "Failed to add a kvtag to o1");
-    else
-        LOG_INFO("successfully added a kvtag to o1\n");
-
-    if (PDCobj_get_tag(obj1, kvtag1.name, (void *)&value1, (void *)&type1, (void *)&value_size) < 0)
-        PGOTO_ERROR(FAIL, "Failed to get a kvtag from o1");
-    else
-        LOG_INFO("successfully retrieved a kvtag [%s] = [%s] from o1\n", kvtag1.name, (char *)value1);
-
-    if (PDCobj_get_tag(obj2, kvtag2.name, (void *)&value2, (void *)&type2, (void *)&value_size) < 0)
-        PGOTO_ERROR(FAIL, "Failed to get a kvtag from o2");
-    else
-        LOG_INFO("successfully retrieved a kvtag [%s] = [%d] from o2\n", kvtag2.name, *(int *)value2);
-
-    if (PDCobj_get_tag(obj2, kvtag3.name, (void *)&value3, (void *)&type3, (void *)&value_size) < 0)
-        PGOTO_ERROR(FAIL, "Failed to get a kvtag from o2");
-    else
-        LOG_INFO("successfully retrieved a kvtag [%s] = [%f] from o2\n", kvtag3.name, *(double *)value3);
-
-    if (PDCobj_del_tag(obj1, kvtag1.name) < 0)
-        PGOTO_ERROR(FAIL, "Failed to delete a kvtag from o1");
-    else
-        LOG_INFO("successfully deleted a kvtag [%s] from o1\n", kvtag1.name);
+    // puts tags for obj1
+    TASSERT(PDCobj_put_tag(obj1, kvtag1.name, kvtag1.value, kvtag1.type, kvtag1.size) >= 0,
+            "Call to PDCobj_put_tag succeeded for obj1", "Call to PDCobj_put_tag failed for obj1");
+    TASSERT(PDCobj_put_tag(obj1, kvtag2.name, kvtag2.value, kvtag2.type, kvtag2.size) >= 0,
+            "Call to PDCobj_put_tag succeeded for obj1", "Call to PDCobj_put_tag failed for obj1");
+    // put tag for obj2
+    TASSERT(PDCobj_put_tag(obj2, kvtag3.name, kvtag3.value, kvtag3.type, kvtag3.size) >= 0,
+            "Call to PDCobj_put_tag succeeded for obj2", "Call to PDCobj_put_tag failed for obj2");
+    // get tag for obj1
+    TASSERT(PDCobj_get_tag(obj1, kvtag1.name, (void *)&value1, (void *)&type1, (void *)&value_size) >= 0,
+            "Call to PDCobj_get_tag succeeded for obj1", "Call to PDCobj_get_tag failed for obj1");
+    // get tags for obj2
+    TASSERT(PDCobj_get_tag(obj2, kvtag1.name, (void *)&value2, (void *)&type2, (void *)&value_size) >= 0,
+            "Call to PDCobj_get_tag succeeded for obj2", "Call to PDCobj_get_tag failed for obj2");
+    TASSERT(PDCobj_get_tag(obj2, kvtag3.name, (void *)&value3, (void *)&type3, (void *)&value_size) >= 0,
+            "Call to PDCobj_get_tag succeeded for obj2", "Call to PDCobj_get_tag failed for obj2");
+    // delete tag for obj1
+    TASSERT(PDCobj_del_tag(obj1, kvtag1.name) >= 0, "Call to PDCobj_del_tag succeeded",
+            "Call to PDCobj_del_tag failed");
 
     v1           = "New Value After Delete";
     kvtag1.value = (void *)v1;
     kvtag1.type  = PDC_STRING;
     kvtag1.size  = strlen(v1) + 1;
-    if (PDCobj_put_tag(obj1, kvtag1.name, kvtag1.value, kvtag1.type, kvtag1.size) < 0)
-        LOG_ERROR("Failed to add a kvtag to o1\n");
-    else
-        LOG_INFO("successfully added a kvtag to o1\n");
-
-    if (PDCobj_get_tag(obj1, kvtag1.name, (void *)&value1, (void *)&type1, (void *)&value_size) < 0)
-        PGOTO_ERROR(FAIL, "Failed to get a kvtag from o1");
-    else
-        LOG_INFO("successfully retrieved a kvtag [%s] = [%s] from o1\n", kvtag1.name, (char *)value1);
-
+    TASSERT(PDCobj_put_tag(obj1, kvtag1.name, kvtag1.value, kvtag1.type, kvtag1.size) >= 0,
+            "Call to PDCobj_put_tag succeeded for obj1", "Call to PDCobj_put_tag failed for obj1");
+    TASSERT(PDCobj_get_tag(obj1, kvtag1.name, (void *)&value1, (void *)&type1, (void *)&value_size) >= 0,
+            "Call to PDCobj_get_tag succeeded for obj1", "Call to PDCobj_get_tag failed for obj1");
     // close first object
-    if (PDCobj_close(obj1) < 0)
-        PGOTO_ERROR(FAIL, "Failed to close object o1");
-    else
-        LOG_INFO("Successfully closed object o1\n");
-
+    TASSERT(PDCobj_close(obj1) >= 0, "Call to PDCobj_close succeeded for obj1",
+            "Call to PDCobj_close failed for obj1");
     // close second object
-    if (PDCobj_close(obj2) < 0)
-        PGOTO_ERROR(FAIL, "Failed to close object o2");
-    else
-        LOG_INFO("Successfully closed object o2\n");
-
+    TASSERT(PDCobj_close(obj2) >= 0, "Call to PDCobj_close succeeded for obj2",
+            "Call to PDCobj_close failed for obj2");
     // close a container
-    if (PDCcont_close(cont) < 0)
-        PGOTO_ERROR(FAIL, "Failed to close container c1");
-    else
-        LOG_INFO("Successfully closed container c1\n");
-
-    // close a container property
-    if (PDCprop_close(obj_prop1) < 0)
-        PGOTO_ERROR(FAIL, "Failed to close property");
-    else
-        LOG_INFO("Successfully closed object property\n");
-
-    if (PDCprop_close(obj_prop2) < 0)
-        PGOTO_ERROR(FAIL, "Failed to close property");
-    else
-        LOG_INFO("Successfully closed object property\n");
-
-    if (PDCprop_close(cont_prop) < 0)
-        PGOTO_ERROR(FAIL, "Failed to close property");
-    else
-        LOG_INFO("Successfully closed container property\n");
-
+    TASSERT(PDCcont_close(cont) >= 0, "Call to PDCcont_close succeeded", "Call to PDCcont_close failed");
+    // close properties
+    TASSERT(PDCprop_close(obj_prop1) >= 0, "Call to PDCprop_close succeeded", "Call to PDCprop_close failed");
+    TASSERT(PDCprop_close(obj_prop2) >= 0, "Call to PDCprop_close succeeded", "Call to PDCprop_close failed");
+    TASSERT(PDCprop_close(cont_prop) >= 0, "Call to PDCprop_close succeeded", "Call to PDCprop_close failed");
     // close pdc
-    if (PDCclose(pdc) < 0)
-        PGOTO_ERROR(FAIL, "Failed to close PDC");
+    TASSERT(PDCclose(pdc) >= 0, "Call to PDCclose succeeded", "Call to PDCclose failed");
 
 done:
     return ret_value;

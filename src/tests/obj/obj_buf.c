@@ -26,6 +26,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "pdc.h"
+#include "test_helper.h"
 
 int
 main(int argc, char **argv)
@@ -33,8 +34,8 @@ main(int argc, char **argv)
     pdcid_t pdc, cont_prop, cont, obj_prop, obj1;
     int     rank = 0, size = 1;
     int     myArray[] = {1, 2, 3, 4, 5, 6, 7, 8, 9};
-    void ** rbuf;
-    int     ret_value = 0;
+    void  **rbuf;
+    int     ret_value = TSUCCEED;
     char    cont_name[128], obj_name1[128];
 
 #ifdef ENABLE_MPI
@@ -44,91 +45,41 @@ main(int argc, char **argv)
 #endif
 
     // create a pdc
-    pdc = PDCinit("pdc");
-    LOG_INFO("create a new pdc\n");
-
+    TASSERT((pdc = PDCinit("pdc")) != 0, "Call to PDCinit succeeded", "Call to PDCinit failed");
     // create a container property
-    cont_prop = PDCprop_create(PDC_CONT_CREATE, pdc);
-    if (cont_prop > 0) {
-        LOG_INFO("Create a container property\n");
-    }
-    else {
-        LOG_ERROR("Failed to create container property");
-        ret_value = 1;
-    }
+    TASSERT((cont_prop = PDCprop_create(PDC_CONT_CREATE, pdc)) != 0, "Call to PDCprop_create succeeded",
+            "Call to PDCprop_create failed");
     // create a container
     sprintf(cont_name, "c%d", rank);
-    cont = PDCcont_create(cont_name, cont_prop);
-    if (cont > 0) {
-        LOG_INFO("Create a container\n");
-    }
-    else {
-        LOG_ERROR("Failed to create container");
-        ret_value = 1;
-    }
+    TASSERT((cont = PDCcont_create(cont_name, cont_prop)) != 0, "Call to PDCcont_create succeeded",
+            "Call to PDCcont_create failed");
     // create an object property
-    obj_prop = PDCprop_create(PDC_OBJ_CREATE, pdc);
-    if (obj_prop > 0) {
-        LOG_INFO("Create an object property\n");
-    }
-    else {
-        LOG_ERROR("Failed to create object property");
-        ret_value = 1;
-    }
-    PDCprop_set_obj_buf(obj_prop, myArray);
+    TASSERT((obj_prop = PDCprop_create(PDC_OBJ_CREATE, pdc)) != 0, "Call to PDCprop_create succeeded",
+            "Call to PDCprop_create failed");
+    TASSERT(PDCprop_set_obj_buf(obj_prop, myArray) >= 0, "Call to PDCprop_set_obj_buf succeeded",
+            "Call to PDCprop_set_obj_buf failed");
 
     // create object
     sprintf(obj_name1, "o1_%d", rank);
-    obj1 = PDCobj_create(cont, obj_name1, obj_prop);
-    if (obj1 > 0) {
-        LOG_INFO("Create an object o1\n");
-    }
-    else {
-        LOG_ERROR("Failed to create object");
-        ret_value = 1;
-    }
+    TASSERT((obj1 = PDCobj_create(cont, obj_name1, obj_prop)) != 0,
+            "Call to PDCobj_create succeeded for obj1", "Call to PDCobj_create failed for obj1");
     // set and retrieve the object buffer
-
-    rbuf = PDCobj_buf_retrieve(obj1);
-    LOG_ERROR("First number to retrieve is: %d\n", *((int *)*rbuf));
+    TASSERT((rbuf = PDCobj_buf_retrieve(obj1)) != NULL, "Call to PDCobj_buf_retrieve succeeded",
+            "Call to PDCobj_buf_retrieve failed");
+    LOG_INFO("First number to retrieve is: %d\n", *((int *)*rbuf));
 
     // close object
-    if (PDCobj_close(obj1) < 0) {
-        LOG_ERROR("Failed to close object o1\n");
-        ret_value = 1;
-    }
-    else {
-        LOG_INFO("Successfully closed object o1\n");
-    }
+    TASSERT(PDCobj_close(obj1) >= 0, "Call to PDCobj_close succeeded", "Call to PDCobj_close failed");
     // close object property
-    if (PDCprop_close(obj_prop) < 0) {
-        LOG_ERROR("Failed to close property");
-        ret_value = 1;
-    }
-    else {
-        LOG_INFO("Successfully closed object property\n");
-    }
+    TASSERT(PDCprop_close(obj_prop) >= 0, "Call to PDCprop_close succeeded", "Call to PDCprop_close failed");
     // close a container
-    if (PDCcont_close(cont) < 0) {
-        LOG_ERROR("Failed to close container c1\n");
-        ret_value = 1;
-    }
-    else {
-        LOG_INFO("Successfully closed container c1\n");
-    }
+    TASSERT(PDCcont_close(cont) >= 0, "Call to PDCcont_close succeeded", "Call to PDCcont_close failed");
     // close a container property
-    if (PDCprop_close(cont_prop) < 0) {
-        LOG_ERROR("Failed to close property");
-        ret_value = 1;
-    }
-    else {
-        LOG_INFO("Successfully closed container property\n");
-    }
+    TASSERT(PDCprop_close(cont_prop) >= 0, "Call to PDCprop_close succeeded", "Call to PDCprop_close failed");
     // close pdc
-    if (PDCclose(pdc) < 0) {
-        LOG_ERROR("Failed to close PDC\n");
-        ret_value = 1;
-    }
+    TASSERT(PDCclose(pdc) >= 0, "Call to PDCclose succeeded", "Call to PDCclose failed");
+
+done:
 #ifdef ENABLE_MPI
     MPI_Finalize();
 #endif
