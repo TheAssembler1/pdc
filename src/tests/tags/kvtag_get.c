@@ -28,13 +28,12 @@
 #include <getopt.h>
 #include <time.h>
 #include "pdc.h"
-#include "pdc_client_connect.h"
 
 int
 main()
 {
     pdcid_t        pdc, cont_prop, cont, obj_prop1, obj_prop2, obj1, obj2;
-    pdc_kvtag_t *  value1, *value2, *value3;
+    pdc_kvtag_t   *value1, *value2, *value3;
     pdc_var_type_t type1, type2, type3;
     psize_t        value_size;
     int            ret_value = SUCCEED;
