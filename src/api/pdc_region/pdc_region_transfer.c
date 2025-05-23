@@ -128,7 +128,7 @@ typedef struct pdc_transfer_request_start_all_pkg {
     int index;
     // Data buffer. This data buffer is contiguous according to the remote region. We assume this is after
     // transformation of local regions
-    char *                                            buf;
+    char *                                     buf;
     struct pdc_transfer_request_start_all_pkg *next;
 } pdc_transfer_request_start_all_pkg;
 
@@ -142,7 +142,7 @@ typedef struct pdc_transfer_request_wait_all_pkg {
     // Record the index of the metadata_id in the current transfer_request
     int index;
     // Pointer to the transfer request
-    pdc_transfer_request *                           transfer_request;
+    pdc_transfer_request *                    transfer_request;
     struct pdc_transfer_request_wait_all_pkg *next;
 } pdc_transfer_request_wait_all_pkg;
 
