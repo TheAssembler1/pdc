@@ -36,94 +36,6 @@ virtual_dart_retrieve_server_info_cb(dart_server *server_ptr)
     server_ptr->request_count      = server_ptr->request_count + 1;
 }
 
-// void
-// md5_keyword_insert(char *key, int prefix_len)
-// {
-//     if (key == NULL)
-//         return;
-//     int      len                              = prefix_len == 0 ? strlen(key) : prefix_len;
-//     uint32_t hashVal                          = md5_hash(len, key);
-//     uint32_t server_id                        = hashVal % dart_g.num_server;
-//     all_servers[server_id].indexed_word_count = all_servers[server_id].indexed_word_count + 1;
-// }
-
-// int
-// md5_keyword_search(char *key, int prefix_len)
-// {
-//     if (key == NULL)
-//         return 0;
-//     int      len                         = prefix_len == 0 ? strlen(key) : prefix_len;
-//     uint32_t hashVal                     = md5_hash(len, key);
-//     uint32_t server_id                   = hashVal % dart_g.num_server;
-//     all_servers[server_id].request_count = all_servers[server_id].request_count + 1;
-// }
-
-// void
-// murmurhash_keyword_insert(char *key, int prefix_len)
-// {
-//     if (key == NULL)
-//         return;
-//     int      len                              = prefix_len == 0 ? strlen(key) : prefix_len;
-//     uint32_t hashVal                          = murmur3_32(key, len, 1);
-//     uint32_t server_id                        = hashVal % dart_g.num_server;
-//     all_servers[server_id].indexed_word_count = all_servers[server_id].indexed_word_count + 1;
-// }
-
-// int
-// murmurhash_keyword_search(char *key, int prefix_len)
-// {
-//     if (key == NULL)
-//         return 0;
-//     int      len                         = prefix_len == 0 ? strlen(key) : prefix_len;
-//     uint32_t hashVal                     = murmur3_32(key, len, 1);
-//     uint32_t server_id                   = hashVal % dart_g.num_server;
-//     all_servers[server_id].request_count = all_servers[server_id].request_count + 1;
-// }
-
-// int
-// djb2_hash_keyword_insert(char *key, int prefix_len)
-// {
-//     if (key == NULL)
-//         return;
-//     int      len                              = prefix_len == 0 ? strlen(key) : prefix_len;
-//     uint32_t hashVal                          = djb2_hash(key, len);
-//     uint32_t server_id                        = hashVal % dart_g.num_server;
-//     all_servers[server_id].indexed_word_count = all_servers[server_id].indexed_word_count + 1;
-// }
-
-// int
-// djb2_hash_keyword_search(char *key, int prefix_len)
-// {
-//     if (key == NULL)
-//         return 0;
-//     int      len                         = prefix_len == 0 ? strlen(key) : prefix_len;
-//     uint32_t hashVal                     = djb2_hash(key, len);
-//     uint32_t server_id                   = hashVal % dart_g.num_server;
-//     all_servers[server_id].request_count = all_servers[server_id].request_count + 1;
-// }
-
-// int
-// djb2_hash_keyword_insert_full(char *key, int prefix_len)
-// {
-//     if (key == NULL)
-//         return;
-//     int      len                              = prefix_len == 0 ? strlen(key) : prefix_len;
-//     uint32_t hashVal                          = djb2_hash(key, strlen(key));
-//     uint32_t server_id                        = hashVal % dart_g.num_server;
-//     all_servers[server_id].indexed_word_count = all_servers[server_id].indexed_word_count + 1;
-// }
-
-// int
-// djb2_hash_keyword_search_full(char *key, int prefix_len)
-// {
-//     if (key == NULL)
-//         return 0;
-//     int      len                         = prefix_len == 0 ? strlen(key) : prefix_len;
-//     uint32_t hashVal                     = djb2_hash(key, strlen(key));
-//     uint32_t server_id                   = hashVal % dart_g.num_server;
-//     all_servers[server_id].request_count = all_servers[server_id].request_count + 1;
-// }
-
 void
 DHT_INITIAL_keyword_insert(char *key, int prefix_len)
 {
@@ -406,7 +318,7 @@ main(int argc, char **argv)
     word_count             = atoi(argv[7]);
     prefix_len             = atoi(argv[8]);
     char **input_word_list = NULL;
-    int *  req_count       = NULL;
+    int   *req_count       = NULL;
 
     int i = 0;
 
@@ -434,7 +346,7 @@ main(int argc, char **argv)
     void (*keyword_insert[])(char *, int) = {DHT_INITIAL_keyword_insert, DHT_FULL_keyword_insert,
                                              dart_keyword_insert};
     int (*keyword_search[])(char *, int)  = {DHT_INITIAL_keyword_search, DHT_FULL_keyword_search,
-                                            dart_keyword_search};
+                                             dart_keyword_search};
 
     if (INPUT_TYPE == INPUT_DICTIONARY) {
         // Init dart space.
