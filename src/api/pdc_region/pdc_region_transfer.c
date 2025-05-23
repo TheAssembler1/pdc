@@ -50,7 +50,7 @@
 
 // pdc region transfer class. Contains essential information for performing non-blocking PDC client I/O
 // perations.
-typedef struct {
+typedef struct pdc_transfer_request {
     pdcid_t obj_id;
     pdcid_t local_obj_id;
     // Data server ID for sending data to, used by object static only.
@@ -114,7 +114,7 @@ typedef struct {
 
 // We pack all arguments for a start_all call to the same data server in a single structure, so we do not need
 // to many arguments to a function.
-typedef struct pdc_transfer_request_start_all_pkg_struct {
+typedef struct pdc_transfer_request_start_all_pkg {
     // One pkg, one data server
     uint32_t data_server_id;
     // Transfer request (for fast accessing obj metadata information)
@@ -129,12 +129,12 @@ typedef struct pdc_transfer_request_start_all_pkg_struct {
     // Data buffer. This data buffer is contiguous according to the remote region. We assume this is after
     // transformation of local regions
     char *                                            buf;
-    struct pdc_transfer_request_start_all_pkg_struct *next;
+    struct pdc_transfer_request_start_all_pkg *next;
 } pdc_transfer_request_start_all_pkg;
 
 // We pack all arguments for a wait_all call to the same data server in a single structure, so we do not need
 // to many arguments to a function.
-typedef struct pdc_transfer_request_wait_all_pkg_struct {
+typedef struct pdc_transfer_request_wait_all_pkg {
     // Metadata_ID for waited.
     uint64_t metadata_id;
     // One pkg, one data server
@@ -143,7 +143,7 @@ typedef struct pdc_transfer_request_wait_all_pkg_struct {
     int index;
     // Pointer to the transfer request
     pdc_transfer_request *                           transfer_request;
-    struct pdc_transfer_request_wait_all_pkg_struct *next;
+    struct pdc_transfer_request_wait_all_pkg *next;
 } pdc_transfer_request_wait_all_pkg;
 
 static int
