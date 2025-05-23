@@ -31,7 +31,7 @@
 #include <assert.h>
 
 /* Combine a Type number and an atom index into an atom */
-#define PDCID_MAKE(g, i) ((((pdcid_t)(g) & TYPE_MASK) << ID_BITS) | ((pdcid_t)(i) & ID_MASK))
+#define PDCID_MAKE(g, i) ((((pdcid_t)(g)&TYPE_MASK) << ID_BITS) | ((pdcid_t)(i)&ID_MASK))
 
 /* Variable to keep track of the number of types allocated.  Its value is the
  * next type ID to be handed out, so it is always one greater than the number
@@ -46,7 +46,7 @@ PDC_find_id(pdcid_t idid)
 {
     struct _pdc_id_info *ret_value = NULL;
     PDC_type_t           type;
-    struct PDC_id_type  *type_ptr;
+    struct PDC_id_type * type_ptr;
 
     FUNC_ENTER(NULL);
 
@@ -106,7 +106,7 @@ done:
 pdcid_t
 PDC_id_register(PDC_type_t type, void *object)
 {
-    struct PDC_id_type  *type_ptr;
+    struct PDC_id_type * type_ptr;
     struct _pdc_id_info *id_ptr;
     pdcid_t              new_id;
     pdcid_t              ret_value = 0;
@@ -149,7 +149,7 @@ PDC_dec_ref(pdcid_t id)
 {
     int                  ret_value = 0;
     struct _pdc_id_info *id_ptr;
-    struct PDC_id_type  *type_ptr;
+    struct PDC_id_type * type_ptr;
 
     FUNC_ENTER(NULL);
 
@@ -188,7 +188,7 @@ PDC_find_byname(PDC_type_t type, const char *byname)
 {
     pdcid_t              ret_value = 0;
     struct _pdc_id_info *id_ptr    = NULL;
-    struct PDC_id_type  *type_ptr;
+    struct PDC_id_type * type_ptr;
 
     FUNC_ENTER(NULL);
 
@@ -252,7 +252,7 @@ perr_t
 PDC_id_list_clear(PDC_type_t type)
 {
     perr_t               ret_value = SUCCEED;
-    struct PDC_id_type  *type_ptr;
+    struct PDC_id_type * type_ptr;
     struct _pdc_id_info *id_ptr;
 
     FUNC_ENTER(NULL);
