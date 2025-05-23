@@ -74,7 +74,7 @@ send_query_condition_get_separate_result(char conditions[][CONDITION_LENGTH], in
         LOG_INFO("No conditions to send\n");
         return;
     }
-    *result = (separate_query_result_t *)malloc(conditionCount * sizeof(separate_query_result_t));
+    *result = (separate_query_result_t *)PDC_malloc(conditionCount * sizeof(separate_query_result_t));
     for (int i = 0; i < conditionCount; i++) {
         // Send each condition to a separate server for execution
         // The server will execute the condition and return the result to the client
@@ -110,7 +110,7 @@ query_execution_and_local_merge(char conditions[][CONDITION_LENGTH], int conditi
     // step 2: merge the results from all servers
     for (int i = 0; i < conditionCount; i++) {
         if (separate_result[i].n_res > 0) {
-            *object_id_list = (uint64_t *)malloc(separate_result[i].n_res * sizeof(uint64_t));
+            *object_id_list = (uint64_t *)PDC_malloc(separate_result[i].n_res * sizeof(uint64_t));
             memcpy(*object_id_list, separate_result[i].out, separate_result[i].n_res * sizeof(uint64_t));
             *count = separate_result[i].n_res;
             break;
@@ -137,7 +137,7 @@ PDC_metadata_multi_condition_query(char *queryString, int isCollective, uint64_t
     // TODO: implement the above strategy
 
     // For now, we just return a dummy object ID list
-    *object_id_list = (uint64_t *)malloc(10 * sizeof(uint64_t));
+    *object_id_list = (uint64_t *)PDC_malloc(10 * sizeof(uint64_t));
     for (int i = 0; i < 10; i++) {
         (*object_id_list)[i] = i;
     }

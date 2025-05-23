@@ -101,7 +101,8 @@ iterator_init(pdcid_t objectId, pdcid_t reg_id, int blocks, struct _pdc_iterator
             }
         }
         iter->totalElements = 1;
-        if ((iter->srcDims = (size_t *)calloc(obj_prop_ptr->obj_prop_pub->ndim, sizeof(size_t))) != NULL) {
+        if ((iter->srcDims = (size_t *)PDC_calloc(obj_prop_ptr->obj_prop_pub->ndim, sizeof(size_t))) !=
+            NULL) {
             iter->ndim = obj_prop_ptr->obj_prop_pub->ndim;
             for (i = 0; i < iter->ndim; i++) {
                 iter->srcDims[i] = (size_t)obj_prop_ptr->obj_prop_pub->dims[i];
@@ -334,13 +335,13 @@ PDC_get_argv0_()
         procpath = strdup(fullPath);
         shellcmd = fopen(procpath, "r");
         if (shellcmd == NULL) {
-            free(procpath);
+            procpath = (char *)PDC_free(procpath);
             PGOTO_ERROR(NULL, "fopen failed!");
         }
         else {
             cmdLength = fread(fullPath, 1, sizeof(fullPath), shellcmd);
             if (procpath)
-                free(procpath);
+                procpath = (char *)PDC_free(procpath);
             if (cmdLength > 0) {
                 _argv0 = strdup(fullPath);
                 /* truncate the cmdline if any whitespace (space or tab) */
@@ -364,7 +365,7 @@ PDC_get_argv0_()
                 /* Get rid of the copy (strdup) of fullPath now in _argv0.
                  * and replace it with the next (modified/fully_qualified?) version.
                  */
-                free(_argv0);
+                _argv0 = (char *)PDC_free(_argv0);
                 _argv0 = next;
             }
         }
@@ -456,7 +457,7 @@ PDCobj_analysis_register(char *func, pdcid_t iterIn, pdcid_t iterOut)
     thisFtn->ftnPtr = (int (*)())ftnPtr;
     thisFtn->n_args = 2;
     /* Allocate for iterator ids and region ids */
-    if ((thisFtn->object_id = (pdcid_t *)calloc(4, sizeof(pdcid_t))) != NULL) {
+    if ((thisFtn->object_id = (pdcid_t *)PDC_calloc(4, sizeof(pdcid_t))) != NULL) {
         thisFtn->object_id[0] = iterIn;
         thisFtn->object_id[1] = iterOut;
     }
@@ -493,11 +494,11 @@ PDCobj_analysis_register(char *func, pdcid_t iterIn, pdcid_t iterOut)
 
 done:
     if (applicationDir)
-        free(applicationDir);
+        applicationDir = (char *)PDC_free(applicationDir);
     if (userdefinedftn)
-        free(userdefinedftn);
+        userdefinedftn = (char *)PDC_free(userdefinedftn);
     if (loadpath)
-        free(loadpath);
+        loadpath = (char *)PDC_free(loadpath);
 
     FUNC_LEAVE(ret_value);
 }
@@ -550,7 +551,7 @@ PDCobj_data_getNextBlock(pdcid_t iter, void **nextBlock, size_t *dims)
         if (thisIter->srcStart == NULL) {
             if (execution_locus == SERVER_MEMORY) {
                 if ((thisIter->srcNext = PDC_Server_get_region_data_ptr(thisIter->objectId)) == NULL)
-                    thisIter->srcNext = malloc(thisIter->totalElements * thisIter->element_size);
+                    thisIter->srcNext = PDC_malloc(thisIter->totalElements * thisIter->element_size);
                 if ((thisIter->srcStart = thisIter->srcNext) == NULL)
                     PGOTO_ERROR(0, "==PDC_ANALYSIS_SERVER: Unable to allocate iterator storage");
 

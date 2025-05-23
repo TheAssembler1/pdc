@@ -13,8 +13,8 @@
 #include <sys/mman.h>
 #include <unistd.h>
 #include <errno.h>
-#include "pdc_malloc.h"
 
+#include "pdc_malloc.h"
 #include "pdc_murmur.h"
 #include "pdc_dablooms.h"
 #include "pdc_logger.h"
@@ -33,7 +33,7 @@ dablooms_version(void)
 void
 free_bitmap(bitmap_t *bitmap)
 {
-    free(bitmap);
+    bitmap = (bitmap_t *)PDC_free(bitmap);
 }
 
 bitmap_t *
@@ -169,11 +169,11 @@ int
 free_counting_bloom(counting_bloom_t *bloom)
 {
     if (bloom != NULL) {
-        free(bloom->hashes);
+        bloom->hashes = (uint32_t *)PDC_free(bloom->hashes);
         bloom->hashes = NULL;
-        free(bloom->bitmap);
-        free(bloom);
-        bloom = NULL;
+        bloom->bitmap = (bitmap_t *)PDC_free(bloom->bitmap);
+        bloom         = (counting_bloom_t *)PDC_free(bloom);
+        bloom         = NULL;
     }
     return 0;
 }
@@ -271,14 +271,14 @@ free_scaling_bloom(scaling_bloom_t *bloom)
 {
     int i;
     for (i = bloom->num_blooms - 1; i >= 0; i--) {
-        free(bloom->blooms[i]->hashes);
+        bloom->blooms[i]->hashes = (uint32_t *)PDC_free(bloom->blooms[i]->hashes);
         bloom->blooms[i]->hashes = NULL;
-        free(bloom->blooms[i]);
-        bloom->blooms[i] = NULL;
+        bloom->blooms[i]         = (counting_bloom_t *)PDC_free(bloom->blooms[i]);
+        bloom->blooms[i]         = NULL;
     }
-    free(bloom->blooms);
+    bloom->blooms = (counting_bloom_t **)PDC_free(bloom->blooms);
     free_bitmap(bloom->bitmap);
-    free(bloom);
+    bloom = (scaling_bloom_t *)PDC_free(bloom);
     return 0;
 }
 
@@ -293,7 +293,7 @@ new_counting_bloom_from_scale(scaling_bloom_t *bloom)
 
     error_rate = bloom->error_rate * (pow(ERROR_TIGHTENING_RATIO, bloom->num_blooms + 1));
 
-    if ((bloom->blooms = realloc(bloom->blooms, (bloom->num_blooms + 1) * sizeof(counting_bloom_t *))) ==
+    if ((bloom->blooms = PDC_realloc(bloom->blooms, (bloom->num_blooms + 1) * sizeof(counting_bloom_t *))) ==
         NULL) {
         LOG_ERROR("Error, could not realloc a new bloom filter\n");
         return NULL;
@@ -381,7 +381,7 @@ scaling_bloom_init(unsigned int capacity, double error_rate)
 {
     scaling_bloom_t *bloom;
 
-    if ((bloom = malloc(sizeof(scaling_bloom_t))) == NULL) {
+    if ((bloom = PDC_malloc(sizeof(scaling_bloom_t))) == NULL) {
         return NULL;
     }
     if ((bloom->bitmap = new_bitmap(sizeof(scaling_bloom_header_t))) == NULL) {

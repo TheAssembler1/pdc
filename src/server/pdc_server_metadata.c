@@ -113,7 +113,7 @@ PDC_Server_metadata_int_hash(void *vlocation)
 static void
 PDC_Server_metadata_int_hash_key_free(void *key)
 {
-    free((uint32_t *)key);
+    key = (void *)PDC_free((uint32_t *)key);
 }
 
 /*
@@ -142,7 +142,7 @@ PDC_Server_metadata_hash_value_free(void *value)
     if (is_restart_g == 0) {
         DL_FOREACH_SAFE(head->metadata, elt, tmp)
         {
-            free(elt);
+            elt = (pdc_metadata_t *)PDC_free(elt);
         }
     }
 }
@@ -159,7 +159,7 @@ PDC_Server_container_hash_value_free(void *value)
 {
     pdc_cont_hash_table_entry_t *head = (pdc_cont_hash_table_entry_t *)value;
     if (head->obj_ids != NULL)
-        free(head->obj_ids);
+        head->obj_ids = (uint64_t *)PDC_free(head->obj_ids);
 }
 
 /*
@@ -668,7 +668,7 @@ PDC_Server_add_tag_metadata(metadata_add_tag_in_t *in, metadata_add_tag_out_t *o
     gettimeofday(&pdc_timer_start, 0);
 #endif
 
-    hash_key = (uint32_t *)malloc(sizeof(uint32_t));
+    hash_key = (uint32_t *)PDC_malloc(sizeof(uint32_t));
     if (hash_key == NULL) {
         LOG_ERROR("==PDC_SERVER: Cannot allocate hash_key!\n");
         goto done;
@@ -786,7 +786,7 @@ PDC_Server_update_metadata(metadata_update_in_t *in, metadata_update_out_t *out)
     gettimeofday(&pdc_timer_start, 0);
 #endif
 
-    hash_key = (uint32_t *)malloc(sizeof(uint32_t));
+    hash_key = (uint32_t *)PDC_malloc(sizeof(uint32_t));
     if (hash_key == NULL) {
         LOG_ERROR("==PDC_SERVER: Cannot allocate hash_key!\n");
         goto done;
@@ -1050,7 +1050,7 @@ PDC_delete_metadata_from_hash_table(metadata_delete_in_t *in, metadata_delete_ou
     gettimeofday(&pdc_timer_start, 0);
 #endif
 
-    hash_key = (uint32_t *)malloc(sizeof(uint32_t));
+    hash_key = (uint32_t *)PDC_malloc(sizeof(uint32_t));
     if (hash_key == NULL) {
         LOG_ERROR("==PDC_SERVER: Cannot allocate hash_key!\n");
         goto done;
@@ -1250,7 +1250,7 @@ PDC_insert_metadata_to_hash_table(gen_obj_id_in_t *in, gen_obj_id_out_t *out)
                 LOG_ERROR("==PDC_SERVER[%d]: Found identical metadata with name %s!\n", pdc_server_rank_g,
                           metadata->obj_name);
                 out->obj_id = 0;
-                free(metadata);
+                metadata    = (pdc_metadata_t *)PDC_free(metadata);
                 goto done;
             }
             else {
@@ -1510,9 +1510,9 @@ PDC_Server_get_partial_query_result(metadata_query_transfer_in_t *in, uint32_t *
 
     // n_buf = n_metadata_g + 1 for potential padding array
     n_buf     = n_metadata_g + 1;
-    *buf_ptrs = (void **)calloc(n_buf, sizeof(void *));
+    *buf_ptrs = (void **)PDC_calloc(n_buf, sizeof(void *));
     for (i = 0; i < n_buf; i++) {
-        (*buf_ptrs)[i] = (void *)calloc(1, sizeof(void *));
+        (*buf_ptrs)[i] = (void *)PDC_calloc(1, sizeof(void *));
     }
     // TODO: free buf_ptrs
     if (metadata_hash_table_g != NULL) {
@@ -1557,7 +1557,7 @@ num_query_action_someta(void *cond_exact, void *cond_lo, void *cond_hi, int lo_i
     size_t               input_size = ((pdc_kvtag_t *)input)->size;
     libhl_cmp_callback_t cmp_func   = LIBHL_CMP_CB(num_type);
     *out_len                        = 1;
-    *out                            = calloc(1, sizeof(uint64_t));
+    *out                            = PDC_calloc(1, sizeof(uint64_t));
     pbool_t ret_value               = FALSE;
     if (cond_exact != NULL) { // Exact
         ret_value = cmp_func(input_val, input_size, cond_exact, get_size_by_dtype(num_type)) == 0;
@@ -1633,7 +1633,7 @@ sqlite_query_kvtag_callback(void *data, int argc, char **argv, char **colName)
         pdcid_t id = strtoull(argv[0], NULL, 10);
         if (query_data->nobj >= query_data->nalloc) {
             query_data->nalloc *= 2;
-            *query_data->obj_ids = realloc(*query_data->obj_ids, query_data->nalloc * sizeof(uint64_t));
+            *query_data->obj_ids = PDC_realloc(*query_data->obj_ids, query_data->nalloc * sizeof(uint64_t));
         }
         (*query_data->obj_ids)[query_data->nobj] = id;
         query_data->nobj += 1;
@@ -1676,7 +1676,7 @@ PDC_Server_query_kvtag_rocksdb(pdc_kvtag_t *in, uint32_t *n_meta, uint64_t **obj
         if (_is_matching_kvtag(in, &tmp) == TRUE) {
             if (iter >= alloc_size) {
                 alloc_size *= 2;
-                *obj_ids = (void *)realloc(*obj_ids, alloc_size * sizeof(uint64_t));
+                *obj_ids = (void *)PDC_realloc(*obj_ids, alloc_size * sizeof(uint64_t));
             }
             (*obj_ids)[iter++] = obj_id;
         }
@@ -1730,7 +1730,7 @@ PDC_Server_query_kvtag_sqlite(pdc_kvtag_t *in, uint32_t *n_meta, uint64_t **obj_
                 sprintf(sql, "SELECT objid FROM objects WHERE name = \'%s\' AND value_text LIKE \'%s\';",
                         in->name, tmp_value);
                 if (tmp_value)
-                    free(tmp_value);
+                    tmp_value = (char *)PDC_free(tmp_value);
             }
         }
         else {
@@ -1769,7 +1769,7 @@ PDC_Server_query_kvtag_sqlite(pdc_kvtag_t *in, uint32_t *n_meta, uint64_t **obj_
                 sprintf(sql, "SELECT objid FROM objects WHERE name LIKE \'%s\' AND value_text LIKE \'%s\';",
                         tmp_name, tmp_value);
                 if (tmp_value)
-                    free(tmp_value);
+                    tmp_value = (char *)PDC_free(tmp_value);
             }
         }
         else {
@@ -1778,7 +1778,7 @@ PDC_Server_query_kvtag_sqlite(pdc_kvtag_t *in, uint32_t *n_meta, uint64_t **obj_
         }
 
         if (tmp_name)
-            free(tmp_name);
+            tmp_name = (char *)PDC_free(tmp_name);
     }
 
     query_data.nobj    = 0;
@@ -1835,7 +1835,7 @@ PDC_Server_query_kvtag_someta(pdc_kvtag_t *in, uint32_t *n_meta, uint64_t **obj_
 #endif
                         if (iter >= alloc_size) {
                             alloc_size *= 2;
-                            *obj_ids = (void *)realloc(*obj_ids, alloc_size * sizeof(uint64_t));
+                            *obj_ids = (void *)PDC_realloc(*obj_ids, alloc_size * sizeof(uint64_t));
                         }
                         (*obj_ids)[iter++] = elt->obj_id;
                         // break; // FIXME: shall we break here? or continue to check other kvtags?
@@ -1872,7 +1872,7 @@ PDC_Server_get_kvtag_query_result(pdc_kvtag_t *in /*FIXME: query input should be
     FUNC_ENTER(NULL);
 
     *n_meta  = 0;
-    *obj_ids = (void *)calloc(alloc_size, sizeof(uint64_t));
+    *obj_ids = (void *)PDC_calloc(alloc_size, sizeof(uint64_t));
 
     char *v_query = (char *)in->value;
     LOG_INFO("==PDC_SERVER[%d] before stripQuotes: Querying kvtag with key [%s], value [%s]\n",
@@ -2088,7 +2088,7 @@ PDC_Server_get_metadata_by_id_cb(const struct hg_cb_info *callback_info)
 
     if (output.res_meta.obj_id != 0) {
         // TODO free metdata
-        meta = (pdc_metadata_t *)malloc(sizeof(pdc_metadata_t));
+        meta = (pdc_metadata_t *)PDC_malloc(sizeof(pdc_metadata_t));
         PDC_transfer_t_to_metadata_t(&output.res_meta, meta);
     }
     else {
@@ -2108,7 +2108,7 @@ PDC_Server_get_metadata_by_id_cb(const struct hg_cb_info *callback_info)
 
 done:
     HG_Free_output(handle, &output);
-    free(cb_args);
+    cb_args = (get_metadata_by_id_args_t *)PDC_free(cb_args);
     HG_Destroy(handle);
 
     FUNC_LEAVE(ret_value);
@@ -2151,7 +2151,7 @@ PDC_Server_get_metadata_by_id_with_cb(uint64_t obj_id, perr_t (*cb)(), void *arg
         HG_Create(hg_context_g, pdc_remote_server_info_g[server_id].addr, get_metadata_by_id_register_id_g,
                   &get_metadata_by_id_handle);
 
-        cb_args       = (get_metadata_by_id_args_t *)malloc(sizeof(get_metadata_by_id_args_t));
+        cb_args       = (get_metadata_by_id_args_t *)PDC_malloc(sizeof(get_metadata_by_id_args_t));
         in.obj_id     = obj_id;
         cb_args->cb   = cb;
         cb_args->args = args;
@@ -2214,7 +2214,7 @@ PDC_Server_create_container(gen_cont_id_in_t *in, gen_cont_id_out_t *out)
             out->cont_id = lookup_value->cont_id;
         }
         else {
-            hash_key = (uint32_t *)malloc(sizeof(uint32_t));
+            hash_key = (uint32_t *)PDC_malloc(sizeof(uint32_t));
             if (hash_key == NULL) {
                 LOG_ERROR("Cannot allocate hash_key!\n");
                 ret_value = FAIL;
@@ -2223,7 +2223,7 @@ PDC_Server_create_container(gen_cont_id_in_t *in, gen_cont_id_out_t *out)
             *hash_key = in->hash_value;
 
             pdc_cont_hash_table_entry_t *entry =
-                (pdc_cont_hash_table_entry_t *)calloc(1, sizeof(pdc_cont_hash_table_entry_t));
+                (pdc_cont_hash_table_entry_t *)PDC_calloc(1, sizeof(pdc_cont_hash_table_entry_t));
             strcpy(entry->cont_name, in->cont_name);
             entry->n_obj       = 0;
             entry->n_allocated = 0;
@@ -2564,7 +2564,7 @@ PDC_copy_all_storage_meta(pdc_metadata_t *meta, region_storage_meta_t **storage_
     region_head = meta->storage_region_list_head;
     DL_COUNT(region_head, region_elt, region_cnt);
     *n_region     = region_cnt;
-    *storage_meta = (region_storage_meta_t *)calloc(sizeof(region_storage_meta_t), region_cnt);
+    *storage_meta = (region_storage_meta_t *)PDC_calloc(sizeof(region_storage_meta_t), region_cnt);
 
     i = 0;
     DL_FOREACH(region_head, region_elt)
@@ -2609,8 +2609,8 @@ PDC_Server_get_storage_meta_by_names(query_read_names_args_t *args)
     FUNC_ENTER(NULL);
 
     // Get the storage meta for each queried object name
-    all_storage_meta = (region_storage_meta_t **)calloc(sizeof(region_storage_meta_t *), args->cnt);
-    all_nregion      = (int *)calloc(sizeof(int), args->cnt);
+    all_storage_meta = (region_storage_meta_t **)PDC_calloc(sizeof(region_storage_meta_t *), args->cnt);
+    all_nregion      = (int *)PDC_calloc(sizeof(int), args->cnt);
 
     total_region = 0;
     for (i = 0; i < args->cnt; i++) {
@@ -2652,8 +2652,8 @@ PDC_Server_get_storage_meta_by_names(query_read_names_args_t *args)
     // bulk transfer to args->origin_id
     // Prepare bulk ptrs, buf_ptrs[0] is task_id
     int nbuf  = total_region + 1;
-    buf_sizes = (hg_size_t *)calloc(nbuf, sizeof(hg_size_t));
-    buf_ptrs  = (void **)calloc(nbuf, sizeof(void *));
+    buf_sizes = (hg_size_t *)PDC_calloc(nbuf, sizeof(hg_size_t));
+    buf_ptrs  = (void **)PDC_calloc(nbuf, sizeof(void *));
 
     buf_ptrs[0]  = &(args->client_seq_id);
     buf_sizes[0] = sizeof(int);
@@ -2977,21 +2977,21 @@ sqlite_get_kvtag_callback(void *data, int argc, char **argv, char **colName)
     for (int i = 0; i < argc; i++) {
         if (NULL != argv[i]) {
             if (0 == strcmp(colName[i], "value_int")) {
-                int *int_tmp = (int *)malloc(sizeof(int));
+                int *int_tmp = (int *)PDC_malloc(sizeof(int));
                 *int_tmp     = atoi(argv[i]);
                 out->value   = (void *)int_tmp;
                 out->size    = sizeof(int);
                 break;
             }
             else if (0 == strcmp(colName[i], "value_real")) {
-                float *float_tmp = (float *)malloc(sizeof(float));
+                float *float_tmp = (float *)PDC_malloc(sizeof(float));
                 *float_tmp       = (float)atof(argv[i]);
                 out->value       = (void *)float_tmp;
                 out->size        = sizeof(float);
                 break;
             }
             else if (0 == strcmp(colName[i], "value_double")) {
-                double *double_tmp = (double *)malloc(sizeof(double));
+                double *double_tmp = (double *)PDC_malloc(sizeof(double));
                 *double_tmp        = atof(argv[i]);
                 out->value         = (void *)double_tmp;
                 out->size          = sizeof(double);
@@ -3202,11 +3202,11 @@ PDC_del_kvtag_value_from_list(pdc_kvtag_list_t **list_head, char *key)
     DL_FOREACH(*list_head, elt)
     {
         if (strcmp(elt->kvtag->name, key) == 0) {
-            free(elt->kvtag->name);
-            free(elt->kvtag->value);
-            free(elt->kvtag);
+            elt->kvtag->name  = (char *)PDC_free(elt->kvtag->name);
+            elt->kvtag->value = (void *)PDC_free(elt->kvtag->value);
+            elt->kvtag        = (pdc_kvtag_t *)PDC_free(elt->kvtag);
             DL_DELETE(*list_head, elt);
-            free(elt);
+            elt = (pdc_kvtag_list_t *)PDC_free(elt);
             break;
         }
     }

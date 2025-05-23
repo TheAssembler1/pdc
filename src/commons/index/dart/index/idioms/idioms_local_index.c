@@ -19,17 +19,17 @@
 IDIOMS_t *
 IDIOMS_init(uint32_t server_id, uint32_t num_servers)
 {
-    IDIOMS_t *idioms              = (IDIOMS_t *)calloc(1, sizeof(IDIOMS_t));
-    idioms->art_key_prefix_tree_g = (art_tree *)calloc(1, sizeof(art_tree));
+    IDIOMS_t *idioms              = (IDIOMS_t *)PDC_calloc(1, sizeof(IDIOMS_t));
+    idioms->art_key_prefix_tree_g = (art_tree *)PDC_calloc(1, sizeof(art_tree));
     art_tree_init(idioms->art_key_prefix_tree_g);
 
-    idioms->art_key_suffix_tree_g = (art_tree *)calloc(1, sizeof(art_tree));
+    idioms->art_key_suffix_tree_g = (art_tree *)PDC_calloc(1, sizeof(art_tree));
     art_tree_init(idioms->art_key_suffix_tree_g);
 
     idioms->server_id_g   = server_id;
     idioms->num_servers_g = num_servers;
 
-    idioms->dart_info_g = (DART *)calloc(1, sizeof(DART));
+    idioms->dart_info_g = (DART *)PDC_calloc(1, sizeof(DART));
     _init_dart_space_via_idioms(idioms->dart_info_g, idioms->num_servers_g);
 
     return idioms;
@@ -426,8 +426,7 @@ delete_from_key_trie(art_tree *key_trie, char *key, int len, IDIOMS_md_idx_recor
 
     if (is_key_leaf_cnt_empty(key_leaf_content)) {
         // delete the key from the the key trie along with the key_leaf_content.
-        free(key_leaf_content);
-        // LOG_DEBUG("Deleted key %s from the key trie\n", key);
+        key_leaf_content = (key_index_leaf_content_t *)PDC_free(key_leaf_content);
         art_delete(key_trie, (unsigned char *)key, len);
         return SUCCEED;
     }
@@ -501,9 +500,9 @@ collect_obj_ids(value_index_leaf_content_t *value_index_leaf, IDIOMS_md_idx_reco
     int num_obj_ids = set_num_entries(obj_id_set);
 
     // realloc the obj_ids array in idx_record
-    idx_record->obj_ids =
-        (uint64_t *)realloc(idx_record->obj_ids, sizeof(uint64_t) * (idx_record->num_obj_ids + num_obj_ids));
-    size_t      offset = idx_record->num_obj_ids;
+    idx_record->obj_ids = (uint64_t *)PDC_realloc(idx_record->obj_ids,
+                                                  sizeof(uint64_t) * (idx_record->num_obj_ids + num_obj_ids));
+    size_t      offset  = idx_record->num_obj_ids;
     SetIterator value_set_iter;
     set_iterate(obj_id_set, &value_set_iter);
     while (set_iter_has_more(&value_set_iter)) {

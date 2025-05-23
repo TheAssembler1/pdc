@@ -217,7 +217,7 @@ PDCobj_data_getNextBlock(pdcid_t iter, void **nextBlock, size_t *dims)
         if (thisIter->srcStart == NULL) {
             if (execution_locus == SERVER_MEMORY) {
                 if ((thisIter->srcNext = PDC_Server_get_region_data_ptr(thisIter->objectId)) == NULL)
-                    thisIter->srcNext = malloc(thisIter->totalElements * thisIter->element_size);
+                    thisIter->srcNext = PDC_malloc(thisIter->totalElements * thisIter->element_size);
                 if ((thisIter->srcStart = thisIter->srcNext) == NULL) {
                     LOG_ERROR("==PDC_ANALYSIS_SERVER: Unable to allocate iterator storage\n");
                     return 0;

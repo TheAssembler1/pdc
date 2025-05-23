@@ -1,4 +1,5 @@
 #include "bin_file_ops.h"
+#include "pdc_malloc.h"
 
 // type 1 int, 2 double, 3 string, 4 uint64, 5 size_t
 
@@ -67,23 +68,23 @@ bin_read_general(int *t, size_t *len, void **data, FILE *stream)
     fread(&length, sizeof(size_t), 1, stream);
     void *_data;
     if (type == 1) {
-        _data = (int *)calloc(length, sizeof(int));
+        _data = (int *)PDC_calloc(length, sizeof(int));
         fread(_data, sizeof(int), length, stream);
     }
     else if (type == 2) {
-        _data = (double *)calloc(length, sizeof(double));
+        _data = (double *)PDC_calloc(length, sizeof(double));
         fread(_data, sizeof(double), length, stream);
     }
     else if (type == 3) {
-        _data = (char *)calloc(length + 1, sizeof(char));
+        _data = (char *)PDC_calloc(length + 1, sizeof(char));
         fread(_data, sizeof(char), length, stream);
     }
     else if (type == 4) {
-        _data = (uint64_t *)calloc(length, sizeof(uint64_t));
+        _data = (uint64_t *)PDC_calloc(length, sizeof(uint64_t));
         fread(_data, sizeof(uint64_t), length, stream);
     }
     else if (type == 5) {
-        _data = (size_t *)calloc(length, sizeof(size_t));
+        _data = (size_t *)PDC_calloc(length, sizeof(size_t));
         fread(_data, sizeof(size_t), length, stream);
     }
     data[0] = (void *)_data;
@@ -106,31 +107,31 @@ miqs_skip_field(FILE *stream)
     rst += sizeof(size_t);
     void *_data;
     if (type == 1) {
-        _data = (int *)calloc(length, sizeof(int));
+        _data = (int *)PDC_calloc(length, sizeof(int));
         fread(_data, sizeof(int), length, stream);
         rst += sizeof(int) * length;
     }
     else if (type == 2) {
-        _data = (double *)calloc(length, sizeof(double));
+        _data = (double *)PDC_calloc(length, sizeof(double));
         fread(_data, sizeof(double), length, stream);
         rst += sizeof(double) * length;
     }
     else if (type == 3) {
-        _data = (char *)calloc(length + 1, sizeof(char));
+        _data = (char *)PDC_calloc(length + 1, sizeof(char));
         fread(_data, sizeof(char), length, stream);
         rst += sizeof(char) * length;
     }
     else if (type == 4) {
-        _data = (uint64_t *)calloc(length, sizeof(uint64_t));
+        _data = (uint64_t *)PDC_calloc(length, sizeof(uint64_t));
         fread(_data, sizeof(uint64_t), length, stream);
         rst += sizeof(uint64_t) * length;
     }
     else if (type == 5) {
-        _data = (size_t *)calloc(length, sizeof(size_t));
+        _data = (size_t *)PDC_calloc(length, sizeof(size_t));
         fread(_data, sizeof(size_t), length, stream);
         rst += sizeof(size_t) * length;
     }
-    free(_data);
+    _data = (void *)PDC_free(_data);
     return rst;
 }
 
@@ -139,7 +140,7 @@ bin_read_index_numeric_value(int *is_float, FILE *file)
 {
     int    type = 1;
     size_t len  = 1;
-    void **data = (void **)calloc(1, sizeof(void *));
+    void **data = (void **)PDC_calloc(1, sizeof(void *));
     bin_read_general(&type, &len, data, file);
     if (len == 1) {
         if (type == 1) {
@@ -157,7 +158,7 @@ bin_read_int(FILE *file)
 {
     int    type = 1;
     size_t len  = 1;
-    void **data = (void **)calloc(1, sizeof(void *));
+    void **data = (void **)PDC_calloc(1, sizeof(void *));
     bin_read_general(&type, &len, data, file);
     if (type == 1 && len == 1) {
         return (int *)*data;
@@ -170,7 +171,7 @@ bin_read_double(FILE *file)
 {
     int    type = 2;
     size_t len  = 1;
-    void **data = (void **)calloc(1, sizeof(void *));
+    void **data = (void **)PDC_calloc(1, sizeof(void *));
     bin_read_general(&type, &len, data, file);
     if (type == 2 && len == 1) {
         return (double *)*data;
@@ -183,7 +184,7 @@ bin_read_string(FILE *file)
 {
     int    type = 3;
     size_t len  = 1;
-    void **data = (void **)calloc(1, sizeof(void *));
+    void **data = (void **)PDC_calloc(1, sizeof(void *));
     bin_read_general(&type, &len, data, file);
     if (type == 3) {
         return (char *)*data;
@@ -196,7 +197,7 @@ bin_read_uint64(FILE *file)
 {
     int    type = 4;
     size_t len  = 1;
-    void **data = (void **)calloc(1, sizeof(void *));
+    void **data = (void **)PDC_calloc(1, sizeof(void *));
     bin_read_general(&type, &len, data, file);
     if (type == 4 && len == 1) {
         return (uint64_t *)*data;
@@ -209,7 +210,7 @@ bin_read_size_t(FILE *file)
 {
     int    type = 5;
     size_t len  = 1;
-    void **data = (void **)calloc(1, sizeof(void *));
+    void **data = (void **)PDC_calloc(1, sizeof(void *));
     bin_read_general(&type, &len, data, file);
     if (type == 5 && len == 1) {
         return (size_t *)*data;
