@@ -43,7 +43,7 @@ PDC_sample_min_max(pdc_var_type_t dtype, uint64_t n, void *data, double sample_p
     else if (PDC_UINT == dtype)
         MACRO_SAMPLE_MIN_MAX(uint32_t, n, data, sample_pct, *min, *max);
     else {
-        PGOTO_ERROR(FAIL, "Datatype %d not supported!", dtype);
+        PGOTO_ERROR(FAIL, "Datatype %d not supported", dtype);
     }
 
 done:
@@ -233,7 +233,7 @@ PDC_hist_incr_all(pdc_histogram_t *hist, pdc_var_type_t dtype, uint64_t n, void 
     else if (PDC_UINT == dtype)
         MACRO_HIST_INCR_ALL(uint32_t, hist, n, data);
     else
-        PGOTO_ERROR(FAIL, "Datatype %d not supported!", dtype);
+        PGOTO_ERROR(FAIL, "Datatype %d not supported", dtype);
 
 done:
     FUNC_LEAVE(ret_value);
@@ -264,15 +264,14 @@ PDC_gen_hist(pdc_var_type_t dtype, uint64_t n, void *data)
 
     hist = PDC_create_hist(dtype, 50, min, max);
     if (NULL == hist)
-        PGOTO_ERROR(NULL, "Error with PDC_create_hist!");
+        PGOTO_ERROR(NULL, "Error with PDC_create_hist");
 
     PDC_hist_incr_all(hist, dtype, n, data);
 
 #ifdef ENABLE_TIMING
     gettimeofday(&pdc_timer_end, 0);
     gen_hist_time = PDC_get_elapsed_time_double(&pdc_timer_start, &pdc_timer_end);
-    LOG_INFO("== generate histogram of %lu elements with %d bins takes %.2fs\n", n, hist->nbin,
-             gen_hist_time);
+    LOG_INFO("Generate histogram of %lu elements with %d bins takes %.2fs\n", n, hist->nbin, gen_hist_time);
 #endif
 
     ret_value = hist;
@@ -367,7 +366,7 @@ PDC_merge_hist(int n, pdc_histogram_t **hists)
 
     for (i = 1; i < n; i++) {
         if (hists[i]->dtype != hists[i - 1]->dtype) {
-            PGOTO_ERROR(NULL, "Cannot merge histograms of different types!");
+            PGOTO_ERROR(NULL, "Cannot merge histograms of different types");
         }
         if (hists[i]->incr > incr_max) {
             incr_max     = hists[i]->incr;
@@ -385,7 +384,7 @@ PDC_merge_hist(int n, pdc_histogram_t **hists)
     // Duplicate the base hist to result
     res = PDC_dup_hist(hists[incr_max_idx]);
     if (NULL == res)
-        PGOTO_ERROR(NULL, "Error with PDC_dup_hist!");
+        PGOTO_ERROR(NULL, "Error with PDC_dup_hist");
 
     res->range[0]                   = tot_min;
     res->range[(res->nbin) * 2 - 1] = tot_max;

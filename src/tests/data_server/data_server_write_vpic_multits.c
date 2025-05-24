@@ -294,7 +294,7 @@ main(int argc, char **argv)
             for (i = 0; i < n_var; i++) {
                 ret = PDC_Client_wait(&request[ts - 1][i], 30000, 100);
                 if (ret != SUCCEED) {
-                    LOG_ERROR("Error with PDC_Client_wait!\n");
+                    LOG_ERROR("Error with PDC_Client_wait\n");
                     goto done;
                 }
             }
@@ -321,7 +321,7 @@ main(int argc, char **argv)
                 request[ts][i].n_update = n_var;
                 ret = PDC_Client_iwrite(obj_metas[ts][i], &obj_regions[ts][i], &request[ts][i], mydata[i]);
                 if (ret != SUCCEED) {
-                    LOG_ERROR("Error with PDC_Client_iwrite!\n");
+                    LOG_ERROR("Error with PDC_Client_iwrite\n");
                     goto done;
                 }
             } // end of for
@@ -349,7 +349,7 @@ main(int argc, char **argv)
     for (i = 0; i < n_var; i++) {
         ret = PDC_Client_write(obj_metas[n_ts - 1][i], &obj_regions[n_ts - 1][i], mydata[i]);
         if (ret != SUCCEED) {
-            LOG_ERROR("Error with PDC_Client_iwrite!\n");
+            LOG_ERROR("Error with PDC_Client_iwrite\n");
             goto done;
         }
     } // end of for

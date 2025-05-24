@@ -52,7 +52,7 @@ TestThread(void *ThreadArgs)
     if (create_prop > 0)
         LOG_INFO("[%d] Create a container property, id is %llx\n", args->ThreadRank, create_prop);
     else
-        LOG_ERROR("[%d] Fail to create container property!\n", args->ThreadRank);
+        LOG_ERROR("[%d] Fail to create container property\n", args->ThreadRank);
 
     // print default container lifetime (persistent)
     struct _pdc_cont_prop *prop = PDCcont_prop_get_info(create_prop);
@@ -68,7 +68,7 @@ TestThread(void *ThreadArgs)
     if (cont > 0)
         LOG_INFO("[%d] Create a container, id is %lld\n", args->ThreadRank, cont);
     else
-        LOG_ERROR("[%d] Failed to create container!\n", args->ThreadRank);
+        LOG_ERROR("[%d] Failed to create container\n", args->ThreadRank);
 
     // set container lifetime to transient
     PDCprop_set_cont_lifetime(create_prop, PDC_TRANSIENT);

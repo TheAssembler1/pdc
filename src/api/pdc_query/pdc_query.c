@@ -47,7 +47,7 @@ PDCquery_create(pdcid_t obj_id, pdc_query_op_t op, pdc_var_type_t type, void *va
     query->constraint->type   = type;
     type_size                 = PDC_get_var_type_size(type);
     if (type_size > 8)
-        PGOTO_ERROR(NULL, "Cannot handle value larger than 8 bytes!");
+        PGOTO_ERROR(NULL, "Cannot handle value larger than 8 bytes");
 
     memcpy(&query->constraint->value, value, type_size);
 
@@ -147,7 +147,7 @@ PDCquery_and(pdc_query_t *q1, pdc_query_t *q2)
                         can_combine = 1;
                     break;
                 default:
-                    PGOTO_ERROR(NULL, "== Error with operator type!");
+                    PGOTO_ERROR(NULL, "Error with operator type");
                     break;
             } // End switch
             break;
@@ -212,7 +212,7 @@ PDCquery_get_nhits(pdc_query_t *query, uint64_t *n)
     FUNC_ENTER(NULL);
 
     if (query == NULL || n == NULL)
-        PGOTO_ERROR(FAIL, "==PDC input NULL!");
+        PGOTO_ERROR(FAIL, "Input NULL");
 
     ret_value = PDC_send_data_query(query, PDC_QUERY_GET_NHITS, n, NULL, NULL);
 
@@ -228,7 +228,7 @@ PDCquery_get_selection(pdc_query_t *query, pdc_selection_t *sel)
     FUNC_ENTER(NULL);
 
     if (query == NULL || sel == NULL)
-        PGOTO_ERROR(FAIL, "==PDC_CLIENT[] input NULL!");
+        PGOTO_ERROR(FAIL, "Input NULL");
 
     memset(sel, 0, sizeof(pdc_selection_t));
     ret_value = PDC_send_data_query(query, PDC_QUERY_GET_SEL, NULL, sel, NULL);
@@ -247,7 +247,7 @@ PDCquery_get_data(pdcid_t obj_id, pdc_selection_t *sel, void *obj_data)
     FUNC_ENTER(NULL);
 
     if (obj_data == NULL || sel == NULL)
-        PGOTO_ERROR(FAIL, "==PDC_CLIENT[] input NULL!");
+        PGOTO_ERROR(FAIL, "Input NULL");
 
     if (PDC_find_id(obj_id) != NULL) {
         obj_prop = PDC_obj_get_info(obj_id);

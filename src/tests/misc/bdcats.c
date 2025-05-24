@@ -329,12 +329,12 @@ main(int argc, char **argv)
     }
     ret = PDCregion_transfer_close(transfer_request_id1);
     if (ret != SUCCEED) {
-        LOG_ERROR("region id11 transfer close failed\n");
+        LOG_ERROR("Region id11 transfer close failed\n");
         return 1;
     }
     ret = PDCregion_transfer_close(transfer_request_id2);
     if (ret != SUCCEED) {
-        LOG_ERROR("region id22 transfer close failed\n");
+        LOG_ERROR("Region id22 transfer close failed\n");
         return 1;
     }
 

@@ -783,9 +783,9 @@ main(int argc, char **argv)
 
     if (rank == 0) {
         if (ret_value == 0)
-            LOG_INFO("Test succeed!\n");
+            LOG_INFO("Test succeed\n");
         else
-            LOG_ERROR("ErROR: Test failed!\n");
+            LOG_ERROR("Error: Test failed\n");
     }
 
 #ifdef ENABLE_MPI

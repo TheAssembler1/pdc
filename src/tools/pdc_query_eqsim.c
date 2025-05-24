@@ -165,7 +165,7 @@ main(int argc, char **argv)
     uint32_t        metadata_server_id;
     PDC_Client_query_metadata_name_timestep("run1", 0, &metadata, &metadata_server_id);
     if (metadata == NULL || metadata->obj_id == 0) {
-        LOG_ERROR("Error with metadata!\n");
+        LOG_ERROR("Error with metadata\n");
     }
 
     int                    ndim = 3;

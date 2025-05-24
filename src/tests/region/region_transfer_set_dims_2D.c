@@ -373,7 +373,7 @@ main(int argc, char **argv)
     for (i = 0; i < OBJ_NUM; ++i) {
         PDCobj_get_dims(obj[i], &ndim, &new_dims);
         if (new_dims[0] != DIM0 * 2 || new_dims[1] != DIM1) {
-            LOG_ERROR("wrong dimension reported after reset for rank %d\n", rank);
+            LOG_ERROR("Wrong dimension reported after reset for rank %d\n", rank);
             ret_value = 1;
         }
         free(new_dims);

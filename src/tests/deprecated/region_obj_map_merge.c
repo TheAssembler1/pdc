@@ -249,7 +249,7 @@ main(int argc, char **argv)
 
     for (i = 0; i < BUF_LEN; ++i) {
         if (data_read[i] != i) {
-            LOG_ERROR("wrong value %d!=%d!\n", data_read[i], i);
+            LOG_ERROR("wrong value %d!=%d\n", data_read[i], i);
             ret_value = 1;
             break;
         }

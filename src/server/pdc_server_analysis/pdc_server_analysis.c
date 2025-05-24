@@ -119,7 +119,7 @@ PDC_Server_instantiate_data_iterator(obj_data_iterator_in_t *in, obj_data_iterat
     thisIter->storage_order    = (_pdc_major_type_t)((in->storageinfo >> 8) & 0xFF);
     region_reference           = PDC_Server_get_obj_region(in->object_id);
     if (region_reference == NULL) {
-        LOG_ERROR("==PDC_ANALYSIS_SERVER: Unable to locate object region (id=%" PRIu64 ")\n", in->object_id);
+        LOG_ERROR("Unable to locate object region (id=%" PRIu64 ")\n", in->object_id);
         /* The most likely cause of this condition is that the client never
          * created an object mapping which would move the client data to the data-server.
          * We now have the option to either fail, or to create a new temporary region.
@@ -129,7 +129,7 @@ PDC_Server_instantiate_data_iterator(obj_data_iterator_in_t *in, obj_data_iterat
         out->server_region_id = -1;
     }
     else {
-        LOG_INFO("==PDC_ANALYSIS_SERVER: Found object region for id=%" PRIu64 "\n", in->object_id);
+        LOG_INFO("Found object region for id=%" PRIu64 "\n", in->object_id);
         out->server_region_id = in->object_id;
     }
 
@@ -220,7 +220,7 @@ PDCobj_data_getNextBlock(pdcid_t iter, void **nextBlock, size_t *dims)
                 if ((thisIter->srcNext = PDC_Server_get_region_data_ptr(thisIter->objectId)) == NULL)
                     thisIter->srcNext = PDC_malloc(thisIter->totalElements * thisIter->element_size);
                 if ((thisIter->srcStart = thisIter->srcNext) == NULL) {
-                    LOG_ERROR("==PDC_ANALYSIS_SERVER: Unable to allocate iterator storage\n");
+                    LOG_ERROR("Unable to allocate iterator storage\n");
                     return 0;
                 }
                 thisIter->srcNext += thisIter->startOffset + thisIter->skipCount;

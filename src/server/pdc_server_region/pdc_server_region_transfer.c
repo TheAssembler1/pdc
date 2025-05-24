@@ -298,9 +298,6 @@ PDC_Server_transfer_request_io(uint64_t obj_id, int obj_ndim, const uint64_t *ob
              PDC_get_rank(), PDC_get_rank());
     PDC_mkdir(storage_location);
 
-    /* LOG_ERROR("Rank %d, write to offset %llu, size %llu\n", server_rank, region_info->offset[0],
-     * region_info->size[0]); */
-
     fd = open(storage_location, O_RDWR | O_CREAT, 0666);
     if (region_info->ndim == 1) {
         lseek(fd, region_info->offset[0] * unit, SEEK_SET);

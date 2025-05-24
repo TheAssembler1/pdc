@@ -125,7 +125,7 @@ main(int argc, char **argv)
         LOG_INFO("Rank %d Create a container property\n", rank);
     }
     else {
-        LOG_ERROR("Rank %d fail to create container property!\n", rank);
+        LOG_ERROR("Rank %d fail to create container property\n", rank);
         ret_value = 1;
     }
     // create a container
@@ -136,7 +136,7 @@ main(int argc, char **argv)
         LOG_INFO("Rank %d Create a container %s\n", rank, cont_name);
     }
     else {
-        LOG_ERROR("Rank %d fail to create container!\n", rank);
+        LOG_ERROR("Rank %d fail to create container\n", rank);
         ret_value = 1;
     }
     // create an object property
@@ -145,7 +145,7 @@ main(int argc, char **argv)
         LOG_INFO("Rank %d Create an object property\n", rank);
     }
     else {
-        LOG_ERROR("Rank %d fail to create object property!\n", rank);
+        LOG_ERROR("Rank %d fail to create object property\n", rank);
         ret_value = 1;
     }
 
@@ -221,7 +221,7 @@ main(int argc, char **argv)
         LOG_INFO("Rank %d Create an object %s\n", rank, obj_name2);
     }
     else {
-        LOG_ERROR("Rank %d fail to create object!\n", rank);
+        LOG_ERROR("Rank %d fail to create object\n", rank);
         ret_value = 1;
     }
     for (i = 0; i < (int)my_data_size; i++) {

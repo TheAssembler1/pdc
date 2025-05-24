@@ -190,7 +190,7 @@ main(int argc, char **argv)
 
     for (i = 0; i < BUF_LEN / 2; ++i) {
         if (data_read[i] != i * 2 + 1) {
-            LOG_ERROR("wrong value %d!=%d\n", data_read[i], i * 2 + 1);
+            LOG_ERROR("Wrong value %d!=%d\n", data_read[i], i * 2 + 1);
             ret_value = 1;
             break;
         }

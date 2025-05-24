@@ -126,17 +126,17 @@ main(int argc, char *argv[])
         lookup_value->test = "World";
     }
     else {
-        LOG_INFO("Object with lookup_key=%d not found!\n", lookup_key);
+        LOG_INFO("Object with lookup_key=%d not found\n", lookup_key);
     }
 
-    LOG_INFO("New value after change!\n");
+    LOG_INFO("New value after change\n");
     lookup_value = hg_hash_table_lookup(hash_table, &lookup_key);
     if (lookup_value != NULL) {
         LOG_INFO("Found in hash table with obj_id=%d, obj_name=%s, test=%s\n", lookup_value->obj_id,
                  lookup_value->obj_name, lookup_value->test);
     }
     else {
-        LOG_INFO("Object with lookup_key=%d not found!\n", lookup_key);
+        LOG_INFO("Object with lookup_key=%d not found\n", lookup_key);
     }
 
     hg_hash_table_free(hash_table);

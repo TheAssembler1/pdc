@@ -111,7 +111,7 @@ main(int argc, char **argv)
     // Query the created object
     PDC_Client_query_metadata_name_timestep(obj_name, 0, &metadata, &metadata_server_id);
     if (metadata == NULL || metadata->obj_id == 0) {
-        LOG_ERROR("Error with metadata!\n");
+        LOG_ERROR("Error with metadata\n");
         ret_value = 1;
     }
 

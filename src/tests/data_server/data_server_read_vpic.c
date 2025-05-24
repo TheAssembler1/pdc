@@ -119,7 +119,7 @@ main(int argc, char **argv)
         ret = PDC_Client_query_metadata_name_timestep(obj_names[i], 0, &obj_metas[i]);
 #endif
         if (ret != SUCCEED || obj_metas[i] == NULL || obj_metas[i]->obj_id == 0) {
-            LOG_ERROR("Error with metadata!\n");
+            LOG_ERROR("Error with metadata\n");
             exit(-1);
         }
 
@@ -157,7 +157,7 @@ main(int argc, char **argv)
         request[i].n_update = read_var;
         ret                 = PDC_Client_iread(obj_metas[i], &obj_regions[i], &request[i], mydata[i]);
         if (ret != SUCCEED) {
-            LOG_ERROR("Error with PDC_Client_iread!\n");
+            LOG_ERROR("Error with PDC_Client_iread\n");
             goto done;
         }
 
@@ -176,7 +176,7 @@ main(int argc, char **argv)
     for (i = 0; i < read_var; i++) {
         ret = PDC_Client_wait(&request[i], 200000, 100);
         if (ret != SUCCEED) {
-            LOG_ERROR("Error with PDC_Client_wait!\n");
+            LOG_ERROR("Error with PDC_Client_wait\n");
             goto done;
         }
     }
@@ -199,14 +199,14 @@ main(int argc, char **argv)
 
     int verify = 1;
     if (rank == 0)
-        LOG_INFO("Verifying data correctness ...");
+        LOG_INFO("Verifying data correctness...");
 
     // Data verification
     for (i = 0; i < NPARTICLES; i++) {
         if (((int *)mydata[7])[i] != i * 2 || ((int *)mydata[6])[i] != i ||
             ((float *)mydata[5])[i] != (i * 2.0 / NPARTICLES) * ZDIM ||
             ((float *)mydata[2])[i] != (i * 1.0 / NPARTICLES) * ZDIM) {
-            LOG_ERROR("\nERROR on rank %d at element %d. [%d %d %.2f %.2f]/[%d %d %.2f %.2f]\n", rank, i,
+            LOG_ERROR("\nError on rank %d at element %d. [%d %d %.2f %.2f]/[%d %d %.2f %.2f]\n", rank, i,
                       ((int *)mydata[7])[i], ((int *)mydata[6])[i], ((float *)mydata[5])[i],
                       ((float *)mydata[2])[i], i * 2, i, (i * 2.0 / NPARTICLES) * ZDIM,
                       (i * 1.0 / NPARTICLES) * ZDIM);

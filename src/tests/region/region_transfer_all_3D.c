@@ -334,7 +334,7 @@ main(int argc, char **argv)
     for (j = 0; j < OBJ_NUM; ++j) {
         for (i = 0; i < BUF_LEN; ++i) {
             if (data_read[j][i] != i) {
-                LOG_ERROR("wrong value %d!=%d\n", data_read[j][i], i);
+                LOG_ERROR("Wrong value %d!=%d\n", data_read[j][i], i);
                 ret_value = 1;
                 break;
             }

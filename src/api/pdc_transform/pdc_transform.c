@@ -89,7 +89,7 @@ PDCobj_transform_register(char *func, pdcid_t obj_id, int current_state, int nex
     loadpath = PDC_get_realpath(transformslibrary, applicationDir);
 
     if (PDC_get_ftnPtr_(userdefinedftn, loadpath, &ftnHandle) < 0)
-        PGOTO_ERROR(FAIL, "PDC_get_ftnPtr_ returned an error!");
+        PGOTO_ERROR(FAIL, "PDC_get_ftnPtr_ returned an error");
 
     if ((ftnPtr = ftnHandle) == NULL)
         PGOTO_ERROR(FAIL, "Transforms function lookup failed");
@@ -109,7 +109,7 @@ PDCobj_transform_register(char *func, pdcid_t obj_id, int current_state, int nex
 
     // Add to our own list of transform functions
     if ((local_regIndex = PDC_add_transform_ptr_to_registry_(thisFtn)) < 0)
-        PGOTO_ERROR(FAIL, "PDC unable to register transform function!");
+        PGOTO_ERROR(FAIL, "PDC unable to register transform function");
 
     // Flag the transform as being active on mapping operations
     if (op_type == PDC_DATA_MAP) {
@@ -202,7 +202,7 @@ PDCbuf_map_transform_register(char *func, void *buf, pdcid_t src_region_id, pdci
     loadpath = PDC_get_realpath(transformslibrary, applicationDir);
 
     if (PDC_get_ftnPtr_(userdefinedftn, loadpath, &ftnHandle) < 0)
-        PGOTO_ERROR(FAIL, "PDC_get_ftnPtr_ returned an error!");
+        PGOTO_ERROR(FAIL, "PDC_get_ftnPtr_ returned an error");
 
     if ((ftnPtr = ftnHandle) == NULL)
         PGOTO_ERROR(FAIL, "Transforms function lookup failed");
@@ -255,7 +255,7 @@ PDCbuf_map_transform_register(char *func, void *buf, pdcid_t src_region_id, pdci
 
     // Add to our own list of transforms functions
     if ((local_regIndex = PDC_add_transform_ptr_to_registry_(thisFtn)) < 0)
-        PGOTO_ERROR(FAIL, "PDC unable to register transform function!");
+        PGOTO_ERROR(FAIL, "PDC unable to register transform function");
 
     PDC_Client_register_region_transform(userdefinedftn, loadpath, src_region_id, dest_region_id,
                                          dest_object_id, current_state, thisFtn->nextState, (int)PDC_DATA_MAP,
@@ -279,7 +279,7 @@ PDCbuf_io_transform_register(char *func ATTRIBUTE(unused), void *buf ATTRIBUTE(u
 {
     perr_t ret_value = FAIL; /* Return value (not implemented) */
     FUNC_ENTER(NULL);
-    LOG_ERROR("IO transforms are not currently supported!\n");
+    LOG_ERROR("IO transforms are not currently supported\n");
     FUNC_LEAVE(ret_value);
 }
 

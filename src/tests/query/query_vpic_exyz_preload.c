@@ -43,7 +43,7 @@ main(int argc, char **argv)
         z_hi      = atof(argv[8]);
     }
     else {
-        LOG_ERROR("Not sufficient query conditions!\n");
+        LOG_ERROR("Not sufficient query conditions\n");
     }
 
     pdc = PDCinit("pdc");
@@ -51,14 +51,14 @@ main(int argc, char **argv)
     // Query the created object
     PDC_Client_query_metadata_name_timestep("x", 0, &x_meta);
     if (x_meta == NULL || x_meta->obj_id == 0) {
-        LOG_ERROR("Error with x metadata!\n");
+        LOG_ERROR("Error with x metadata\n");
         goto done;
     }
     x_id = x_meta->obj_id;
 
     PDC_Client_query_metadata_name_timestep("Energy", 0, &energy_meta);
     if (energy_meta == NULL || energy_meta->obj_id == 0) {
-        LOG_ERROR("Error with energy metadata!\n");
+        LOG_ERROR("Error with energy metadata\n");
         goto done;
     }
     energy_id = energy_meta->obj_id;

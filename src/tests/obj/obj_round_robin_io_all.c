@@ -214,7 +214,7 @@ main(int argc, char **argv)
         LOG_INFO("Rank %d Create an object %s\n", rank, obj_name2);
     }
     else {
-        LOG_ERROR("Rank %d fail to create object!\n", rank);
+        LOG_ERROR("Rank %d fail to create object\n", rank);
         ret_value = 1;
     }
 

@@ -690,6 +690,6 @@ pdc_transform_decompress(void *dataIn, PDC_var_type_t srcType, int ndim, uint64_
     if (dsize <= 0)
         LOG_ERROR("[TRANSFORM] Error while decompressing data (errcode: %zu)\n", dsize);
     else
-        LOG_INFO("[TRANSFORM] Data sucessfully decompressed!\n");
+        LOG_INFO("[TRANSFORM] Data sucessfully decompressed\n");
     return dsize;
 }

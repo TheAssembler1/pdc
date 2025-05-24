@@ -194,7 +194,7 @@ main(int argc, char **argv)
                 ((i % (offset_length[1] * offset_length[2])) / offset_length[2]) * dims[2] +
                 i % offset_length[2];
         if (data_read[value] != i) {
-            LOG_ERROR("wrong value %d!=%d, value = %d\n", data_read[value], i, (int)value);
+            LOG_ERROR("Wrong value %d!=%d, value = %d\n", data_read[value], i, (int)value);
             ret_value = 1;
             break;
         }
@@ -282,7 +282,7 @@ main(int argc, char **argv)
                 ((i % (offset_length[1] * offset_length[2])) / offset_length[2]) * dims[2] +
                 i % offset_length[2];
         if (data_read[i] != (int)value) {
-            LOG_ERROR("wrong value %d!=%d\n", data_read[i], (int)value);
+            LOG_ERROR("Wrong value %d!=%d\n", data_read[i], (int)value);
             ret_value = 1;
             break;
         }

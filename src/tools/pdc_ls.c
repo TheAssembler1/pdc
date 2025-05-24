@@ -446,7 +446,7 @@ pdc_ls(FileNameNode *file_name_node, int argc, char *argv[])
 
         FILE *file = fopen(filename, "r");
         if (file == NULL) {
-            LOG_ERROR("==PDC_SERVER[%d]: Checkpoint file open FAILED [%s]!", pdc_server_rank_g, filename);
+            LOG_ERROR("Rank[%d]: Checkpoint file open FAILED [%s]", pdc_server_rank_g, filename);
             ret_value = FAIL;
             continue;
         }
@@ -493,7 +493,6 @@ pdc_ls(FileNameNode *file_name_node, int argc, char *argv[])
             entry->bloom    = NULL;
             entry->metadata = NULL;
 
-            /* LOG_ERROR("size of metadata: %lu\n", sizeof(pdc_metadata_t)); */
             metadata = (pdc_metadata_t *)calloc(sizeof(pdc_metadata_t), count);
             for (i = 0; i < count; i++) {
                 if (fread(metadata + i, sizeof(pdc_metadata_t), 1, file) != 1) {
@@ -563,7 +562,7 @@ pdc_ls(FileNameNode *file_name_node, int argc, char *argv[])
                     LOG_ERROR("Read failed for n_region\n");
                 }
                 if (n_region < 0) {
-                    LOG_ERROR("==PDC_SERVER[%d] Checkpoint file region number ERROR!", pdc_server_rank_g);
+                    LOG_ERROR("Rank[%d] Checkpoint file region number error\n", pdc_server_rank_g);
                     ret_value = FAIL;
                     continue;
                 }
@@ -589,8 +588,7 @@ pdc_ls(FileNameNode *file_name_node, int argc, char *argv[])
                             LOG_ERROR("Read failed for region_list->region_hist->nbin\n");
                         }
                         if (region_list->region_hist->nbin == 0) {
-                            LOG_ERROR("==PDC_SERVER[%d]: Checkpoint file histogram size is 0!",
-                                      pdc_server_rank_g);
+                            LOG_ERROR("Rank[%d]: Checkpoint file histogram size is 0\n", pdc_server_rank_g);
                         }
 
                         region_list->region_hist->range =

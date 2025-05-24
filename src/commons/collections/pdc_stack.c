@@ -22,7 +22,7 @@ stack_push(PDC_stack_t *stack, void *value)
         size_t new_capacity = stack->capacity * 2;
         void **new_data     = PDC_realloc(stack->data, sizeof(void *) * new_capacity);
         if (new_data == NULL) {
-            LOG_ERROR("Failed to reallocate memory for stack!\n");
+            LOG_ERROR("Failed to reallocate memory for stack\n");
             exit(1);
         }
         stack->data     = new_data;
@@ -35,7 +35,7 @@ void *
 stack_pop(PDC_stack_t *stack)
 {
     if (stack->size == 0) {
-        LOG_ERROR("Stack underflow!\n");
+        LOG_ERROR("Stack underflow\n");
         exit(1);
     }
     return stack->data[--stack->size];

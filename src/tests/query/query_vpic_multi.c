@@ -32,7 +32,7 @@ main(void)
     // Query the created object
     PDC_Client_query_metadata_name_timestep("Energy", 0, &energy_meta);
     if (energy_meta == NULL || energy_meta->obj_id == 0) {
-        LOG_ERROR("Error with energy metadata!\n");
+        LOG_ERROR("Error with energy metadata\n");
         goto done;
     }
     energy_id = energy_meta->obj_id;
@@ -70,7 +70,7 @@ main(void)
                     LOG_ERROR("Error with result %" PRIu64 ": %.5e\n", i, energy_data[i]);
                 }
             }
-            LOG_INFO("Verified: all correct!\n");
+            LOG_INFO("Verified: all correct\n");
             PDCselection_free(&sel);
             sleep(5);
         }

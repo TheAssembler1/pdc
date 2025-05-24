@@ -35,7 +35,7 @@ delete_kv_from_index(char *kv, uint64_t obj_id)
         }
     }
     else {
-        LOG_ERROR("Invalid Key Value Pair!\n");
+        LOG_ERROR("Invalid Key Value Pair\n");
         return;
     }
 
@@ -102,7 +102,7 @@ insert_kv_to_index(char *kv, uint64_t obj_id)
         }
     }
     else {
-        LOG_ERROR("Invalid Key Value Pair!\n");
+        LOG_ERROR("Invalid Key Value Pair\n");
         return;
     }
 
@@ -202,7 +202,7 @@ test_PDC_Server_dart_perform_one_server()
     insert_kv_to_index("num000num=0", 30000);
     insert_kv_to_index("num433num=433", 30000);
 
-    LOG_INFO("Index Insertion Successful!\n");
+    LOG_INFO("Index Insertion Successful\n");
 
     // key000key val000val
     query_result_from_kvtag("key000key=\"val000val\"", OP_EXACT_QUERY);
@@ -256,7 +256,7 @@ test_PDC_Server_dart_perform_one_server()
     delete_kv_from_index("num000num=0", 30000);
     delete_kv_from_index("num433num=433", 30000);
 
-    LOG_INFO("Index Deletion Successful!\n");
+    LOG_INFO("Index Deletion Successful\n");
 
     query_result_from_kvtag("key000key=\"val000val\"", OP_EXACT_QUERY);
     query_result_from_kvtag("0key=\"0val\"", OP_EXACT_QUERY);
@@ -273,7 +273,7 @@ test_PDC_Server_dart_perform_one_server()
 
     metadata_index_recover("/workspaces/pdc/build/bin", 1, 0);
 
-    LOG_INFO("Index Recovery Done!\n");
+    LOG_INFO("Index Recovery Done\n");
 
     // key000key val000val
     query_result_from_kvtag("key000key=\"val000val\"", OP_EXACT_QUERY);

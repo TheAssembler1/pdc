@@ -34,7 +34,7 @@ int
 assign_work_to_rank(int rank, int size, int nwork, int *my_count, int *my_start)
 {
     if (rank > size || my_count == NULL || my_start == NULL) {
-        LOG_ERROR("assign_work_to_rank(): Error with input!\n");
+        LOG_ERROR("assign_work_to_rank(): Error with input\n");
         return -1;
     }
     if (nwork < size) {

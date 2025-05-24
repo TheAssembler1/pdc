@@ -198,7 +198,7 @@ main(int argc, char **argv)
     query_time_total += query_time;
 
     if (rank == 0)
-        LOG_INFO("Query done!\n");
+        LOG_INFO("Query done\n");
 
     for (ts = 0; ts < n_ts; ts++) {
         /*
@@ -217,7 +217,7 @@ main(int argc, char **argv)
             for (i = 0; i < n_var; i++) {
                 ret = PDC_Client_read(obj_metas[ts][i], &obj_regions[ts][i], mydata[i]);
                 if (ret != SUCCEED) {
-                    LOG_ERROR("Error with PDC_Client_read!\n");
+                    LOG_ERROR("Error with PDC_Client_read\n");
                     goto done;
                 }
             } // end of for
@@ -250,7 +250,7 @@ main(int argc, char **argv)
             for (i = 0; i < n_var; i++) {
                 ret = PDC_Client_wait(&request[ts][i], 90000, 100);
                 if (ret != SUCCEED) {
-                    LOG_ERROR("Error with PDC_Client_wait!\n");
+                    LOG_ERROR("Error with PDC_Client_wait\n");
                     goto done;
                 }
             }
@@ -275,7 +275,7 @@ main(int argc, char **argv)
                 ret = PDC_Client_iread(obj_metas[ts + 1][i], &obj_regions[ts + 1][i], &request[ts + 1][i],
                                        mydata[i]);
                 if (ret != SUCCEED) {
-                    LOG_ERROR("Error with PDC_Client_iread!\n");
+                    LOG_ERROR("Error with PDC_Client_iread\n");
                     goto done;
                 }
             } // end of for

@@ -63,20 +63,20 @@ prepare_container(pdcid_t *pdc, pdcid_t *cont_prop, pdcid_t *cont, pdcid_t *obj_
     // create a container property
     *cont_prop = PDCprop_create(PDC_CONT_CREATE, *pdc);
     if (*cont_prop <= 0) {
-        LOG_ERROR("[Client %d] Fail to create container property!\n", world_rank);
+        LOG_ERROR("[Client %d] Fail to create container property\n", world_rank);
         goto done;
     }
     // create a container
     *cont = PDCcont_create("c1", *cont_prop);
     if (*cont <= 0) {
-        LOG_ERROR("[Client %d] Fail to create container!\n", world_rank);
+        LOG_ERROR("[Client %d] Fail to create container\n", world_rank);
         goto done;
     }
 
     // create an object property
     *obj_prop = PDCprop_create(PDC_OBJ_CREATE, *pdc);
     if (*obj_prop <= 0) {
-        LOG_ERROR("[Client %d] Fail to create object property!\n", world_rank);
+        LOG_ERROR("[Client %d] Fail to create object property\n", world_rank);
         goto done;
     }
 
@@ -346,7 +346,7 @@ main(int argc, char *argv[])
         PGOTO_ERROR(FAIL, "Failed to prepare container");
 
     if (world_rank == 0)
-        LOG_INFO("Initialization Done!\n");
+        LOG_INFO("Initialization Done\n");
 
         // No need to create any object for testing only the index.
 #ifdef ENABLE_MPI

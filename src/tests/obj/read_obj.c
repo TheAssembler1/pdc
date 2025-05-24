@@ -212,7 +212,7 @@ main(int argc, char **argv)
     for (i = 0; i < (int)my_data_size; i++) {
         for (j = 0; j < (int)type_size; ++j) {
             if (mydata[i * type_size + j] != (char)i) {
-                LOG_ERROR("Wrong value detected %d != %d!\n", mydata[i * type_size + j], i);
+                LOG_ERROR("Wrong value detected %d != %d\n", mydata[i * type_size + j], i);
                 ret_value = 1;
                 i         = my_data_size;
                 break;

@@ -20,7 +20,7 @@ resize_deque(PDC_deque_t *deque, size_t new_capacity)
 {
     void **new_data = PDC_malloc(sizeof(void *) * new_capacity);
     if (new_data == NULL) {
-        LOG_ERROR("Failed to allocate memory for deque!\n");
+        LOG_ERROR("Failed to allocate memory for deque\n");
         exit(1);
     }
 

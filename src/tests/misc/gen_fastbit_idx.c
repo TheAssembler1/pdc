@@ -20,7 +20,7 @@ main(int argc, char **argv)
     float           preload_value = -2000000000.0;
 
     if (argc < 2)
-        LOG_ERROR("Please enter var name as input!\n");
+        LOG_ERROR("Please enter var name as input\n");
 
     var_name = argv[1];
 
@@ -29,7 +29,7 @@ main(int argc, char **argv)
     // Query the created object
     PDC_Client_query_metadata_name_timestep(var_name, 0, &meta);
     if (meta == NULL || meta->obj_id == 0) {
-        LOG_ERROR("Error with [%s] metadata!\n", var_name);
+        LOG_ERROR("Error with [%s] metadata\n", var_name);
         goto done;
     }
     id = meta->obj_id;

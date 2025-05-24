@@ -142,7 +142,7 @@ main(int argc, char **argv)
         ret = PDC_Client_query_metadata_name_timestep(obj_names[i], 0, &obj_metas[i]);
 #endif
         if (ret != SUCCEED || obj_metas[i] == NULL || obj_metas[i]->obj_id == 0) {
-            LOG_ERROR("Error with metadata!\n");
+            LOG_ERROR("Error with metadata\n");
             exit(-1);
         }
 
@@ -172,7 +172,7 @@ main(int argc, char **argv)
         request[i].n_update = 1;
         ret                 = PDC_Client_iread(obj_metas[i], &obj_regions[i], &request[i], mydata[i]);
         if (ret != SUCCEED) {
-            LOG_ERROR("Error with PDC_Client_iread!\n");
+            LOG_ERROR("Error with PDC_Client_iread\n");
             goto done;
         }
 
@@ -188,7 +188,7 @@ main(int argc, char **argv)
 
         ret = PDC_Client_wait(&request[i], 60000, 100);
         if (ret != SUCCEED) {
-            LOG_ERROR("Error with PDC_Client_wait!\n");
+            LOG_ERROR("Error with PDC_Client_wait\n");
             goto done;
         }
 

@@ -164,7 +164,7 @@ main(int argc, char **argv)
     value_size   = 4 * sizeof(double);
 
     if (PDCobj_put_tag(obj, tag_name, tag_value, PDC_DOUBLE, value_size) < 0)
-        LOG_ERROR("Rank %d fail to put tag!\n", rank);
+        LOG_ERROR("Rank %d fail to put tag\n", rank);
 
 #ifdef ENABLE_MPI
     MPI_Barrier(MPI_COMM_WORLD);

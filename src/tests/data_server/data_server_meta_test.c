@@ -13,7 +13,7 @@
 void
 print_usage()
 {
-    LOG_JUST_PRINT("Should run with more than 1 processes!\n");
+    LOG_JUST_PRINT("Should run with more than 1 processes\n");
 }
 
 int
@@ -98,7 +98,7 @@ main(int argc, char **argv)
     for (i = 0; i < NOBJ; i++) {
         PDC_Client_query_metadata_name_timestep(obj_names[i], 0, &metadata[i]);
         if (metadata[i]->obj_id == 0) {
-            LOG_ERROR("Error with metadata!\n");
+            LOG_ERROR("Error with metadata\n");
             goto done;
         }
 

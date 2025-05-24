@@ -103,8 +103,7 @@ main(int argc, char **argv)
     mysize[0]        = numparticles;
 
     // create a region
-    r1 = PDCregion_create(1, offset, mysize);
-    //    LOG_ERROR("First region id: %lld\n", r1);
+    r1  = PDCregion_create(1, offset, mysize);
     r2  = PDCregion_create(1, offset_remote, mysize);
     ret = PDCbuf_obj_map(&x[0], PDC_FLOAT, r1, obj2, r2);
     if (ret < 0) {

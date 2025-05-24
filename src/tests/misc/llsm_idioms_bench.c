@@ -17,7 +17,7 @@ int
 assign_work_to_rank(int rank, int size, int nwork, int *my_count, int *my_start)
 {
     if (rank > size || my_count == NULL || my_start == NULL) {
-        LOG_ERROR("assign_work_to_rank(): Error with input!\n");
+        LOG_ERROR("assign_work_to_rank(): Error with input\n");
         return -1;
     }
     if (nwork < size) {
@@ -84,7 +84,7 @@ prepare_container(pdcid_t *pdc, pdcid_t *cont_prop, pdcid_t *cont, pdcid_t *obj_
     // create an object property
     *obj_prop = PDCprop_create(PDC_OBJ_CREATE, *pdc);
     if (*obj_prop <= 0) {
-        LOG_ERROR("[Client %d] Fail to create object property!\n", my_rank);
+        LOG_ERROR("[Client %d] Fail to create object property\n", my_rank);
         goto done;
     }
 
@@ -111,7 +111,7 @@ create_objects(pdcid_t **obj_ids, int my_csv_rows, int csv_expand_factor, pdcid_
             (*obj_ids)[obj_created] = obj_id;
 
             if ((*obj_ids)[obj_created] <= 0) {
-                LOG_ERROR("[Client %d] Fail to create object!\n", my_rank);
+                LOG_ERROR("[Client %d] Fail to create object\n", my_rank);
                 goto done;
             }
 

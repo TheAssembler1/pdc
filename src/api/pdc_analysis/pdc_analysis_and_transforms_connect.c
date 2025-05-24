@@ -105,7 +105,7 @@ PDC_Client_send_iter_recv_id(pdcid_t iter_id, pdcid_t *meta_id)
         if (n_retry > 0)
             break;
         if (PDC_Client_lookup_server(server_id, 0) != SUCCEED)
-            PGOTO_ERROR(FAIL, "==CLIENT[%d]: ERROR with PDC_Client_lookup_server", pdc_client_mpi_rank_g);
+            PGOTO_ERROR(FAIL, "Rank[%d]: Error with PDC_Client_lookup_server", pdc_client_mpi_rank_g);
 
         n_retry++;
     }
@@ -217,7 +217,7 @@ PDC_Client_register_obj_analysis(struct _pdc_region_analysis_ftn_info *thisFtn, 
         if (n_retry > 0)
             break;
         if (PDC_Client_lookup_server(server_id, 0) != SUCCEED)
-            PGOTO_ERROR(FAIL, "==CLIENT[%d]: ERROR with PDC_Client_lookup_server", pdc_client_mpi_rank_g);
+            PGOTO_ERROR(FAIL, "Rank[%d]: Error with PDC_Client_lookup_server", pdc_client_mpi_rank_g);
 
         n_retry++;
     }

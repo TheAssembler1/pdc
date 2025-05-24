@@ -1600,12 +1600,10 @@ hg_proc_pdc_metadata_transfer_t(hg_proc_t proc, void *data)
     }
     ret = hg_proc_hg_string_t(proc, &struct_data->app_name);
     if (ret != HG_SUCCESS) {
-        // HG_LOG_ERROR("Proc app_name error");
         return ret;
     }
     ret = hg_proc_hg_string_t(proc, &struct_data->obj_name);
     if (ret != HG_SUCCESS) {
-        // HG_LOG_ERROR("Proc obj_name error");
         return ret;
     }
     ret = hg_proc_int32_t(proc, &struct_data->time_step);
@@ -1657,27 +1655,22 @@ hg_proc_pdc_metadata_transfer_t(hg_proc_t proc, void *data)
     }
     ret = hg_proc_hg_string_t(proc, &struct_data->data_location);
     if (ret != HG_SUCCESS) {
-        // HG_LOG_ERROR("Proc data_location error");
         return ret;
     }
     ret = hg_proc_hg_string_t(proc, &struct_data->tags);
     if (ret != HG_SUCCESS) {
-        // HG_LOG_ERROR("Proc tags error");
         return ret;
     }
     ret = hg_proc_uint32_t(proc, &struct_data->data_server_id);
     if (ret != HG_SUCCESS) {
-        // HG_LOG_ERROR("Proc data_server_id error");
         return ret;
     }
     ret = hg_proc_uint8_t(proc, &struct_data->region_partition);
     if (ret != HG_SUCCESS) {
-        // HG_LOG_ERROR("Proc region_partition error");
         return ret;
     }
     ret = hg_proc_uint8_t(proc, &struct_data->consistency);
     if (ret != HG_SUCCESS) {
-        // HG_LOG_ERROR("Proc consistency error");
         return ret;
     }
     // Added to support transforms

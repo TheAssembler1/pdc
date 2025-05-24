@@ -344,7 +344,7 @@ scan_group(hid_t gid, int level, char *app_name)
                 H5Tclose(typeid);
                 break;
             default:
-                LOG_ERROR(" Unknown Object Type!\n");
+                LOG_ERROR(" Unknown Object Type\n");
                 break;
         }
     }

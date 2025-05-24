@@ -232,7 +232,7 @@ PDC_obj_create(pdcid_t cont_id, const char *obj_name, pdcid_t obj_prop_id, _pdc_
         ret = PDC_Client_send_name_recv_id(obj_name, p->cont->cont_info_pub->meta_id, obj_prop_id,
                                            &(p->obj_info_pub->meta_id), &data_server_id, &metadata_server_id);
         if (ret == FAIL)
-            PGOTO_ERROR(0, "Unable to create object on server!");
+            PGOTO_ERROR(0, "Unable to create object on server");
     }
 
     p->obj_info_pub->metadata_server_id = (pdcid_t)metadata_server_id;

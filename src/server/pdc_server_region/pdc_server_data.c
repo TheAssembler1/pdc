@@ -558,7 +558,7 @@ PDC_Server_release_lock_request(uint64_t obj_id, struct pdc_region_info *region)
 
     new_obj_reg = PDC_Server_get_obj_region(obj_id);
     if (new_obj_reg == NULL) {
-        PGOTO_ERROR(FAIL, "===PDC Server: cannot locate data_server_region_t strcut for object ID");
+        PGOTO_ERROR(FAIL, "Cannot locate data_server_region_t strcut for object ID");
     }
 #ifdef ENABLE_MULTITHREAD
     hg_thread_mutex_lock(&lock_request_mutex_g);
@@ -680,7 +680,7 @@ region_list_path_offset_cmp(region_list_t *a, region_list_t *b)
 {
     int ret_value;
     if (NULL == a || NULL == b) {
-        LOG_ERROR("NULL input!\n");
+        LOG_ERROR("NULL input\n");
         return -1;
     }
 
@@ -722,8 +722,7 @@ PDC_Data_Server_buf_unmap(const struct hg_info *info, buf_unmap_in_t *in)
 
     target_obj = PDC_Server_get_obj_region(in->remote_obj_id);
     if (target_obj == NULL) {
-        PGOTO_ERROR(FAIL,
-                    "===PDC_DATA_SERVER: PDC_Data_Server_buf_unmap() - requested object does not exist");
+        PGOTO_ERROR(FAIL, "Requested object does not exist");
     }
 #ifdef ENABLE_MULTITHREAD
     hg_thread_mutex_lock(&data_buf_map_mutex_g);
@@ -772,8 +771,7 @@ PDC_Data_Server_buf_unmap(const struct hg_info *info, buf_unmap_in_t *in)
                 data_server_region_unmap_t *region = NULL;
                 region = (data_server_region_unmap_t *)PDC_malloc(sizeof(struct data_server_region_unmap_t));
                 if (region == NULL)
-                    PGOTO_ERROR(FAIL,
-                                "===PDC_DATA_SERVER: PDC_Data_Server_buf_unmap() - cannot allocate region");
+                    PGOTO_ERROR(FAIL, "Cannot allocate region");
                 region->obj_id       = in->remote_obj_id;
                 region->unmap_region = in->remote_region;
                 region->info         = info;
@@ -821,8 +819,7 @@ PDC_Data_Server_check_unmap()
         remote_obj_id = elt1->obj_id;
         target_obj    = PDC_Server_get_obj_region(remote_obj_id);
         if (target_obj == NULL) {
-            PGOTO_ERROR(
-                FAIL, "===PDC_DATA_SERVER: PDC_Data_Server_check_unmap() - requested object does not exist");
+            PGOTO_ERROR(FAIL, "Requested object does not exist");
         }
         completed = 0;
         hg_thread_mutex_lock(&data_buf_map_mutex_g);
@@ -941,8 +938,7 @@ buf_unmap_lookup_remote_server_cb(const struct hg_cb_info *callback_info)
     if (ret_value != HG_SUCCESS) {
         error = 1;
         HG_Destroy(server_send_buf_unmap_handle);
-        PGOTO_ERROR(ret_value,
-                    "===PDC SERVER: buf_unmap_lookup_remote_server_cb() - Could not start HG_Forward()");
+        PGOTO_ERROR(ret_value, "Could not start HG_Forward()");
     }
 done:
     if (error == 1) {
@@ -976,7 +972,7 @@ PDC_Server_buf_unmap_lookup_server_id(int remote_server_id, struct transfer_buf_
                             pdc_remote_server_info_g[remote_server_id].addr_string, HG_OP_ID_IGNORE);
     if (hg_ret != HG_SUCCESS) {
         error = 1;
-        PGOTO_ERROR(FAIL, "Connection to remote server FAILED!");
+        PGOTO_ERROR(FAIL, "Connection to remote server failed");
     }
 
 done:
@@ -1039,7 +1035,7 @@ PDC_Meta_Server_buf_unmap(buf_unmap_in_t *in, hg_handle_t *handle)
         target_meta = find_metadata_by_id(in->remote_obj_id);
         if (target_meta == NULL) {
             error = 1;
-            PGOTO_ERROR(FAIL, "===PDC META SERVER: cannot retrieve object metadata");
+            PGOTO_ERROR(FAIL, "Cannot retrieve object metadata");
         }
 #ifdef ENABLE_MULTITHREAD
         hg_thread_mutex_lock(&meta_buf_map_mutex_g);
@@ -1233,14 +1229,14 @@ PDC_Server_maybe_allocate_region_buf_ptr(pdcid_t obj_id, region_info_transfer_t 
     FUNC_ENTER(NULL);
 
     if (dataserver_region_g == NULL)
-        PGOTO_ERROR(NULL, "===PDC SERVER: PDC_Server_get_region_buf_ptr() - object list is NULL");
+        PGOTO_ERROR(NULL, "Object list is NULL");
     DL_FOREACH(dataserver_region_g, elt)
     {
         if (obj_id == elt->obj_id)
             target_obj = elt;
     }
     if (target_obj == NULL)
-        PGOTO_ERROR(NULL, "===PDC SERVER: PDC_Server_get_region_buf_ptr() - cannot locate object");
+        PGOTO_ERROR(NULL, "Cannot locate object");
 
     DL_FOREACH(target_obj->region_buf_map_head, tmp)
     {
@@ -1271,7 +1267,7 @@ PDC_Server_maybe_allocate_region_buf_ptr(pdcid_t obj_id, region_info_transfer_t 
         DL_APPEND(target_obj->region_buf_map_head, buf_map_ptr);
     }
     if (ret_value == NULL)
-        PGOTO_ERROR(NULL, "===PDC SERVER: PDC_Server_get_region_buf_ptr() - region data pointer is NULL");
+        PGOTO_ERROR(NULL, "Region data pointer is NULL");
 
 done:
     FUNC_LEAVE(ret_value);
@@ -1287,14 +1283,14 @@ PDC_Server_get_region_buf_ptr(pdcid_t obj_id, region_info_transfer_t region)
     FUNC_ENTER(NULL);
 
     if (dataserver_region_g == NULL)
-        PGOTO_ERROR(NULL, "===PDC SERVER: PDC_Server_get_region_buf_ptr() - object list is NULL");
+        PGOTO_ERROR(NULL, "Object list is NULL");
     DL_FOREACH(dataserver_region_g, elt)
     {
         if (obj_id == elt->obj_id)
             target_obj = elt;
     }
     if (target_obj == NULL)
-        PGOTO_ERROR(NULL, "===PDC SERVER: PDC_Server_get_region_buf_ptr() - cannot locate object");
+        PGOTO_ERROR(NULL, "Cannot locate object");
 
     DL_FOREACH(target_obj->region_buf_map_head, tmp)
     {
@@ -1304,7 +1300,7 @@ PDC_Server_get_region_buf_ptr(pdcid_t obj_id, region_info_transfer_t region)
         }
     }
     if (ret_value == NULL)
-        PGOTO_ERROR(NULL, "===PDC SERVER: PDC_Server_get_region_buf_ptr() - region data pointer is NULL");
+        PGOTO_ERROR(NULL, "Region data pointer is NULL");
 
 done:
     FUNC_LEAVE(ret_value);
@@ -1378,8 +1374,7 @@ buf_map_lookup_remote_server_cb(const struct hg_cb_info *callback_info)
     if (ret_value != HG_SUCCESS) {
         error = 1;
         HG_Destroy(server_send_buf_map_handle);
-        PGOTO_ERROR(ret_value,
-                    "===PDC SERVER: buf_map_lookup_remote_server_cb() - Could not start HG_Forward()");
+        PGOTO_ERROR(ret_value, "Could not start HG_Forward()");
     }
 
 done:
@@ -1413,8 +1408,7 @@ PDC_Server_buf_map_lookup_server_id(int remote_server_id, struct transfer_buf_ma
                             pdc_remote_server_info_g[remote_server_id].addr_string, HG_OP_ID_IGNORE);
     if (hg_ret != HG_SUCCESS) {
         error = 1;
-        PGOTO_ERROR(
-            FAIL, "==PDC_SERVER: PDC_Server_buf_map_lookup_server_id() Connection to remote server FAILED!");
+        PGOTO_ERROR(FAIL, "Connection to remote server FAILED");
     }
 
 done:
@@ -1475,7 +1469,7 @@ PDC_Meta_Server_buf_map(buf_map_in_t *in, region_buf_map_t *new_buf_map_ptr, hg_
         target_meta = find_metadata_by_id(in->remote_obj_id);
         if (target_meta == NULL) {
             error = 1;
-            PGOTO_ERROR(FAIL, "PDC_SERVER: PDC_Meta_Server_buf_map() find_metadata_by_id FAILED!");
+            PGOTO_ERROR(FAIL, "PDC_SERVER: PDC_Meta_Server_buf_map() find_metadata_by_id FAILED");
         }
 
         buf_map_ptr = (region_buf_map_t *)PDC_malloc(sizeof(region_buf_map_t));
@@ -1604,7 +1598,7 @@ PDC_Server_notify_region_update_to_client(uint64_t obj_id, uint64_t reg_id, int3
     }
 
     if (pdc_client_info_g == NULL) {
-        LOG_ERROR("==PDC_SERVER: pdc_client_info_g is NULL\n");
+        LOG_ERROR("pdc_client_info_g is NULL\n");
         return FAIL;
     }
 
@@ -1718,7 +1712,7 @@ PDC_Server_notify_client_multi_io_complete(uint32_t client_id, int client_seq_id
     while (pdc_client_info_g[client_id].addr_valid != 1) {
         ret_value = PDC_Server_lookup_client(client_id);
         if (ret_value != SUCCEED)
-            PGOTO_ERROR(ret_value, "==PDC_SERVER[%d]: lookup client failed!\n", pdc_server_rank_g);
+            PGOTO_ERROR(ret_value, "Rank[%d]: Lookup client failed\n", pdc_server_rank_g);
     }
 
     hg_ret = HG_Create(hg_context_g, pdc_client_info_g[client_id].addr,
@@ -1813,8 +1807,7 @@ PDC_Server_cache_region_to_BB(region_list_t *region)
                     bb_data_path = ".";
             }
             sprintf(pdc_cache_file_path_g, "%s/PDCcacheBB.%d", bb_data_path, pdc_server_rank_g);
-            LOG_ERROR("==PDC_SERVER[%d]: No PDC_BB_LOC specified, use [%s]!\n", pdc_server_rank_g,
-                      bb_data_path);
+            LOG_ERROR("Rank[%d]: No PDC_BB_LOC specified, use [%s]\n", pdc_server_rank_g, bb_data_path);
         }
 
         pdc_cache_file_ptr_g = fopen(pdc_cache_file_path_g, "ab");
@@ -1827,7 +1820,7 @@ PDC_Server_cache_region_to_BB(region_list_t *region)
     offset = ftell(pdc_cache_file_ptr_g);
 
     // Actual write (append)
-    LOG_INFO("==PDC_SERVER[%d]: appending %" PRIu64 " bytes to BB\n", pdc_server_rank_g, region->data_size);
+    LOG_INFO("Rank[%d]: appending %" PRIu64 " bytes to BB\n", pdc_server_rank_g, region->data_size);
     write_bytes = fwrite(region->buf, 1, region->data_size, pdc_cache_file_ptr_g);
     if (write_bytes != region->data_size) {
         PGOTO_ERROR(FAIL, "Rank[%d]: fwrite to [%s] FAILED, size %" PRIu64 ", actual writeen %" PRIu64,
@@ -1840,7 +1833,7 @@ PDC_Server_cache_region_to_BB(region_list_t *region)
     double region_write_time = PDC_get_elapsed_time_double(&pdc_timer_start, &pdc_timer_end);
     server_write_time_g += region_write_time;
     if (is_debug_g == 1) {
-        LOG_ERROR("==PDC_SERVER[%d]: fwrite %" PRIu64 " bytes, %.2fs\n", pdc_server_rank_g, write_bytes,
+        LOG_ERROR("Rank[%d]: fwrite %" PRIu64 " bytes, %.2fs\n", pdc_server_rank_g, write_bytes,
                   region_write_time);
     }
 #endif
@@ -1877,7 +1870,7 @@ PDC_cache_region_to_bb_cb(const struct hg_cb_info *callback_info)
     out = (server_read_check_out_t *)callback_info->arg;
     ret = PDC_Server_cache_region_to_BB(out->region);
     if (ret != SUCCEED)
-        LOG_ERROR("==PDC_SERVER[%d]: Error with PDC_Server_cache_region_to_BB\n", pdc_server_rank_g);
+        LOG_ERROR("Rank[%d]: Error with PDC_Server_cache_region_to_BB\n", pdc_server_rank_g);
 
     if (out != NULL)
         out = (server_read_check_out_t *)PDC_free(out);
@@ -1925,8 +1918,7 @@ PDC_Server_read_check(data_server_read_check_in_t *in, server_read_check_out_t *
     }
 
     if (is_debug_g) {
-        LOG_ERROR("==PDC_SERVER[%d]: Read check Obj [%s] id=%" PRIu64 "  region: start(%" PRIu64 ", %" PRIu64
-                  ") "
+        LOG_ERROR("Rank[%d]: Read check Obj [%s] id=%" PRIu64 "  region: start(%" PRIu64 ", %" PRIu64 ") "
                   "size(%" PRIu64 ", %" PRIu64 ") \n",
                   pdc_server_rank_g, meta.obj_name, meta.obj_id, r_target.start[0], r_target.start[1],
                   r_target.count[0], r_target.count[1]);
@@ -1944,7 +1936,7 @@ PDC_Server_read_check(data_server_read_check_in_t *in, server_read_check_out_t *
             if (region_elt->is_data_ready == 1) {
                 out->shm_addr = PDC_calloc(sizeof(char), ADDR_MAX);
                 if (strlen(region_elt->shm_addr) == 0)
-                    LOG_ERROR("==PDC_SERVER[%d]: found shm_addr is NULL!\n", pdc_server_rank_g);
+                    LOG_ERROR("Rank[%d]: found shm_addr is NULL\n", pdc_server_rank_g);
                 else
                     strcpy(out->shm_addr, region_elt->shm_addr);
                 out->region = region_elt;
@@ -1958,7 +1950,7 @@ PDC_Server_read_check(data_server_read_check_in_t *in, server_read_check_out_t *
     }
 
     if (found_region == 0) {
-        LOG_ERROR("==PDC_SERVER[%d]: No io request with same region found!\n", pdc_server_rank_g);
+        LOG_ERROR("Rank[%d]: No io request with same region found\n", pdc_server_rank_g);
         PDC_print_region_list(&r_target);
         out->ret = -1;
         PGOTO_DONE(ret_value);
@@ -2024,7 +2016,7 @@ PDC_Server_write_check(data_server_write_check_in_t *in, data_server_write_check
     }
 
     if (found_region == 0) {
-        LOG_WARNING("Rank[%d]: No existing IO request of requested region found!", pdc_server_rank_g);
+        LOG_WARNING("Rank[%d]: No existing IO request of requested region found", pdc_server_rank_g);
         out->ret = -1;
         PGOTO_DONE(SUCCEED);
     }
@@ -2258,7 +2250,7 @@ PDC_Server_get_storage_location_of_region_mpi(region_list_t *regions_head)
             if (nrequest_per_server > PDC_SERVER_MAX_PROC_PER_NODE) {
                 PGOTO_ERROR(FAIL,
                             "Rank[%d]: more requests than expected! "
-                            "Increase PDC_SERVER_MAX_PROC_PER_NODE!\n",
+                            "Increase PDC_SERVER_MAX_PROC_PER_NODE\n",
                             pdc_server_rank_g);
             }
             else {
@@ -2313,7 +2305,7 @@ PDC_Server_get_storage_location_of_region_mpi(region_list_t *regions_head)
             server_idx = i / nrequest_per_server;
             // server_idx should be [0, pdc_server_size_g)
             if (server_idx < 0 || server_idx >= pdc_server_size_g)
-                PGOTO_ERROR(FAIL, "Rank[%d]: ERROR with server idx count", pdc_server_rank_g);
+                PGOTO_ERROR(FAIL, "Rank[%d]: Error with server idx count", pdc_server_rank_g);
             memset(&req_region, 0, sizeof(region_list_t));
             PDC_region_transfer_t_to_list_t(&all_requests[i], &req_region);
 
@@ -2323,7 +2315,7 @@ PDC_Server_get_storage_location_of_region_mpi(region_list_t *regions_head)
                 PGOTO_ERROR(FAIL, "Rank[%d]: Unable to get local storage location", pdc_server_rank_g);
 
             if (overlap_cnt > PDC_MAX_OVERLAP_REGION_NUM) {
-                LOG_ERROR("Rank[%d]: found %d storage locations than PDC_MAX_OVERLAP_REGION_NUM!\n",
+                LOG_ERROR("Rank[%d]: found %d storage locations than PDC_MAX_OVERLAP_REGION_NUM\n",
                           pdc_server_rank_g, overlap_cnt);
                 overlap_cnt = PDC_MAX_OVERLAP_REGION_NUM;
             }
@@ -2636,7 +2628,7 @@ PDC_Server_data_io_via_shm(const struct hg_cb_info *callback_info)
 
     io_list_target->count++;
     if (is_debug_g == 1)
-        LOG_ERROR("==PDC_SERVER[%d]: received %d/%d data %s requests of [%s]\n", pdc_server_rank_g,
+        LOG_ERROR("Rank[%d]: received %d/%d data %s requests of [%s]\n", pdc_server_rank_g,
                   io_list_target->count, io_list_target->total,
                   io_info->io_type == PDC_READ ? "read" : "write", io_info->meta.obj_name);
 
@@ -2668,7 +2660,7 @@ PDC_Server_data_io_via_shm(const struct hg_cb_info *callback_info)
         DL_APPEND(io_list_target->region_list_head, new_region);
         if (is_debug_g == 1) {
             DL_COUNT(io_list_target->region_list_head, region_elt, count);
-            LOG_DEBUG("==PDC_SERVER[%d]: Added 1 to IO request list, obj_id=%" PRIu64 ", %d total\n",
+            LOG_DEBUG("Rank[%d]: Added 1 to IO request list, obj_id=%" PRIu64 ", %d total\n",
                       pdc_server_rank_g, new_region->meta->obj_id, count);
             PDC_print_region_list(new_region);
         }
@@ -2679,7 +2671,7 @@ PDC_Server_data_io_via_shm(const struct hg_cb_info *callback_info)
         buffer_write_request_total_g != 0) {
 
         if (is_debug_g)
-            LOG_ERROR("==PDC_SERVER[%d]: received all %d requests, starts writing.\n", pdc_server_rank_g,
+            LOG_ERROR("Rank[%d]: received all %d requests, starts writing.\n", pdc_server_rank_g,
                       buffer_write_request_total_g);
 
         // Perform IO for all requests in each io_list (of unique obj_id)
@@ -2706,7 +2698,7 @@ PDC_Server_data_io_via_shm(const struct hg_cb_info *callback_info)
                 // If BB is enabled, then overwrite with BB path with the right number of servers
                 if (write_to_bb_percentage_g > 0) {
                     if (strcmp(io_list_elt->bb_path, "") == 0 || io_list_elt->bb_path[0] == 0) {
-                        LOG_ERROR("==PDC_SERVER[%d]: Error with BB path [%s]!\n", pdc_server_rank_g,
+                        LOG_ERROR("Rank[%d]: Error with BB path [%s]\n", pdc_server_rank_g,
                                   io_list_elt->bb_path);
                     }
                     else {
@@ -2747,12 +2739,12 @@ PDC_Server_data_io_via_shm(const struct hg_cb_info *callback_info)
         current_read_from_cache_cnt_g = 0;
         total_read_from_cache_cnt_g   = buffer_read_request_total_g * cache_percentage_g / 100;
         if (pdc_server_rank_g == 0) {
-            LOG_INFO("==PDC_SERVER[%d]: cache percentage %d%% read_from_cache %d/%d\n", pdc_server_rank_g,
+            LOG_INFO("Rank[%d]: cache percentage %d%% read_from_cache %d/%d\n", pdc_server_rank_g,
                      cache_percentage_g, current_read_from_cache_cnt_g, total_read_from_cache_cnt_g);
         }
 
         if (is_debug_g) {
-            LOG_DEBUG("==PDC_SERVER[%d]: received all %d requests, starts reading.\n", pdc_server_rank_g,
+            LOG_DEBUG("Rank[%d]: received all %d requests, starts reading.\n", pdc_server_rank_g,
                       buffer_read_request_total_g);
         }
         DL_FOREACH(pdc_data_server_read_list_head_g, io_list_elt)
@@ -2824,7 +2816,7 @@ PDC_Server_update_local_region_storage_loc(region_list_t *region, uint64_t obj_i
                     region_elt->region_hist = region->region_hist;
             }
             else {
-                LOG_ERROR("==PDC_SERVER[%d]: error with update type %d!\n", pdc_server_rank_g, type);
+                LOG_ERROR("Rank[%d]: error with update type %d\n", pdc_server_rank_g, type);
                 break;
             }
 
@@ -2936,8 +2928,7 @@ PDC_Server_update_region_storagelocation_offset(region_list_t *region, int type)
             PGOTO_ERROR(FAIL, "Rank[%d]: Error with HG_Create", pdc_server_rank_g);
 
         if (is_debug_g == 1)
-            LOG_DEBUG("==PDC_SERVER[%d]: Sending updated region loc to server %d\n", pdc_server_rank_g,
-                      server_id);
+            LOG_DEBUG("Rank[%d]: Sending updated region loc to server %d\n", pdc_server_rank_g, server_id);
 
         in.obj_id           = region->meta->obj_id;
         in.offset           = region->offset;
@@ -2953,7 +2944,7 @@ PDC_Server_update_region_storagelocation_offset(region_list_t *region, int type)
         }
 
         if (in.hist.nbin == 0) {
-            LOG_ERROR("==PDC_SERVER[%d]: ERROR sending hist to server %d with 0 bins\n", pdc_server_rank_g,
+            LOG_ERROR("Rank[%d]: Error sending hist to server %d with 0 bins\n", pdc_server_rank_g,
                       server_id);
         }
 
@@ -2983,7 +2974,7 @@ PDC_Server_add_region_storage_meta_to_bulk_buf(region_list_t *region, bulk_xfer_
 
     // Sanity check
     if (NULL == region || region->storage_location[0] == 0 || NULL == region->meta) {
-        LOG_ERROR("Rank[%d]: invalid region data!\n", pdc_server_rank_g);
+        LOG_ERROR("Rank[%d]: invalid region data\n", pdc_server_rank_g);
         PDC_print_region_list(region);
         PGOTO_DONE(FAIL);
     }
@@ -3017,7 +3008,7 @@ PDC_Server_add_region_storage_meta_to_bulk_buf(region_list_t *region, bulk_xfer_
     // TODO: Need to expand the space when more than initial allocated
     int idx = bulk_data->idx;
     if (idx >= bulk_data->n_alloc)
-        PGOTO_ERROR(FAIL, "Rank[%d]: Need to alloc larger!\n", pdc_server_rank_g);
+        PGOTO_ERROR(FAIL, "Rank[%d]: Need to alloc larger\n", pdc_server_rank_g);
 
     // get obj_id
     obj_id = region->meta->obj_id;
@@ -3102,8 +3093,7 @@ PDC_Server_update_region_storage_meta_bulk_local(update_region_storage_meta_bulk
                     region_elt->offset = new_region->offset;
                     update_success     = 1;
 
-                    LOG_ERROR("==PDC_SERVER[%d]: overwrite existing region location/offset\n",
-                              pdc_server_rank_g);
+                    LOG_ERROR("Rank[%d]: overwrite existing region location/offset\n", pdc_server_rank_g);
                     new_region = (region_list_t *)PDC_free(new_region);
                     break;
                 }
@@ -3135,8 +3125,7 @@ update_storage_meta_bulk_rpc_cb(const struct hg_cb_info *callback_info)
 
     /* Get output parameters, 9999 corresponds to the one set in update_storage_meta_bulk_cb */
     if (bulk_rpc_ret.ret != 9999)
-        LOG_ERROR("==PDC_SERVER[%d]: update storage meta bulk rpc returned value error!\n",
-                  pdc_server_rank_g);
+        LOG_ERROR("Rank[%d]: Update storage meta bulk rpc returned value error\n", pdc_server_rank_g);
 
     ret_value = HG_Free_output(handle, &bulk_rpc_ret);
     if (ret_value != HG_SUCCESS)
@@ -3207,7 +3196,7 @@ done:
         all_meta = (void **)PDC_free(all_meta);
     }
 #else
-    LOG_ERROR("Not supposed to be called without MPI enabled!\n");
+    LOG_ERROR("Not supposed to be called without MPI enabled\n");
 #endif
     FUNC_LEAVE(ret_value);
 }
@@ -3385,7 +3374,7 @@ all_select:
         }
 
         if (is_debug_g == 1) {
-            LOG_DEBUG("==PDC_SERVER[%d]: read storage offset %" PRIu64 ", buf_offset  %" PRIu64 "\n",
+            LOG_DEBUG("Rank[%d]: read storage offset %" PRIu64 ", buf_offset  %" PRIu64 "\n",
                       pdc_server_rank_g, storage_offset, buf_offset);
         }
 
@@ -3395,8 +3384,8 @@ all_select:
         gettimeofday(&pdc_timer_end1, 0);
         double region_read_time1 = PDC_get_elapsed_time_double(&pdc_timer_start1, &pdc_timer_end1);
         if (is_debug_g)
-            LOG_ERROR("==PDC_SERVER[%d]: fseek + fread %" PRIu64 " bytes, %.2fs\n", pdc_server_rank_g,
-                      read_bytes, region_read_time1);
+            LOG_ERROR("Rank[%d]: fseek + fread %" PRIu64 " bytes, %.2fs\n", pdc_server_rank_g, read_bytes,
+                      region_read_time1);
 #endif
 
         n_contig_MB += read_bytes / 1048576.0;
@@ -3408,7 +3397,7 @@ all_select:
         *total_read_bytes += read_bytes;
 
         if (is_debug_g == 1) {
-            LOG_DEBUG("==PDC_SERVER[%d]: Read entire storage region, size=%" PRIu64 "\n", pdc_server_rank_g,
+            LOG_DEBUG("Rank[%d]: Read entire storage region, size=%" PRIu64 "\n", pdc_server_rank_g,
                       read_bytes);
         }
     } // end if
@@ -3451,7 +3440,7 @@ all_select:
                     n_contig_MB += read_bytes / 1048576.0;
                     n_contig_read++;
                     if (read_bytes != overlap_count[0])
-                        PGOTO_ERROR(FAIL, "Rank[%d]: fread failed!\n", pdc_server_rank_g);
+                        PGOTO_ERROR(FAIL, "Rank[%d]: fread failed\n", pdc_server_rank_g);
                     *total_read_bytes += read_bytes;
                     if (is_debug_g == 1) {
                         LOG_DEBUG("z: %" PRIu64 ", j: %" PRIu64 ", Read data size=%" PRIu64 ": [%.*s]\n", j,
@@ -3477,7 +3466,7 @@ void
 PDC_init_bulk_xfer_data_t(bulk_xfer_data_t *a)
 {
     if (NULL == a) {
-        LOG_ERROR("NULL input!\n");
+        LOG_ERROR("NULL input\n");
         return;
     }
     a->buf_ptrs  = NULL;
@@ -3578,7 +3567,7 @@ PDC_Server_read_one_region(region_list_t *read_region)
                                                     region_elt->offset, read_region->buf, &read_bytes);
 
         if (ret_value != SUCCEED) {
-            LOG_ERROR("==PDC_SERVER[%d]: Error with PDC_Server_read_overlap_regions\n", pdc_server_rank_g);
+            LOG_ERROR("Rank[%d]: Error with PDC_Server_read_overlap_regions\n", pdc_server_rank_g);
             fclose(fp_read);
             fp_read = NULL;
             continue;
@@ -3591,7 +3580,7 @@ PDC_Server_read_one_region(region_list_t *read_region)
 
 #ifdef ENABLE_TIMING
     if (is_debug_g == 1)
-        LOG_ERROR("==PDC_SERVER[%d]: Read data total size %" PRIu64 ", fopen time: %.3f\n", pdc_server_rank_g,
+        LOG_ERROR("Rank[%d]: Read data total size %" PRIu64 ", fopen time: %.3f\n", pdc_server_rank_g,
                   total_read_bytes, fopen_time);
 #endif
 
@@ -3669,7 +3658,7 @@ PDC_Server_posix_one_file_io(region_list_t *region_list_head)
     {
         if (region_elt->access_type == PDC_READ) {
             if (region_elt->is_io_done == 1 && region_elt->is_shm_closed != 1) {
-                LOG_ERROR("==PDC_SERVER[%d]: found cached data!\n", pdc_server_rank_g);
+                LOG_ERROR("Rank[%d]: found cached data\n", pdc_server_rank_g);
 
                 if (region_elt->access_type == PDC_READ &&
                     current_read_from_cache_cnt_g < total_read_from_cache_cnt_g)
@@ -3682,7 +3671,7 @@ PDC_Server_posix_one_file_io(region_list_t *region_list_head)
             snprintf(region_elt->shm_addr, ADDR_MAX, "/PDC%d_%d", pdc_server_rank_g, rand());
             ret_value = PDC_create_shm_segment(region_elt);
             if (ret_value != SUCCEED) {
-                LOG_ERROR("==PDC_SERVER[%d]: Error with shared memory creation\n", pdc_server_rank_g);
+                LOG_ERROR("Rank[%d]: Error with shared memory creation\n", pdc_server_rank_g);
                 continue;
             }
 
@@ -3698,7 +3687,7 @@ PDC_Server_posix_one_file_io(region_list_t *region_list_head)
                         fclose(fp_read);
                     fp_read = fopen(region_elt->cache_location, "rb");
                     if (fp_read == NULL) {
-                        LOG_ERROR("==PDC_SERVER[%d]: unable to open file [%s]\n", pdc_server_rank_g,
+                        LOG_ERROR("Rank[%d]: unable to open file [%s]\n", pdc_server_rank_g,
                                   region_elt->cache_location);
                     }
                     n_fopen_g++;
@@ -3710,13 +3699,13 @@ PDC_Server_posix_one_file_io(region_list_t *region_list_head)
                     fseek(fp_read, region_elt->cache_offset, SEEK_SET);
 
                 if (region_elt->data_size == 0) {
-                    LOG_ERROR("==PDC_SERVER[%d]: region data_size is 0\n", pdc_server_rank_g);
+                    LOG_ERROR("Rank[%d]: region data_size is 0\n", pdc_server_rank_g);
                     continue;
                 }
                 read_bytes = fread(region_elt->buf, 1, region_elt->data_size, fp_read);
                 if (read_bytes != region_elt->data_size) {
-                    LOG_ERROR("==PDC_SERVER[%d]: read size %zu is not expected %" PRIu64 "\n",
-                              pdc_server_rank_g, read_bytes, region_elt->data_size);
+                    LOG_ERROR("Rank[%d]: read size %zu is not expected %" PRIu64 "\n", pdc_server_rank_g,
+                              read_bytes, region_elt->data_size);
                     continue;
                 }
 #ifdef ENABLE_TIMING
@@ -3750,7 +3739,7 @@ PDC_Server_posix_one_file_io(region_list_t *region_list_head)
                             n_fopen_g++;
                         }
                         else {
-                            LOG_ERROR("==PDC_SERVER[%d]: NULL storage location\n", pdc_server_rank_g);
+                            LOG_ERROR("Rank[%d]: NULL storage location\n", pdc_server_rank_g);
                             fp_read = NULL;
                         }
 
@@ -3786,14 +3775,12 @@ PDC_Server_posix_one_file_io(region_list_t *region_list_head)
                 } // end of for all overlapping storage regions for one request region
 
                 if (is_debug_g == 1)
-                    LOG_DEBUG("==PDC_SERVER[%d]: Read data total size %zu\n", pdc_server_rank_g,
-                              total_read_bytes);
+                    LOG_DEBUG("Rank[%d]: Read data total size %zu\n", pdc_server_rank_g, total_read_bytes);
                 offset += total_read_bytes;
 
             } // end else read from storage
             if (is_debug_g == 1)
-                LOG_DEBUG("==PDC_SERVER[%d]: Read data total size %zu\n", pdc_server_rank_g,
-                          total_read_bytes);
+                LOG_DEBUG("Rank[%d]: Read data total size %zu\n", pdc_server_rank_g, total_read_bytes);
             region_elt->is_data_ready = 1;
             region_elt->is_io_done    = 1;
 
@@ -3872,7 +3859,7 @@ PDC_Server_posix_one_file_io(region_list_t *region_list_head)
             if (write_bytes != region_elt->data_size) {
                 PGOTO_ERROR(FAIL,
                             "Rank[%d]: fwrite to [%s] FAILED, region off %" PRIu64 ", size %" PRIu64 ", "
-                            "actual writeen %zu!\n",
+                            "actual writeen %zu\n",
                             pdc_server_rank_g, region_elt->storage_location, offset, region_elt->data_size,
                             write_bytes);
             }
@@ -3884,8 +3871,8 @@ PDC_Server_posix_one_file_io(region_list_t *region_list_head)
             double region_write_time = PDC_get_elapsed_time_double(&pdc_timer_start5, &pdc_timer_end5);
             server_write_time_g += region_write_time;
             if (is_debug_g == 1) {
-                LOG_DEBUG("==PDC_SERVER[%d]: fwrite %" PRIu64 " bytes, %.2fs\n", pdc_server_rank_g,
-                          write_bytes, region_write_time);
+                LOG_DEBUG("Rank[%d]: fwrite %" PRIu64 " bytes, %.2fs\n", pdc_server_rank_g, write_bytes,
+                          region_write_time);
             }
 #endif
 
@@ -4036,7 +4023,7 @@ _setup_zfp(struct pdc_region_info *region_info, zfp_stream **zfp)
     else if (region_info->unit == 4)
         type = zfp_type_int32;
     else
-        LOG_ERROR("==PDC_SERVER[%d]: unit has size %u not expected!\n", pdc_server_rank_g, region_info->unit);
+        LOG_ERROR("Rank[%d]: unit has size %u not expected\n", pdc_server_rank_g, region_info->unit);
 
     if (region_info->ndim == 1)
         field = zfp_field_1d(region_info->buf, type, region_info->size[0]);
@@ -4145,7 +4132,7 @@ PDC_Server_data_write_out(uint64_t obj_id, struct pdc_region_info *region_info, 
 #endif
                     if (pread(region->fd, tmp_buf, overlap_region->data_size, overlap_region->offset) !=
                         (ssize_t)overlap_region->data_size) {
-                        LOG_ERROR("==PDC_SERVER[%d]: pread failed to read enough bytes\n", pdc_server_rank_g);
+                        LOG_ERROR("Rank[%d]: pread failed to read enough bytes\n", pdc_server_rank_g);
                     }
 #ifdef PDC_TIMING
                     pdc_server_timings->PDCdata_server_read_posix += MPI_Wtime() - start_posix;
@@ -4333,21 +4320,21 @@ PDC_Server_data_write_out(uint64_t obj_id, struct pdc_region_info *region_info, 
 
         field = _setup_zfp(region_info, &zfp);
         if (field == NULL)
-            LOG_ERROR("==PDC_SERVER[%d]: _setup_zfp failed!\n", pdc_server_rank_g);
+            LOG_ERROR("Rank[%d]: _setup_zfp failed\n", pdc_server_rank_g);
         else {
 
             bufsize = zfp_stream_maximum_size(zfp, field);
             if (bufsize == 0)
-                LOG_ERROR("==PDC_SERVER[%d]: zfp_stream_maximum_size returned 0!\n", pdc_server_rank_g);
+                LOG_ERROR("Rank[%d]: zfp_stream_maximum_size returned 0\n", pdc_server_rank_g);
             buffer = PDC_malloc(bufsize);
             if (buffer == 0)
-                LOG_ERROR("==PDC_SERVER[%d]: malloc failed!\n", pdc_server_rank_g);
+                LOG_ERROR("Rank[%d]: malloc failed\n", pdc_server_rank_g);
             else {
                 stream = stream_open(buffer, bufsize);
                 zfp_stream_set_bit_stream(zfp, stream);
                 // Compress the data and overwrite the write_size for the following posix write
                 size_t compress_size = zfp_compress(zfp, field);
-                LOG_ERROR("==PDC_SERVER[%d]: zfp compressed size %lu / %llu CR=%.2lf\n", pdc_server_rank_g,
+                LOG_ERROR("Rank[%d]: zfp compressed size %lu / %llu CR=%.2lf\n", pdc_server_rank_g,
                           compress_size, write_size, (double)write_size / compress_size);
                 buf        = buffer;
                 write_size = compress_size;
@@ -4381,7 +4368,7 @@ PDC_Server_data_write_out(uint64_t obj_id, struct pdc_region_info *region_info, 
 #ifdef ENABLE_TIMING
     gettimeofday(&pdc_timer_end, 0);
     write_total_sec = PDC_get_elapsed_time_double(&pdc_timer_start, &pdc_timer_end);
-    LOG_ERROR("==PDC_SERVER[%d]: write region time: %.4f, %llu bytes\n", pdc_server_rank_g, write_total_sec,
+    LOG_ERROR("Rank[%d]: write region time: %.4f, %llu bytes\n", pdc_server_rank_g, write_total_sec,
               write_size);
 #endif
 
@@ -4467,7 +4454,7 @@ PDC_Server_data_read_from(uint64_t obj_id, struct pdc_region_info *region_info, 
 
                         while (leftover > 0) {
                             if (pread(region->fd, tmp_buf + buf_off, read_size, reg_off) != read_size) {
-                                LOG_ERROR("==PDC_SERVER[%d]: pread failed to read enough bytes %llu\n",
+                                LOG_ERROR("Rank[%d]: pread failed to read enough bytes %llu\n",
                                           pdc_server_rank_g, read_size);
                             }
                             reg_off += read_size;
@@ -4480,8 +4467,7 @@ PDC_Server_data_read_from(uint64_t obj_id, struct pdc_region_info *region_info, 
                     else {
                         if (pread(region->fd, tmp_buf, overlap_region->data_size, overlap_region->offset) !=
                             (ssize_t)overlap_region->data_size) {
-                            LOG_ERROR("==PDC_SERVER[%d]: pread failed to read enough bytes\n",
-                                      pdc_server_rank_g);
+                            LOG_ERROR("Rank[%d]: pread failed to read enough bytes\n", pdc_server_rank_g);
                         }
                     }
 #ifdef PDC_TIMING
@@ -4497,9 +4483,8 @@ PDC_Server_data_read_from(uint64_t obj_id, struct pdc_region_info *region_info, 
 
                     field = _setup_zfp(region_info, &zfp);
                     if (field == NULL)
-                        LOG_ERROR("==PDC_SERVER[%d]: _setup_zfp failed!\n", pdc_server_rank_g);
+                        LOG_ERROR("Rank[%d]: _setup_zfp failed\n", pdc_server_rank_g);
                     else {
-
                         if (region_info->ndim >= 1)
                             decompress_size = region_info->unit * region_info->size[0];
                         if (region_info->ndim >= 2)
@@ -4507,19 +4492,18 @@ PDC_Server_data_read_from(uint64_t obj_id, struct pdc_region_info *region_info, 
                         if (region_info->ndim >= 3)
                             decompress_size *= region_info->size[2];
                         if (decompress_size == 0)
-                            LOG_ERROR("==PDC_SERVER[%d]: zfp_stream_maximum_size returned 0!\n",
-                                      pdc_server_rank_g);
+                            LOG_ERROR("Rank[%d]: zfp_stream_maximum_size returned 0\n", pdc_server_rank_g);
 
                         void *decompress_buffer = PDC_malloc(decompress_size);
                         if (decompress_buffer == 0)
-                            LOG_ERROR("==PDC_SERVER[%d]: malloc failed!\n", pdc_server_rank_g);
+                            LOG_ERROR("Rank[%d]: malloc failed\n", pdc_server_rank_g);
                         else {
                             stream = stream_open(decompress_buffer, decompress_size);
                             zfp_stream_set_bit_stream(zfp, stream);
                             // Decompress the data
                             decompress_size = zfp_decompress(zfp, field);
                             if (decompress_size == 0)
-                                LOG_ERROR("==PDC_SERVER[%d]: zfp_decompress failed!\n", pdc_server_rank_g);
+                                LOG_ERROR("Rank[%d]: zfp_decompress failed\n", pdc_server_rank_g);
                             tmp_buf = (char *)PDC_free(tmp_buf);
                             tmp_buf = decompress_buffer;
                         }
@@ -4554,7 +4538,7 @@ PDC_Server_data_read_from(uint64_t obj_id, struct pdc_region_info *region_info, 
                                           overlap_size[0] * overlap_size[1] * unit,
                                           overlap_region->offset + pos) !=
                                     (ssize_t)(overlap_size[0] * overlap_size[1] * unit)) {
-                                    LOG_ERROR("==PDC_SERVER[%d]: pread failed to read enough bytes\n",
+                                    LOG_ERROR("Rank[%d]: pread failed to read enough bytes\n",
                                               pdc_server_rank_g);
                                 }
 #ifdef PDC_TIMING
@@ -4569,7 +4553,7 @@ PDC_Server_data_read_from(uint64_t obj_id, struct pdc_region_info *region_info, 
                                 if (pread(region->fd, tmp_buf, overlap_size[0] * overlap_size[1] * unit,
                                           overlap_region->offset + pos) !=
                                     (ssize_t)(overlap_size[0] * overlap_size[1] * unit)) {
-                                    LOG_ERROR("==PDC_SERVER[%d]: pread failed to read enough bytes\n",
+                                    LOG_ERROR("Rank[%d]: pread failed to read enough bytes\n",
                                               pdc_server_rank_g);
                                 }
 #ifdef PDC_TIMING
@@ -4597,7 +4581,7 @@ PDC_Server_data_read_from(uint64_t obj_id, struct pdc_region_info *region_info, 
                                                     unit,
                                           overlap_size[1] * unit, overlap_region->offset + pos) !=
                                     (ssize_t)(overlap_size[1] * unit)) {
-                                    LOG_ERROR("==PDC_SERVER[%d]: pread failed to read enough bytes\n",
+                                    LOG_ERROR("Rank[%d]: pread failed to read enough bytes\n",
                                               pdc_server_rank_g);
                                 }
 #ifdef PDC_TIMING
@@ -4626,7 +4610,7 @@ PDC_Server_data_read_from(uint64_t obj_id, struct pdc_region_info *region_info, 
                                           overlap_size[0] * overlap_size[1] * overlap_size[2] * unit,
                                           overlap_region->offset + pos) !=
                                     (ssize_t)(overlap_size[0] * overlap_size[1] * overlap_size[2] * unit)) {
-                                    LOG_ERROR("==PDC_SERVER[%d]: pread failed to read enough bytes\n",
+                                    LOG_ERROR("Rank[%d]: pread failed to read enough bytes\n",
                                               pdc_server_rank_g);
                                 }
 #ifdef PDC_TIMING
@@ -4643,7 +4627,7 @@ PDC_Server_data_read_from(uint64_t obj_id, struct pdc_region_info *region_info, 
                                           overlap_size[0] * overlap_size[1] * overlap_size[2] * unit,
                                           overlap_region->offset + pos) !=
                                     (ssize_t)(overlap_size[0] * overlap_size[1] * overlap_size[2] * unit)) {
-                                    LOG_ERROR("==PDC_SERVER[%d]: pread failed to read enough bytes\n",
+                                    LOG_ERROR("Rank[%d]: pread failed to read enough bytes\n",
                                               pdc_server_rank_g);
                                 }
 #ifdef PDC_TIMING
@@ -4676,7 +4660,7 @@ PDC_Server_data_read_from(uint64_t obj_id, struct pdc_region_info *region_info, 
                                                         unit,
                                               overlap_size[2] * unit, overlap_region->offset + pos) !=
                                         (ssize_t)(overlap_size[2] * unit)) {
-                                        LOG_ERROR("==PDC_SERVER[%d]: pread failed to read enough bytes\n",
+                                        LOG_ERROR("Rank[%d]: pread failed to read enough bytes\n",
                                                   pdc_server_rank_g);
                                     }
 #ifdef PDC_TIMING
@@ -4696,7 +4680,7 @@ PDC_Server_data_read_from(uint64_t obj_id, struct pdc_region_info *region_info, 
 #ifdef ENABLE_TIMING
     gettimeofday(&pdc_timer_end, 0);
     read_total_sec = PDC_get_elapsed_time_double(&pdc_timer_start, &pdc_timer_end);
-    LOG_INFO("==PDC_SERVER[%d]: read region time: %.4f, %llu bytes\n", pdc_server_rank_g, read_total_sec,
+    LOG_INFO("Rank[%d]: read region time: %.4f, %llu bytes\n", pdc_server_rank_g, read_total_sec,
              total_read_bytes);
 #endif
 
@@ -4815,7 +4799,7 @@ PDC_Server_get_all_storage_meta_with_one_name(storage_meta_query_one_name_args_t
         // send the name to target server
         server_id = PDC_get_server_by_name(args->name, pdc_server_size_g);
         if (is_debug_g == 1)
-            LOG_DEBUG("==PDC_SERVER[%d]: will get storage meta from remote server %d\n", pdc_server_rank_g,
+            LOG_DEBUG("Rank[%d]: Will get storage meta from remote server %d\n", pdc_server_rank_g,
                       server_id);
 
         if (PDC_Server_lookup_server_id(server_id) != SUCCEED) {
@@ -4918,7 +4902,7 @@ PDC_Server_accumulate_storage_meta_then_read(storage_meta_query_one_name_args_t 
             // Read data to shm
             ret_value = PDC_Server_read_one_region(region_elt);
             if (ret_value != SUCCEED) {
-                LOG_ERROR("==PDC_SERVER[%d]: Error with PDC_Server_read_one_region\n", pdc_server_rank_g);
+                LOG_ERROR("Rank[%d]: Error with PDC_Server_read_one_region\n", pdc_server_rank_g);
             }
         }
 
@@ -4927,7 +4911,7 @@ PDC_Server_accumulate_storage_meta_then_read(storage_meta_query_one_name_args_t 
 #ifdef ENABLE_TIMING
         gettimeofday(&pdc_timer_end, 0);
         read_total_sec = PDC_get_elapsed_time_double(&pdc_timer_start, &pdc_timer_end);
-        LOG_INFO("==PDC_SERVER[%d]: read %d objects time: %.4f, n_fread: %d, n_fopen: %d, is_sort_read: %d\n",
+        LOG_INFO("Rank[%d]: Read %d objects time: %.4f, n_fread: %d, n_fopen: %d, is_sort_read: %d\n",
                  pdc_server_rank_g, accu_meta->n_accumulated, read_total_sec, n_fread_g, n_fopen_g,
                  is_sort_read);
 #endif
@@ -5322,8 +5306,7 @@ PDC_Server_data_read_to_buf(region_list_t *region_list_head)
                 fclose(fp_read);
             fp_read = fopen(region_elt->storage_location, "rb");
             if (NULL == fp_read) {
-                LOG_ERROR("==PDC_SERVER[%d]: fopen failed [%s]\n", pdc_server_rank_g,
-                          region_elt->storage_location);
+                LOG_ERROR("Rank[%d]: fopen failed [%s]\n", pdc_server_rank_g, region_elt->storage_location);
             }
             n_fopen_g++;
         }
@@ -5335,7 +5318,7 @@ PDC_Server_data_read_to_buf(region_list_t *region_list_head)
             fseek(fp_read, region_elt->offset, SEEK_SET);
 
         if (region_elt->data_size == 0) {
-            LOG_ERROR("==PDC_SERVER[%d]: region data_size is 0\n", pdc_server_rank_g);
+            LOG_ERROR("Rank[%d]: Region data_size is 0\n", pdc_server_rank_g);
             continue;
         }
 
@@ -5343,8 +5326,8 @@ PDC_Server_data_read_to_buf(region_list_t *region_list_head)
 
         read_bytes = fread(region_elt->buf, 1, region_elt->data_size, fp_read);
         if (read_bytes != region_elt->data_size) {
-            LOG_ERROR("==PDC_SERVER[%d]: read size %" PRIu64 " is not expected %" PRIu64 "\n",
-                      pdc_server_rank_g, read_bytes, region_elt->data_size);
+            LOG_ERROR("Rank[%d]: Read size %" PRIu64 " is not expected %" PRIu64 "\n", pdc_server_rank_g,
+                      read_bytes, region_elt->data_size);
             continue;
         }
         read_count++;
@@ -5361,11 +5344,11 @@ PDC_Server_data_read_to_buf(region_list_t *region_list_head)
     double read_time = PDC_get_elapsed_time_double(&pdc_timer_start1, &pdc_timer_end1);
     server_read_time_g += read_time;
     if (region_list_head != NULL) {
-        LOG_INFO("==PDC_SERVER[%d]: finished reading obj %" PRIu64 " of %d regions, %.2f seconds!\n",
+        LOG_INFO("Rank[%d]: finished reading obj %" PRIu64 " of %d regions, %.2f seconds\n",
                  pdc_server_rank_g, region_list_head->obj_id, read_count, read_time);
     }
     else
-        LOG_INFO("==PDC_SERVER[%d]: no regions have been read!\n", pdc_server_rank_g);
+        LOG_INFO("Rank[%d]: No regions have been read\n", pdc_server_rank_g);
 #endif
     return ret_value;
 }
@@ -5377,7 +5360,7 @@ PDC_region_has_hits_from_hist(pdc_query_constraint_t *constraint, pdc_histogram_
     double         value, value2;
 
     if (constraint == NULL || region_hist == NULL) {
-        LOG_ERROR("==PDC_SERVER[%d]: NULL input!\n", pdc_server_rank_g);
+        LOG_ERROR("Rank[%d]: NULL input\n", pdc_server_rank_g);
         return -1;
     }
 
@@ -5408,7 +5391,7 @@ PDC_region_has_hits_from_hist(pdc_query_constraint_t *constraint, pdc_histogram_
             value2 = (double)constraint->value2;
             break;
         default:
-            LOG_ERROR("==PDC_SERVER[%d]: error with operator type!\n", pdc_server_rank_g);
+            LOG_ERROR("Rank[%d]: Error with operator type\n", pdc_server_rank_g);
             return -1;
     }
 
@@ -5520,7 +5503,7 @@ PDC_Server_load_query_data(query_task_t *task, pdc_query_t *query, pdc_query_com
         if (gen_hist_g == 1) {
 
             if (req_region->region_hist->nbin == 0)
-                LOG_ERROR("==PDC_SERVER[%d]: ERROR histogram is empty!\n", pdc_server_rank_g);
+                LOG_ERROR("Rank[%d]: Error histogram is empty\n", pdc_server_rank_g);
 
             if (PDC_region_has_hits_from_hist(constraint, req_region->region_hist) == 0) {
                 if (task->invalid_region_ids == NULL)
@@ -5553,7 +5536,7 @@ PDC_Server_load_query_data(query_task_t *task, pdc_query_t *query, pdc_query_com
             // append current request region to the io list
             region_list_t *new_region = (region_list_t *)PDC_calloc(1, sizeof(region_list_t));
             if (new_region == NULL)
-                PGOTO_ERROR(FAIL, "==PDC_SERVER: Error with allocating new_region");
+                PGOTO_ERROR(FAIL, "Error with allocating new_region");
             req_region->io_cache_region = new_region;
             PDC_region_list_t_deep_cp(req_region, new_region);
             new_region->is_data_ready = 0;
@@ -5580,12 +5563,12 @@ perr_t
 region_index_to_coord(int ndim, uint64_t idx, uint64_t *sizes, uint64_t *coord)
 {
     if (sizes == NULL || coord == NULL) {
-        LOG_ERROR("==PDC_SERVER[%d]: input NULL!\n", pdc_server_rank_g);
+        LOG_ERROR("Rank[%d]: input NULL\n", pdc_server_rank_g);
         return FAIL;
     }
 
     if (ndim > 3) {
-        LOG_ERROR("==PDC_SERVER[%d]: dimension > 3 not supported!\n", pdc_server_rank_g);
+        LOG_ERROR("Rank[%d]: dimension > 3 not supported\n", pdc_server_rank_g);
         return FAIL;
     }
 
@@ -5608,12 +5591,12 @@ coord_to_region_index(size_t ndim, uint64_t *coord, region_list_t *region, int u
     uint64_t off = 0;
 
     if (ndim == 0 || coord == NULL || region == NULL || region->start[0] == 0 || region->count[0] == 0) {
-        LOG_ERROR("==PDC_SERVER[%d]: input NULL!\n", pdc_server_rank_g);
+        LOG_ERROR("Rank[%d]: input NULL\n", pdc_server_rank_g);
         return 0;
     }
 
     if (ndim > 3) {
-        LOG_ERROR("==PDC_SERVER[%d]: cannot handle dim > 3!\n", pdc_server_rank_g);
+        LOG_ERROR("Rank[%d]: Cannot handle dim > 3\n", pdc_server_rank_g);
         return 0;
     }
 
@@ -5733,7 +5716,7 @@ compare_coords_3d(const void *a, const void *b)
                             is_good = 1;                                                                     \
                         break;                                                                               \
                     default:                                                                                 \
-                        PGOTO_ERROR(FAIL, "Rank[%d]: error with operator type!", pdc_server_rank_g);         \
+                        PGOTO_ERROR(FAIL, "Rank[%d]: Error with operator type", pdc_server_rank_g);          \
                 }                                                                                            \
                 if (is_good == 1) {                                                                          \
                     if ((istart + cur_count + 1) * _ndim > ((_sel)->coords_alloc)) {                         \
@@ -5823,8 +5806,7 @@ compare_coords_3d(const void *a, const void *b)
                     jjj++;                                                                                   \
                 }                                                                                            \
                 if (iii > (_sel)->nhits)                                                                     \
-                    LOG_ERROR("==PDC_SERVER[%d]: Error! invalidated more elements than total\n",             \
-                              pdc_server_rank_g);                                                            \
+                    LOG_ERROR("Rank[%d]: Error invalidated more elements than total\n", pdc_server_rank_g);  \
                 else                                                                                         \
                     ((_sel)->nhits) -= iii;                                                                  \
             }                                                                                                \
@@ -5873,7 +5855,7 @@ compare_coords_3d(const void *a, const void *b)
                         ((_sel)->coords) = (uint64_t *)PDC_realloc(((_sel)->coords),                         \
                                                                    (_sel)->coords_alloc * sizeof(uint64_t)); \
                         if (NULL == ((_sel)->coords)) {                                                      \
-                            PGOTO_ERROR(FAIL, "Rank[%d]: error with malloc!", pdc_server_rank_g);            \
+                            PGOTO_ERROR(FAIL, "Rank[%d]: error with malloc", pdc_server_rank_g);             \
                         }                                                                                    \
                     }                                                                                        \
                     ttt = iii;                                                                               \
@@ -5950,8 +5932,7 @@ compare_coords_3d(const void *a, const void *b)
                     jjj++;                                                                                   \
                 }                                                                                            \
                 if (iii > (_sel)->nhits)                                                                     \
-                    LOG_ERROR("==PDC_SERVER[%d]: Error! invalidated more elements than total\n",             \
-                              pdc_server_rank_g);                                                            \
+                    LOG_ERROR("Rank[%d]: Error invalidated more elements than total\n", pdc_server_rank_g);  \
                 else                                                                                         \
                     ((_sel)->nhits) -= iii;                                                                  \
             }                                                                                                \
@@ -6003,15 +5984,15 @@ generate_write_fastbit_idx(uint64_t obj_id, void *data, uint64_t dataCount, Fast
 
     fastbitErr = fastbit_iapi_register_array(bmsName, ft, data, dataCount);
     if (fastbitErr < 0)
-        PGOTO_ERROR(FAIL, "Rank[%d]: ERROR with fastbit_iapi_register_array", pdc_server_rank_g);
+        PGOTO_ERROR(FAIL, "Rank[%d]: Error with fastbit_iapi_register_array", pdc_server_rank_g);
 
     fastbitErr = fastbit_iapi_build_index(bmsName, (const char *)gBinningOption);
     if (fastbitErr < 0)
-        PGOTO_ERROR(FAIL, "Rank[%d]: ERROR with fastbit_iapi_build_index", pdc_server_rank_g);
+        PGOTO_ERROR(FAIL, "Rank[%d]: Error with fastbit_iapi_build_index", pdc_server_rank_g);
 
     fastbitErr = fastbit_iapi_deconstruct_index(bmsName, &keys, &nk, &offsets, &no, &bms, &nb);
     if (fastbitErr < 0)
-        PGOTO_ERROR(FAIL, "Rank[%d]:  ERROR with fastbit_iapi_deconstruct_index", pdc_server_rank_g);
+        PGOTO_ERROR(FAIL, "Rank[%d]:  Error with fastbit_iapi_deconstruct_index", pdc_server_rank_g);
 
     // Need to write out bms, key, and offset
     char  storage_location[256];
@@ -6134,7 +6115,7 @@ PDC_load_fastbit_index(char *idx_name, uint64_t obj_id, FastBitDataType dtype, i
     sprintf(out_name, "%s/%s", storage_location, bmsName);
     fp = fopen(out_name, "r");
     if (fp == NULL) {
-        LOG_ERROR("==PDC_SERVER[%d]: ERROR opening file [%s]!\n", pdc_server_rank_g, out_name);
+        LOG_ERROR("Rank[%d]: Error opening file [%s]\n", pdc_server_rank_g, out_name);
         return -1;
     }
     fseek(fp, 0, SEEK_END);
@@ -6148,7 +6129,7 @@ PDC_load_fastbit_index(char *idx_name, uint64_t obj_id, FastBitDataType dtype, i
     sprintf(out_name, "%s/%s", storage_location, keyName);
     fp = fopen(out_name, "r");
     if (fp == NULL) {
-        LOG_ERROR("==PDC_SERVER[%d]: ERROR opening file [%s]!\n", pdc_server_rank_g, out_name);
+        LOG_ERROR("Rank[%d]: Error opening file [%s]\n", pdc_server_rank_g, out_name);
         return -1;
     }
 
@@ -6163,7 +6144,7 @@ PDC_load_fastbit_index(char *idx_name, uint64_t obj_id, FastBitDataType dtype, i
     sprintf(out_name, "%s/%s", storage_location, offName);
     fp = fopen(out_name, "r");
     if (fp == NULL) {
-        LOG_ERROR("==PDC_SERVER[%d]: ERROR opening file [%s]!\n", pdc_server_rank_g, out_name);
+        LOG_ERROR("Rank[%d]: Error opening file [%s]\n", pdc_server_rank_g, out_name);
         return -1;
     }
     fseek(fp, 0, SEEK_END);
@@ -6372,7 +6353,7 @@ PDC_Server_query_evaluate_merge_opt(pdc_query_t *query, query_task_t *task, pdc_
     void *   value = NULL, *buf = NULL;
     int      n_eval_region = 0, can_skip, region_iter = 0;
 
-    LOG_INFO("==PDC_SERVER[%d]: start query evaluation!\n", pdc_server_rank_g);
+    LOG_INFO("Rank[%d]: start query evaluation\n", pdc_server_rank_g);
 
 #ifdef ENABLE_TIMING
     struct timeval pdc_timer_start, pdc_timer_end;
@@ -6516,8 +6497,8 @@ PDC_Server_query_evaluate_merge_opt(pdc_query_t *query, query_task_t *task, pdc_
             uint64_t idx_nhits = 0, *idx_coords = NULL, tmp_coord[DIM_MAX];
             PDC_query_fastbit_idx(region_elt, query->constraint, &idx_nhits, &idx_coords);
             if (idx_nhits > region_elt->data_size / unit_size) {
-                LOG_WARNING("==PDC_SERVER[%d]: idx_nhits = %" PRIu64 " may be too large!\n",
-                            pdc_server_rank_g, idx_nhits);
+                LOG_WARNING("Rank[%d]: idx_nhits = %" PRIu64 " may be too large\n", pdc_server_rank_g,
+                            idx_nhits);
             }
 
             if (idx_nhits > 0) {
@@ -6536,7 +6517,7 @@ PDC_Server_query_evaluate_merge_opt(pdc_query_t *query, query_task_t *task, pdc_
                     for (j = 0; j < ndim; j++) {
                         tmp = (sel->nhits + iter) * ndim + j;
                         if (tmp > sel->coords_alloc) {
-                            LOG_ERROR("==PDC_SERVER[%d]: - coord array overflow %" PRIu64 "/ %" PRIu64 "!\n",
+                            LOG_ERROR("Rank[%d]: - coord array overflow %" PRIu64 "/ %" PRIu64,
                                       pdc_server_rank_g, tmp, sel->coords_alloc);
                         }
                         else
@@ -6555,7 +6536,7 @@ PDC_Server_query_evaluate_merge_opt(pdc_query_t *query, query_task_t *task, pdc_
     } // End if use fastbit
     else {
         // Load data
-        LOG_INFO("==PDC_SERVER[%d]: start loading data!\n", pdc_server_rank_g);
+        LOG_INFO("Rank[%d]: start loading data\n", pdc_server_rank_g);
         PDC_Server_load_query_data(task, query, combine_op);
 
         region_iter = -1;
@@ -6741,7 +6722,7 @@ PDC_Server_query_evaluate_merge_opt(pdc_query_t *query, query_task_t *task, pdc_
     if (pdc_server_rank_g == 0 || pdc_server_rank_g == 1) {
         gettimeofday(&pdc_timer_end1, 0);
         double rm_dup_time = PDC_get_elapsed_time_double(&pdc_timer_start1, &pdc_timer_end1);
-        LOG_INFO("==PDC_SERVER[%d]: remove duplicate time %.4fs\n", pdc_server_rank_g, rm_dup_time);
+        LOG_INFO("Rank[%d]: remove duplicate time %.4fs\n", pdc_server_rank_g, rm_dup_time);
     }
 #endif
 
@@ -6749,8 +6730,7 @@ done:
 #ifdef ENABLE_TIMING
     gettimeofday(&pdc_timer_end, 0);
     double query_eval_time = PDC_get_elapsed_time_double(&pdc_timer_start, &pdc_timer_end);
-    LOG_INFO("==PDC_SERVER[%d]: evaluated %d regions of %" PRIu64 ": %" PRIu64 "/ %" PRIu64
-             " hits, time %.4fs\n",
+    LOG_INFO("Rank[%d]: evaluated %d regions of %" PRIu64 ": %" PRIu64 "/ %" PRIu64 " hits, time %.4fs\n",
              pdc_server_rank_g, n_eval_region, query->constraint->obj_id, sel->nhits, task->total_elem,
              query_eval_time);
 #endif
@@ -6821,7 +6801,7 @@ attach_cache_storage_region_to_query(pdc_query_t *query)
     cache_storage_region_t *cache_region_elt;
 
     if (NULL == query->constraint) {
-        LOG_ERROR("==PDC_SERVER[%d]: query->constraint is NULL!\n", pdc_server_rank_g);
+        LOG_ERROR("Rank[%d]: query->constraint is NULL\n", pdc_server_rank_g);
         return FAIL;
     }
 
@@ -6851,13 +6831,13 @@ attach_local_storage_region_to_query(pdc_query_t *query)
     pdc_data_server_io_list_t *obj_reg;
 
     if (NULL == query->constraint) {
-        LOG_ERROR("==PDC_SERVER[%d]: query->constraint is NULL!\n", pdc_server_rank_g);
+        LOG_ERROR("Rank[%d]: query->constraint was NULL\n", pdc_server_rank_g);
         return FAIL;
     }
 
     obj_reg = PDC_Server_get_obj_region_query(query->constraint->obj_id);
     if (obj_reg == NULL) {
-        LOG_ERROR("==PDC_SERVER[%d]: cannot find region from object!\n", pdc_server_rank_g);
+        LOG_ERROR("Rank[%d]: cannot find region from object\n", pdc_server_rank_g);
     }
     else
         query->constraint->storage_region_list_head = obj_reg->region_list_head;
@@ -6940,7 +6920,7 @@ PDC_Server_send_nhits_to_client(query_task_t *task)
     in.nhits    = task->nhits;
     in.query_id = task->query_id;
 
-    LOG_INFO("==PDC_SERVER[%d]: sending %" PRIu64 " nhits to client!\n", pdc_server_rank_g, in.nhits);
+    LOG_INFO("Rank[%d]: sending %" PRIu64 " nhits to client", pdc_server_rank_g, in.nhits);
 
     hg_ret = HG_Forward(handle, PDC_check_int_ret_cb, NULL, &in);
     if (hg_ret != HG_SUCCESS)
@@ -6969,7 +6949,7 @@ PDC_recv_nhits(const struct hg_cb_info *callback_info)
     }
 
     if (task_elt == NULL) {
-        LOG_ERROR("==PDC_SERVER[%d]: Invalid task ID!\n", pdc_server_rank_g);
+        LOG_ERROR("Rank[%d]: Invalid task ID\n", pdc_server_rank_g);
         task_elt = query_task_list_head_g;
     }
 
@@ -7131,12 +7111,12 @@ coord_to_offset(size_t ndim, uint64_t *coord, uint64_t *start, uint64_t *count, 
     uint64_t off = 0;
 
     if (ndim == 0 || coord == NULL || start == NULL || count == NULL) {
-        LOG_ERROR("==PDC_SERVER[%d]: input NULL!\n", pdc_server_rank_g);
+        LOG_ERROR("Rank[%d]: input NULL\n", pdc_server_rank_g);
         return -1;
     }
 
     if (ndim > 3) {
-        LOG_ERROR("==PDC_SERVER[%d]: cannot handle dim > 3!\n", pdc_server_rank_g);
+        LOG_ERROR("Rank[%d]: cannot handle dim > 3\n", pdc_server_rank_g);
         return 0;
     }
 
@@ -7155,7 +7135,7 @@ is_coord_in_region(int ndim, uint64_t *coord, size_t unit_size, region_list_t *r
 {
     int i;
     if (ndim == 0 || coord == NULL || region == NULL) {
-        LOG_ERROR("==PDC_SERVER[%d]: input NULL!\n", pdc_server_rank_g);
+        LOG_ERROR("Rank[%d]: input NULL", pdc_server_rank_g);
         return -1;
     }
 
@@ -7244,7 +7224,7 @@ PDC_Server_read_coords(const struct hg_cb_info *callback_info)
         task->my_data       = PDC_malloc(my_size);
 
         if (NULL == task->my_data) {
-            PGOTO_ERROR(HG_OTHER_ERROR, "Rank[%d]: Error allocating %" PRIu64 " bytes for data read!\n",
+            PGOTO_ERROR(HG_OTHER_ERROR, "Rank[%d]: Error allocating %" PRIu64 " bytes for data read\n",
                         pdc_server_rank_g, task->my_nread_coords * unit_size);
         }
 
@@ -7339,7 +7319,7 @@ PDC_recv_read_coords(const struct hg_cb_info *callback_info)
         if (task_elt == NULL)
             PGOTO_ERROR(HG_OTHER_ERROR, "Rank[%d]: Invalid task ID %d", pdc_server_rank_g, query_id);
 
-        LOG_INFO("==PDC_SERVER[%d]: received read coords from server %d\n", pdc_server_rank_g, origin);
+        LOG_INFO("Rank[%d]: received read coords from server %d", pdc_server_rank_g, origin);
     }
 
 done:
@@ -7391,8 +7371,8 @@ PDC_recv_coords(const struct hg_cb_info *callback_info)
 
         if (nhits > 0) {
             if (nhits * unit_size * ndim != bulk_args->nbytes) {
-                LOG_ERROR("==PDC_SERVER[%d]: receive size is unexpected %" PRIu64 " / %" PRIu64 "!\n",
-                          pdc_server_rank_g, (uint64_t)nhits * unit_size * ndim, (uint64_t)bulk_args->nbytes);
+                LOG_ERROR("Rank[%d]: receive size is unexpected %" PRIu64 " / %" PRIu64, pdc_server_rank_g,
+                          (uint64_t)nhits * unit_size * ndim, (uint64_t)bulk_args->nbytes);
             }
 
             ret_value = HG_Bulk_access(local_bulk_handle, 0, bulk_args->nbytes, HG_BULK_READWRITE, 1,
@@ -7450,7 +7430,7 @@ PDC_recv_coords(const struct hg_cb_info *callback_info)
                 task_elt->coords_arr = NULL;
             }
 
-            LOG_INFO("==PDC_SERVER[%d]: received all %d query results, send to client!\n", pdc_server_rank_g,
+            LOG_INFO("Rank[%d]: received all %d query results, send to client\n", pdc_server_rank_g,
                      task_elt->n_recv);
             PDC_Server_send_coords_to_client(task_elt);
         }
@@ -7519,7 +7499,7 @@ PDC_Server_send_query_result_to_manager(query_task_t *task)
     else
         PGOTO_ERROR(FAIL, "Rank[%d]: Invalid get_op type", pdc_server_rank_g);
 
-    LOG_INFO("==PDC_SERVER[%d]: sent query results to manager %d\n", pdc_server_rank_g, task->manager);
+    LOG_INFO("Rank[%d]: sent query results to manager %d\n", pdc_server_rank_g, task->manager);
 
 done:
     return ret_value;
@@ -7554,7 +7534,7 @@ PDC_Server_do_query(query_task_t *task)
 #ifdef ENABLE_TIMING
     gettimeofday(&pdc_timer_end, 0);
     double query_process_time = PDC_get_elapsed_time_double(&pdc_timer_start, &pdc_timer_end);
-    LOG_INFO("==PDC_SERVER[%d]: query processing time %.4fs\n", pdc_server_rank_g, query_process_time);
+    LOG_INFO("Rank[%d]: query processing time %.4fs\n", pdc_server_rank_g, query_process_time);
 #endif
 
     task->is_done = 1;
@@ -7678,18 +7658,18 @@ PDC_send_query_metadata_bulk(bulk_rpc_in_t *in, void *buf, uint64_t buf_sizes, i
     FUNC_ENTER(NULL);
 
     if (buf == NULL || buf_sizes == 0 || server_id < 0)
-        PGOTO_ERROR(FAIL, "==PDC_SERVER[%d]: ERROR with input!", pdc_server_rank_g);
+        PGOTO_ERROR(FAIL, "Rank[%d]: Error with input", pdc_server_rank_g);
 
     if (server_id >= (int32_t)pdc_server_size_g)
-        PGOTO_ERROR(FAIL, "==PDC_SERVER[%d]: server_id %d invalid!", pdc_server_rank_g, server_id);
+        PGOTO_ERROR(FAIL, "Rank[%d]: server_id %d invalid", pdc_server_rank_g, server_id);
 
     if (pdc_remote_server_info_g == NULL)
-        PGOTO_ERROR(FAIL, "==PDC_SERVER[%d]: pdc_server_info_g is NULL\n", pdc_server_rank_g);
+        PGOTO_ERROR(FAIL, "Rank[%d]: pdc_server_info_g is NULL", pdc_server_rank_g);
 
     if (pdc_remote_server_info_g[server_id].addr_valid == 0) {
         ret_value = PDC_Server_lookup_server_id(server_id);
         if (ret_value != SUCCEED)
-            PGOTO_ERROR(FAIL, "==PDC_SERVER[%d]: PDC_Server_lookup_server_id failed!", pdc_server_rank_g);
+            PGOTO_ERROR(FAIL, "Rank[%d]: PDC_Server_lookup_server_id failed", pdc_server_rank_g);
     }
 
     hg_ret = HG_Bulk_create(hg_class_g, 1, &buf, &buf_sizes, HG_BULK_READ_ONLY, &bulk_handle);
@@ -7703,12 +7683,11 @@ PDC_send_query_metadata_bulk(bulk_rpc_in_t *in, void *buf, uint64_t buf_sizes, i
     if (hg_ret != HG_SUCCESS)
         PGOTO_DONE(FAIL);
 
-    LOG_INFO("==PDC_SERVER[%d]: sending %" PRIu64 " meta to server %d!\n", pdc_server_rank_g, in->cnt,
-             server_id);
+    LOG_INFO("Rank[%d]: sending %" PRIu64 " meta to server %d\n", pdc_server_rank_g, in->cnt, server_id);
 
     hg_ret = HG_Forward(handle, PDC_check_int_ret_cb, NULL, in);
     if (hg_ret != HG_SUCCESS)
-        PGOTO_ERROR(FAIL, "==PDC_SERVER[%d]: HG_Forward failed!", pdc_server_rank_g);
+        PGOTO_ERROR(FAIL, "Rank[%d]: HG_Forward failed", pdc_server_rank_g);
 
 done:
     if (handle)
@@ -7772,8 +7751,7 @@ PDC_Server_distribute_query_storage_info(query_task_t *task, uint64_t obj_id, in
         if (meta->all_storage_region_distributed == 1)
             PGOTO_DONE_VOID;
 
-        LOG_INFO("==PDC_SERVER[%d]: found metadata for %" PRIu64 ", %d regions!\n", pdc_server_rank_g, obj_id,
-                 count);
+        LOG_INFO("Rank[%d]: found metadata for %" PRIu64 ", %d regions\n", pdc_server_rank_g, obj_id, count);
 
         // Need to distribute storage metadata to other servers
         avg_count           = ceil((1.0 * count) / task->n_sent_server);
@@ -7806,7 +7784,7 @@ PDC_Server_distribute_query_storage_info(query_task_t *task, uint64_t obj_id, in
             }
 
             if (nsent > count)
-                LOG_ERROR("==PDC_SERVER[%d]: Error sending more storage meta (%d) than expected (%d)!\n",
+                LOG_ERROR("Rank[%d]: Error sending more storage meta (%d) than expected (%d)\n",
                           pdc_server_rank_g, nsent, count);
 
             if (server_id == pdc_server_rank_g) {
@@ -7847,8 +7825,7 @@ PDC_Server_distribute_query_storage_info(query_task_t *task, uint64_t obj_id, in
             }
         } // End DL_FOREACH
 
-        LOG_INFO("==PDC_SERVER[%d]: distributed all storage meta of %" PRIu64 "!\n", pdc_server_rank_g,
-                 obj_id);
+        LOG_INFO("Rank[%d]: distributed all storage meta of %" PRIu64, pdc_server_rank_g, obj_id);
         meta->all_storage_region_distributed = 1;
 
     } // end if (NULL != meta)
@@ -7890,7 +7867,7 @@ PDC_recv_query_metadata_bulk(const struct hg_cb_info *callback_info)
     pdc_int_ret_t out;
     out.ret = 1;
 
-    LOG_INFO("==PDC_SERVER[%d]: received %d query metadata from %d!\n", pdc_server_rank_g, bulk_args->cnt,
+    LOG_INFO("Rank[%d]: Received %d query metadata from %d\n", pdc_server_rank_g, bulk_args->cnt,
              bulk_args->origin);
 
     // TODO: test
@@ -7912,7 +7889,7 @@ PDC_recv_query_metadata_bulk(const struct hg_cb_info *callback_info)
         buf_off = 0;
         for (i = 0; i < nregion; i++) {
             if (buf_off > bulk_args->nbytes)
-                LOG_ERROR("==PDC_SERVER[%d]: ERROR! buf overflow %d! 1\n", pdc_server_rank_g, i);
+                LOG_ERROR("Rank[%d]: buf overflow %d\n", pdc_server_rank_g, i);
             loc_len_ptr = (int *)(buf + buf_off);
             buf_off += sizeof(int);
 
@@ -7936,7 +7913,7 @@ PDC_recv_query_metadata_bulk(const struct hg_cb_info *callback_info)
             buf_off += sizeof(int);
 
             if (buf_off > bulk_args->nbytes)
-                LOG_ERROR("==PDC_SERVER[%d]: ERROR! buf overflow %d!2\n", pdc_server_rank_g, i);
+                LOG_ERROR("Rank[%d]: buf overflow %d!2\n", pdc_server_rank_g, i);
 
             if (*has_hist_ptr == 1) {
                 hist_ptr = (pdc_histogram_t *)(buf + buf_off);
@@ -7950,20 +7927,20 @@ PDC_recv_query_metadata_bulk(const struct hg_cb_info *callback_info)
                 PDC_copy_hist(regions[i].region_hist, hist_ptr);
 
                 if (regions[i].region_hist->nbin == 0 || regions[i].region_hist->nbin > 1000) {
-                    LOG_ERROR("==PDC_SERVER[%d]: ERROR received hist nbin=%d\n", pdc_server_rank_g,
+                    LOG_ERROR("Rank[%d]: received hist nbin=%d", pdc_server_rank_g,
                               regions[i].region_hist->nbin);
                 }
             }
 
             if (buf_off > bulk_args->nbytes)
-                LOG_ERROR("==PDC_SERVER[%d]: ERROR! buf overflow %d! 3\n", pdc_server_rank_g, i);
+                LOG_ERROR("Rank[%d]: buf overflow %d\n", pdc_server_rank_g, i);
 
             regions[i].obj_id = bulk_args->obj_id;
             regions[i].ndim   = bulk_args->ndim;
         }
 
         if (buf_off > bulk_args->nbytes)
-            LOG_ERROR("==PDC_SERVER[%d]: ERROR! buf overflow after!\n", pdc_server_rank_g);
+            LOG_ERROR("Rank[%d]: buf overflow after\n", pdc_server_rank_g);
 
         found_task = 0;
         DL_FOREACH(query_task_list_head_g, task_elt)
@@ -8067,7 +8044,7 @@ PDC_Server_recv_data_query(const struct hg_cb_info *callback_info)
         if (task_elt->query_id == query_xfer->query_id) {
             query_id_exist = 1;
             new_task       = task_elt;
-            LOG_WARNING("==PDC_SERVER[%d]: query id already exist!\n", pdc_server_rank_g);
+            LOG_WARNING("Rank[%d]: query id already exist\n", pdc_server_rank_g);
             break;
         }
     }
@@ -8089,7 +8066,7 @@ PDC_Server_recv_data_query(const struct hg_cb_info *callback_info)
     new_task->prev_server_id    = query_xfer->prev_server_id;
 
     if (is_debug_g == 1) {
-        LOG_INFO("==PDC_SERVER[%d]: appended new query task %d to list head\n", pdc_server_rank_g,
+        LOG_INFO("Rank[%d]: appended new query task %d to list head\n", pdc_server_rank_g,
                  new_task->query_id);
     }
 

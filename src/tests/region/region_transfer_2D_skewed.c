@@ -180,7 +180,7 @@ main(int argc, char **argv)
     // Check if data written previously has been correctly read.
     for (i = 0; i < BUF_LEN / 4; ++i) {
         if (data_read[i] != i) {
-            LOG_ERROR("wrong value %d!=%d\n", data_read[i], i);
+            LOG_ERROR("Wrong value %d!=%d\n", data_read[i], i);
             ret_value = 1;
             break;
         }
@@ -261,7 +261,7 @@ main(int argc, char **argv)
     for (i = 0; i < BUF_LEN / 4; ++i) {
         value = (BUF_LEN / 2 + offset_length[1]) + (i / offset_length[1]) * dims[1] + i % offset_length[1];
         if (data_read[i] != (int)value) {
-            LOG_ERROR("wrong value %d!=%d\n", data_read[i], (int)value);
+            LOG_ERROR("Wrong value %d!=%d\n", data_read[i], (int)value);
             ret_value = 1;
             break;
         }

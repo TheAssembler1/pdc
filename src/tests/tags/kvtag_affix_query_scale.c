@@ -37,7 +37,7 @@ int
 assign_work_to_rank(int rank, int size, int nwork, int *my_count, int *my_start)
 {
     if (rank > size || my_count == NULL || my_start == NULL) {
-        LOG_ERROR("assign_work_to_rank(): Error with input!\n");
+        LOG_ERROR("assign_work_to_rank(): Error with input\n");
         return -1;
     }
     if (nwork < size) {
@@ -91,16 +91,16 @@ prepare_container(pdcid_t *pdc, pdcid_t *cont_prop, pdcid_t *cont, pdcid_t *obj_
     // create a container property
     *cont_prop = PDCprop_create(PDC_CONT_CREATE, *pdc);
     if (*cont_prop <= 0)
-        PGOTO_ERROR(FAIL, "[Client %d] Fail to create container property", my_rank);
+        PGOTO_ERROR(FAIL, "[Client %d] Failed to create container property", my_rank);
     // create a container
     *cont = PDCcont_create("c1", *cont_prop);
     if (*cont <= 0)
-        PGOTO_ERROR(FAIL, "[Client %d] Fail to create container!", my_rank);
+        PGOTO_ERROR(FAIL, "[Client %d] Failed to create container", my_rank);
 
     // create an object property
     *obj_prop = PDCprop_create(PDC_OBJ_CREATE, *pdc);
     if (*obj_prop <= 0)
-        PGOTO_ERROR(FAIL, "[Client %d] Fail to create object property!", my_rank);
+        PGOTO_ERROR(FAIL, "[Client %d] Failed to create object property", my_rank);
 
     ret_value = SUCCEED;
 done:
@@ -118,7 +118,7 @@ creating_objects(pdcid_t **obj_ids, int my_obj, int my_obj_s, pdcid_t cont, pdci
         sprintf(obj_name, "obj%" PRId64 "%d", timestamp, my_obj_s + i);
         (*obj_ids)[i] = PDCobj_create(cont, obj_name, obj_prop);
         if ((*obj_ids)[i] <= 0)
-            PGOTO_ERROR(FAIL, "[Client %d] Fail to create object!", my_rank);
+            PGOTO_ERROR(FAIL, "[Client %d] Failed to create object", my_rank);
     }
     ret_value = SUCCEED;
 done:

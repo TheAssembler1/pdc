@@ -111,11 +111,11 @@ main(int argc, char **argv)
 
         // Query the created object
         if (rank == 0)
-            LOG_INFO("%d: Start to query object just created ...", rank);
+            LOG_INFO("%d: Start to query object just created...", rank);
 
         PDC_Client_query_metadata_name_timestep_agg(obj_name, ts, &metadata);
         if (metadata == NULL || metadata->obj_id == 0) {
-            LOG_ERROR("[%d]: Error with metadata!\n", rank);
+            LOG_ERROR("[%d]: Error with metadata\n", rank);
             exit(-1);
         }
 #ifdef ENABLE_MPI
@@ -140,7 +140,7 @@ main(int argc, char **argv)
             // Wait for previous read completion before reading current timestep
             ret_value = PDC_Client_wait(&request, 60000, 100);
             if (ret_value != SUCCEED) {
-                LOG_ERROR("==PDC_CLIENT: PDC_Client_read - PDC_Client_wait error\n");
+                LOG_ERROR("PDC_Client_read - PDC_Client_wait error\n");
                 goto done;
             }
 
@@ -160,7 +160,7 @@ main(int argc, char **argv)
 
         ret_value = PDC_Client_iread(metadata, &region, &request, mydata);
         if (ret_value != SUCCEED) {
-            LOG_ERROR("[%d] Error with PDC_Client_iread!\n", rank);
+            LOG_ERROR("[%d] Error with PDC_Client_iread\n", rank);
             goto done;
         }
 

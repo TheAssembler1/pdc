@@ -884,7 +884,7 @@ prepare_start_all_requests(pdcid_t *transfer_request_id, int size,
             continue;
         transfer_request = (pdc_transfer_request *)(transferinfo->obj_ptr);
         if (transfer_request->metadata_id != NULL) {
-            LOG_ERROR("==PDC_CLIENT[%d]: cannot start transfer request\n", pdc_client_mpi_rank_g);
+            LOG_ERROR("Rank[%d]: cannot start transfer request\n", pdc_client_mpi_rank_g);
             return FAIL;
         }
         if (transfer_request->consistency == PDC_CONSISTENCY_POSIX) {
@@ -911,7 +911,7 @@ prepare_start_all_requests(pdcid_t *transfer_request_id, int size,
                                     &(transfer_request->sub_offsets), &(transfer_request->output_offsets),
                                     &(transfer_request->output_sizes), &(transfer_request->output_buf));
             if (transfer_request->n_obj_servers == 0) {
-                LOG_ERROR("PDC_Client %d error with static region partition, no server is selected!\n",
+                LOG_ERROR("PDC_Client %d error with static region partition, no server is selected\n",
                           pdc_client_mpi_rank_g);
                 return FAIL;
             }
@@ -1268,12 +1268,12 @@ merge_transfer_request_ids(pdcid_t *transfer_request_id, int size, pdcid_t *merg
     for (i = 0; i < size; ++i) {
         transferinfo = PDC_find_id(transfer_request_id[i]);
         if (NULL == transferinfo) {
-            LOG_ERROR("==PDC_CLIENT[%d]: cannot find transfer request info\n", pdc_client_mpi_rank_g);
+            LOG_ERROR("Rank[%d]: cannot find transfer request info\n", pdc_client_mpi_rank_g);
             return FAIL;
         }
         all_transfer_request[i] = (pdc_transfer_request *)(transferinfo->obj_ptr);
         if (NULL == all_transfer_request[i]) {
-            LOG_ERROR("==PDC_CLIENT[%d]: transfer request is NULL\n", pdc_client_mpi_rank_g);
+            LOG_ERROR("Rank[%d]: transfer request is NULL\n", pdc_client_mpi_rank_g);
             return FAIL;
         }
 
@@ -1396,7 +1396,7 @@ PDCregion_transfer_start_all_common(pdcid_t *transfer_request_id, int size, int 
 
     // For POSIX consistency, we block here until the data is received by the server
     if (posix_size > 0) {
-        LOG_ERROR("==PDC_CLIENT[%d]: wait for posix requests\n", pdc_client_mpi_rank_g);
+        LOG_ERROR("Rank[%d]: wait for posix requests\n", pdc_client_mpi_rank_g);
         PDCregion_transfer_wait_all(posix_transfer_request_id, posix_size);
         posix_transfer_request_id = (pdcid_t *)PDC_free(posix_transfer_request_id);
     }
@@ -1498,7 +1498,7 @@ PDCregion_transfer_start_common(pdcid_t transfer_request_id,
             &(transfer_request->output_offsets), &(transfer_request->output_sizes),
             &(transfer_request->output_buf));
         if (transfer_request->n_obj_servers == 0) {
-            LOG_ERROR("PDC_Client %d: error with static region partition, no server is selected!\n",
+            LOG_ERROR("PDC_Client %d: error with static region partition, no server is selected\n",
                       pdc_client_mpi_rank_g);
             return FAIL;
         }

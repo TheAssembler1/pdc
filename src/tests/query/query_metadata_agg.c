@@ -74,7 +74,7 @@ main(int argc, const char *argv[])
     pdc_metadata_t *metadata;
     PDC_Client_query_metadata_name_timestep_agg(obj_name, 0, &metadata);
     if (metadata == NULL || metadata->obj_id == 0) {
-        LOG_ERROR("Proc %d: Error with metadata!\n", rank);
+        LOG_ERROR("Proc %d: Error with metadata\n", rank);
         exit(-1);
     }
 

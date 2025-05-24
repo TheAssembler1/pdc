@@ -227,7 +227,7 @@ main(int argc, char **argv)
     for (i = 0; i < (int)my_data_size; i++) {
         for (j = 0; j < (int)type_size; ++j) {
             if (mydata[i * type_size + j] != (char)i) {
-                TGOTO_ERROR(TFAIL, "Wrong value detected %d != %d!\n", mydata[i * type_size + j], i);
+                TGOTO_ERROR(TFAIL, "Wrong value detected %d != %d\n", mydata[i * type_size + j], i);
             }
         }
     }

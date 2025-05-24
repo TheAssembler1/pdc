@@ -206,7 +206,7 @@ main(int argc, char **argv)
 
     for (i = 0; i < BUF_LEN / 2; ++i) {
         if (data_read[i] != i + BUF_LEN / 4) {
-            LOG_ERROR("i = %d, wrong value %d!=%d!\n", i, data_read[i], i + BUF_LEN / 4);
+            LOG_ERROR("i = %d, wrong value %d!=%d\n", i, data_read[i], i + BUF_LEN / 4);
             ret_value = 1;
             break;
         }
@@ -290,7 +290,7 @@ main(int argc, char **argv)
 
     for (i = 0; i < BUF_LEN / 2; ++i) {
         if (data_read[i] != i + BUF_LEN + BUF_LEN / 8) {
-            LOG_ERROR("i = %d, wrong value %d!=%d!\n", i, data_read[i], i + BUF_LEN + BUF_LEN / 8);
+            LOG_ERROR("i = %d, wrong value %d!=%d\n", i, data_read[i], i + BUF_LEN + BUF_LEN / 8);
             ret_value = 1;
             break;
         }

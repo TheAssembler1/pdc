@@ -59,7 +59,7 @@ main(int argc, char **argv)
         LOG_INFO("Rank %d Create a container property\n", rank);
     }
     else {
-        LOG_ERROR("Rank %d Fail to create container property!\n", rank);
+        LOG_ERROR("Rank %d Fail to create container property\n", rank);
         ret_value = 1;
     }
     // create a container
@@ -70,7 +70,7 @@ main(int argc, char **argv)
         LOG_INFO("Rank %d Create a container %s\n", rank, cont_name);
     }
     else {
-        LOG_ERROR("Rank %d Fail to create container!\n", rank);
+        LOG_ERROR("Rank %d Fail to create container\n", rank);
         ret_value = 1;
     }
     // create an object property
@@ -79,7 +79,7 @@ main(int argc, char **argv)
         LOG_INFO("Rank %d Create an object property\n", rank);
     }
     else {
-        LOG_ERROR("Rank %d Fail to create object property!\n", rank);
+        LOG_ERROR("Rank %d Fail to create object property\n", rank);
         ret_value = 1;
     }
     ret = PDCprop_set_obj_dims(obj_prop, ndim, dims);
@@ -100,7 +100,7 @@ main(int argc, char **argv)
         LOG_INFO("Rank %d Create an object %s\n", rank, obj_name1);
     }
     else {
-        LOG_ERROR("Rank %d Fail to create object!\n", rank);
+        LOG_ERROR("Rank %d Fail to create object\n", rank);
         ret_value = 1;
     }
 
@@ -111,7 +111,7 @@ main(int argc, char **argv)
         LOG_INFO("Rank %d Create an object %s\n", rank, obj_name2);
     }
     else {
-        LOG_ERROR("Rank %d Fail to create object!\n", rank);
+        LOG_ERROR("Rank %d Fail to create object\n", rank);
         ret_value = 1;
     }
 

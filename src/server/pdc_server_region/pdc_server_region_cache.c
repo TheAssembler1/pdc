@@ -71,7 +71,7 @@ PDC_region_server_cache_init()
     MPI_Comm_rank(MPI_COMM_WORLD, &server_rank);
 #endif
     if (server_rank == 0)
-        LOG_INFO("==PDC_SERVER[%d]: max cache size: %llu\n", server_rank, maximum_cache_size);
+        LOG_INFO("Rank[%d]: max cache size: %llu\n", server_rank, maximum_cache_size);
 
     obj_cache_list     = NULL;
     obj_cache_list_end = NULL;
@@ -498,8 +498,8 @@ PDC_region_cache_register(uint64_t obj_id, int obj_ndim, const uint64_t *obj_dim
     gettimeofday(&(obj_cache->timestamp), NULL);
 
     if (total_cache_size > maximum_cache_size) {
-        LOG_INFO("==PDC_SERVER[%d]: server cache full %.1f / %.1f MB, will flush to storage\n",
-                 PDC_get_rank(), total_cache_size / 1048576.0, maximum_cache_size / 1048576.0);
+        LOG_INFO("Rank[%d]: server cache full %.1f / %.1f MB, will flush to storage\n", PDC_get_rank(),
+                 total_cache_size / 1048576.0, maximum_cache_size / 1048576.0);
         PDC_region_cache_flush_all();
     }
 
@@ -693,7 +693,7 @@ PDC_region_cache_flush_by_pointer(uint64_t obj_id, pdc_obj_cache *obj_cache, int
 #endif
     env_char = getenv("PDC_SERVER_CACHE_NO_FLUSH");
     if (env_char && atoi(env_char) != 0) {
-        LOG_ERROR("==PDC_SERVER[%d]: flushed disabled\n", PDC_get_rank());
+        LOG_ERROR("Rank[%d]: flushed disabled\n", PDC_get_rank());
         return 0;
     }
 
@@ -779,8 +779,8 @@ PDC_region_cache_flush_by_pointer(uint64_t obj_id, pdc_obj_cache *obj_cache, int
 
         if (write_size > 0) {
             PDC_get_time_str(cur_time);
-            LOG_INFO("%s ==PDC_SERVER[%d.%d]: server flushed %.1f / %.1f MB to storage\n", cur_time,
-                     PDC_get_rank(), flag, write_size / 1048576.0, total_cache_size / 1048576.0);
+            LOG_INFO("%s Rank[%d.%d]: server flushed %.1f / %.1f MB to storage\n", cur_time, PDC_get_rank(),
+                     flag, write_size / 1048576.0, total_cache_size / 1048576.0);
         }
 
         total_cache_size -= write_size;
@@ -892,8 +892,8 @@ PDC_region_cache_clock_cycle(void *ptr)
 
                     if (nflush > 0) {
                         PDC_get_time_str(cur_time);
-                        LOG_INFO("%s ==PDC_SERVER[%d.1]: flushed %d regions to storage, took %.4fs\n",
-                                 cur_time, PDC_get_rank(), nflush, elapsed_time);
+                        LOG_INFO("%s Rank[%d]: flushed %d regions to storage, took %.4fs\n", cur_time,
+                                 PDC_get_rank(), nflush, elapsed_time);
                     }
                 }
                 else {

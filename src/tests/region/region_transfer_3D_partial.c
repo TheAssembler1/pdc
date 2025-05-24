@@ -188,7 +188,7 @@ main(int argc, char **argv)
 
     for (i = 0; i < BUF_LEN / 8; ++i) {
         if (data_read[i] != (BUF_LEN / 8 + i) * 4 + 3) {
-            LOG_ERROR("wrong value %d!=%d\n", data_read[i], (BUF_LEN / 8 + i) * 4 + 3);
+            LOG_ERROR("Wrong value %d!=%d\n", data_read[i], (BUF_LEN / 8 + i) * 4 + 3);
             ret_value = 1;
             break;
         }

@@ -87,7 +87,7 @@ PDCcont_create(const char *cont_name, pdcid_t cont_prop_id)
     ret = PDC_Client_create_cont_id(cont_name, cont_prop_id, &(p->cont_info_pub->meta_id));
 
     if (ret == FAIL)
-        PGOTO_ERROR(0, "Unable to create container on the server!");
+        PGOTO_ERROR(0, "Unable to create container on the server");
 
     p->cont_info_pub->local_id = PDC_id_register(PDC_CONT, p);
 
@@ -134,7 +134,7 @@ PDCcont_create_col(const char *cont_name, pdcid_t cont_prop_id)
 
     ret = PDC_Client_create_cont_id_mpi(cont_name, cont_prop_id, &(p->cont_info_pub->meta_id));
     if (ret == FAIL)
-        PGOTO_ERROR(0, "Unable to create container object on server!");
+        PGOTO_ERROR(0, "Unable to create container object on server");
 
     p->cont_info_pub->local_id = PDC_id_register(PDC_CONT, p);
     ret_value                  = p->cont_info_pub->local_id;

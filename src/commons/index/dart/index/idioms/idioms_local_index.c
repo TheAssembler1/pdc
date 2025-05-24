@@ -514,7 +514,7 @@ collect_obj_ids(value_index_leaf_content_t *value_index_leaf, IDIOMS_md_idx_reco
         idx_record->num_obj_ids += num_obj_ids;
     }
     else {
-        LOG_ERROR("ERROR: offset %zu != num_obj_ids %d\n", offset, num_obj_ids);
+        LOG_ERROR("Error offset %zu != num_obj_ids %d\n", offset, num_obj_ids);
     }
     return 0;
 }
@@ -611,7 +611,7 @@ value_number_query(char *secondary_query, key_index_leaf_content_t *leafcnt,
         // the string is not ended or started with '~', and if it contains '~', it is a in-between query.
         split_string(secondary_query, "~", &tokens, &num_tokens);
         if (num_tokens != 2) {
-            LOG_ERROR("ERROR: invalid range query: %s\n", secondary_query);
+            LOG_ERROR("Error invalid range query: %s\n", secondary_query);
             return -1;
         }
         char *lo_tok = tokens[0];

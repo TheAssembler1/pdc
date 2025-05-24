@@ -209,7 +209,7 @@ PDC_add_analysis_ptr_to_registry_(struct _pdc_region_analysis_ftn_info *ftn_info
 
     if (analysis_registry_size == 0) {
         if (pdc_analysis_registry_init_(initial_registry_size) == 0) {
-            perror("Unable to initialize analysis registry!");
+            perror("Unable to initialize analysis registry");
             PGOTO_DONE(-1);
         }
     }
@@ -345,7 +345,7 @@ PDC_add_transform_ptr_to_registry_(struct _pdc_region_transform_ftn_info *ftn_in
 
     if (transform_registry_size == 0) {
         if (pdc_transform_registry_init_(initial_registry_size) == 0)
-            PGOTO_ERROR(FAIL, "Unable to initialize transform registry!");
+            PGOTO_ERROR(FAIL, "Unable to initialize transform registry");
     }
     currentCount = (size_t)hg_atomic_get32(&registered_transform_ftn_count_g);
     if (currentCount == transform_registry_size) {
@@ -462,7 +462,7 @@ HG_TEST_RPC_CB(analysis_ftn, handle)
     HG_Get_input(handle, &in);
 
     if (PDC_get_ftnPtr_(in.ftn_name, in.loadpath, &ftnHandle) < 0)
-        PGOTO_ERROR(FAIL, "PDC_get_ftnPtr_ returned an error!");
+        PGOTO_ERROR(FAIL, "PDC_get_ftnPtr_ returned an error");
 
     if ((ftnPtr = ftnHandle) == NULL)
         PGOTO_ERROR(FAIL, "Transforms function lookup failed");
@@ -545,7 +545,7 @@ HG_TEST_RPC_CB(obj_data_iterator, handle)
     memset(&in, 0, sizeof(in));
     // Decode input
     HG_Get_input(handle, &in);
-    // LOG_INFO("obj_data_iterator_cb entered!\n");
+    // LOG_INFO("obj_data_iterator_cb entered\n");
     ret_value = PDC_Server_instantiate_data_iterator(&in, &out);
 
     HG_Respond(handle, NULL, NULL, &out);

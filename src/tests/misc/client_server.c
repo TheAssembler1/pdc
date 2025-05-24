@@ -102,7 +102,7 @@ client_lookup_cb(const struct hg_cb_info *callback_info)
 
     hg_ret = HG_Forward(handle, client_rpc_cb, client_lookup_args, &in);
     if (hg_ret != HG_SUCCESS) {
-        LOG_ERROR("client_lookup_cb(): Could not start HG_Forward()\n");
+        LOG_ERROR("Could not start HG_Forward()\n");
         return EXIT_FAILURE;
     }
     return HG_SUCCESS;
