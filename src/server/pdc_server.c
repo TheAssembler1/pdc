@@ -83,7 +83,7 @@ sqlite3 *sqlite3_db_g;
 int is_debug_g       = 0;
 int pdc_client_num_g = 0;
 
-hg_class_t *  hg_class_g   = NULL;
+hg_class_t   *hg_class_g   = NULL;
 hg_context_t *hg_context_g = NULL;
 
 // Below three are guarded by pdc_server_task_mutex_g for multi-thread
@@ -91,10 +91,10 @@ pdc_task_list_t *pdc_server_agg_task_head_g = NULL;
 pdc_task_list_t *pdc_server_s2s_task_head_g = NULL;
 int              pdc_server_task_id_g       = PDC_SERVER_TASK_INIT_VALUE;
 
-pdc_client_info_t *       pdc_client_info_g        = NULL;
+pdc_client_info_t        *pdc_client_info_g        = NULL;
 pdc_remote_server_info_t *pdc_remote_server_info_g = NULL;
-char *                    all_addr_strings_1d_g    = NULL;
-char **                   all_addr_strings_g       = NULL;
+char                     *all_addr_strings_1d_g    = NULL;
+char                    **all_addr_strings_g       = NULL;
 int                       is_hash_table_init_g     = 0;
 int                       lustre_stripe_size_mb_g  = 16;
 int                       lustre_total_ost_g       = 0;
@@ -147,7 +147,7 @@ int               gen_fastbit_idx_g            = 0;
 int               use_fastbit_idx_g            = 0;
 int               use_rocksdb_g                = 0;
 int               use_sqlite3_g                = 0;
-char *            gBinningOption               = NULL;
+char             *gBinningOption               = NULL;
 
 double server_write_time_g                  = 0.0;
 double server_read_time_g                   = 0.0;
@@ -165,9 +165,9 @@ volatile int dbg_sleep_g = 1;
 double total_mem_usage_g = 0.0;
 
 // Data server related
-pdc_data_server_io_list_t *  pdc_data_server_read_list_head_g    = NULL;
-pdc_data_server_io_list_t *  pdc_data_server_write_list_head_g   = NULL;
-update_storage_meta_list_t * pdc_update_storage_meta_list_head_g = NULL;
+pdc_data_server_io_list_t   *pdc_data_server_read_list_head_g    = NULL;
+pdc_data_server_io_list_t   *pdc_data_server_write_list_head_g   = NULL;
+update_storage_meta_list_t  *pdc_update_storage_meta_list_head_g = NULL;
 extern data_server_region_t *dataserver_region_g;
 
 /*
@@ -184,11 +184,8 @@ PDC_Server_remote_server_info_init(pdc_remote_server_info_t *info)
 
     FUNC_ENTER(NULL);
 
-    if (info == NULL) {
-        ret_value = FAIL;
-        LOG_ERROR("==PDC_SERVER: NULL info, unable to init pdc_remote_server_info_t!\n");
-        goto done;
-    }
+    if (info == NULL)
+        PGOTO_ERROR(FAIL, "info was NULL, unable to init pdc_remote_server_info_t");
 
     info->addr_string = NULL;
     info->addr_valid  = 0;
@@ -219,11 +216,8 @@ PDC_Server_destroy_client_info(pdc_client_info_t *info)
 
         if (info[i].addr_valid == 1) {
             hg_ret = HG_Addr_free(hg_class_g, info[i].addr);
-            if (hg_ret != HG_SUCCESS) {
-                LOG_ERROR("==PDC_SERVER: PDC_Server_destroy_client_info() error with HG_Addr_free\n");
-                ret_value = FAIL;
-                goto done;
-            }
+            if (hg_ret != HG_SUCCESS)
+                PGOTO_ERROR(FAIL, "Error with HG_Addr_free");
             info[i].addr_valid = 0;
         }
     } // end of for
@@ -241,19 +235,17 @@ done:
  * \return Non-negative on success/Negative on failure
  */
 perr_t
-PDC_client_info_init(pdc_client_info_t *a)
+PDC_client_info_init(pdc_client_info_t *pdc_client_info)
 {
     perr_t ret_value = SUCCEED;
 
     FUNC_ENTER(NULL);
-    if (a == NULL) {
-        LOG_ERROR("==PDC_SERVER: PDC_client_info_init() NULL input!\n");
-        ret_value = FAIL;
-        goto done;
-    }
+    if (pdc_client_info == NULL)
+        PGOTO_ERROR(FAIL, "pdc_client_info was NULL");
 
-    memset(a->addr_string, 0, ADDR_MAX);
-    a->addr_valid = 0;
+    memset(pdc_client_info->addr_string, 0, ADDR_MAX);
+    pdc_client_info->addr_valid = 0;
+
 done:
     FUNC_LEAVE(ret_value);
 }
@@ -295,11 +287,8 @@ PDC_Server_get_client_addr(const struct hg_cb_info *callback_info)
     if (pdc_client_info_g == NULL) {
         pdc_client_num_g  = in->nclient;
         pdc_client_info_g = (pdc_client_info_t *)PDC_calloc(sizeof(pdc_client_info_t), in->nclient);
-        if (pdc_client_info_g == NULL) {
-            LOG_ERROR("==PDC_SERVER: PDC_Server_get_client_addr - unable to allocate space\n");
-            ret_value = FAIL;
-            goto done;
-        }
+        if (pdc_client_info_g == NULL)
+            PGOTO_ERROR(FAIL, "PDC_Calloc failed");
 
         for (i = 0; i < in->nclient; i++)
             PDC_client_info_init(&pdc_client_info_g[i]);
@@ -357,10 +346,8 @@ PDC_Server_write_addr_to_file(char **addr_strings, int n)
     // write to file
     snprintf(config_fname, ADDR_MAX, "%s%s", pdc_server_tmp_dir_g, pdc_server_cfg_name_g);
     FILE *na_config = fopen(config_fname, "w+");
-    if (!na_config) {
-        LOG_ERROR("Could not open config file from: %s\n", config_fname);
-        goto done;
-    }
+    if (!na_config)
+        PGOTO_ERROR(FAIL, "Could not open config file from: %s", config_fname);
 
     fprintf(na_config, "%d\n", n);
     for (i = 0; i < n; i++) {
@@ -373,11 +360,11 @@ done:
     FUNC_LEAVE(ret_value);
 }
 
-static int
+static perr_t
 remove_directory(const char *dir)
 {
-    int     ret  = 0;
-    FTS *   ftsp = NULL;
+    perr_t  ret_value = SUCCEED;
+    FTS    *ftsp      = NULL;
     FTSENT *curr;
 
     // Cast needed (in C) because fts_open() takes a "char * const *", instead
@@ -391,11 +378,8 @@ remove_directory(const char *dir)
     //                of the specified directory
     // FTS_XDEV     - Don't cross filesystem boundaries
     ftsp = fts_open(files, FTS_NOCHDIR | FTS_PHYSICAL | FTS_XDEV, NULL);
-    if (!ftsp) {
-        LOG_ERROR("PDC_SERVER: %s: fts_open failed: %s\n", dir, strerror(curr->fts_errno));
-        ret = -1;
-        goto done;
-    }
+    if (!ftsp)
+        PGOTO_ERROR(FAIL, "Error with fts_open [%s], errno: [%s]", dir, strerror(curr->fts_errno));
 
     while ((curr = fts_read(ftsp))) {
         switch (curr->fts_info) {
@@ -403,39 +387,34 @@ remove_directory(const char *dir)
             case FTS_DNR:
             case FTS_ERR:
                 break;
-
             case FTS_DC:
             case FTS_DOT:
             case FTS_NSOK:
                 // Not reached unless FTS_LOGICAL, FTS_SEEDOT, or FTS_NOSTAT were
                 // passed to fts_open()
                 break;
-
             case FTS_D:
                 // Do nothing. Need depth-first search, so directories are deleted
                 // in FTS_DP
                 break;
-
             case FTS_DP:
             case FTS_F:
             case FTS_SL:
             case FTS_SLNONE:
             case FTS_DEFAULT:
                 if (remove(curr->fts_accpath) < 0) {
-                    LOG_ERROR("PDC_SERVER: %s: Failed to remove: %s\n", curr->fts_path,
-                              strerror(curr->fts_errno));
-                    ret = -1;
+                    PGOTO_ERROR(FAIL, "Error with remove: %s: errno: %s\n", curr->fts_path,
+                                strerror(curr->fts_errno));
                 }
                 break;
         }
     }
 
 done:
-    if (ftsp) {
+    if (ftsp)
         fts_close(ftsp);
-    }
 
-    return ret;
+    return ret_value;
 }
 
 /*
@@ -453,11 +432,8 @@ PDC_Server_rm_config_file()
 
     snprintf(config_fname, ADDR_MAX, "%s%s", pdc_server_tmp_dir_g, pdc_server_cfg_name_g);
 
-    if (remove(config_fname) != 0) {
-        LOG_ERROR("==PDC_SERVER[%d]: Unable to delete the config file[%s]", pdc_server_rank_g, config_fname);
-        ret_value = FAIL;
-        goto done;
-    }
+    if (remove(config_fname) != 0)
+        PGOTO_ERROR(FAIL, "Rank[%d]: Unable to delete the config file[%s]", pdc_server_rank_g, config_fname);
 
 #ifdef ENABLE_ROCKSDB
     if (use_rocksdb_g) {
@@ -505,11 +481,8 @@ lookup_remote_server_cb(const struct hg_cb_info *callback_info)
     hg_thread_mutex_unlock(&update_remote_server_addr_mutex_g);
 #endif
 
-    if (pdc_remote_server_info_g[server_id].addr == NULL) {
-        LOG_ERROR("==PDC_SERVER[%d]: remote server addr is NULL\n", pdc_server_rank_g);
-        ret_value = FAIL;
-        goto done;
-    }
+    if (pdc_remote_server_info_g[server_id].addr == NULL)
+        PGOTO_ERROR(FAIL, "Rank[%d]: remote server addr is NULL", pdc_server_rank_g);
 
     lookup_args->ret_int = 1;
 
@@ -541,12 +514,9 @@ PDC_Server_lookup_server_id(int remote_server_id)
 
     lookup_args->server_id = remote_server_id;
     hg_ret                 = HG_Addr_lookup(hg_context_g, lookup_remote_server_cb, lookup_args,
-                            pdc_remote_server_info_g[remote_server_id].addr_string, HG_OP_ID_IGNORE);
-    if (hg_ret != HG_SUCCESS) {
-        LOG_ERROR("==PDC_SERVER: Connection to remote server FAILED!\n");
-        ret_value = FAIL;
-        goto done;
-    }
+                                            pdc_remote_server_info_g[remote_server_id].addr_string, HG_OP_ID_IGNORE);
+    if (hg_ret != HG_SUCCESS)
+        PGOTO_ERROR(FAIL, "Connection to remote server FAILED!");
 
     hg_ret = HG_Trigger(hg_context_g, 0 /* timeout */, 1 /* max count */, &actual_count);
 
@@ -581,10 +551,7 @@ PDC_Server_lookup_all_servers()
                     continue;
 
                 if (PDC_Server_lookup_server_id(i) != SUCCEED) {
-                    LOG_ERROR("==PDC_SERVER[%d]: Error when lookup remote server %d!\n", pdc_server_rank_g,
-                              i);
-                    ret_value = FAIL;
-                    goto done;
+                    PGOTO_ERROR(FAIL, "Rank[%d]: Error when lookup remote server %d", pdc_server_rank_g, i);
                 }
             }
         }
@@ -618,10 +585,9 @@ PDC_Server_lookup_client_cb(const struct hg_cb_info *callback_info)
     server_lookup_args = (server_lookup_args_t *)callback_info->arg;
     client_id          = server_lookup_args->client_id;
 
-    if (client_id >= (uint32_t)pdc_client_num_g) {
-        LOG_ERROR("==PDC_SERVER[%d]: invalid input client id %d\n", pdc_server_rank_g, client_id);
-        goto done;
-    }
+    if (client_id >= (uint32_t)pdc_client_num_g)
+        PGOTO_ERROR(HG_OTHER_ERROR, "Rank[%d]: Invalid input client id %d", pdc_server_rank_g, client_id);
+
     pdc_client_info_g[client_id].addr       = callback_info->info.lookup.addr;
     pdc_client_info_g[client_id].addr_valid = 1;
 
@@ -646,18 +612,15 @@ PDC_Server_lookup_client(uint32_t client_id)
 
     FUNC_ENTER(NULL);
 
-    if (pdc_client_num_g <= 0) {
-        LOG_ERROR("==PDC_SERVER[%d]: number of client <= 0!\n", pdc_server_rank_g);
-        ret_value = FAIL;
-        goto done;
-    }
+    if (pdc_client_num_g <= 0)
+        PGOTO_ERROR(FAIL, "Rank[%d]: number of client <= 0", pdc_server_rank_g);
 
     if (pdc_client_info_g[client_id].addr_valid == 1)
-        goto done;
+        PGOTO_DONE(SUCCEED);
 
     // Lookup and fill the client info
     server_lookup_args_t lookup_args;
-    char *               target_addr_string;
+    char                *target_addr_string;
 
     lookup_args.server_id   = pdc_server_rank_g;
     lookup_args.client_id   = client_id;
@@ -666,11 +629,8 @@ PDC_Server_lookup_client(uint32_t client_id)
 
     hg_ret = HG_Addr_lookup(hg_context_g, PDC_Server_lookup_client_cb, &lookup_args, target_addr_string,
                             HG_OP_ID_IGNORE);
-    if (hg_ret != HG_SUCCESS) {
-        LOG_ERROR("==PDC_SERVER[%d]: Connection to client %d FAILED!\n", pdc_server_rank_g, client_id);
-        ret_value = FAIL;
-        goto done;
-    }
+    if (hg_ret != HG_SUCCESS)
+        PGOTO_ERROR(FAIL, "Rank[%d]: Connection to client %d failed", pdc_server_rank_g, client_id);
 
     hg_ret = HG_Trigger(hg_context_g, 0 /* timeout */, 1 /* max count */, &actual_count);
 
@@ -682,19 +642,16 @@ static hg_return_t
 PDC_hg_handle_create_cb(hg_handle_t handle, void *arg)
 {
     struct hg_thread_work *hg_thread_work = PDC_malloc(sizeof(struct hg_thread_work));
-    hg_return_t            ret            = HG_SUCCESS;
+    hg_return_t            ret_value      = HG_SUCCESS;
 
-    if (!hg_thread_work) {
-        LOG_ERROR("Could not allocate hg_thread_work");
-        ret = HG_NOMEM_ERROR;
-        goto done;
-    }
+    if (hg_thread_work == NULL)
+        PGOTO_ERROR(HG_NOMEM_ERROR, "Failed to PDC_malloc hg_thread_work");
 
     (void)arg;
     HG_Set_data(handle, hg_thread_work, free);
 
 done:
-    return ret;
+    return ret_value;
 }
 
 perr_t
@@ -777,7 +734,7 @@ PDC_Server_init(int port, hg_class_t **hg_class, hg_context_t **hg_context)
     int                 i         = 0;
     char                self_addr_string[ADDR_MAX];
     char                na_info_string[NA_STRING_INFO_LEN];
-    char *              hostname;
+    char               *hostname;
     pbool_t             free_hostname = false;
     struct hg_init_info init_info     = {0};
 
@@ -793,7 +750,7 @@ PDC_Server_init(int port, hg_class_t **hg_class, hg_context_t **hg_context)
     uint32_t          credential = 0, cookie;
     drc_info_handle_t credential_info;
     char              pdc_auth_key[256] = {'\0'};
-    char *            auth_key;
+    char             *auth_key;
     int               rc;
 #endif
 
@@ -848,9 +805,7 @@ drc_access_again:
             sleep(1);
             goto drc_access_again;
         }
-        LOG_ERROR("server drc_access() failed (%d, %s)", rc, drc_strerror(-rc));
-        ret_value = FAIL;
-        goto done;
+        PGOTO_ERROR(FAIL, "drc_access failed (%d, %s)", rc, drc_strerror(-rc));
     }
     cookie = drc_get_first_cookie(credential_info);
 
@@ -895,10 +850,8 @@ drc_access_again:
 
     for (i = 0; i < pdc_server_size_g; i++) {
         ret_value = PDC_Server_remote_server_info_init(&pdc_remote_server_info_g[i]);
-        if (ret_value != SUCCEED) {
-            LOG_ERROR("==PDC_SERVER[%d]: Error with PDC_Server_remote_server_info_init\n", pdc_server_rank_g);
-            goto done;
-        }
+        if (ret_value != SUCCEED)
+            PGOTO_ERROR(FAIL, "Rank[%d]: Error with PDC_Server_remote_server_info_init", pdc_server_rank_g);
     }
 
     // Gather addresses
@@ -972,22 +925,17 @@ drc_access_again:
                  pdc_server_rank_g, pdc_server_rank_g);
 
         ret_value = PDC_Server_restart(checkpoint_file);
-        if (ret_value != SUCCEED) {
-            LOG_ERROR("==PDC_SERVER[%d]: Error with PDC_Server_restart\n", pdc_server_rank_g);
-            goto done;
-        }
+        if (ret_value != SUCCEED)
+            PGOTO_ERROR(FAIL, "Rank[%d]: Error with PDC_Server_restart", pdc_server_rank_g);
         metadata_index_recover(pdc_server_tmp_dir_g, pdc_server_size_g, pdc_server_rank_g);
     }
     else {
         // We are starting a brand new server
         transfer_request_metadata_query_init(pdc_server_size_g, NULL);
         if (is_hash_table_init_g != 1) {
-            // Hash table init
             ret_value = PDC_Server_init_hash_table();
-            if (ret_value != SUCCEED) {
-                LOG_ERROR("==PDC_SERVER[%d]: Error with PDC_Server_init_hash_table\n", pdc_server_rank_g);
-                goto done;
-            }
+            if (ret_value != SUCCEED)
+                PGOTO_ERROR(FAIL, "Rank[%d]: Error with PDC_Server_init_hash_table", pdc_server_rank_g);
         }
     }
 
@@ -1054,7 +1002,7 @@ perr_t
 PDC_Server_finalize()
 {
     pdc_data_server_io_list_t *io_elt     = NULL;
-    region_list_t *            region_elt = NULL, *region_tmp = NULL;
+    region_list_t             *region_elt = NULL, *region_tmp = NULL;
     perr_t                     ret_value = SUCCEED;
     hg_return_t                hg_ret;
 
@@ -1084,16 +1032,12 @@ PDC_Server_finalize()
         hash_table_free(metadata_hash_table_g);
 
     ret_value = PDC_Server_destroy_client_info(pdc_client_info_g);
-    if (ret_value != SUCCEED) {
-        LOG_ERROR("==PDC_SERVER: Error with PDC_Server_destroy_client_info\n");
-        goto done;
-    }
+    if (ret_value != SUCCEED)
+        PGOTO_ERROR(FAIL, "Error with PDC_Server_destroy_client_info");
 
     ret_value = PDC_Server_destroy_remote_server_info();
-    if (ret_value != SUCCEED) {
-        LOG_ERROR("==PDC_SERVER[%d]: Error with PDC_Server_destroy_client_info\n", pdc_server_rank_g);
-        goto done;
-    }
+    if (ret_value != SUCCEED)
+        PGOTO_ERROR(FAIL, "Rank[%d]: Error with PDC_Server_destroy_client_info", pdc_server_rank_g);
 
     PDC_Close_cache_file();
 
@@ -1170,14 +1114,12 @@ PDC_Server_finalize()
         PDC_Server_rm_config_file();
 
     hg_ret = HG_Context_destroy(hg_context_g);
-    if (hg_ret != HG_SUCCESS) {
-        LOG_ERROR("==PDC_SERVER[%d]: Error with HG_Context_destroy\n", pdc_server_rank_g);
-        goto done;
-    }
+    if (hg_ret != HG_SUCCESS)
+        PGOTO_ERROR(FAIL, "Rank[%d]: Error with HG_Context_destroy", pdc_server_rank_g);
 
     hg_ret = HG_Finalize(hg_class_g);
     if (hg_ret != HG_SUCCESS)
-        LOG_ERROR("==PDC_SERVER[%d]: Error with HG_Finalize\n", pdc_server_rank_g);
+        PGOTO_ERROR(FAIL, "Rank[%d]: Error with HG_Finalize", pdc_server_rank_g);
 
 done:
     all_addr_strings_g    = (char **)PDC_free(all_addr_strings_g);
@@ -1218,21 +1160,21 @@ perr_t
 PDC_Server_checkpoint()
 {
     perr_t                       ret_value = SUCCEED;
-    pdc_metadata_t *             elt;
-    region_list_t *              region_elt;
-    pdc_kvtag_list_t *           kvlist_elt;
-    pdc_hash_table_entry_head *  head;
+    pdc_metadata_t              *elt;
+    region_list_t               *region_elt;
+    pdc_kvtag_list_t            *kvlist_elt;
+    pdc_hash_table_entry_head   *head;
     pdc_cont_hash_table_entry_t *cont_head;
     int n_entry, metadata_size = 0, region_count = 0, n_region, n_objs, n_write_region = 0, n_kvtag, key_len;
     uint32_t          hash_key;
     HashTablePair     pair;
     char              checkpoint_file[ADDR_MAX], checkpoint_file_local[ADDR_MAX], cmd[4096];
     HashTableIterator hash_table_iter;
-    char *            checkpoint;
-    char *            env_char;
+    char             *checkpoint;
+    char             *env_char;
     uint64_t          checkpoint_size;
     bool              use_tmpfs = false;
-    FILE *            file;
+    FILE             *file;
 
     FUNC_ENTER(NULL);
 
@@ -1267,11 +1209,8 @@ PDC_Server_checkpoint()
     else
         file = fopen(checkpoint_file, "w+");
 
-    if (file == NULL) {
-        LOG_ERROR("==PDC_SERVER[%d]: Checkpoint file open error", pdc_server_rank_g);
-        ret_value = FAIL;
-        goto done;
-    }
+    if (file == NULL)
+        PGOTO_ERROR(FAIL, "Rank[%d]: Checkpoint file open error", pdc_server_rank_g);
 
     // Checkpoint containers
     n_entry = hash_table_num_entries(container_hash_table_g);
@@ -1351,7 +1290,7 @@ PDC_Server_checkpoint()
             metadata_size++;
             region_count += n_region;
         } // End for metadata entry linked list
-    }     // End for hash table metadata entry
+    } // End for hash table metadata entry
 
     // Note data server region are managed by data server instead of metadata server
     data_server_region_t *region = NULL;
@@ -1442,14 +1381,14 @@ PDC_Server_restart(char *filename)
     int    n_entry, count, i, j, nobj = 0, all_nobj = 0, all_n_region, n_region, n_objs, total_region = 0,
                               n_kvtag, key_len;
     int                          n_cont, all_cont;
-    pdc_metadata_t *             metadata, *elt;
-    region_list_t *              region_list;
-    pdc_hash_table_entry_head *  entry;
+    pdc_metadata_t              *metadata, *elt;
+    region_list_t               *region_list;
+    pdc_hash_table_entry_head   *entry;
     pdc_cont_hash_table_entry_t *cont_entry;
-    uint32_t *                   hash_key;
+    uint32_t                    *hash_key;
     unsigned                     idx;
     uint64_t                     checkpoint_size;
-    char *                       checkpoint_buf;
+    char                        *checkpoint_buf;
 #ifdef PDC_TIMING
     double start = MPI_Wtime();
 #endif
@@ -1458,18 +1397,12 @@ PDC_Server_restart(char *filename)
 
     // init hash table
     ret_value = PDC_Server_init_hash_table();
-    if (ret_value != SUCCEED) {
-        LOG_ERROR("==PDC_SERVER[%d]: PDC_Server_init_hash_table FAILED!", pdc_server_rank_g);
-        ret_value = FAIL;
-        goto done;
-    }
+    if (ret_value != SUCCEED)
+        PGOTO_ERROR(FAIL, "Rank[%d]: Error wtih PDC_Server_init_hash_table", pdc_server_rank_g);
 
     FILE *file = fopen(filename, "r");
-    if (file == NULL) {
-        LOG_ERROR("==PDC_SERVER[%d]: Checkpoint file open FAILED [%s]!", pdc_server_rank_g, filename);
-        ret_value = FAIL;
-        goto done;
-    }
+    if (file == NULL)
+        PGOTO_ERROR(FAIL, "Rank [%d]: Error with fopen, filename: [%s]", pdc_server_rank_g, filename);
 
     char *slurm_jobid = getenv("SLURM_JOB_ID");
     if (slurm_jobid == NULL) {
@@ -1576,11 +1509,8 @@ PDC_Server_restart(char *filename)
             if (fread(&n_region, sizeof(int), 1, file) != 1) {
                 LOG_ERROR("Read failed for n_region\n");
             }
-            if (n_region < 0) {
-                LOG_ERROR("==PDC_SERVER[%d]: Checkpoint file region number ERROR!", pdc_server_rank_g);
-                ret_value = FAIL;
-                goto done;
-            }
+            if (n_region < 0)
+                PGOTO_ERROR(FAIL, "Rank[%d]: Checkpoint file region was less than 0", pdc_server_rank_g);
 
             /* if (n_region == 0) */
             /*     continue; */
@@ -1680,10 +1610,8 @@ PDC_Server_restart(char *filename)
             elt = metadata + i;
             // Add to hash list and bloom filter
             ret_value = PDC_Server_hash_table_list_insert(entry, elt);
-            if (ret_value != SUCCEED) {
-                LOG_ERROR("==PDC_SERVER: error with hash table recovering from checkpoint file\n");
-                goto done;
-            }
+            if (ret_value != SUCCEED)
+                PGOTO_ERROR(FAIL, "Error with hash table recovering from checkpoint file");
         }
         n_entry--;
     }
@@ -1730,8 +1658,8 @@ PDC_Server_restart(char *filename)
     MPI_Reduce(&nobj, &all_nobj, 1, MPI_INT, MPI_SUM, 0, MPI_COMM_WORLD);
     MPI_Reduce(&total_region, &all_n_region, 1, MPI_INT, MPI_SUM, 0, MPI_COMM_WORLD);
 #else
-    all_nobj          = nobj;
-    all_n_region      = total_region;
+    all_nobj     = nobj;
+    all_n_region = total_region;
 #endif
 
     if (pdc_server_rank_g == 0) {
@@ -1757,7 +1685,7 @@ done:
 static HG_THREAD_RETURN_TYPE
 hg_progress_thread(void *arg)
 {
-    hg_context_t *        context = (hg_context_t *)arg;
+    hg_context_t         *context = (hg_context_t *)arg;
     HG_THREAD_RETURN_TYPE tret    = (HG_THREAD_RETURN_TYPE)0;
     hg_return_t           ret     = HG_SUCCESS;
 
@@ -2238,7 +2166,7 @@ server_run(int argc, char *argv[])
         rocksdb_options_set_create_if_missing(options, 1);
 
         rocksdb_block_based_table_options_t *table_options = rocksdb_block_based_options_create();
-        rocksdb_filterpolicy_t *             filter_policy = rocksdb_filterpolicy_create_bloom(10);
+        rocksdb_filterpolicy_t              *filter_policy = rocksdb_filterpolicy_create_bloom(10);
         rocksdb_block_based_options_set_filter_policy(table_options, filter_policy);
 
         rocksdb_options_set_block_based_table_factory(options, table_options);

@@ -88,7 +88,7 @@ perr_t
 PDC_Server_instantiate_data_iterator(obj_data_iterator_in_t *in, obj_data_iterator_out_t *out)
 {
     perr_t                     ret_value        = SUCCEED;
-    data_server_region_t *     region_reference = NULL;
+    data_server_region_t      *region_reference = NULL;
     struct _pdc_iterator_info *thisIter;
 
     FUNC_ENTER(NULL);
@@ -169,7 +169,7 @@ void *
 PDC_Server_get_ftn_reference(char *ftn)
 {
     static void *appHandle = NULL;
-    void *       ftnHandle = NULL;
+    void        *ftnHandle = NULL;
     if (appHandle == NULL) {
         /* We need the in_process address of the function */
         if ((appHandle = dlopen(0, RTLD_NOW)) == NULL) {
@@ -202,7 +202,8 @@ PDCobj_data_getSliceCount(pdcid_t iter)
 size_t
 PDCobj_data_getNextBlock(pdcid_t iter, void **nextBlock, size_t *dims)
 {
-    struct _pdc_iterator_info *thisIter = NULL;
+    int                        ret_value = 0;
+    struct _pdc_iterator_info *thisIter  = NULL;
     /* Special case to handle a NULL iterator */
     if (iter == 0) {
         if (nextBlock != NULL)
@@ -238,7 +239,7 @@ PDCobj_data_getNextBlock(pdcid_t iter, void **nextBlock, size_t *dims)
                         *nextBlock = NULL;
                     thisIter->sliceNext = 0;
                     thisIter->srcNext   = NULL;
-                    goto done;
+                    PGOTO_DONE(0);
                 }
                 if (nextBlock)
                     *nextBlock = thisIter->srcNext;
@@ -281,7 +282,8 @@ done:
         dims[0] = dims[1] = 0;
     if (nextBlock)
         *nextBlock = NULL;
-    return 0;
+
+    return ret_value;
 }
 
 int

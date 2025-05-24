@@ -94,7 +94,7 @@ int pdc_nclient_per_server_g = 0;
 
 char                     pdc_client_tmp_dir_g[ADDR_MAX];
 struct _pdc_server_info *pdc_server_info_g     = NULL;
-static int *             debug_server_id_count = NULL;
+static int              *debug_server_id_count = NULL;
 
 int                 pdc_io_request_seq_id = PDC_SEQ_ID_INIT_VALUE;
 struct pdc_request *pdc_io_request_list_g = NULL;
@@ -110,7 +110,7 @@ int    nread_bb_g     = 0;
 double read_bb_size_g = 0.0;
 
 static int           mercury_has_init_g = 0;
-static hg_class_t *  send_class_g       = NULL;
+static hg_class_t   *send_class_g       = NULL;
 static hg_context_t *send_context_g     = NULL;
 int                  query_id_g         = 0;
 
@@ -125,7 +125,7 @@ static hg_atomic_int32_t response_done_g;
 hg_atomic_int32_t        bulk_transfer_done_g;
 
 // global variables for DART
-static DART *                 dart_g;
+static DART                  *dart_g;
 static dart_hash_algo_t       dart_hash_algo_g    = DART_HASH;
 static dart_object_ref_type_t dart_obj_ref_type_g = REF_PRIMARY_ID;
 
@@ -362,8 +362,8 @@ PDC_Client_read_server_addr_from_file()
     perr_t ret_value = SUCCEED;
     int    max_tries = 9, sleeptime = 1;
     int    i = 0, is_server_ready = 0;
-    char * p;
-    FILE * na_config = NULL;
+    char  *p;
+    FILE  *na_config = NULL;
     char   config_fname[PATH_MAX];
     char   n_server_string[PATH_MAX];
 
@@ -444,7 +444,7 @@ client_send_flush_obj_all_rpc_cb(const struct hg_cb_info *callback_info)
     hg_return_t         ret_value = HG_SUCCESS;
     hg_handle_t         handle;
     flush_obj_all_out_t output;
-    int *               rpc_return;
+    int                *rpc_return;
 
     FUNC_ENTER(NULL);
 
@@ -453,10 +453,9 @@ client_send_flush_obj_all_rpc_cb(const struct hg_cb_info *callback_info)
 
     ret_value   = HG_Get_output(handle, &output);
     *rpc_return = output.ret;
-    if (ret_value != HG_SUCCESS) {
-        LOG_ERROR("PDC_CLIENT[%d]: flush_obj_all_rpc_cb error with HG_Get_output\n", pdc_client_mpi_rank_g);
-        goto done;
-    }
+    if (ret_value != HG_SUCCESS)
+        PGOTO_ERROR(FAIL, "PDC_CLIENT[%d]: flush_obj_all_rpc_cb error with HG_Get_output",
+                    pdc_client_mpi_rank_g);
 
 done:
     hg_atomic_decr32(&atomic_work_todo_g);
@@ -480,9 +479,9 @@ obj_reset_dims_rpc_cb(const struct hg_cb_info *callback_info)
 
     ret_value = HG_Get_output(handle, &output);
     if (ret_value != HG_SUCCESS) {
-        LOG_ERROR("PDC_CLIENT[%d]: obj_reset_dims_rpc_cb error with HG_Get_output\n", pdc_client_mpi_rank_g);
         region_transfer_args->ret = -1;
-        goto done;
+        PGOTO_ERROR(FAIL, "PDC_CLIENT[%d]: obj_reset_dims_rpc_cb error with HG_Get_output",
+                    pdc_client_mpi_rank_g);
     }
     region_transfer_args->ret = output.ret;
 done:
@@ -498,7 +497,7 @@ client_send_flush_obj_rpc_cb(const struct hg_cb_info *callback_info)
     hg_return_t     ret_value = HG_SUCCESS;
     hg_handle_t     handle;
     flush_obj_out_t output;
-    int *           rpc_return;
+    int            *rpc_return;
 
     FUNC_ENTER(NULL);
 
@@ -507,10 +506,9 @@ client_send_flush_obj_rpc_cb(const struct hg_cb_info *callback_info)
 
     ret_value   = HG_Get_output(handle, &output);
     *rpc_return = output.ret;
-    if (ret_value != HG_SUCCESS) {
-        LOG_ERROR("PDC_CLIENT[%d]: flush_obj_rpc_cb error with HG_Get_output\n", pdc_client_mpi_rank_g);
-        goto done;
-    }
+
+    if (ret_value != HG_SUCCESS)
+        PGOTO_ERROR(FAIL, "PDC_CLIENT[%d]: flush_obj_rpc_cb error with HG_Get_output", pdc_client_mpi_rank_g);
 
 done:
     hg_atomic_decr32(&atomic_work_todo_g);
@@ -525,7 +523,7 @@ client_send_close_all_server_rpc_cb(const struct hg_cb_info *callback_info)
     hg_return_t        ret_value = HG_SUCCESS;
     hg_handle_t        handle;
     close_server_out_t output;
-    int *              rpc_return;
+    int               *rpc_return;
 
     FUNC_ENTER(NULL);
 
@@ -534,11 +532,9 @@ client_send_close_all_server_rpc_cb(const struct hg_cb_info *callback_info)
 
     ret_value   = HG_Get_output(handle, &output);
     *rpc_return = output.ret;
-    if (ret_value != HG_SUCCESS || output.ret != 88) {
-        LOG_ERROR("PDC_CLIENT[%d]: close_all_server_rpc_cb error with HG_Get_output\n",
-                  pdc_client_mpi_rank_g);
-        goto done;
-    }
+    if (ret_value != HG_SUCCESS || output.ret != 88)
+        PGOTO_ERROR(FAIL, "PDC_CLIENT[%d]: close_all_server_rpc_cb error with HG_Get_output",
+                    pdc_client_mpi_rank_g);
 
 done:
     hg_atomic_decr32(&atomic_work_todo_g);
@@ -562,11 +558,11 @@ client_send_transfer_request_metadata_query_rpc_cb(const struct hg_cb_info *call
 
     ret_value = HG_Get_output(handle, &output);
     if (ret_value != HG_SUCCESS) {
-        LOG_ERROR(
-            "PDC_CLIENT[%d]: client_send_transfer_request_metadata_query_rpc_cb error with HG_Get_output\n",
-            pdc_client_mpi_rank_g);
         region_transfer_args->ret = -1;
-        goto done;
+        PGOTO_ERROR(
+            FAIL,
+            "PDC_CLIENT[%d]: client_send_transfer_request_metadata_query_rpc_cb error with HG_Get_output",
+            pdc_client_mpi_rank_g);
     }
     region_transfer_args->query_id       = output.query_id;
     region_transfer_args->total_buf_size = output.total_buf_size;
@@ -594,11 +590,11 @@ client_send_transfer_request_metadata_query2_rpc_cb(const struct hg_cb_info *cal
 
     ret_value = HG_Get_output(handle, &output);
     if (ret_value != HG_SUCCESS) {
-        LOG_ERROR(
-            "PDC_CLIENT[%d]: client_send_transfer_request_metadata_query2_rpc_cb error with HG_Get_output\n",
-            pdc_client_mpi_rank_g);
         region_transfer_args->ret = -1;
-        goto done;
+        PGOTO_ERROR(
+            FAIL,
+            "PDC_CLIENT[%d]: client_send_transfer_request_metadata_query2_rpc_cb error with HG_Get_output",
+            pdc_client_mpi_rank_g);
     }
     region_transfer_args->ret = output.ret;
 done:
@@ -623,9 +619,8 @@ client_send_transfer_request_all_rpc_cb(const struct hg_cb_info *callback_info)
 
     ret_value = HG_Get_output(handle, &output);
     if (ret_value != HG_SUCCESS) {
-        LOG_ERROR("PDC_CLIENT[%d]: error with HG_Get_output\n", pdc_client_mpi_rank_g);
         region_transfer_args->ret = -1;
-        goto done;
+        PGOTO_ERROR(FAIL, "PDC_CLIENT[%d]: error with HG_Get_output", pdc_client_mpi_rank_g);
     }
 
     region_transfer_args->ret         = output.ret;
@@ -652,10 +647,10 @@ client_send_transfer_request_wait_all_rpc_cb(const struct hg_cb_info *callback_i
 
     ret_value = HG_Get_output(handle, &output);
     if (ret_value != HG_SUCCESS) {
-        LOG_ERROR("PDC_CLIENT[%d]: client_send_transfer_request_wait_all_rpc_cb error with HG_Get_output\n",
-                  pdc_client_mpi_rank_g);
         region_transfer_args->ret = -1;
-        goto done;
+        PGOTO_ERROR(FAIL,
+                    "PDC_CLIENT[%d]: client_send_transfer_request_wait_all_rpc_cb error with HG_Get_output",
+                    pdc_client_mpi_rank_g);
     }
     region_transfer_args->ret = output.ret;
 done:
@@ -680,9 +675,8 @@ client_send_transfer_request_rpc_cb(const struct hg_cb_info *callback_info)
 
     ret_value = HG_Get_output(handle, &output);
     if (ret_value != HG_SUCCESS) {
-        LOG_ERROR("PDC_CLIENT[%d]: error with HG_Get_output\n", pdc_client_mpi_rank_g);
         region_transfer_args->ret = -1;
-        goto done;
+        PGOTO_ERROR(FAIL, "PDC_CLIENT[%d]: error with HG_Get_output", pdc_client_mpi_rank_g);
     }
 
     region_transfer_args->ret         = output.ret;
@@ -709,10 +703,10 @@ client_send_transfer_request_status_rpc_cb(const struct hg_cb_info *callback_inf
 
     ret_value = HG_Get_output(handle, &output);
     if (ret_value != HG_SUCCESS) {
-        LOG_ERROR("PDC_CLIENT[%d]: client_send_transfer_request_status_rpc_cb error with HG_Get_output\n",
-                  pdc_client_mpi_rank_g);
         region_transfer_args->ret = -1;
-        goto done;
+        PGOTO_ERROR(FAIL,
+                    "PDC_CLIENT[%d]: client_send_transfer_request_status_rpc_cb error with HG_Get_output",
+                    pdc_client_mpi_rank_g);
     }
 
     region_transfer_args->ret    = output.ret;
@@ -741,10 +735,9 @@ client_send_transfer_request_wait_rpc_cb(const struct hg_cb_info *callback_info)
 
     ret_value = HG_Get_output(handle, &output);
     if (ret_value != HG_SUCCESS) {
-        LOG_ERROR("PDC_CLIENT[%d]: client_send_transfer_request_wait_rpc_cb error with HG_Get_output\n",
-                  pdc_client_mpi_rank_g);
         region_transfer_args->ret = -1;
-        goto done;
+        PGOTO_ERROR(FAIL, "PDC_CLIENT[%d]: client_send_transfer_request_wait_rpc_cb error with HG_Get_output",
+                    pdc_client_mpi_rank_g);
     }
 
     region_transfer_args->ret = output.ret;
@@ -773,10 +766,9 @@ client_send_buf_unmap_rpc_cb(const struct hg_cb_info *callback_info)
 
     ret_value = HG_Get_output(handle, &output);
     if (ret_value != HG_SUCCESS) {
-        LOG_ERROR("PDC_CLIENT[%d]: client_send_buf_unmap_rpc_cb error with HG_Get_output\n",
-                  pdc_client_mpi_rank_g);
         region_unmap_args->ret = -1;
-        PGOTO_DONE(ret_value);
+        PGOTO_ERROR(FAIL, "PDC_CLIENT[%d]: client_send_buf_unmap_rpc_cb error with HG_Get_output",
+                    pdc_client_mpi_rank_g);
     }
 
     region_unmap_args->ret = output.ret;
@@ -890,7 +882,7 @@ PDC_Client_lookup_server(int server_id, int is_init)
     hg_return_t                    hg_ret;
     struct _pdc_client_lookup_args lookup_args;
     char                           self_addr[ADDR_MAX];
-    char *                         target_addr_string;
+    char                          *target_addr_string;
 
     FUNC_ENTER(NULL);
 
@@ -1116,14 +1108,14 @@ hg_test_bulk_transfer_cb(const struct hg_cb_info *hg_cb_info)
     struct bulk_args_t *bulk_args;
     hg_bulk_t           local_bulk_handle;
     uint32_t            i;
-    void *              buf = NULL;
-    void **             ids_buf;
+    void               *buf = NULL;
+    void              **ids_buf;
     uint32_t            n_meta;
     uint64_t            buf_sizes[2] = {0, 0};
-    uint64_t *          ids_buf_sizes;
+    uint64_t           *ids_buf_sizes;
     uint32_t            actual_cnt;
-    pdc_metadata_t *    meta_ptr;
-    uint64_t *          u64_arr_ptr;
+    pdc_metadata_t     *meta_ptr;
+    uint64_t           *u64_arr_ptr;
     uint32_t            bulk_sgnum;
 
     FUNC_ENTER(NULL);
@@ -1223,7 +1215,7 @@ PDC_Client_check_bulk(hg_context_t *hg_context)
 static const char *
 drc_strerror(int errnum)
 {
-    char *      ret_value = NULL;
+    char       *ret_value = NULL;
     const char *errstring = "UNDEFINED";
 
     FUNC_ENTER(NULL);
@@ -1252,7 +1244,7 @@ PDC_Client_mercury_init(hg_class_t **hg_class, hg_context_t **hg_context, int po
 {
     perr_t  ret_value = SUCCEED;
     char    na_info_string[NA_STRING_INFO_LEN];
-    char *  hostname;
+    char   *hostname;
     pbool_t free_hostname = false;
     int     local_server_id;
     /* Set the default mercury transport
@@ -1262,13 +1254,13 @@ PDC_Client_mercury_init(hg_class_t **hg_class, hg_context_t **hg_context, int po
      *   "cci+tcp"
      */
     struct hg_init_info init_info            = {0};
-    char *              default_hg_transport = "ofi+tcp";
-    char *              hg_transport;
+    char               *default_hg_transport = "ofi+tcp";
+    char               *hg_transport;
 #ifdef PDC_HAS_CRAY_DRC
     uint32_t          credential, cookie;
     drc_info_handle_t credential_info;
     char              pdc_auth_key[256] = {'\0'};
-    char *            auth_key;
+    char             *auth_key;
     int               rc;
 #endif
 
@@ -1311,7 +1303,7 @@ drc_access_again:
     if (rc != DRC_SUCCESS) { /* failed to access credential */
         if (rc == -DRC_EINVAL) {
             sleep(1);
-            goto drc_access_again;
+            PGOTO_DONE(drc_access_again);
         }
         LOG_ERROR("client drc_access() failed (%d, %s)", rc, drc_strerror(-rc));
         PGOTO_ERROR(FAIL, "Client drc_access() failed");
@@ -1470,7 +1462,7 @@ PDC_Client_init()
 {
     perr_t ret_value  = SUCCEED;
     pdc_server_info_g = NULL;
-    char *   tmp_dir;
+    char    *tmp_dir;
     uint32_t port;
     int      is_mpi_init = 0;
 
@@ -1665,16 +1657,16 @@ static hg_return_t
 metadata_query_bulk_cb(const struct hg_cb_info *callback_info)
 {
     hg_return_t                   ret_value;
-    struct bulk_args_t *          client_lookup_args;
+    struct bulk_args_t           *client_lookup_args;
     hg_handle_t                   handle;
     metadata_query_transfer_out_t output;
     uint32_t                      n_meta;
     hg_op_id_t                    hg_bulk_op_id;
     hg_bulk_t                     local_bulk_handle  = HG_BULK_NULL;
     hg_bulk_t                     origin_bulk_handle = HG_BULK_NULL;
-    const struct hg_info *        hg_info            = NULL;
-    struct bulk_args_t *          bulk_args;
-    void *                        recv_meta;
+    const struct hg_info         *hg_info            = NULL;
+    struct bulk_args_t           *bulk_args;
+    void                         *recv_meta;
 
     FUNC_ENTER(NULL);
 
@@ -2077,7 +2069,7 @@ PDC_Client_add_tag(pdcid_t obj_id, const char *tag)
     hg_handle_t                    metadata_add_tag_handle;
     uint64_t                       meta_id;
     uint32_t                       server_id;
-    struct _pdc_obj_info *         obj_prop;
+    struct _pdc_obj_info          *obj_prop;
     struct _pdc_client_lookup_args lookup_args;
     metadata_add_tag_in_t          in;
 
@@ -2294,7 +2286,7 @@ PDC_Client_delete_metadata(char *delete_name, pdcid_t obj_delete_prop)
 {
     perr_t                         ret_value = SUCCEED;
     hg_return_t                    hg_ret    = 0;
-    struct _pdc_obj_prop *         delete_prop;
+    struct _pdc_obj_prop          *delete_prop;
     metadata_delete_in_t           in;
     int                            hash_name_value;
     uint32_t                       server_id;
@@ -2353,7 +2345,7 @@ PDC_Client_query_metadata_name_only(const char *obj_name, pdc_metadata_t **out)
     struct _pdc_metadata_query_args **lookup_args;
     uint32_t                          server_id;
     uint32_t                          i, count = 0;
-    hg_handle_t *                     metadata_query_handle;
+    hg_handle_t                      *metadata_query_handle;
 
     FUNC_ENTER(NULL);
 
@@ -2655,7 +2647,7 @@ PDC_Client_send_name_recv_id(const char *obj_name, uint64_t cont_id, pdcid_t obj
     perr_t                         ret_value = SUCCEED;
     hg_return_t                    hg_ret;
     uint32_t                       server_id   = 0;
-    struct _pdc_obj_prop *         create_prop = NULL;
+    struct _pdc_obj_prop          *create_prop = NULL;
     gen_obj_id_in_t                in;
     uint32_t                       hash_name_value;
     struct _pdc_client_lookup_args lookup_args;
@@ -2813,7 +2805,7 @@ PDC_Client_close_all_server()
             if (hg_ret != HG_SUCCESS)
                 PGOTO_ERROR(FAIL, "PDC_Client_close_all_server(): Could not destroy handle");
         } // End pdc_client_mpi_rank_g < pdc_server_num_g
-    }     // End pdc_client_mpi_size_g >= pdc_server_num_g
+    } // End pdc_client_mpi_size_g >= pdc_server_num_g
     else {
         if (pdc_client_mpi_rank_g == 0) {
             for (i = 0; i < (uint32_t)pdc_server_num_g; i++) {
@@ -2842,7 +2834,7 @@ PDC_Client_close_all_server()
                     PGOTO_ERROR(FAIL, "PDC_Client_close_all_server(): Could not destroy handle");
             }
         } // End of mpi_rank == 0
-    }     // End pdc_client_mpi_size_g < pdc_server_num_g
+    } // End pdc_client_mpi_size_g < pdc_server_num_g
 
 #ifdef ENABLE_MPI
     MPI_Barrier(MPI_COMM_WORLD);
@@ -3020,7 +3012,7 @@ PDC_Client_transfer_request_all(int n_objs, pdc_access_t access_type, uint32_t d
     perr_t                                ret_value = SUCCEED;
     hg_return_t                           hg_ret    = HG_SUCCESS;
     transfer_request_all_in_t             in;
-    hg_class_t *                          hg_class;
+    hg_class_t                           *hg_class;
     int                                   i;
     hg_handle_t                           client_send_transfer_request_all_handle;
     struct _pdc_transfer_request_all_args transfer_args;
@@ -3032,18 +3024,12 @@ PDC_Client_transfer_request_all(int n_objs, pdc_access_t access_type, uint32_t d
     double start          = MPI_Wtime(), end;
     double function_start = start;
 #endif
-    if (!(access_type == PDC_WRITE || access_type == PDC_READ)) {
-        ret_value = FAIL;
-        LOG_ERROR("Invalid PDC type");
-        goto done;
-    }
+    if (!(access_type == PDC_WRITE || access_type == PDC_READ))
+        PGOTO_ERROR(FAIL, "Invalid PDC type");
     in.n_objs         = n_objs;
     in.access_type    = access_type;
     in.total_buf_size = bulk_size;
     in.client_id      = pdc_client_mpi_rank_g;
-
-    // Compute metadata server id
-    // meta_server_id    = PDC_get_server_by_obj_id(obj_id[0], pdc_server_num_g);
 
     debug_server_id_count[data_server_id]++;
 
@@ -3123,7 +3109,7 @@ PDC_Client_transfer_request_metadata_query2(char *buf, uint64_t total_buf_size, 
     perr_t                                            ret_value = SUCCEED;
     hg_return_t                                       hg_ret    = HG_SUCCESS;
     transfer_request_metadata_query2_in_t             in;
-    hg_class_t *                                      hg_class;
+    hg_class_t                                       *hg_class;
     hg_handle_t                                       client_send_transfer_request_metadata_query2_handle;
     struct _pdc_transfer_request_metadata_query2_args transfer_args;
 
@@ -3185,7 +3171,7 @@ PDC_Client_transfer_request_metadata_query(char *buf, uint64_t total_buf_size, i
     perr_t                                           ret_value = SUCCEED;
     hg_return_t                                      hg_ret    = HG_SUCCESS;
     transfer_request_metadata_query_in_t             in;
-    hg_class_t *                                     hg_class;
+    hg_class_t                                      *hg_class;
     hg_handle_t                                      client_send_transfer_request_metadata_query_handle;
     struct _pdc_transfer_request_metadata_query_args transfer_args;
 
@@ -3248,7 +3234,7 @@ PDC_Client_transfer_request_wait_all(int n_objs, pdcid_t *transfer_request_id, u
     perr_t                                     ret_value = SUCCEED;
     hg_return_t                                hg_ret    = HG_SUCCESS;
     transfer_request_wait_all_in_t             in;
-    hg_class_t *                               hg_class;
+    hg_class_t                                *hg_class;
     hg_handle_t                                client_send_transfer_request_wait_all_handle;
     struct _pdc_transfer_request_wait_all_args transfer_args;
     char                                       cur_time[64];
@@ -3323,7 +3309,7 @@ PDC_Client_transfer_request(void *buf, pdcid_t obj_id, uint32_t data_server_id, 
     perr_t                            ret_value = SUCCEED;
     hg_return_t                       hg_ret    = HG_SUCCESS;
     transfer_request_in_t             in;
-    hg_class_t *                      hg_class;
+    hg_class_t                       *hg_class;
     uint32_t                          meta_server_id;
     hg_size_t                         total_data_size;
     int                               i;
@@ -3336,11 +3322,8 @@ PDC_Client_transfer_request(void *buf, pdcid_t obj_id, uint32_t data_server_id, 
     double start          = MPI_Wtime(), end;
     double function_start = start;
 #endif
-    if (!(access_type == PDC_WRITE || access_type == PDC_READ)) {
-        ret_value = FAIL;
-        LOG_ERROR("Invalid PDC type\n");
-        goto done;
-    }
+    if (!(access_type == PDC_WRITE || access_type == PDC_READ))
+        PGOTO_ERROR(FAIL, "Invalid PDC type");
 
     LOG_DEBUG("rank = %d, data_server_id = %u\n", pdc_client_mpi_rank_g, data_server_id);
     in.access_type = access_type;
@@ -3549,12 +3532,12 @@ PDC_Client_buf_map(pdcid_t local_region_id, pdcid_t remote_obj_id, size_t ndim, 
     hg_return_t  hg_ret    = HG_SUCCESS;
     buf_map_in_t in;
     uint32_t     data_server_id, meta_server_id;
-    hg_class_t * hg_class;
+    hg_class_t  *hg_class;
 
     hg_uint32_t              i, j;
     hg_uint32_t              local_count;
-    void **                  data_ptrs = NULL;
-    size_t *                 data_size = NULL;
+    void                   **data_ptrs = NULL;
+    size_t                  *data_size = NULL;
     size_t                   unit, unit_to;
     struct _pdc_buf_map_args map_args;
     hg_handle_t              client_send_buf_map_handle;
@@ -3934,11 +3917,11 @@ PDC_Client_get_data_from_server_shm_cb(const struct hg_cb_info *callback_info)
 
     int                     shm_fd        = -1; // file descriptor, from shm_open()
     uint32_t                i             = 0;
-    char *                  shm_base      = NULL; // base address, from mmap()
-    char *                  shm_addr      = NULL;
+    char                   *shm_base      = NULL; // base address, from mmap()
+    char                   *shm_addr      = NULL;
     uint64_t                data_size     = 1;
-    client_read_info_t *    read_info     = NULL;
-    struct pdc_request *    elt           = NULL;
+    client_read_info_t     *read_info     = NULL;
+    struct pdc_request     *elt           = NULL;
     struct pdc_region_info *target_region = NULL;
 #ifdef ENABLE_TIMING
     struct timeval pdc_timer_start;
@@ -4028,8 +4011,8 @@ PDC_Client_data_server_read_check(int server_id, uint32_t client_id, pdc_metadat
     uint64_t                       read_size = 1;
     hg_handle_t                    data_server_read_check_handle;
     int                            shm_fd;   // file descriptor, from shm_open()
-    char *                         shm_base; // base address, from mmap()
-    char *                         shm_addr;
+    char                          *shm_base; // base address, from mmap()
+    char                          *shm_addr;
 #ifdef ENABLE_TIMING
     struct timeval pdc_timer_start;
     struct timeval pdc_timer_end;
@@ -4161,8 +4144,8 @@ PDC_Client_data_server_read(struct pdc_request *request)
     data_server_read_in_t          in;
     hg_handle_t                    data_server_read_handle;
     int                            server_id, n_client, n_update;
-    pdc_metadata_t *               meta;
-    struct pdc_region_info *       region;
+    pdc_metadata_t                *meta;
+    struct pdc_region_info        *region;
 
     FUNC_ENTER(NULL);
 
@@ -4242,11 +4225,6 @@ PDC_Client_close_shm(struct pdc_request *req)
     if (close(req->shm_fd) == -1)
         PGOTO_ERROR(FAIL, "==PDC_CLIENT[%d]: close shm failed", pdc_client_mpi_rank_g);
 
-    /* remove the shared memory segment from the file system */
-    // TODO: fix error
-    /* if (shm_unlink(req->shm_addr) == -1) */
-    /*     PGOTO_ERROR(FAIL, "==PDC_CLIENT: Error removing %s", req->shm_addr); */
-
 done:
 
     FUNC_LEAVE(ret_value);
@@ -4291,8 +4269,8 @@ PDC_Client_data_server_write_check(struct pdc_request *request, int *status)
     data_server_write_check_in_t   in;
     hg_handle_t                    data_server_write_check_handle;
     int                            server_id;
-    pdc_metadata_t *               meta;
-    struct pdc_region_info *       region;
+    pdc_metadata_t                *meta;
+    struct pdc_region_info        *region;
     uint64_t                       write_size = 1;
     uint32_t                       i;
 
@@ -4391,9 +4369,9 @@ PDC_Client_data_server_write(struct pdc_request *request)
     int                            server_ret;
     hg_handle_t                    data_server_write_handle;
     int                            server_id, n_client, n_update;
-    pdc_metadata_t *               meta;
-    struct pdc_region_info *       region;
-    void *                         buf;
+    pdc_metadata_t                *meta;
+    struct pdc_region_info        *region;
+    void                          *buf;
 
     int rnd;
 #ifdef ENABLE_TIMING
@@ -4449,7 +4427,7 @@ PDC_Client_data_server_write(struct pdc_request *request)
     request->shm_base = mmap(0, region_size, PROT_READ | PROT_WRITE, MAP_SHARED, request->shm_fd, 0);
     if (request->shm_base == MAP_FAILED)
         PGOTO_ERROR(FAIL, "==PDC_CLIENT: Shared memory mmap failed, region size = %" PRIu64 "", region_size);
-        // close and shm_unlink?
+    // close and shm_unlink?
 
 #ifdef ENABLE_TIMING
     gettimeofday(&pdc_timer_start, 0);
@@ -4657,7 +4635,7 @@ PDC_Client_write_id(pdcid_t local_obj_id, struct pdc_region_info *region, void *
     struct _pdc_id_info *info;
 
     struct _pdc_obj_info *object;
-    pdc_metadata_t *      meta;
+    pdc_metadata_t       *meta;
     perr_t                ret_value = SUCCEED;
 
     FUNC_ENTER(NULL);
@@ -4879,7 +4857,7 @@ PDC_Client_add_objects_to_container(int nobj, pdcid_t *local_obj_ids, pdcid_t lo
 {
     perr_t               ret_value = SUCCEED;
     int                  i;
-    uint64_t *           obj_ids;
+    uint64_t            *obj_ids;
     uint64_t             cont_meta_id;
     struct _pdc_id_info *id_info = NULL;
 
@@ -4905,7 +4883,7 @@ PDC_Client_del_objects_to_container(int nobj, pdcid_t *local_obj_ids, pdcid_t lo
 {
     perr_t               ret_value = SUCCEED;
     int                  i;
-    uint64_t *           obj_ids;
+    uint64_t            *obj_ids;
     uint64_t             cont_meta_id;
     struct _pdc_id_info *id_info = NULL;
 
@@ -4933,7 +4911,7 @@ PDC_Client_add_tags_to_container(pdcid_t cont_id, char *tags)
     hg_return_t            hg_ret    = HG_SUCCESS;
     hg_handle_t            rpc_handle;
     uint32_t               server_id;
-    struct _pdc_id_info *  info;
+    struct _pdc_id_info   *info;
     struct _pdc_cont_info *object;
     uint64_t               cont_meta_id;
     cont_add_tags_rpc_in_t add_tag_rpc_in;
@@ -5180,12 +5158,12 @@ PDC_Client_query_name_read_entire_obj(int nobj, char **obj_names, void ***out_bu
     hg_handle_t              rpc_handle;
     hg_bulk_t                bulk_handle;
     uint32_t                 server_id;
-    uint64_t *               buf_sizes, total_size;
+    uint64_t                *buf_sizes, total_size;
     int                      i;
     query_read_obj_name_in_t bulk_rpc_in;
     // Reuse the existing args structure
     update_region_storage_meta_bulk_args_t cb_args;
-    struct pdc_request *                   request;
+    struct pdc_request                    *request;
 
     FUNC_ENTER(NULL);
 
@@ -5467,7 +5445,7 @@ static region_list_t *
 PDC_get_storage_meta_from_io_list(pdc_data_server_io_list_t **list, region_storage_meta_t *storage_meta)
 {
     pdc_data_server_io_list_t *io_list_elt, *io_list_target = NULL;
-    region_list_t *            ret_value = NULL;
+    region_list_t             *ret_value = NULL;
 
     FUNC_ENTER(NULL);
 
@@ -5493,7 +5471,7 @@ PDC_add_storage_meta_to_io_list(pdc_data_server_io_list_t **list, region_storage
 {
 
     pdc_data_server_io_list_t *io_list_elt, *io_list_target = NULL;
-    region_list_t *            new_region;
+    region_list_t             *new_region;
     int                        j;
     perr_t                     ret_value = SUCCEED;
 
@@ -5560,7 +5538,7 @@ PDC_send_region_storage_meta_shm(uint32_t server_id, int n, region_storage_meta_
 
     buf_sizes = n * sizeof(region_storage_meta_t);
     hg_ret    = HG_Bulk_create(send_class_g, 1, (void **)&storage_meta, (const hg_size_t *)&buf_sizes,
-                            HG_BULK_READ_ONLY, &bulk_handle);
+                               HG_BULK_READ_ONLY, &bulk_handle);
     if (hg_ret != HG_SUCCESS)
         PGOTO_ERROR(FAIL, "Could not create bulk data handle");
 
@@ -5592,7 +5570,7 @@ PDC_Client_cp_data_to_local_server(int nobj, region_storage_meta_t **all_storage
     perr_t                 ret_value = SUCCEED;
     uint32_t               ndim, server_id;
     uint64_t               total_size = 0, cp_loc = 0;
-    void *                 buf = NULL;
+    void                  *buf = NULL;
     char                   shm_addr[ADDR_MAX];
     int                    i, *total_obj = NULL, ntotal_obj = nobj, *recvcounts = NULL, *displs = NULL;
     region_storage_meta_t *all_region_storage_meta_1d = NULL, *my_region_storage_meta_1d = NULL;
@@ -5702,8 +5680,8 @@ PDC_Client_read_with_storage_meta(int nobj, region_storage_meta_t **all_storage_
 {
     perr_t         ret_value = SUCCEED;
     int            i;
-    char *         fname, *prev_fname;
-    FILE *         fp_read = NULL;
+    char          *fname, *prev_fname;
+    FILE          *fp_read = NULL;
     uint32_t       ndim;
     uint64_t       req_start, req_count, storage_start, storage_count, file_offset, buf_size;
     size_t         read_bytes;
@@ -5792,8 +5770,8 @@ PDC_Client_read_with_storage_meta(int nobj, region_storage_meta_t **all_storage_
 
 // Query and retrieve all the storage regions of objects with their names
 // It is possible that an object has multiple storage regions, they will be stored sequintially in
-// storage_meta The storage_meta is also ordered based on the order in obj_names, the mapping can be easily
-// formed by checking the obj_id in region_storage_meta_t
+// storage_meta The storage_meta is also ordered based on the order in obj_names, the mapping can be
+// easily formed by checking the obj_id in region_storage_meta_t
 perr_t
 PDC_Client_query_multi_storage_info(int nobj, char **obj_names, region_storage_meta_t ***all_storage_meta)
 {
@@ -5803,15 +5781,15 @@ PDC_Client_query_multi_storage_info(int nobj, char **obj_names, region_storage_m
 
     hg_bulk_t                bulk_handle;
     uint32_t                 server_id;
-    uint64_t *               buf_sizes = NULL, total_size;
+    uint64_t                *buf_sizes = NULL, total_size;
     int                      i, j, loc, iter, *n_obj_name_by_server = NULL;
-    int **                   obj_names_server_seq_mapping = NULL, *obj_names_server_seq_mapping_1d;
+    int                    **obj_names_server_seq_mapping = NULL, *obj_names_server_seq_mapping_1d;
     int                      send_n_request               = 0;
-    char ***                 obj_names_by_server          = NULL;
-    char **                  obj_names_by_server_2d       = NULL;
+    char                  ***obj_names_by_server          = NULL;
+    char                   **obj_names_by_server_2d       = NULL;
     query_read_obj_name_in_t bulk_rpc_in;
     update_region_storage_meta_bulk_args_t cb_args;
-    struct pdc_request **                  requests, *request;
+    struct pdc_request                   **requests, *request;
 
     FUNC_ENTER(NULL);
 
@@ -6031,12 +6009,12 @@ PDC_Client_query_name_read_entire_obj_client_agg(int my_nobj, char **my_obj_name
                                                  size_t *out_buf_sizes)
 {
     perr_t                  ret_value = SUCCEED;
-    char **                 all_names = my_obj_names;
-    char *                  local_names_1d, *all_names_1d = NULL;
-    int *                   total_obj = NULL, i, ntotal_obj = my_nobj, *recvcounts = NULL, *displs = NULL;
+    char                  **all_names = my_obj_names;
+    char                   *local_names_1d, *all_names_1d = NULL;
+    int                    *total_obj = NULL, i, ntotal_obj = my_nobj, *recvcounts = NULL, *displs = NULL;
     size_t                  max_name_len     = 64;
     region_storage_meta_t **all_storage_meta = NULL, **my_storage_meta = NULL;
-    region_storage_meta_t * my_storage_meta_1d = NULL, *res_storage_meta_1d = NULL;
+    region_storage_meta_t  *my_storage_meta_1d = NULL, *res_storage_meta_1d = NULL;
 
 #ifdef ENABLE_TIMING
     struct timeval pdc_timer1;
@@ -6324,7 +6302,7 @@ PDC_Client_read_overlap_regions(uint32_t ndim, uint64_t *req_start, uint64_t *re
 
                 *total_read_bytes += read_bytes;
             } // for each row
-        }     // ndim=2
+        } // ndim=2
         else if (ndim == 3) {
 
             if (is_client_debug_g == 1) {
@@ -6394,8 +6372,8 @@ PDC_add_kvtag(pdcid_t obj_id, pdc_kvtag_t *kvtag, int is_cont)
     uint32_t                       server_id;
     hg_handle_t                    metadata_add_kvtag_handle;
     metadata_add_kvtag_in_t        in;
-    struct _pdc_obj_info *         obj_prop;
-    struct _pdc_cont_info *        cont_prop;
+    struct _pdc_obj_info          *obj_prop;
+    struct _pdc_cont_info         *cont_prop;
     struct _pdc_client_lookup_args lookup_args;
 
     FUNC_ENTER(NULL);
@@ -6500,8 +6478,8 @@ PDC_get_kvtag(pdcid_t obj_id, char *tag_name, pdc_kvtag_t **kvtag, int is_cont)
     hg_handle_t                metadata_get_kvtag_handle;
     metadata_get_kvtag_in_t    in;
     struct _pdc_get_kvtag_args lookup_args;
-    struct _pdc_obj_info *     obj_prop;
-    struct _pdc_cont_info *    cont_prop;
+    struct _pdc_obj_info      *obj_prop;
+    struct _pdc_cont_info     *cont_prop;
 
     FUNC_ENTER(NULL);
 
@@ -6560,12 +6538,12 @@ kvtag_query_bulk_cb(const struct hg_cb_info *hg_cb_info)
     hg_bulk_t           origin_bulk_handle = hg_cb_info->info.bulk.origin_handle;
     hg_bulk_t           local_bulk_handle  = hg_cb_info->info.bulk.local_handle;
     uint32_t            n_meta, actual_cnt;
-    void *              buf = NULL;
+    void               *buf = NULL;
     uint64_t            buf_sizes[1];
     uint32_t            bulk_sgnum;
-    uint64_t *          ids_buf_sizes;
-    void **             ids_buf;
-    uint64_t *          u64_arr_ptr;
+    uint64_t           *ids_buf_sizes;
+    void              **ids_buf;
+    uint64_t           *u64_arr_ptr;
 
     FUNC_ENTER(NULL);
 
@@ -6586,12 +6564,6 @@ kvtag_query_bulk_cb(const struct hg_cb_info *hg_cb_info)
             bulk_args->obj_ids[i] = *u64_arr_ptr;
             u64_arr_ptr++;
         }
-
-        // HG_Bulk_access(local_bulk_handle, 0, bulk_args->nbytes, HG_BULK_READWRITE, 1, &buf, buf_sizes,
-        //                &actual_cnt);
-
-        // bulk_args->obj_ids = (uint64_t *)PDC_calloc(sizeof(uint64_t), n_meta);
-        // memcpy(bulk_args->obj_ids, buf, sizeof(uint64_t) * n_meta);
     }
     else
         PGOTO_ERROR(HG_PROTOCOL_ERROR, "==PDC_CLIENT[%d]: Error with bulk handle", pdc_client_mpi_rank_g);
@@ -6617,14 +6589,14 @@ static hg_return_t
 kvtag_query_forward_cb(const struct hg_cb_info *callback_info)
 {
     hg_return_t                   ret_value;
-    struct bulk_args_t *          bulk_arg;
+    struct bulk_args_t           *bulk_arg;
     hg_handle_t                   handle;
     metadata_query_transfer_out_t output;
     uint32_t                      n_meta;
     hg_op_id_t                    hg_bulk_op_id;
     hg_bulk_t                     local_bulk_handle  = HG_BULK_NULL;
     hg_bulk_t                     origin_bulk_handle = HG_BULK_NULL;
-    const struct hg_info *        hg_info            = NULL;
+    const struct hg_info         *hg_info            = NULL;
 
     FUNC_ENTER(NULL);
 
@@ -6765,8 +6737,8 @@ PDC_Client_query_kvtag(const pdc_kvtag_t *kvtag, int *n_res, uint64_t **pdc_ids)
     *pdc_ids = NULL;
 
     for (i = 0; i < pdc_server_num_g; i++) {
-        // TODO: when there are multiple clients issuing different queries concurrently, try to balance the
-        // server workload by having different clients sending queries with a different order
+        // TODO: when there are multiple clients issuing different queries concurrently, try to balance
+        // the server workload by having different clients sending queries with a different order
         // server_id = (pdc_client_mpi_rank_g + i) % pdc_server_num_g;
         // ret_value = PDC_Client_query_kvtag_server(server_id, kvtag, &nmeta, &temp_ids);
         ret_value = PDC_Client_query_kvtag_server((uint32_t)i, kvtag, &nmeta, &temp_ids);
@@ -6798,8 +6770,8 @@ PDCtag_delete(pdcid_t obj_id, char *tag_name, int is_cont)
     uint32_t                       server_id;
     hg_handle_t                    metadata_del_kvtag_handle;
     metadata_get_kvtag_in_t        in;
-    struct _pdc_obj_info *         obj_prop;
-    struct _pdc_cont_info *        cont_prop;
+    struct _pdc_obj_info          *obj_prop;
+    struct _pdc_cont_info         *cont_prop;
     struct _pdc_client_lookup_args lookup_args;
 
     FUNC_ENTER(NULL);
@@ -7034,7 +7006,7 @@ PDCobj_put_data(const char *obj_name, void *data, uint64_t size, pdcid_t cont_id
     perr_t  ret;
     // pdc_metadata_t *meta;
     struct _pdc_cont_info *info    = NULL;
-    struct _pdc_id_info *  id_info = NULL;
+    struct _pdc_id_info   *id_info = NULL;
     pdcid_t                transfer_request;
 
     FUNC_ENTER(NULL);
@@ -7108,27 +7080,25 @@ PDCobj_get_data(pdcid_t obj_id, void *data, uint64_t size)
     reg              = PDCregion_create(1, &offset, &size);
     transfer_request = PDCregion_transfer_create(data, PDC_READ, obj_id, reg, reg);
     if (transfer_request == 0) {
-        goto done;
+        PGOTO_DONE(ret_value);
     }
     ret_value = PDCregion_transfer_start(transfer_request);
     if (ret_value != SUCCEED) {
-        goto done;
+        PGOTO_ERROR(FAIL, "Error when calling PDCregion_transfer_start");
     }
     ret_value = PDCregion_transfer_wait(transfer_request);
     if (ret_value != SUCCEED) {
-        goto done;
+        PGOTO_ERROR(FAIL, "Error when calling PDCregion_transfer_wait");
     }
-
     ret_value = PDCregion_transfer_close(transfer_request);
     if (ret_value != SUCCEED) {
-
-        goto done;
+        PGOTO_ERROR(FAIL, "Error when calling PDCregion_transfer_close");
     }
-
     ret_value = PDCregion_close(reg);
     if (ret_value != SUCCEED) {
-        goto done;
+        PGOTO_ERROR(FAIL, "Error when calling PDCregion_close");
     }
+
 done:
     FUNC_LEAVE(ret_value);
 }
@@ -7138,7 +7108,7 @@ PDC_Client_del_metadata(pdcid_t obj_id, int is_cont)
 {
     perr_t                 ret_value = SUCCEED;
     uint64_t               meta_id;
-    struct _pdc_obj_info * obj_prop;
+    struct _pdc_obj_info  *obj_prop;
     struct _pdc_cont_info *cont_prop;
 
     FUNC_ENTER(NULL);
@@ -7267,7 +7237,7 @@ hg_return_t
 PDC_recv_nhits(const struct hg_cb_info *callback_info)
 {
     hg_return_t                    ret_value = HG_SUCCESS;
-    send_nhits_t *                 in        = (send_nhits_t *)callback_info->arg;
+    send_nhits_t                  *in        = (send_nhits_t *)callback_info->arg;
     struct _pdc_query_result_list *result_elt;
 
     FUNC_ENTER(NULL);
@@ -7294,10 +7264,10 @@ PDC_send_data_query(pdc_query_t *query, pdc_query_get_op_t get_op, uint64_t *nhi
 {
     perr_t                         ret_value      = SUCCEED;
     hg_return_t                    hg_ret         = 0;
-    uint32_t *                     target_servers = NULL;
+    uint32_t                      *target_servers = NULL;
     int                            i, server_id, next_server = 0, prev_server = 0, ntarget = 0;
     hg_handle_t                    handle;
-    pdc_query_xfer_t *             query_xfer;
+    pdc_query_xfer_t              *query_xfer;
     struct _pdc_client_lookup_args lookup_args;
     struct _pdc_query_result_list *result;
 
@@ -7384,12 +7354,12 @@ PDC_recv_coords(const struct hg_cb_info *callback_info)
 {
     hg_return_t                    ret_value         = HG_SUCCESS;
     hg_bulk_t                      local_bulk_handle = callback_info->info.bulk.local_handle;
-    struct bulk_args_t *           bulk_args         = (struct bulk_args_t *)callback_info->arg;
+    struct bulk_args_t            *bulk_args         = (struct bulk_args_t *)callback_info->arg;
     struct _pdc_query_result_list *result_elt;
     uint64_t                       nhits = 0;
     uint32_t                       ndim;
     int                            query_id, origin;
-    void *                         buf;
+    void                          *buf;
     pdc_int_ret_t                  out;
 
     FUNC_ENTER(NULL);
@@ -7469,7 +7439,7 @@ PDC_Client_get_sel_data(pdcid_t obj_id, pdc_selection_t *sel, void *data)
     uint64_t                       meta_id, off;
     get_sel_data_rpc_in_t          in;
     struct _pdc_client_lookup_args lookup_args;
-    struct _pdc_obj_info *         obj_prop;
+    struct _pdc_obj_info          *obj_prop;
     struct _pdc_query_result_list *result_elt;
 
     FUNC_ENTER(NULL);
@@ -7540,11 +7510,11 @@ PDC_recv_read_coords_data(const struct hg_cb_info *callback_info)
 {
     hg_return_t                    ret_value         = HG_SUCCESS;
     hg_bulk_t                      local_bulk_handle = callback_info->info.bulk.local_handle;
-    struct bulk_args_t *           bulk_args         = (struct bulk_args_t *)callback_info->arg;
+    struct bulk_args_t            *bulk_args         = (struct bulk_args_t *)callback_info->arg;
     struct _pdc_query_result_list *result_elt;
     uint64_t                       nhits = 0;
     int                            query_id, seq_id;
-    void *                         buf;
+    void                          *buf;
     pdc_int_ret_t                  out;
 
     FUNC_ENTER(NULL);
@@ -7615,9 +7585,9 @@ report_avg_server_profiling_rst()
 {
     for (int i = 0; i < pdc_server_num_g; i++) {
 
-        double avg_srv_time = server_call_count_g[i] > 0
-                                  ? (double)(server_time_total_g[i]) / (double)(server_call_count_g[i])
-                                  : 0.0;
+        double avg_srv_time  = server_call_count_g[i] > 0
+                                   ? (double)(server_time_total_g[i]) / (double)(server_call_count_g[i])
+                                   : 0.0;
         double srv_mem_usage = server_mem_usage_g[i] / 1024.0 / 1024.0;
         LOG_INFO("==PDC_CLIENT[%d]: server %d, avg profiling time: %.4f ms, memory usage: %.4f MB\n",
                  pdc_client_mpi_rank_g, i, avg_srv_time / 1000.0, srv_mem_usage);
@@ -7625,62 +7595,6 @@ report_avg_server_profiling_rst()
 }
 
 /******************** METADATA INDEX BEGINS *******************************/
-
-// metadata_index_create callback
-// static hg_return_t
-// client_metadata_index_create_cb(const struct hg_cb_info *callback_info)
-// {
-//     hg_return_t ret_value = HG_SUCCESS;
-//     hg_handle_t handle;
-//     struct client_lookup_args *client_lookup_args;
-
-//     metadata_index_create_out_t output;
-
-//     FUNC_ENTER(NULL);
-
-//     /* LOG_INFO("Entered client_rpc_cb()"); */
-//     client_lookup_args = (struct client_lookup_args*) callback_info->arg;
-//     handle = callback_info->info.forward.handle;
-
-//     /* Get output from server*/
-//     ret_value = HG_Get_output(handle, &output);
-//     /* LOG_INFO("Return value=%llu\n", output.ret); */
-//     client_lookup_args->obj_id = output.ret;
-
-//     hg_atomic_decr32(&atomic_work_todo_g);
-
-// done:
-//     HG_Destroy(handle);
-//     FUNC_LEAVE(ret_value);
-// }
-
-// metadata_index_delete callback
-// static hg_return_t
-// client_metadata_index_delete_cb(const struct hg_cb_info *callback_info)
-// {
-//     hg_return_t ret_value = HG_SUCCESS;
-//     hg_handle_t handle;
-//     struct client_lookup_args *client_lookup_args;
-
-//     metadata_index_delete_out_t output;
-
-//     FUNC_ENTER(NULL);
-
-//     /* LOG_INFO("Entered client_rpc_cb()"); */
-//     client_lookup_args = (struct client_lookup_args*) callback_info->arg;
-//     handle = callback_info->info.forward.handle;
-
-//     /* Get output from server*/
-//     ret_value = HG_Get_output(handle, &output);
-//     /* LOG_INFO("Return value=%llu\n", output.ret); */
-//     client_lookup_args->obj_id = output.ret;
-
-//     hg_atomic_decr32(&atomic_work_todo_g);
-
-// done:
-//     HG_Destroy(handle);
-//     FUNC_LEAVE(ret_value);
-// }
 
 // get_server_info_callback
 static hg_return_t
@@ -7699,8 +7613,7 @@ client_dart_get_server_info_cb(const struct hg_cb_info *callback_info)
     handle             = callback_info->info.forward.handle;
 
     /* Get output from server*/
-    ret_value = HG_Get_output(handle, &output);
-    /* LOG_INFO("Return value=%llu\n", output.ret); */
+    ret_value                        = HG_Get_output(handle, &output);
     client_lookup_args->int64_value1 = output.indexed_word_count;
     client_lookup_args->int64_value2 = output.request_count;
 
@@ -7756,7 +7669,7 @@ static hg_return_t
 dart_perform_one_server_on_receive_cb(const struct hg_cb_info *callback_info)
 {
     hg_return_t                   ret_value;
-    struct bulk_args_t *          client_lookup_args;
+    struct bulk_args_t           *client_lookup_args;
     hg_handle_t                   handle;
     dart_perform_one_server_out_t output;
     uint32_t                      n_meta;
@@ -7765,8 +7678,8 @@ dart_perform_one_server_on_receive_cb(const struct hg_cb_info *callback_info)
     hg_bulk_t             local_bulk_handle  = HG_BULK_NULL;
     hg_bulk_t             origin_bulk_handle = HG_BULK_NULL;
     const struct hg_info *hg_info            = NULL;
-    struct bulk_args_t *  bulk_args;
-    void *                recv_meta;
+    struct bulk_args_t   *bulk_args;
+    void                 *recv_meta;
 
     FUNC_ENTER(NULL);
 
@@ -7827,9 +7740,8 @@ dart_perform_one_server_on_receive_cb(const struct hg_cb_info *callback_info)
                                  client_lookup_args->nbytes, &hg_bulk_op_id);
 
     if (ret_value != HG_SUCCESS) {
-        LOG_INFO("Could not read bulk data\n");
         client_lookup_args->n_meta = 0;
-        goto done;
+        PGOTO_ERROR(FAIL, "Could not read bulk data");
     }
 
     hg_atomic_init32(&(client_lookup_args->bulk_done_flag), 0);
@@ -7917,7 +7829,7 @@ dart_perform_on_servers(index_hash_result_t **hash_result, int num_servers,
     struct bulk_args_t *lookup_args =
         (struct bulk_args_t *)PDC_calloc(num_servers, sizeof(struct bulk_args_t));
     uint64_t       ret_value            = 0;
-    hg_handle_t *  dart_request_handles = (hg_handle_t *)PDC_calloc(num_servers, sizeof(hg_handle_t));
+    hg_handle_t   *dart_request_handles = (hg_handle_t *)PDC_calloc(num_servers, sizeof(hg_handle_t));
     int            num_requests         = 0;
     uint32_t       total_n_meta         = 0;
     dart_op_type_t op_type              = dart_in->op_type;
@@ -7981,9 +7893,9 @@ PDC_Client_search_obj_ref_through_dart(dart_hash_algo_t hash_algo, char *query_s
     stopwatch_t timer;
     timer_start(&timer);
 
-    char *         k_query = get_key(query_string, '=');
-    char *         v_query = get_value(query_string, '=');
-    char *         tok     = NULL;
+    char          *k_query = get_key(query_string, '=');
+    char          *v_query = get_value(query_string, '=');
+    char          *tok     = NULL;
     dart_op_type_t dart_op;
 
     dart_determine_query_token_by_key_query(k_query, &tok, &dart_op);
@@ -8305,7 +8217,8 @@ _customized_all_gather_result(int query_sent, int *n_res, uint64_t **pdc_ids, MP
 
     if (sub_comm_color == 1) {
         // the result is first gathered among the ranks who sent the requests.
-        MPI_Allgather(n_res, 1, MPI_INT, sub_n_obj_arr, 1, MPI_INT, sub_comm); // get the number of results
+        MPI_Allgather(n_res, 1, MPI_INT, sub_n_obj_arr, 1, MPI_INT,
+                      sub_comm); // get the number of results
     }
 
     MPI_Barrier(world_comm);
@@ -8333,8 +8246,8 @@ _customized_all_gather_result(int query_sent, int *n_res, uint64_t **pdc_ids, MP
         ntotal += all_nmeta[i];
     }
 
-    // Finally, let's gather all the results. Since each client is getting a partial result which can be of
-    // different size, we need to use MPI_Allgatherv for gathering variable-size arrays from different
+    // Finally, let's gather all the results. Since each client is getting a partial result which can be
+    // of different size, we need to use MPI_Allgatherv for gathering variable-size arrays from different
     // clients.
     uint64_t *all_ids = (uint64_t *)PDC_malloc(ntotal * sizeof(uint64_t));
 
@@ -8491,9 +8404,9 @@ _customized_bcast_result(int first_sender_global_rank, int num_groups, int sende
         LOG_INFO("==PDC Client[%d]: Time for MPI_Bcast for Syncing ID count: %.4f ms\n",
                  pdc_client_mpi_rank_g, duration * 1000.0);
 
-    // Okay, now each rank of the WORLD_COMM knows about the number of results from the sender ranks, and the
-    // root for WORLD_COMM. Let's perform BCAST for the array data. for those ranks that are not the root,
-    // allocate memory for the object IDs.
+    // Okay, now each rank of the WORLD_COMM knows about the number of results from the sender ranks, and
+    // the root for WORLD_COMM. Let's perform BCAST for the array data. for those ranks that are not the
+    // root, allocate memory for the object IDs.
     if (*out == NULL) {
         *out = (uint64_t *)PDC_calloc(*n_res, sizeof(uint64_t));
     }
@@ -8523,8 +8436,8 @@ PDC_Client_search_obj_ref_through_dart_mpi(dart_hash_algo_t hash_algo, char *que
     double    stime = 0.0, duration = 0.0;
 
     // Let's calcualte an approprate root.
-    // FIXME: needs to be examined and fixed. Currently, first_sender_global_rank is different in different
-    // ranks. this is not correct.
+    // FIXME: needs to be examined and fixed. Currently, first_sender_global_rank is different in
+    // different ranks. this is not correct.
     int first_sender_global_rank, num_groups, sender_group_id, rank_in_group, sender_group_size,
         prefer_custom_exchange;
 
