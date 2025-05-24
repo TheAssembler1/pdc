@@ -124,8 +124,8 @@ foreach(program ${PROGRAMS})
   if(EXISTS ${SOURCE_FILE})
     add_executable(${program_name} ${SOURCE_FILE})
     target_include_directories(${program_name} PRIVATE 
-      "${CMAKE_SOURCE_DIR}/include" 
-      "${CMAKE_SOURCE_DIR}/src/tests/include"
+      ${CMAKE_SOURCE_DIR}/include 
+      ${CMAKE_SOURCE_DIR}/src/tests/include
     )
     target_link_libraries(${program_name} pdc pdc_commons ${TEST_EXT_LIB})
   else()
@@ -155,7 +155,9 @@ if(BUILD_MPI_TESTING)
         target_compile_options(${program_name} PRIVATE ${SUPPRESSED_LIST})
       endif()
       target_link_libraries(${program_name} pdc pdc_commons ${TEST_EXT_LIB})
-      target_include_directories(${program_name} PRIVATE ${TEST_EXT_INCLUDE_DIRS})
+      target_include_directories(${program_name} PRIVATE 
+        ${TEST_EXT_INCLUDE_DIRS}
+        ${CMAKE_SOURCE_DIR}/src/tests/include)
     else()
       message(WARNING "Source file ${SOURCE_FILE} not found, skipping ${program_name}.")
     endif()
