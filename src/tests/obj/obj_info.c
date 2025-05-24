@@ -26,6 +26,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "pdc.h"
+#include "test_helper.h"
 
 int
 main(int argc, char **argv)
@@ -51,168 +52,81 @@ main(int argc, char **argv)
     MPI_Comm_size(MPI_COMM_WORLD, &size);
 #endif
     // create a pdc
-    pdc = PDCinit("pdc");
-    LOG_INFO("create a new pdc\n");
-
+    TASSERT((pdc = PDCinit("pdc")) != 0, "Call to PDCinit succeeded", "Call to PDCinit failed");
     // create a container property
-    cont_prop = PDCprop_create(PDC_CONT_CREATE, pdc);
-    if (cont_prop > 0) {
-        LOG_INFO("Create a container property\n");
-    }
-    else {
-        LOG_ERROR("Failed to create container property");
-        ret_value = 1;
-    }
+    TASSERT((cont_prop = PDCprop_create(PDC_CONT_CREATE, pdc)) != 0, "Call to PDCprop_create succeeded",
+            "Call to PDCprop_create failed");
     // create a container
     sprintf(cont_name, "c%d", rank);
-    cont = PDCcont_create(cont_name, cont_prop);
-    if (cont > 0) {
-        LOG_INFO("Create a container c1\n");
-    }
-    else {
-        LOG_ERROR("Failed to create container");
-        ret_value = 1;
-    }
+    TASSERT((cont = PDCcont_create(cont_name, cont_prop)) != 0, "Call to PDCcont_create succeeded",
+            "Call to PDCcont_create failed");
     // create an object property
-    obj_prop = PDCprop_create(PDC_OBJ_CREATE, pdc);
-    if (obj_prop > 0) {
-        LOG_INFO("Create an object property\n");
-    }
-    else {
-        LOG_ERROR("Failed to create object property");
-        ret_value = 1;
-    }
-    ret = PDCprop_set_obj_dims(obj_prop, ndim, dims);
-    if (ret != SUCCEED) {
-        LOG_ERROR("Failed to set obj time step");
-        ret_value = 1;
-    }
-    ret = PDCprop_set_obj_type(obj_prop, PDC_DOUBLE);
-    if (ret != SUCCEED) {
-        LOG_ERROR("Failed to set obj time step");
-        ret_value = 1;
-    }
+    TASSERT((obj_prop = PDCprop_create(PDC_OBJ_CREATE, pdc)) != 0, "Call to PDCprop_create succeeded",
+            "Call to PDCprop_create failed");
+    TASSERT(PDCprop_set_obj_dims(obj_prop, ndim, dims) >= 0, "Call to PDCprop_set_obj_dims succeeded",
+            "Call to PDCprop_set_obj_dims failed");
+    TASSERT(PDCprop_set_obj_type(obj_prop, PDC_DOUBLE) >= 0, "Call to PDCprop_set_obj_type succeeded",
+            "Call to PDCprop_set_obj_type failed");
 
     // create first object
     sprintf(obj_name1, "o1_%d", rank);
-    obj1 = PDCobj_create(cont, obj_name1, obj_prop);
-    if (obj1 > 0) {
-        LOG_INFO("Create an object o1\n");
-    }
-    else {
-        LOG_ERROR("Failed to create object");
-        ret_value = 1;
-    }
+    TASSERT((obj1 = PDCobj_create(cont, obj_name1, obj_prop)) != 0, "Call to PDCobj_create succeeded",
+            "Call to PDCobj_create failed");
     // create second object
     sprintf(obj_name2, "o2_%d", rank);
-    obj2 = PDCobj_create(cont, obj_name2, obj_prop);
-    if (obj2 > 0) {
-        LOG_INFO("Create an object o2\n");
-    }
-    else {
-        LOG_ERROR("Failed to create object");
-        ret_value = 1;
-    }
-    obj1_info = PDCobj_get_info(obj1);
-    obj2_info = PDCobj_get_info(obj2);
-    if (strcmp(obj1_info->name, obj_name1) != 0) {
-        LOG_ERROR("Object 1 name is wrong\n");
-        ret_value = 1;
-    }
+    TASSERT((obj2 = PDCobj_create(cont, obj_name2, obj_prop)) != 0, "Call to PDCobj_create succeeded",
+            "Call to PDCobj_create failed");
+    TASSERT((obj1_info = PDCobj_get_info(obj1)) != NULL, "Call to PDCobj_get_info succeeded",
+            "Call to PDCobj_get_info failed");
+    TASSERT((obj2_info = PDCobj_get_info(obj2)) != NULL, "Call to PDCobj_get_info succeeded",
+            "Call to PDCobj_get_info failed");
+    TASSERT(strcmp(obj1_info->name, obj_name1) == 0, "obj1 name matched", "obj1 name did NOT match");
 
-    if (obj1_info->obj_pt->type != PDC_DOUBLE) {
-        LOG_ERROR("Type is not properly inherited from object property.\n");
-        ret_value = 1;
-    }
+    TASSERT(obj1_info->obj_pt->type == PDC_DOUBLE, "Type is properly inherited from object property",
+            "Type is NOT properly inherited from object property");
+    TASSERT(obj1_info->obj_pt->ndim == ndim,
+            "Number of dimensions is properly inherited from object property",
+            "Number of dimensions is NOT properly inherited from object property");
+    TASSERT(obj1_info->obj_pt->dims[0] == dims[0],
+            "First dimension is properly inherited from object property",
+            "First dimension is NOT properly inherited from object property");
+    TASSERT(obj1_info->obj_pt->dims[1] == dims[1],
+            "Second dimension is properly inherited from object property",
+            "Second dimension is NOT properly inherited from object property");
+    TASSERT(obj1_info->obj_pt->dims[2] == dims[2],
+            "Third dimension is properly inherited from object property",
+            "Third dimension is NOT properly inherited from object property");
 
-    if (obj1_info->obj_pt->ndim != ndim) {
-        LOG_ERROR("Number of dimensions is not properly inherited from object property.\n");
-        ret_value = 1;
-    }
-    if (obj1_info->obj_pt->dims[0] != dims[0]) {
-        LOG_ERROR("First dimension is not properly inherited from object property.\n");
-        ret_value = 1;
-    }
-    if (obj1_info->obj_pt->dims[1] != dims[1]) {
-        LOG_ERROR("Second dimension is not properly inherited from object property.\n");
-        ret_value = 1;
-    }
-    if (obj1_info->obj_pt->dims[2] != dims[2]) {
-        LOG_ERROR("Third dimension is not properly inherited from object property.\n");
-        ret_value = 1;
-    }
+    TASSERT(strcmp(obj2_info->name, obj_name2) == 0, "obj2 name matched", "obj2 name did NOT match");
 
-    if (strcmp(obj2_info->name, obj_name2) != 0) {
-        LOG_ERROR("Object 2 name is wrong\n");
-        ret_value = 1;
-    }
-
-    if (obj2_info->obj_pt->type != PDC_DOUBLE) {
-        LOG_ERROR("Type is not properly inherited from object property.\n");
-        ret_value = 1;
-    }
-
-    if (obj2_info->obj_pt->ndim != ndim) {
-        LOG_ERROR("Number of dimensions is not properly inherited from object property.\n");
-        ret_value = 1;
-    }
-    if (obj2_info->obj_pt->dims[0] != dims[0]) {
-        LOG_ERROR("First dimension is not properly inherited from object property.\n");
-        ret_value = 1;
-    }
-    if (obj2_info->obj_pt->dims[1] != dims[1]) {
-        LOG_ERROR("Second dimension is not properly inherited from object property.\n");
-        ret_value = 1;
-    }
-    if (obj2_info->obj_pt->dims[2] != dims[2]) {
-        LOG_ERROR("Third dimension is not properly inherited from object property.\n");
-        ret_value = 1;
-    }
+    TASSERT(obj2_info->obj_pt->type == PDC_DOUBLE, "Type is properly inherited from object property",
+            "Type is NOT properly inherited from object property");
+    TASSERT(obj2_info->obj_pt->ndim == ndim,
+            "Number of dimensions is properly inherited from object property",
+            "Number of dimensions is NOT properly inherited from object property");
+    TASSERT(obj2_info->obj_pt->dims[0] == dims[0],
+            "First dimension is properly inherited from object property",
+            "First dimension is NOT properly inherited from object property");
+    TASSERT(obj2_info->obj_pt->dims[1] == dims[1],
+            "Second dimension is properly inherited from object property",
+            "Second dimension is NOT properly inherited from object property");
+    TASSERT(obj2_info->obj_pt->dims[2] == dims[2],
+            "Third dimension is properly inherited from object property",
+            "Third dimension is NOT properly inherited from object property");
 
     // close object
-    if (PDCobj_close(obj1) < 0) {
-        LOG_ERROR("Failed to close object o1\n");
-        ret_value = 1;
-    }
-    else {
-        LOG_INFO("Successfully closed object o1\n");
-    }
-    if (PDCobj_close(obj2) < 0) {
-        LOG_ERROR("Failed to close object o2\n");
-        ret_value = 1;
-    }
-    else {
-        LOG_INFO("Successfully closed object o2\n");
-    }
+    TASSERT(PDCobj_close(obj1) >= 0, "Call to PDCobj_close succeeded", "Call to PDCobj_close failed");
+    TASSERT(PDCobj_close(obj2) >= 0, "Call to PDCobj_close succeeded", "Call to PDCobj_close failed");
     // close a container
-    if (PDCcont_close(cont) < 0) {
-        LOG_ERROR("Failed to close container c1\n");
-        ret_value = 1;
-    }
-    else {
-        LOG_INFO("Successfully closed container c1\n");
-    }
+    TASSERT(PDCcont_close(cont) >= 0, "Call to PDCcont_close succeeded", "Call to PDCcont_close failed");
     // close a object property
-    if (PDCprop_close(obj_prop) < 0) {
-        LOG_ERROR("Failed to close property");
-        ret_value = 1;
-    }
-    else {
-        LOG_INFO("Successfully closed object property\n");
-    }
+    TASSERT(PDCprop_close(obj_prop) >= 0, "Call to PDCprop_close succeeded", "Call to PDCprop_close failed");
     // close a container property
-    if (PDCprop_close(cont_prop) < 0) {
-        LOG_ERROR("Failed to close property");
-        ret_value = 1;
-    }
-    else {
-        LOG_INFO("Successfully closed container property\n");
-    }
+    TASSERT(PDCprop_close(cont_prop) >= 0, "Call to PDCprop_close succeeded", "Call to PDCprop_close failed");
     // close pdc
-    if (PDCclose(pdc) < 0) {
-        LOG_ERROR("Failed to close PDC\n");
-        ret_value = 1;
-    }
+    TASSERT(PDCclose(pdc) >= 0, "Call to PDCclose succeeded", "Call to PDCclose failed");
+
+done:
 #ifdef ENABLE_MPI
     MPI_Finalize();
 #endif

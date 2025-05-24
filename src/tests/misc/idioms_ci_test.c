@@ -30,8 +30,7 @@
 #include <inttypes.h>
 #include <assert.h>
 #include "pdc.h"
-#include "pdc_client_connect.h"
-#include "string_utils.h"
+#include "test_helper.h"
 
 dart_object_ref_type_t ref_type  = REF_PRIMARY_ID;
 dart_hash_algo_t       hash_algo = DART_HASH;
@@ -56,31 +55,21 @@ print_usage(char *name)
 perr_t
 prepare_container(pdcid_t *pdc, pdcid_t *cont_prop, pdcid_t *cont, pdcid_t *obj_prop, int world_rank)
 {
-    perr_t ret_value = FAIL;
+    perr_t ret_value = SUCCEED;
+    int    rank      = world_rank;
     // create a pdc
-    *pdc = PDCinit("pdc");
-
+    TASSERT((*pdc = PDCinit("pdc")) != 0, "Call to PDCinit succeeded", "Call to PDCinit failed");
     // create a container property
-    *cont_prop = PDCprop_create(PDC_CONT_CREATE, *pdc);
-    if (*cont_prop <= 0) {
-        LOG_ERROR("[Client %d] Fail to create container property\n", world_rank);
-        goto done;
-    }
+    TASSERT((*cont_prop = PDCprop_create(PDC_CONT_CREATE, *pdc)) != 0, "Call to PDCprop_create succeeded",
+            "Call to PDCprop_create failed");
     // create a container
-    *cont = PDCcont_create("c1", *cont_prop);
-    if (*cont <= 0) {
-        LOG_ERROR("[Client %d] Fail to create container\n", world_rank);
-        goto done;
-    }
+    TASSERT((*cont = PDCcont_create("c1", *cont_prop)) != 0, "Call to PDCcont_create succeeded",
+            "Call to PDCcont_create failed");
 
     // create an object property
-    *obj_prop = PDCprop_create(PDC_OBJ_CREATE, *pdc);
-    if (*obj_prop <= 0) {
-        LOG_ERROR("[Client %d] Fail to create object property\n", world_rank);
-        goto done;
-    }
+    TASSERT((*obj_prop = PDCprop_create(PDC_OBJ_CREATE, *pdc)) != 0, "Call to PDCprop_create succeeded",
+            "Call to PDCprop_create failed");
 
-    ret_value = SUCCEED;
 done:
     return ret_value;
 }
@@ -333,13 +322,15 @@ main(int argc, char *argv[])
     pdcid_t pdc, cont_prop, cont, obj_prop;
     int     world_size, world_rank, i;
     double  stime, total_time;
-    int     ret_value = SUCCEED;
+    int     ret_value = TSUCCEED;
 
 #ifdef ENABLE_MPI
     MPI_Init(&argc, &argv);
     MPI_Comm_size(MPI_COMM_WORLD, &world_size);
     MPI_Comm_rank(MPI_COMM_WORLD, &world_rank);
 #endif
+
+    int rank = world_rank;
 
     // prepare container
     if (prepare_container(&pdc, &cont_prop, &cont, &obj_prop, world_rank) < 0)
@@ -348,7 +339,7 @@ main(int argc, char *argv[])
     if (world_rank == 0)
         LOG_INFO("Initialization Done\n");
 
-        // No need to create any object for testing only the index.
+    // No need to create any object for testing only the index.
 #ifdef ENABLE_MPI
     MPI_Barrier(MPI_COMM_WORLD);
     stime = MPI_Wtime();
@@ -450,41 +441,13 @@ main(int argc, char *argv[])
     }
 
     // close a container
-    if (PDCcont_close(cont) < 0) {
-        if (world_rank == 0) {
-            LOG_ERROR("Failed to close container c1\n");
-        }
-    }
-    else {
-        if (world_rank == 0)
-            LOG_INFO("Successfully closed container c1\n");
-    }
-
+    TASSERT(PDCcont_close(cont) >= 0, "Call to PDCcont_close succeeded", "Call to PDCcont_close failed");
     // close an object property
-    if (PDCprop_close(obj_prop) < 0) {
-        if (world_rank == 0)
-            LOG_ERROR("Failed to close property");
-    }
-    else {
-        if (world_rank == 0)
-            LOG_INFO("Successfully closed object property\n");
-    }
-
+    TASSERT(PDCprop_close(obj_prop) >= 0, "Call to PDCprop_close succeeded", "Call to PDCprop_close failed");
     // close a container property
-    if (PDCprop_close(cont_prop) < 0) {
-        if (world_rank == 0)
-            LOG_ERROR("Failed to close property");
-    }
-    else {
-        if (world_rank == 0)
-            LOG_INFO("Successfully closed container property\n");
-    }
-
+    TASSERT(PDCprop_close(cont_prop) >= 0, "Call to PDCprop_close succeeded", "Call to PDCprop_close failed");
     // close pdc
-    if (PDCclose(pdc) < 0) {
-        if (world_rank == 0)
-            LOG_ERROR("Failed to close PDC\n");
-    }
+    TASSERT(PDCclose(pdc) >= 0, "Call to PDCclose succeeded", "Call to PDCclose failed");
 
 done:
 #ifdef ENABLE_MPI

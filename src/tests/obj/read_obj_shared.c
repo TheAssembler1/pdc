@@ -35,7 +35,7 @@ main(int argc, char **argv)
     uint64_t *offset, *local_offset;
     uint64_t *mysize;
     int       i, j;
-    char *    mydata;
+    char     *mydata;
     char      obj_name[128], cont_name[128];
 
     uint64_t my_data_size;
@@ -129,14 +129,14 @@ main(int argc, char **argv)
             "Call to PDCprop_set_obj_type failed");
     TASSERT(PDCprop_set_obj_dims(obj_prop, 1, dims) >= 0, "Call to PDCprop_set_obj_dims succeeded",
             "Call to PDCprop_set_obj_dims failed");
-    TASSERT(PDCprop_set_obj_user_id(obj_prop, getuid()) >= 0, "Call to (PDCprop_set_obj_user_id succeeded",
-            "Call to (PDCprop_set_obj_user_id failed");
+    TASSERT(PDCprop_set_obj_user_id(obj_prop, getuid()) >= 0, "Call to PDCprop_set_obj_user_id succeeded",
+            "Call to PDCprop_set_obj_user_id failed");
     TASSERT(PDCprop_set_obj_time_step(obj_prop, 0) >= 0, "Call to PDCprop_set_obj_time_step succeeded",
             "Call to PDCprop_set_obj_time_step failed");
     TASSERT(PDCprop_set_obj_app_name(obj_prop, "DataServerTest") >= 0,
-            "Call to (PDCprop_set_obj_user_id succeeded", "Call to (PDCprop_set_obj_user_id failed");
-    TASSERT(PDCprop_set_obj_tags(obj_prop, "tag0=1") >= 0, "Call to (PDCprop_set_obj_tags succeeded",
-            "Call to (PDCprop_set_obj_tags failed");
+            "Call to PDCprop_set_obj_user_id succeeded", "Call to PDCprop_set_obj_user_id failed");
+    TASSERT(PDCprop_set_obj_tags(obj_prop, "tag0=1") >= 0, "Call to PDCprop_set_obj_tags succeeded",
+            "Call to PDCprop_set_obj_tags failed");
 
     // Create a object
 #ifdef ENABLE_MPI
@@ -183,8 +183,8 @@ main(int argc, char **argv)
             "Call to PDCregion_transfer_start failed");
     TASSERT(PDCregion_transfer_wait(transfer_request) >= 0, "Call to PDCregion_transfer_wait succeeded",
             "Call to PDCregion_transfer_wait failed");
-    TASSERT(PDCregion_transfer_close(transfer_request) >= 0, "Call to PDCregion_close succeeded",
-            "Call to PDCregion_close failed");
+    TASSERT(PDCregion_transfer_close(transfer_request) >= 0, "Call to PDCregion_transfer_close succeeded",
+            "Call to PDCregion_transfer_close failed");
 
     TASSERT(PDCobj_close(global_obj) >= 0, "Call to PDCobj_close succeeded", "Call to PDCobj_close failed");
     TASSERT(PDCregion_close(local_region) >= 0, "Call to PDCregion_close succeeded",
@@ -221,8 +221,8 @@ main(int argc, char **argv)
             "Call to PDCregion_transfer_start failed");
     TASSERT(PDCregion_transfer_wait(transfer_request) >= 0, "Call to PDCregion_transfer_wait succeeded",
             "Call to PDCregion_transfer_wait failed");
-    TASSERT(PDCregion_transfer_close(transfer_request) >= 0, "Call to PDCregion_close succeeded",
-            "Call to PDCregion_close failed");
+    TASSERT(PDCregion_transfer_close(transfer_request) >= 0, "Call to PDCregion_transfer_close succeeded",
+            "Call to PDCregion_transfer_close failed");
 
     for (i = 0; i < (int)my_data_size; i++) {
         for (j = 0; j < (int)type_size; ++j) {

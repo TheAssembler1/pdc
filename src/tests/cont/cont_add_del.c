@@ -80,7 +80,7 @@ main(int argc, char **argv)
     char  obj_prefix[4][10] = {"x", "y", "z", "energy"};
     char  tmp_str[128];
     char  name_mode[6][32] = {"Random Obj Names", "INVALID!", "One Obj Name",
-                             "INVALID!",         "INVALID!", "Four Obj Names"};
+                              "INVALID!",         "INVALID!", "Four Obj Names"};
 
 #ifdef ENABLE_MPI
     MPI_Init(&argc, &argv);
@@ -181,12 +181,12 @@ main(int argc, char **argv)
 
         TASSERT(PDCprop_set_obj_time_step(obj_prop, rank) >= 0, "Call to PDCprop_set_obj_time_step succeeded",
                 "Call to PDCprop_set_obj_time_step failed");
-        TASSERT(PDCprop_set_obj_user_id(obj_prop, getuid()) >= 0,
-                "Call to (PDCprop_set_obj_user_id succeeded", "Call to (PDCprop_set_obj_user_id failed");
+        TASSERT(PDCprop_set_obj_user_id(obj_prop, getuid()) >= 0, "Call to PDCprop_set_obj_user_id succeeded",
+                "Call to PDCprop_set_obj_user_id failed");
         TASSERT(PDCprop_set_obj_app_name(obj_prop, "test_app") >= 0,
-                "Call to (PDCprop_set_obj_user_id succeeded", "Call to (PDCprop_set_obj_user_id failed");
-        TASSERT(PDCprop_set_obj_tags(obj_prop, "tag0=1") >= 0, "Call to (PDCprop_set_obj_tags succeeded",
-                "Call to (PDCprop_set_obj_tags failed");
+                "Call to PDCprop_set_obj_user_id succeeded", "Call to PDCprop_set_obj_user_id failed");
+        TASSERT(PDCprop_set_obj_tags(obj_prop, "tag0=1") >= 0, "Call to PDCprop_set_obj_tags succeeded",
+                "Call to PDCprop_set_obj_tags failed");
 
         if (count < 20)
             LOG_INFO("[%d] create obj with name %s\n", rank, obj_name);

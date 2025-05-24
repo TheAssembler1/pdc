@@ -26,6 +26,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "pdc.h"
+#include "test_helper.h"
 
 #define BUF_LEN 16
 
@@ -48,86 +49,34 @@ main(int argc, char **argv)
     MPI_Comm_size(MPI_COMM_WORLD, &size);
 #endif
     // create a pdc
-    pdc = PDCinit("pdc");
-    LOG_INFO("create a new pdc\n");
-
+    TASSERT((pdc = PDCinit("pdc")) != 0, "Call to PDCinit succeeded", "Call to PDCinit failed");
     // create a container property
-    cont_prop = PDCprop_create(PDC_CONT_CREATE, pdc);
-    if (cont_prop > 0) {
-        LOG_INFO("Create a container property\n");
-    }
-    else {
-        LOG_ERROR("Failed to create container property");
-        ret_value = 1;
-    }
+    TASSERT((cont_prop = PDCprop_create(PDC_CONT_CREATE, pdc)) != 0, "Call to PDCprop_create succeeded",
+            "Call to PDCprop_create failed");
     // create a container
     sprintf(cont_name, "c%d", rank);
-    cont = PDCcont_create(cont_name, cont_prop);
-    if (cont > 0) {
-        LOG_INFO("Rank %d Create a container %s\n", rank, cont_name);
-    }
-    else {
-        LOG_ERROR("Failed to create container");
-        ret_value = 1;
-    }
+    TASSERT((cont = PDCcont_create(cont_name, cont_prop)) != 0, "Call to PDCcont_create succeeded",
+            "Call to PDCcont_create failed");
 
     sprintf(obj_name1, "o1_%d", rank);
-    obj1 = PDCobj_put_data(obj_name1, (void *)data, BUF_LEN * sizeof(double), cont);
-    if (obj1 > 0) {
-        LOG_INFO("Rank %d Put data to %s\n", rank, obj_name1);
-    }
-    else {
-        LOG_ERROR("Failed to put data into object");
-        ret_value = 1;
-    }
+    TASSERT((obj1 = PDCobj_put_data(obj_name1, (void *)data, BUF_LEN * sizeof(double), cont)) > 0,
+            "Call to DCobj_put_data succeeded", "Call to DCobj_put_data failed");
 
     sprintf(obj_name2, "o2_%d", rank);
-    obj2 = PDCobj_put_data(obj_name2, (void *)data, BUF_LEN * sizeof(double), cont);
-    if (obj2 > 0) {
-        LOG_INFO("Rank %d Put data to %s\n", rank, obj_name2);
-    }
-    else {
-        LOG_ERROR("Failed to put data into object");
-        ret_value = 1;
-    }
+    TASSERT((obj2 = PDCobj_put_data(obj_name2, (void *)data, BUF_LEN * sizeof(double), cont)) > 0,
+            "Call to DCobj_put_data succeeded", "Call to DCobj_put_data failed");
 
     // close object
-    if (PDCobj_close(obj1) < 0) {
-        LOG_ERROR("Failed to close object o1\n");
-        ret_value = 1;
-    }
-    else {
-        LOG_INFO("Successfully closed object o1\n");
-    }
-    if (PDCobj_close(obj2) < 0) {
-        LOG_ERROR("Failed to close object o2\n");
-        ret_value = 1;
-    }
-    else {
-        LOG_INFO("Successfully closed object o2\n");
-    }
-
+    TASSERT(PDCobj_close(obj1) >= 0, "Call to PDCobj_close succeeded", "Call to PDCobj_close failed");
+    TASSERT(PDCobj_close(obj2) >= 0, "Call to PDCobj_close succeeded", "Call to PDCobj_close failed");
     // close a container
-    if (PDCcont_close(cont) < 0) {
-        LOG_ERROR("Failed to close container c1\n");
-        ret_value = 1;
-    }
-    else {
-        LOG_INFO("Successfully closed container c1\n");
-    }
+    TASSERT(PDCcont_close(cont) >= 0, "Call to PDCcont_close succeeded", "Call to PDCcont_close failed");
     // close a container property
-    if (PDCprop_close(cont_prop) < 0) {
-        LOG_ERROR("Failed to close property");
-        ret_value = 1;
-    }
-    else {
-        LOG_INFO("Successfully closed container property\n");
-    }
+    TASSERT(PDCprop_close(cont_prop) >= 0, "Call to PDCprop_close succeeded", "Call to PDCprop_close failed");
     // close pdc
-    if (PDCclose(pdc) < 0) {
-        LOG_ERROR("Failed to close PDC\n");
-        ret_value = 1;
-    }
+    TASSERT(PDCclose(pdc) >= 0, "Call to PDCclose succeeded", "Call to PDCclose failed");
+
+done:
 #ifdef ENABLE_MPI
     MPI_Finalize();
 #endif
