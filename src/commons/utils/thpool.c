@@ -66,9 +66,9 @@ typedef struct job {
 /* Job queue */
 typedef struct jobqueue {
     pthread_mutex_t rwmutex;  /* used for queue r/w access */
-    job            *front;    /* pointer to front of queue */
-    job            *rear;     /* pointer to rear  of queue */
-    bsem           *has_jobs; /* flag as binary semaphore  */
+    job *           front;    /* pointer to front of queue */
+    job *           rear;     /* pointer to rear  of queue */
+    bsem *          has_jobs; /* flag as binary semaphore  */
     int             len;      /* number of jobs in queue   */
 } jobqueue;
 
@@ -81,7 +81,7 @@ typedef struct thread {
 
 /* Threadpool */
 typedef struct thpool_ {
-    thread        **threads;             /* pointer to threads        */
+    thread **       threads;             /* pointer to threads        */
     volatile int    num_threads_alive;   /* threads currently alive   */
     volatile int    num_threads_working; /* threads currently working */
     pthread_mutex_t thcount_lock;        /* used for thread count etc */
@@ -388,7 +388,7 @@ thread_do(struct thread *thread_p)
             /* Read job from queue and execute it */
             void (*func_buff)(void *);
             void *arg_buff;
-            job  *job_p = jobqueue_pull(&thpool_p->jobqueue);
+            job * job_p = jobqueue_pull(&thpool_p->jobqueue);
             if (job_p) {
                 func_buff = job_p->function;
                 arg_buff  = job_p->arg;

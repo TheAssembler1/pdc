@@ -91,7 +91,7 @@ PDC_Server_instantiate_data_iterator(obj_data_iterator_in_t *in, obj_data_iterat
     FUNC_ENTER(NULL);
 
     perr_t                     ret_value        = SUCCEED;
-    data_server_region_t      *region_reference = NULL;
+    data_server_region_t *     region_reference = NULL;
     struct _pdc_iterator_info *thisIter;
 
 #ifdef ENABLE_MULTITHREAD
@@ -175,7 +175,7 @@ PDC_Server_get_ftn_reference(char *ftn)
     FUNC_ENTER(NULL);
 
     static void *appHandle = NULL;
-    void        *ftnHandle = NULL;
+    void *       ftnHandle = NULL;
     if (appHandle == NULL) {
         /* We need the in_process address of the function */
         if ((appHandle = dlopen(0, RTLD_NOW)) == NULL) {

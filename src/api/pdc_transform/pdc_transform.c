@@ -53,23 +53,23 @@ PDCobj_transform_register(char *func, pdcid_t obj_id, int current_state, int nex
     FUNC_ENTER(NULL);
 
     perr_t ret_value                               = SUCCEED;
-    void  *ftnHandle                               = NULL;
+    void * ftnHandle                               = NULL;
     size_t (*ftnPtr)()                             = NULL;
     struct _pdc_region_transform_ftn_info *thisFtn = NULL;
-    struct _pdc_obj_info                  *obj1, *obj2;
-    struct _pdc_id_info                   *objinfo1;
-    struct _pdc_obj_prop                  *prop;
-    struct pdc_region_info                *reg1 = NULL, *reg2 = NULL;
+    struct _pdc_obj_info *                 obj1, *obj2;
+    struct _pdc_id_info *                  objinfo1;
+    struct _pdc_obj_prop *                 prop;
+    struct pdc_region_info *               reg1 = NULL, *reg2 = NULL;
     pdcid_t                                src_region_id = 0, dest_region_id = 0;
     pdcid_t                                dest_object_id    = 0;
-    char                                  *thisApp           = NULL;
-    char                                  *colonsep          = NULL;
-    char                                  *transformslibrary = NULL;
-    char                                  *applicationDir    = NULL;
-    char                                  *userdefinedftn    = NULL;
-    char                                  *loadpath          = NULL;
+    char *                                 thisApp           = NULL;
+    char *                                 colonsep          = NULL;
+    char *                                 transformslibrary = NULL;
+    char *                                 applicationDir    = NULL;
+    char *                                 userdefinedftn    = NULL;
+    char *                                 loadpath          = NULL;
     int                                    local_regIndex;
-    struct _pdc_id_info                   *id_info;
+    struct _pdc_id_info *                  id_info;
 
     thisApp = PDC_get_argv0_();
     if (thisApp)
@@ -99,7 +99,7 @@ PDCobj_transform_register(char *func, pdcid_t obj_id, int current_state, int nex
         PGOTO_ERROR(FAIL, "PDC register_obj_transforms memory allocation failed");
 
     memset(thisFtn, 0, sizeof(struct _pdc_region_transform_ftn_info));
-    thisFtn->ftnPtr    = (size_t (*)())ftnPtr;
+    thisFtn->ftnPtr    = (size_t(*)())ftnPtr;
     thisFtn->object_id = obj_id;
     thisFtn->op_type   = op_type;
     thisFtn->when      = when;
@@ -171,18 +171,18 @@ PDCbuf_map_transform_register(char *func, void *buf, pdcid_t src_region_id, pdci
     FUNC_ENTER(NULL);
 
     perr_t ret_value                                   = SUCCEED; /* Return value */
-    void  *ftnHandle                                   = NULL;
+    void * ftnHandle                                   = NULL;
     size_t (*ftnPtr)()                                 = NULL;
-    struct _pdc_obj_info                  *object1     = NULL;
+    struct _pdc_obj_info *                 object1     = NULL;
     struct _pdc_region_transform_ftn_info *thisFtn     = NULL;
-    struct pdc_region_info                *region_info = NULL;
-    struct _pdc_id_info                   *id_info;
-    char                                  *thisApp           = NULL;
-    char                                  *colonsep          = NULL;
-    char                                  *transformslibrary = NULL;
-    char                                  *applicationDir    = NULL;
-    char                                  *userdefinedftn    = NULL;
-    char                                  *loadpath          = NULL;
+    struct pdc_region_info *               region_info = NULL;
+    struct _pdc_id_info *                  id_info;
+    char *                                 thisApp           = NULL;
+    char *                                 colonsep          = NULL;
+    char *                                 transformslibrary = NULL;
+    char *                                 applicationDir    = NULL;
+    char *                                 userdefinedftn    = NULL;
+    char *                                 loadpath          = NULL;
     int                                    local_regIndex;
 
     thisApp = PDC_get_argv0_();
@@ -212,7 +212,7 @@ PDCbuf_map_transform_register(char *func, void *buf, pdcid_t src_region_id, pdci
              sizeof(struct _pdc_region_transform_ftn_info))) == NULL)
         PGOTO_ERROR(FAIL, "PDC register_obj_transforms memory allocation failed");
 
-    thisFtn->ftnPtr    = (size_t (*)())ftnPtr;
+    thisFtn->ftnPtr    = (size_t(*)())ftnPtr;
     thisFtn->object_id = dest_object_id;
     id_info            = PDC_find_id(src_region_id);
     if (id_info && ((region_info = (struct pdc_region_info *)id_info->obj_ptr) != NULL))

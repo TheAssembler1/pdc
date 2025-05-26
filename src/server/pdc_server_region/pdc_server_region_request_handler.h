@@ -45,14 +45,14 @@ transfer_request_all_bulk_transfer_read_cb(const struct hg_cb_info *info)
     FUNC_ENTER(NULL);
 
     struct transfer_request_all_local_bulk_args2 *local_bulk_args2;
-    struct transfer_request_all_local_bulk_args  *local_bulk_args = info->arg;
-    const struct hg_info                         *handle_info;
+    struct transfer_request_all_local_bulk_args * local_bulk_args = info->arg;
+    const struct hg_info *                        handle_info;
     transfer_request_all_data                     request_data;
     hg_return_t                                   ret = HG_SUCCESS;
-    struct pdc_region_info                       *remote_reg_info;
+    struct pdc_region_info *                      remote_reg_info;
     int                                           i, j;
     uint64_t                                      total_mem_size, mem_size;
-    char                                         *ptr;
+    char *                                        ptr;
 
 #ifdef PDC_TIMING
     double end;
@@ -171,7 +171,7 @@ transfer_request_all_bulk_transfer_write_cb(const struct hg_cb_info *info)
     struct transfer_request_all_local_bulk_args *local_bulk_args = info->arg;
     transfer_request_all_data                    request_data;
     hg_return_t                                  ret = HG_SUCCESS;
-    struct pdc_region_info                      *remote_reg_info;
+    struct pdc_region_info *                     remote_reg_info;
     int                                          i;
     char                                         cur_time[64];
 
@@ -285,8 +285,8 @@ transfer_request_wait_all_bulk_transfer_cb(const struct hg_cb_info *info)
     pdcid_t               transfer_request_id;
     hg_return_t           ret = HG_SUCCESS;
     int                   i, fast_return;
-    char                 *ptr;
-    int                  *handle_ref;
+    char *                ptr;
+    int *                 handle_ref;
     pdc_transfer_status_t status;
 
     // free is in PDC_finish_request
@@ -340,7 +340,7 @@ transfer_request_bulk_transfer_write_cb(const struct hg_cb_info *info)
 
     struct transfer_request_local_bulk_args *local_bulk_args = info->arg;
     hg_return_t                              ret             = HG_SUCCESS;
-    struct pdc_region_info                  *remote_reg_info;
+    struct pdc_region_info *                 remote_reg_info;
     uint64_t                                 obj_dims[3];
 
 #ifdef TANG_DEBUG
@@ -469,7 +469,7 @@ HG_TEST_RPC_CB(transfer_request_wait, handle)
     transfer_request_wait_out_t out;
     pdc_transfer_status_t       status;
     int                         fast_return = 0;
-    int                        *handle_ref;
+    int *                       handle_ref;
 
 #ifdef PDC_TIMING
     double start = MPI_Wtime(), end;
@@ -519,7 +519,7 @@ HG_TEST_RPC_CB(transfer_request_wait_all, handle)
     FUNC_ENTER(NULL);
 
     struct transfer_request_wait_all_local_bulk_args *local_bulk_args;
-    const struct hg_info                             *info;
+    const struct hg_info *                            info;
     transfer_request_wait_all_in_t                    in;
     hg_return_t                                       ret_value = HG_SUCCESS;
 
@@ -558,7 +558,7 @@ HG_TEST_RPC_CB(transfer_request_all, handle)
     FUNC_ENTER(NULL);
 
     struct transfer_request_all_local_bulk_args *local_bulk_args;
-    const struct hg_info                        *info;
+    const struct hg_info *                       info;
     transfer_request_all_in_t                    in;
     transfer_request_all_out_t                   out;
     hg_return_t                                  ret_value = HG_SUCCESS;
@@ -693,7 +693,7 @@ HG_TEST_RPC_CB(transfer_request_metadata_query, handle)
     FUNC_ENTER(NULL);
 
     struct transfer_request_metadata_query_local_bulk_args *local_bulk_args;
-    const struct hg_info                                   *info;
+    const struct hg_info *                                  info;
     transfer_request_metadata_query_in_t                    in;
 
     hg_return_t ret_value = HG_SUCCESS;
@@ -752,7 +752,7 @@ HG_TEST_RPC_CB(transfer_request_metadata_query2, handle)
     FUNC_ENTER(NULL);
 
     struct transfer_request_metadata_query2_local_bulk_args *local_bulk_args;
-    const struct hg_info                                    *info;
+    const struct hg_info *                                   info;
     transfer_request_metadata_query2_in_t                    in;
 
     hg_return_t ret_value = HG_SUCCESS;
@@ -798,8 +798,8 @@ HG_TEST_RPC_CB(transfer_request, handle)
     transfer_request_out_t                   out;
     struct transfer_request_local_bulk_args *local_bulk_args;
     size_t                                   total_mem_size;
-    const struct hg_info                    *info;
-    struct pdc_region_info                  *remote_reg_info;
+    const struct hg_info *                   info;
+    struct pdc_region_info *                 remote_reg_info;
     uint64_t                                 obj_dims[3];
 
 #ifdef PDC_TIMING

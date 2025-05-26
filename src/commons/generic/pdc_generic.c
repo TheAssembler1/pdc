@@ -11,7 +11,7 @@ get_number_from_string(char *str, pdc_c_var_type_t type, void **val_ptr)
         FUNC_LEAVE(0);
     }
 
-    void  *k       = NULL;
+    void * k       = NULL;
     size_t key_len = get_size_by_dtype(type);
 
     k = PDC_malloc(key_len);
