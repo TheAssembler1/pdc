@@ -4,6 +4,7 @@
 #include "pdc_stack_ops.h"
 #include "pdc_logger.h"
 #include "pdc_hashtab.h"
+#include "pdc_malloc.h"
 
 profileEntry_t *calltree = NULL;
 profileEntry_t *freelist = NULL;
@@ -92,7 +93,7 @@ push(const char *ftnkey, const char *tags)
         freelist  = thisEntry->next;
     }
     else {
-        if ((thisEntry = (profileEntry_t *)malloc(sizeof(profileEntry_t))) == NULL) {
+        if ((thisEntry = (profileEntry_t *)PDC_malloc(sizeof(profileEntry_t))) == NULL) {
             perror("malloc");
             profilerrors++;
         }
@@ -134,7 +135,7 @@ pop()
     void **tableEntry = htab_find_slot(thisHashTable, thisEntry, INSERT);
     if (*tableEntry == NULL) {
         /* No table entry found so add it now ... */
-        master = (profileEntry_t *)malloc(sizeof(profileEntry_t));
+        master = (profileEntry_t *)PDC_malloc(sizeof(profileEntry_t));
         if (master) {
             thisEntry->count = 1;
             memcpy(master, thisEntry, sizeof(profileEntry_t));

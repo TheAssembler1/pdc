@@ -1,5 +1,6 @@
 #include "dart_algo.h"
 #include "pdc_timing.h"
+#include "pdc_malloc.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
@@ -120,7 +121,7 @@ md5(const uint8_t *initial_msg, size_t initial_len, uint8_t *digest)
     for (new_len = initial_len + 1; new_len % (512 / 8) != 448 / 8; new_len++)
         ;
 
-    msg = (uint8_t *)malloc(new_len + 8);
+    msg = (uint8_t *)PDC_malloc(new_len + 8);
     memcpy(msg, initial_msg, initial_len);
     msg[initial_len] = 0x80; // append the "1" bit; most significant bit is "first"
     for (offset = initial_len + 1; offset < new_len; offset++)
@@ -180,7 +181,7 @@ md5(const uint8_t *initial_msg, size_t initial_len, uint8_t *digest)
     }
 
     // cleanup
-    free(msg);
+    msg = (uint8_t *)PDC_free(msg);
 
     // var char digest[16] := h0 append h1 append h2 append h3 //(Output is in little-endian)
     to_bytes(h0, digest);
@@ -218,7 +219,7 @@ md5_hash(int prefix_len, char *word)
 {
     FUNC_ENTER(NULL);
 
-    char *prefix = (char *)calloc(prefix_len + 1, sizeof(char));
+    char *prefix = (char *)PDC_calloc(prefix_len + 1, sizeof(char));
     strncpy(prefix, word, prefix_len);
     uint8_t digest;
     md5((uint8_t *)prefix, strlen(prefix), &digest);

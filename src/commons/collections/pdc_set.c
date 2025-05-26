@@ -79,7 +79,7 @@ set_allocate_table(Set *set)
 
     /* Allocate the table and initialise to NULL */
 
-    set->table = calloc(set->table_size, sizeof(SetEntry *));
+    set->table = PDC_calloc(set->table_size, sizeof(SetEntry *));
 
     FUNC_LEAVE(set->table != NULL);
 }
@@ -98,7 +98,7 @@ set_free_entry(Set *set, SetEntry *entry)
 
     /* Free the entry structure */
 
-    free(entry);
+    entry = (SetEntry *)PDC_free(entry);
 
     FUNC_LEAVE_VOID();
 }
@@ -127,7 +127,7 @@ set_new(SetHashFunc hash_func, SetEqualFunc equal_func)
     /* Allocate the table */
 
     if (!set_allocate_table(new_set)) {
-        free(new_set);
+        new_set = (Set *)PDC_free(new_set);
         FUNC_LEAVE(NULL);
     }
 
@@ -162,12 +162,10 @@ set_free(Set *set)
     }
 
     /* Free the table */
-
-    free(set->table);
+    set->table = (SetEntry **)PDC_free(set->table);
 
     /* Free the set structure */
-
-    free(set);
+    set = (Set *)PDC_free(set);
 
     FUNC_LEAVE_VOID();
 }
@@ -241,11 +239,9 @@ set_enlarge(Set *set)
     }
 
     /* Free back the old table */
-
-    free(old_table);
+    old_table = (SetEntry **)PDC_free(old_table);
 
     /* Resized successfully */
-
     FUNC_LEAVE(1);
 }
 

@@ -61,13 +61,14 @@ PDC_Server_dart_perform_one_server(dart_perform_one_server_in_t *in, dart_perfor
     pdc_c_var_type_t       attr_dtype = in->attr_vtype;
     dart_object_ref_type_t ref_type   = in->obj_ref_type;
 
-    IDIOMS_md_idx_record_t *idx_record = (IDIOMS_md_idx_record_t *)calloc(1, sizeof(IDIOMS_md_idx_record_t));
-    idx_record->key                    = attr_key;
-    idx_record->value                  = attr_val;
-    idx_record->virtual_node_id        = in->vnode_id;
-    idx_record->type                   = in->attr_vtype;
-    idx_record->value_len              = in->attr_vsize;
-    idx_record->src_client_id          = in->src_client_id;
+    IDIOMS_md_idx_record_t *idx_record =
+        (IDIOMS_md_idx_record_t *)PDC_calloc(1, sizeof(IDIOMS_md_idx_record_t));
+    idx_record->key             = attr_key;
+    idx_record->value           = attr_val;
+    idx_record->virtual_node_id = in->vnode_id;
+    idx_record->type            = in->attr_vtype;
+    idx_record->value_len       = in->attr_vsize;
+    idx_record->src_client_id   = in->src_client_id;
 
     uint64_t obj_locator = in->obj_primary_ref;
     if (ref_type == REF_PRIMARY_ID) {
@@ -80,7 +81,7 @@ PDC_Server_dart_perform_one_server(dart_perform_one_server_in_t *in, dart_perfor
         obj_locator = in->obj_server_ref;
     }
 
-    idx_record->obj_ids     = (uint64_t *)calloc(1, sizeof(uint64_t));
+    idx_record->obj_ids     = (uint64_t *)PDC_calloc(1, sizeof(uint64_t));
     idx_record->obj_ids[0]  = obj_locator;
     idx_record->num_obj_ids = 1;
 

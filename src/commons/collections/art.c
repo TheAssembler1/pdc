@@ -107,7 +107,7 @@ destroy_node(art_node *n)
 
     // Special case leafs
     if (IS_LEAF(n)) {
-        free(LEAF_RAW(n));
+        n = (art_node *)PDC_free(LEAF_RAW(n));
         FUNC_LEAVE_VOID();
     }
 
@@ -157,8 +157,7 @@ destroy_node(art_node *n)
     }
 
     // Free ourself on the way up
-    free(n);
-
+    n = (art_node *)PDC_free(n);
     FUNC_LEAVE_VOID();
 }
 
@@ -532,7 +531,7 @@ add_child48(art_node48 *n, art_node **ref, unsigned char c, void *child)
         }
         copy_header((art_node *)new_node, (art_node *)n);
         *ref = (art_node *)new_node;
-        free(n);
+        n    = (art_node48 *)PDC_free(n);
         add_child256(new_node, ref, c, child);
     }
 
@@ -603,7 +602,7 @@ add_child16(art_node16 *n, art_node **ref, unsigned char c, void *child)
         }
         copy_header((art_node *)new_node, (art_node *)n);
         *ref = (art_node *)new_node;
-        free(n);
+        n    = (art_node16 *)PDC_free(n);
         add_child48(new_node, ref, c, child);
     }
 
@@ -639,7 +638,7 @@ add_child4(art_node4 *n, art_node **ref, unsigned char c, void *child)
         memcpy(new_node->keys, n->keys, sizeof(unsigned char) * n->n.num_children);
         copy_header((art_node *)new_node, (art_node *)n);
         *ref = (art_node *)new_node;
-        free(n);
+        n    = (art_node4 *)PDC_free(n);
         add_child16(new_node, ref, c, child);
     }
 
@@ -854,7 +853,7 @@ remove_child256(art_node256 *n, art_node **ref, unsigned char c)
                 pos++;
             }
         }
-        free(n);
+        n = (art_node256 *)PDC_free(n);
     }
 
     FUNC_LEAVE_VOID();
@@ -884,7 +883,7 @@ remove_child48(art_node48 *n, art_node **ref, unsigned char c)
                 child++;
             }
         }
-        free(n);
+        n = (art_node48 *)PDC_free(n);
     }
 
     FUNC_LEAVE_VOID();
@@ -906,7 +905,7 @@ remove_child16(art_node16 *n, art_node **ref, art_node **l)
         copy_header((art_node *)new_node, (art_node *)n);
         memcpy(new_node->keys, n->keys, 4);
         memcpy(new_node->children, n->children, 4 * sizeof(void *));
-        free(n);
+        n = (art_node16 *)PDC_free(n);
     }
 
     FUNC_LEAVE_VOID();
@@ -943,7 +942,7 @@ remove_child4(art_node4 *n, art_node **ref, art_node **l)
             child->partial_len += n->n.partial_len + 1;
         }
         *ref = child;
-        free(n);
+        n    = (art_node4 *)PDC_free(n);
     }
 
     FUNC_LEAVE_VOID();
@@ -1040,7 +1039,8 @@ art_delete(art_tree *t, const unsigned char *key, int key_len)
     if (l) {
         t->size--;
         void *old = l->value;
-        free(l);
+
+        l = (art_leaf *)PDC_free(l);
         FUNC_LEAVE(old);
     }
 

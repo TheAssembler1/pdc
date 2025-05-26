@@ -2,6 +2,7 @@
 #include "pdc_server_data.h"
 #include "pdc_timing.h"
 #include "pdc_logger.h"
+#include "pdc_malloc.h"
 
 static int io_by_region_g = 1;
 
@@ -49,7 +50,7 @@ PDC_commit_request(uint64_t transfer_request_id)
 
     if (transfer_request_status_list == NULL) {
         transfer_request_status_list =
-            (pdc_transfer_request_status *)malloc(sizeof(pdc_transfer_request_status));
+            (pdc_transfer_request_status *)PDC_malloc(sizeof(pdc_transfer_request_status));
         transfer_request_status_list->status              = PDC_TRANSFER_STATUS_PENDING;
         transfer_request_status_list->handle_ref          = NULL;
         transfer_request_status_list->out_type            = -1;
@@ -58,11 +59,11 @@ PDC_commit_request(uint64_t transfer_request_id)
         transfer_request_status_list_end                  = transfer_request_status_list;
     }
     else {
-        ptr                   = transfer_request_status_list_end;
-        ptr->next             = (pdc_transfer_request_status *)malloc(sizeof(pdc_transfer_request_status));
-        ptr->next->status     = PDC_TRANSFER_STATUS_PENDING;
-        ptr->next->handle_ref = NULL;
-        ptr->next->out_type   = -1;
+        ptr               = transfer_request_status_list_end;
+        ptr->next         = (pdc_transfer_request_status *)PDC_malloc(sizeof(pdc_transfer_request_status));
+        ptr->next->status = PDC_TRANSFER_STATUS_PENDING;
+        ptr->next->handle_ref            = NULL;
+        ptr->next->out_type              = -1;
         ptr->next->transfer_request_id   = transfer_request_id;
         ptr->next->next                  = NULL;
         transfer_request_status_list_end = ptr->next;
@@ -109,7 +110,7 @@ PDC_finish_request(uint64_t transfer_request_id)
                         ret_value = HG_Respond(ptr->handle, NULL, NULL, &out);
                     }
                     HG_Destroy(ptr->handle);
-                    free(ptr->handle_ref);
+                    ptr->handle_ref = (int *)PDC_free(ptr->handle_ref);
                 }
                 if (tmp != NULL) {
                     /* Case for removing the any nodes but the first one. */
@@ -118,13 +119,13 @@ PDC_finish_request(uint64_t transfer_request_id)
                     if (ptr->next == NULL) {
                         transfer_request_status_list_end = tmp;
                     }
-                    free(ptr);
+                    ptr = (pdc_transfer_request_status *)PDC_free(ptr);
                 }
                 else {
                     /* Case for removing the first node, i.e ptr == transfer_request_status_list*/
                     tmp                          = transfer_request_status_list;
                     transfer_request_status_list = transfer_request_status_list->next;
-                    free(tmp);
+                    tmp                          = (pdc_transfer_request_status *)PDC_free(tmp);
                     /* Free pointer is the last list node, so nothing is left in the list. */
                     if (transfer_request_status_list == NULL) {
                         transfer_request_status_list_end = NULL;
@@ -171,13 +172,13 @@ PDC_check_request(uint64_t transfer_request_id)
                     if (ptr->next == NULL) {
                         transfer_request_status_list_end = tmp;
                     }
-                    free(ptr);
+                    ptr = (pdc_transfer_request_status *)PDC_free(ptr);
                 }
                 else {
                     /* Case for removing the first node, i.e ptr == transfer_request_status_list*/
                     tmp                          = transfer_request_status_list;
                     transfer_request_status_list = transfer_request_status_list->next;
-                    free(tmp);
+                    tmp                          = (pdc_transfer_request_status *)PDC_free(tmp);
                     /* Free pointer is the last list node, so nothing is left in the list. */
                     if (transfer_request_status_list == NULL) {
                         transfer_request_status_list_end = NULL;
@@ -384,12 +385,12 @@ clean_write_bulk_data(transfer_request_all_data *request_data)
 {
     FUNC_ENTER(NULL);
 
-    free(request_data->obj_id);
-    free(request_data->obj_ndim);
-    free(request_data->remote_ndim);
-    free(request_data->remote_offset);
-    free(request_data->unit);
-    free(request_data->data_buf);
+    request_data->obj_id        = (pdcid_t *)PDC_free(request_data->obj_id);
+    request_data->obj_ndim      = (int *)PDC_free(request_data->obj_ndim);
+    request_data->remote_ndim   = (int *)PDC_free(request_data->remote_ndim);
+    request_data->remote_offset = (uint64_t **)PDC_free(request_data->remote_offset);
+    request_data->unit          = (size_t *)PDC_free(request_data->unit);
+    request_data->data_buf      = (char **)PDC_free(request_data->data_buf);
 
     FUNC_LEAVE(0);
 }
@@ -404,14 +405,14 @@ parse_bulk_data(void *buf, transfer_request_all_data *request_data, pdc_access_t
     uint64_t data_size;
 
     // preallocate arrays of size number of objects
-    request_data->obj_id        = (pdcid_t *)malloc(sizeof(pdcid_t) * request_data->n_objs);
-    request_data->obj_ndim      = (int *)malloc(sizeof(int) * request_data->n_objs);
-    request_data->remote_ndim   = (int *)malloc(sizeof(int) * request_data->n_objs);
-    request_data->remote_offset = (uint64_t **)malloc(sizeof(uint64_t *) * request_data->n_objs * 3);
+    request_data->obj_id        = (pdcid_t *)PDC_malloc(sizeof(pdcid_t) * request_data->n_objs);
+    request_data->obj_ndim      = (int *)PDC_malloc(sizeof(int) * request_data->n_objs);
+    request_data->remote_ndim   = (int *)PDC_malloc(sizeof(int) * request_data->n_objs);
+    request_data->remote_offset = (uint64_t **)PDC_malloc(sizeof(uint64_t *) * request_data->n_objs * 3);
     request_data->remote_length = request_data->remote_offset + request_data->n_objs;
     request_data->obj_dims      = request_data->remote_length + request_data->n_objs;
-    request_data->unit          = (size_t *)malloc(sizeof(size_t) * request_data->n_objs);
-    request_data->data_buf      = (char **)malloc(sizeof(char *) * request_data->n_objs);
+    request_data->unit          = (size_t *)PDC_malloc(sizeof(size_t) * request_data->n_objs);
+    request_data->data_buf      = (char **)PDC_malloc(sizeof(char *) * request_data->n_objs);
 
     /*
      * The following times n_objs (one set per object).

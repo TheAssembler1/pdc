@@ -200,7 +200,7 @@ hash_table_allocate_table(HashTable *hash_table)
     hash_table->table_size = new_table_size;
 
     /* Allocate the table and initialise to NULL for all entries */
-    hash_table->table = calloc(hash_table->table_size, sizeof(HashTableEntry *));
+    hash_table->table = PDC_calloc(hash_table->table_size, sizeof(HashTableEntry *));
 
     FUNC_LEAVE(hash_table->table != NULL);
 }
@@ -227,7 +227,7 @@ hash_table_free_entry(HashTable *hash_table, HashTableEntry *entry)
     }
 
     /* Free the data structure */
-    free(entry);
+    entry = (HashTableEntry *)PDC_free(entry);
 
     FUNC_LEAVE_VOID();
 }
@@ -240,7 +240,7 @@ hash_table_new(HashTableHashFunc hash_func, HashTableEqualFunc equal_func)
     HashTable *hash_table;
 
     /* Allocate a new hash table structure */
-    hash_table = (HashTable *)malloc(sizeof(HashTable));
+    hash_table = (HashTable *)PDC_malloc(sizeof(HashTable));
 
     if (hash_table == NULL) {
         FUNC_LEAVE(NULL);
@@ -255,8 +255,7 @@ hash_table_new(HashTableHashFunc hash_func, HashTableEqualFunc equal_func)
 
     /* Allocate the table */
     if (!hash_table_allocate_table(hash_table)) {
-        free(hash_table);
-
+        hash_table = (HashTable *)PDC_free(hash_table);
         FUNC_LEAVE(NULL);
     }
 
@@ -283,10 +282,10 @@ hash_table_free(HashTable *hash_table)
     }
 
     /* Free the table */
-    free(hash_table->table);
+    hash_table->table = (HashTableEntry **)PDC_free(hash_table->table);
 
     /* Free the hash table structure */
-    free(hash_table);
+    hash_table = (HashTable *)PDC_free(hash_table);
 
     FUNC_LEAVE_VOID();
 }
@@ -359,7 +358,7 @@ hash_table_enlarge(HashTable *hash_table)
     }
 
     /* Free the old table */
-    free(old_table);
+    old_table = (HashTableEntry **)PDC_free(old_table);
 
     FUNC_LEAVE(1);
 }

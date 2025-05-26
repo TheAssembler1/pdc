@@ -49,7 +49,7 @@ HG_TEST_RPC_CB(transform_ftn, handle)
     HG_Get_input(handle, &in);
 
     if (PDC_get_ftnPtr_(in.ftn_name, in.loadpath, &ftnHandle) >= 0) {
-        thisFtn = malloc(sizeof(struct _pdc_region_transform_ftn_info));
+        thisFtn = PDC_malloc(sizeof(struct _pdc_region_transform_ftn_info));
         if (thisFtn == NULL)
             PGOTO_ERROR(HG_OTHER_ERROR, "transform_ftn_cb: Memory allocation failed");
         /* This sets up the index return for the client!

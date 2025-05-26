@@ -4,6 +4,7 @@
 #include "pdc_logger.h"
 #include "pdc_stack.h"
 #include "pdc_timing.h"
+#include "pdc_malloc.h"
 
 #define DEFAULT_CAPACITY 16
 
@@ -12,7 +13,7 @@ stack_init(PDC_stack_t *stack)
 {
     FUNC_ENTER(NULL);
 
-    stack->data     = malloc(sizeof(void *) * DEFAULT_CAPACITY);
+    stack->data     = PDC_malloc(sizeof(void *) * DEFAULT_CAPACITY);
     stack->size     = 0;
     stack->capacity = DEFAULT_CAPACITY;
 
@@ -26,7 +27,7 @@ stack_push(PDC_stack_t *stack, void *value)
 
     if (stack->size == stack->capacity) {
         size_t new_capacity = stack->capacity * 2;
-        void **new_data     = realloc(stack->data, sizeof(void *) * new_capacity);
+        void **new_data     = PDC_realloc(stack->data, sizeof(void *) * new_capacity);
         if (new_data == NULL) {
             LOG_ERROR("Failed to reallocate memory for stack!\n");
             exit(1);
@@ -56,7 +57,7 @@ stack_free(PDC_stack_t *stack)
 {
     FUNC_ENTER(NULL);
 
-    free(stack->data);
+    stack->data = (void **)PDC_free(stack->data);
 
     FUNC_LEAVE_VOID();
 }

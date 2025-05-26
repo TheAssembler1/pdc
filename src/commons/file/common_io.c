@@ -6,6 +6,7 @@
 #include <unistd.h>
 #include "pdc_logger.h"
 #include "pdc_timing.h"
+#include "pdc_malloc.h"
 
 FILE *
 open_file(char *filename, char *mode)
@@ -45,7 +46,7 @@ read_file(FILE *fp, io_buffer_t *buffer)
     rewind(fp);
 
     // Allocate memory for the buffer
-    buffer->buffer = (char *)malloc(buffer->size + 1);
+    buffer->buffer = (char *)PDC_malloc(buffer->size + 1);
     if (buffer->buffer == NULL) {
         LOG_ERROR("Error allocating memory for file buffer\n");
         FUNC_LEAVE(1);
@@ -147,7 +148,7 @@ read_text_file(char *filename, void (*callback)(char *line))
         LOG_ERROR("Error reading file\n");
         FUNC_LEAVE(1);
     }
-    free(line);
+    line = (char *)PDC_free(line);
     close_file(fp);
 
     FUNC_LEAVE(0);

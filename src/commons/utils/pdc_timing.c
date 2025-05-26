@@ -1,6 +1,8 @@
 #include "pdc_timing.h"
 #include "pdc_logger.h"
 #include "pdc_stack_ops.h"
+#include "pdc_malloc.h"
+#include "pdc_logger.h"
 #include "assert.h"
 #include "mpi.h"
 
@@ -13,7 +15,7 @@ pdc_timestamp_clean(pdc_timestamp *timestamp)
     FUNC_ENTER(NULL);
 
     if (timestamp->timestamp_size) {
-        free(timestamp->start);
+        timestamp->start = (double *)PDC_free(timestamp->start);
     }
 
     FUNC_LEAVE(0);
@@ -57,7 +59,7 @@ PDC_timing_init()
 
     memset(&pdc_timings, 0, sizeof(pdc_timing));
 
-    pdc_client_buf_obj_map_timestamps   = calloc(16, sizeof(pdc_timestamp));
+    pdc_client_buf_obj_map_timestamps   = PDC_calloc(16, sizeof(pdc_timestamp));
     ptr                                 = pdc_client_buf_obj_map_timestamps + 1;
     pdc_client_buf_obj_unmap_timestamps = ptr;
     ptr++;
@@ -120,7 +122,7 @@ PDC_timing_finalize()
     pdc_timestamp_clean(pdc_client_transfer_request_wait_all_timestamps);
     pdc_timestamp_clean(pdc_client_transfer_request_metadata_query_timestamps);
 
-    free(pdc_client_buf_obj_map_timestamps);
+    pdc_client_buf_obj_map_timestamps = (pdc_timestamp *)PDC_free(pdc_client_buf_obj_map_timestamps);
 
     FUNC_LEAVE(0);
 }
@@ -279,19 +281,10 @@ PDC_server_timing_init()
     gethostname(hostname, HOST_NAME_MAX);
 
     LOG_INFO("server process rank %d, hostname = %s\n", rank, hostname);
-    /*
-        LOG_INFO("rank = %d, hostname = %s, PDCbuf_obj_map_rpc = %lf, PDCreg_obtain_lock_rpc = %lf, "
-               "PDCreg_release_lock_write_rpc = "
-               "%lf, PDCreg_release_lock_read_rpc = %lf, PDCbuf_obj_unmap_rpc = %lf, "
-               "region_release_bulk_transfer_cb = %lf\n",
-               rank, hostname, server_timings->PDCbuf_obj_map_rpc, server_timings->PDCreg_obtain_lock_rpc,
-               server_timings->PDCreg_release_lock_write_rpc, server_timings->PDCreg_release_lock_read_rpc,
-               server_timings->PDCbuf_obj_unmap_rpc, server_timings->PDCreg_release_lock_bulk_transfer_rpc);
-    */
     MPI_Barrier(MPI_COMM_WORLD);
 
-    pdc_server_timings         = calloc(1, sizeof(pdc_server_timing));
-    pdc_timestamp *ptr         = calloc(25, sizeof(pdc_timestamp));
+    pdc_server_timings         = PDC_calloc(1, sizeof(pdc_server_timing));
+    pdc_timestamp *ptr         = PDC_calloc(25, sizeof(pdc_timestamp));
     pdc_buf_obj_map_timestamps = ptr;
     ptr++;
     pdc_buf_obj_unmap_timestamps = ptr;
@@ -360,12 +353,12 @@ pdc_timestamp_register(pdc_timestamp *timestamp, double start, double end)
 
     if (timestamp->timestamp_max_size == 0) {
         timestamp->timestamp_max_size = 256;
-        timestamp->start              = (double *)malloc(sizeof(double) * timestamp->timestamp_max_size * 2);
-        timestamp->end                = timestamp->start + timestamp->timestamp_max_size;
-        timestamp->timestamp_size     = 0;
+        timestamp->start          = (double *)PDC_malloc(sizeof(double) * timestamp->timestamp_max_size * 2);
+        timestamp->end            = timestamp->start + timestamp->timestamp_max_size;
+        timestamp->timestamp_size = 0;
     }
     else if (timestamp->timestamp_size == timestamp->timestamp_max_size) {
-        temp = (double *)malloc(sizeof(double) * timestamp->timestamp_max_size * 4);
+        temp = (double *)PDC_malloc(sizeof(double) * timestamp->timestamp_max_size * 4);
         memcpy(temp, timestamp->start, sizeof(double) * timestamp->timestamp_max_size);
         memcpy(temp + timestamp->timestamp_max_size * 2, timestamp->end,
                sizeof(double) * timestamp->timestamp_max_size);
@@ -514,7 +507,7 @@ PDC_server_timing_report()
 
     fclose(stream);
 
-    free(pdc_server_timings);
+    pdc_server_timings = (pdc_server_timing *)PDC_free(pdc_server_timings);
     pdc_timestamp_clean(pdc_buf_obj_map_timestamps);
     pdc_timestamp_clean(pdc_buf_obj_unmap_timestamps);
 
@@ -547,7 +540,7 @@ PDC_server_timing_report()
     /* pdc_timestamp_clean(pdc_create_obj_timestamps); */
     /* pdc_timestamp_clean(pdc_create_cont_timestamps); */
 
-    free(pdc_buf_obj_map_timestamps);
+    pdc_buf_obj_map_timestamps = (pdc_timestamp *)PDC_free(pdc_buf_obj_map_timestamps);
 
     FUNC_LEAVE(0);
 }

@@ -1,6 +1,7 @@
 #include "string_utils.h"
 #include "pdc_logger.h"
 #include "pdc_timing.h"
+#include "pdc_malloc.h"
 #include <regex.h>
 
 const char *VISIBLE_ALPHABET =
@@ -76,7 +77,7 @@ simple_matches(const char *str, const char *pattern)
             break;
     }
     if (tok != NULL) {
-        free(tok);
+        tok = (char *)PDC_free(tok);
     }
 
     FUNC_LEAVE(result);
@@ -139,7 +140,7 @@ substring(const char *str, int start, int end)
     int substr_len = end - start;
 
     // Allocate memory for the new string (including null-terminator)
-    char *substr = (char *)malloc((substr_len + 1) * sizeof(char));
+    char *substr = (char *)PDC_malloc((substr_len + 1) * sizeof(char));
     if (substr == NULL) { // Check if malloc succeeded
         FUNC_LEAVE(NULL);
     }
@@ -190,7 +191,7 @@ dsprintf(const char *format, ...)
     va_start(args, format);
     // 3. get arguments value
     int numbytes = vsnprintf((char *)NULL, 0, format, args);
-    ret          = (char *)calloc((numbytes + 1), sizeof(char));
+    ret          = (char *)PDC_calloc((numbytes + 1), sizeof(char));
 
     va_start(args, format);
     vsprintf(ret, format, args);
@@ -248,7 +249,7 @@ reverse_str(char *str)
     }
 
     int   length   = strlen(str);
-    char *reversed = (char *)malloc(length + 1); // +1 for the null-terminator
+    char *reversed = (char *)PDC_malloc(length + 1); // +1 for the null-terminator
 
     if (reversed == NULL) {
         FUNC_LEAVE(NULL);
@@ -293,7 +294,7 @@ split_string(const char *str, const char *delim, char ***result, int *result_len
     }
 
     *result_len = count + 1;
-    *result     = (char **)malloc((*result_len) * sizeof(char *));
+    *result     = (char **)PDC_malloc((*result_len) * sizeof(char *));
     if (!*result) {
         FUNC_LEAVE(-1);
     }
@@ -305,12 +306,12 @@ split_string(const char *str, const char *delim, char ***result, int *result_len
     while (i < count && regexec(&regex, tmp, 1, pmatch, 0) != REG_NOMATCH) {
         int len = pmatch[0].rm_so;
 
-        (*result)[i] = (char *)malloc((len + 1) * sizeof(char));
+        (*result)[i] = (char *)PDC_malloc((len + 1) * sizeof(char));
         if (!(*result)[i]) {
             for (int j = 0; j < i; j++) {
-                free((*result)[j]);
+                (*result)[j] = (char *)PDC_free((*result)[j]);
             }
-            free(*result);
+            *result = (char **)PDC_free(*result);
             *result = NULL;
             regfree(&regex);
             FUNC_LEAVE(-1);
@@ -327,9 +328,9 @@ split_string(const char *str, const char *delim, char ***result, int *result_len
     (*result)[i] = strdup(start);
     if (!(*result)[i]) {
         for (int j = 0; j < i; j++) {
-            free((*result)[j]);
+            (*result)[j] = (char *)PDC_free((*result)[j]);
         }
-        free(*result);
+        *result = (char **)PDC_free(*result);
         *result = NULL;
         regfree(&regex);
         FUNC_LEAVE(-1);
@@ -347,13 +348,13 @@ gen_random_strings(int count, int minlen, int maxlen, int alphabet_size)
 
     int    c        = 0;
     int    i        = 0;
-    char **result   = (char **)calloc(count, sizeof(char *));
+    char **result   = (char **)PDC_calloc(count, sizeof(char *));
     int    abc_size = alphabet_size > strlen(VISIBLE_ALPHABET) ? strlen(VISIBLE_ALPHABET) : alphabet_size;
     abc_size        = abc_size < 1 ? 26 : abc_size; // the minimum alphabet size is 26
     for (c = 0; c < count; c++) {
         int len   = (rand() % maxlen) + 1;
         len       = len < minlen ? minlen : len; // Ensure at least minlen character
-        char *str = (char *)calloc(len + 1, sizeof(char));
+        char *str = (char *)PDC_calloc(len + 1, sizeof(char));
         for (i = 0; i < len; i++) {
             int randnum = rand();
             if (randnum < 0)

@@ -2,6 +2,7 @@
 #include "bulki_vle_util.h"
 #include "pdc_logger.h"
 #include "pdc_timing.h"
+#include "pdc_malloc.h"
 
 // clang-format off
 /**
@@ -122,11 +123,11 @@ BULKI_Entity_serialize(BULKI_Entity *entity, size_t *size)
     FUNC_ENTER(NULL);
 
     size_t estimated_size = get_BULKI_Entity_size(entity);
-    void  *buffer         = calloc(1, estimated_size);
+    void  *buffer         = PDC_calloc(1, estimated_size);
     size_t offset         = 0;
     BULKI_Entity_serialize_to_buffer(entity, buffer, &offset);
     if (offset < estimated_size) {
-        void *small_buffer = realloc(buffer, offset);
+        void *small_buffer = PDC_realloc(buffer, offset);
         if (small_buffer != NULL) {
             buffer = small_buffer;
         }
@@ -180,11 +181,11 @@ BULKI_serialize(BULKI *data, size_t *size)
     FUNC_ENTER(NULL);
 
     size_t estimated_size = get_BULKI_size(data);
-    void  *buffer         = calloc(1, estimated_size);
+    void  *buffer         = PDC_calloc(1, estimated_size);
     size_t offset         = 0;
     BULKI_serialize_to_buffer(data, buffer, &offset);
     if (offset < estimated_size) {
-        void *small_buffer = realloc(buffer, offset);
+        void *small_buffer = PDC_realloc(buffer, offset);
         if (small_buffer != NULL) {
             buffer = small_buffer;
         }
@@ -202,7 +203,7 @@ BULKI_Entity_serialize_to_file(BULKI_Entity *entity, FILE *fp)
     size_t size;
     void  *buffer = BULKI_Entity_serialize(entity, &size);
     fwrite(buffer, size, 1, fp);
-    free(buffer);
+    buffer = (void *)PDC_free(buffer);
     fclose(fp);
 
     FUNC_LEAVE_VOID();
@@ -216,7 +217,7 @@ BULKI_serialize_to_file(BULKI *bulki, FILE *fp)
     size_t size   = 0;
     void  *buffer = BULKI_serialize(bulki, &size);
     fwrite(buffer, size, 1, fp);
-    free(buffer);
+    buffer = (void *)PDC_free(buffer);
     fclose(fp);
 
     FUNC_LEAVE_VOID();
@@ -241,7 +242,7 @@ BULKI_Entity_deserialize_from_buffer(void *buffer, size_t *offset)
 {
     FUNC_ENTER(NULL);
 
-    BULKI_Entity *entity = malloc(sizeof(BULKI_Entity));
+    BULKI_Entity *entity = PDC_malloc(sizeof(BULKI_Entity));
     // deserialize the size
     size_t   bytes_read;
     uint64_t size = BULKI_vle_decode_uint(buffer + *offset, &bytes_read);
@@ -268,21 +269,21 @@ BULKI_Entity_deserialize_from_buffer(void *buffer, size_t *offset)
             entity->data = BULKI_Entity_deserialize_from_buffer(buffer, offset);
         }
         else { // all base types
-            entity->data = malloc(entity->size - sizeof(uint8_t) * 2 - sizeof(uint64_t) * 2);
+            entity->data = PDC_malloc(entity->size - sizeof(uint8_t) * 2 - sizeof(uint64_t) * 2);
             memcpy(entity->data, buffer + *offset, entity->size - sizeof(uint8_t) * 2 - sizeof(uint64_t) * 2);
             *offset += (entity->size - sizeof(uint8_t) * 2 - sizeof(uint64_t) * 2);
         }
     }
     else if (entity->pdc_class <= PDC_CLS_ARRAY) {
         if (entity->pdc_type == PDC_BULKI) { // BULKI
-            BULKI *bulki_array = malloc(sizeof(BULKI) * entity->count);
+            BULKI *bulki_array = PDC_malloc(sizeof(BULKI) * entity->count);
             for (size_t i = 0; i < entity->count; i++) {
                 memcpy(bulki_array + i, BULKI_deserialize_from_buffer(buffer, offset), sizeof(BULKI));
             }
             entity->data = bulki_array;
         }
         else if (entity->pdc_type == PDC_BULKI_ENT) { // BULKI_Entity
-            BULKI_Entity *bulki_entity_array = malloc(sizeof(BULKI_Entity) * entity->count);
+            BULKI_Entity *bulki_entity_array = PDC_malloc(sizeof(BULKI_Entity) * entity->count);
             for (size_t i = 0; i < entity->count; i++) {
                 memcpy(bulki_entity_array + i, BULKI_Entity_deserialize_from_buffer(buffer, offset),
                        sizeof(BULKI_Entity));
@@ -290,7 +291,7 @@ BULKI_Entity_deserialize_from_buffer(void *buffer, size_t *offset)
             entity->data = bulki_entity_array;
         }
         else { // all base types
-            entity->data = malloc(entity->size - sizeof(uint8_t) * 2 - sizeof(uint64_t) * 2);
+            entity->data = PDC_malloc(entity->size - sizeof(uint8_t) * 2 - sizeof(uint64_t) * 2);
             memcpy(entity->data, buffer + *offset, entity->size - sizeof(uint8_t) * 2 - sizeof(uint64_t) * 2);
             *offset += (entity->size - sizeof(uint8_t) * 2 - sizeof(uint64_t) * 2);
         }
@@ -308,7 +309,7 @@ BULKI_deserialize_from_buffer(void *buffer, size_t *offset)
 {
     FUNC_ENTER(NULL);
 
-    BULKI *bulki = malloc(sizeof(BULKI));
+    BULKI *bulki = PDC_malloc(sizeof(BULKI));
     // deserialize the total size
     size_t   bytes_read;
     uint64_t totalSize = BULKI_vle_decode_uint(buffer + *offset, &bytes_read);
@@ -329,8 +330,8 @@ BULKI_deserialize_from_buffer(void *buffer, size_t *offset)
     *offset += bytes_read;
 
     // deserialize the header
-    BULKI_Header *header = malloc(sizeof(BULKI_Header));
-    header->keys         = malloc(sizeof(BULKI_Entity) * numKeys);
+    BULKI_Header *header = PDC_malloc(sizeof(BULKI_Header));
+    header->keys         = PDC_malloc(sizeof(BULKI_Entity) * numKeys);
     header->headerSize   = headerSize;
     for (size_t i = 0; i < numKeys; i++) {
         memcpy(&(header->keys[i]), BULKI_Entity_deserialize_from_buffer(buffer, offset),
@@ -351,8 +352,8 @@ BULKI_deserialize_from_buffer(void *buffer, size_t *offset)
     bulki->header = header;
 
     // deserialize the data
-    BULKI_Data *data = malloc(sizeof(BULKI_Data));
-    data->values     = malloc(sizeof(BULKI_Entity) * numKeys);
+    BULKI_Data *data = PDC_malloc(sizeof(BULKI_Data));
+    data->values     = PDC_malloc(sizeof(BULKI_Entity) * numKeys);
     data->dataSize   = dataSize;
     for (size_t i = 0; i < numKeys; i++) {
         memcpy(&(data->values[i]), BULKI_Entity_deserialize_from_buffer(buffer, offset),
@@ -404,11 +405,11 @@ BULKI_Entity_deserialize_from_file(FILE *fp)
     size_t fsize = ftell(fp);
     fseek(fp, 0, SEEK_SET); /* same as rewind(f); */
     // read the file into the buffer
-    void *buffer = malloc(fsize + 1);
+    void *buffer = PDC_malloc(fsize + 1);
     fread(buffer, fsize, 1, fp);
     fclose(fp);
     BULKI_Entity *rst = BULKI_Entity_deserialize(buffer);
-    free(buffer);
+    buffer            = (void *)PDC_free(buffer);
 
     FUNC_LEAVE(rst);
 }
@@ -422,11 +423,11 @@ BULKI_deserialize_from_file(FILE *fp)
     size_t fsize = ftell(fp);
     fseek(fp, 0, SEEK_SET); /* same as rewind(f); */
     // read the file into the buffer
-    void *buffer = malloc(fsize + 1);
+    void *buffer = PDC_malloc(fsize + 1);
     fread(buffer, fsize, 1, fp);
     fclose(fp);
     BULKI *rst = BULKI_deserialize(buffer);
-    free(buffer);
+    buffer     = (void *)PDC_free(buffer);
 
     FUNC_LEAVE(rst);
 }

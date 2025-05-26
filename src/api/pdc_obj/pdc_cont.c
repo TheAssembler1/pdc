@@ -223,12 +223,12 @@ PDC_cont_close(struct _pdc_cont_info *cp)
 
     perr_t ret_value = SUCCEED;
 
-    free((void *)(cp->cont_info_pub->name));
-    cp->cont_info_pub = (struct pdc_cont_info *)(intptr_t)PDC_free(cp->cont_info_pub);
-    free(cp->cont_pt->pdc->name);
-    cp->cont_pt->pdc = (struct _pdc_class *)(intptr_t)PDC_free(cp->cont_pt->pdc);
-    cp->cont_pt      = (struct _pdc_cont_prop *)(intptr_t)PDC_free(cp->cont_pt);
-    cp               = (struct _pdc_cont_info *)(intptr_t)PDC_free(cp);
+    cp->cont_info_pub->name = (char *)PDC_free((void *)(cp->cont_info_pub->name));
+    cp->cont_info_pub       = (struct pdc_cont_info *)(intptr_t)PDC_free(cp->cont_info_pub);
+    cp->cont_pt->pdc->name  = (char *)PDC_free(cp->cont_pt->pdc->name);
+    cp->cont_pt->pdc        = (struct _pdc_class *)(intptr_t)PDC_free(cp->cont_pt->pdc);
+    cp->cont_pt             = (struct _pdc_cont_prop *)(intptr_t)PDC_free(cp->cont_pt);
+    cp                      = (struct _pdc_cont_info *)(intptr_t)PDC_free(cp);
 
     FUNC_LEAVE(ret_value);
 }

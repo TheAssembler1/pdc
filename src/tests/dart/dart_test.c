@@ -73,15 +73,10 @@ read_words_from_text(const char *fileName, int *word_count, int *total_word_coun
 
 #ifdef ENABLE_MPI
         if (i % (mpi_rank + 1) != 0) {
-            // char *trash_skip_buf=(char *)calloc(max_line_len, sizeof(char));
             char trash_skip_buf[512];
             if (fgets(trash_skip_buf, max_line_len - 1, file) == NULL) {
-                // free(trash_skip_buf);
                 break;
             }
-            // println("skip '%s'", trash_skip_buf);
-            // free(trash_skip_buf);
-            // i++;
             continue;
         }
 #endif

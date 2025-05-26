@@ -77,7 +77,7 @@ list_create()
     linked_list_t *list = (linked_list_t *)PDC_calloc(1, sizeof(linked_list_t));
     if (list) {
         if (list_init(list) != 0) {
-            free(list);
+            list = (linked_list_t *)PDC_free(list);
             FUNC_LEAVE(NULL);
         }
     }
@@ -123,7 +123,7 @@ list_destroy(linked_list_t *list)
 #ifdef THREAD_SAFE
         MUTEX_DESTROY(list->lock);
 #endif
-        free(list);
+        list = (linked_list_t *)PDC_free(list);
     }
 
     FUNC_LEAVE_VOID();
@@ -135,16 +135,16 @@ list_destroy_tagged_value_internal(tagged_value_t *tval, void (*free_cb)(void *v
     FUNC_ENTER(NULL);
 
     if (tval) {
-        free(tval->tag);
+        tval->tag = (char *)PDC_free(tval->tag);
         if (tval->value) {
             if (tval->type == TV_TYPE_LIST)
                 list_destroy((linked_list_t *)tval->value);
             else if (free_cb)
                 free_cb(tval->value);
             else if (tval->vlen)
-                free(tval->value);
+                tval->value = (void *)PDC_free(tval->value);
         }
-        free(tval);
+        tval = (tagged_value_t *)PDC_free(tval);
     }
 
     FUNC_LEAVE_VOID();
@@ -255,7 +255,7 @@ destroy_entry(list_entry_t *entry)
             if (pos >= 0)
                 remove_entry(entry->list, pos);
         }
-        free(entry);
+        entry = (list_entry_t *)PDC_free(entry);
     }
 
     FUNC_LEAVE_VOID();
@@ -880,8 +880,8 @@ list_create_tagged_value(char *tag, void *val, size_t vlen)
                 newval->vlen = vlen;
             }
             else {
-                free(newval->tag);
-                free(newval);
+                newval->tag = (char *)PDC_free(newval->tag);
+                newval      = (tagged_value_t *)PDC_free(newval);
                 FUNC_LEAVE(NULL);
             }
             newval->type = TV_TYPE_BINARY;
@@ -1326,7 +1326,7 @@ slice_destroy(slice_t *slice)
         prev = cur;
         cur  = cur->next;
     }
-    free(slice);
+    slice = (slice_t *)PDC_free(slice);
 
     FUNC_LEAVE_VOID();
 }
