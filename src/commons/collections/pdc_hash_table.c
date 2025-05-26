@@ -26,6 +26,7 @@ CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 #include <stdint.h>
 #include "pdc_hash_table.h"
 #include "pdc_malloc.h"
+#include "pdc_timing.h"
 
 #ifdef ALLOC_TESTING
 #include "alloc-testing.h"
@@ -37,7 +38,7 @@ struct _HashTableEntry {
 };
 
 struct _HashTable {
-    HashTableEntry **      table;
+    HashTableEntry       **table;
     unsigned int           table_size;
     HashTableHashFunc      hash_func;
     HashTableEqualFunc     equal_func;
@@ -65,7 +66,9 @@ static const unsigned int hash_table_num_primes = sizeof(hash_table_primes) / si
 unsigned int
 pdc_default_string_hash_func(HashTableKey value)
 {
-    char *       str  = (char *)value;
+    FUNC_ENTER(NULL);
+
+    char        *str  = (char *)value;
     unsigned int hash = 5381;
     int          c;
 
@@ -73,75 +76,86 @@ pdc_default_string_hash_func(HashTableKey value)
         hash = ((hash << 5) + hash) + c; /* hash * 33 + c */
     }
 
-    return hash;
+    FUNC_LEAVE(hash);
 }
 
 int
 pdc_default_string_equal_func(HashTableKey value1, HashTableKey value2)
 {
-    return strcmp((char *)value1, (char *)value2) == 0;
+    FUNC_ENTER(NULL);
+    FUNC_LEAVE(strcmp((char *)value1, (char *)value2) == 0);
 }
 
 unsigned int
 pdc_default_integer_hash_func(HashTableKey value)
 {
-    return (unsigned int)*(int *)value;
+    FUNC_ENTER(NULL);
+    FUNC_LEAVE((unsigned int)*(int *)value);
 }
 
 int
 pdc_default_integer_equal_func(HashTableKey value1, HashTableKey value2)
 {
-    return *(int *)value1 == *(int *)value2;
+    FUNC_ENTER(NULL);
+    FUNC_LEAVE(*(int *)value1 == *(int *)value2);
 }
 
 unsigned int
 pdc_default_long_hash_func(HashTableKey value)
 {
-    return (unsigned int)*(long *)value;
+    FUNC_ENTER(NULL);
+    FUNC_LEAVE((unsigned int)*(long *)value);
 }
 
 int
 pdc_default_long_equal_func(HashTableKey value1, HashTableKey value2)
 {
-    return *(long *)value1 == *(long *)value2;
+    FUNC_ENTER(NULL);
+    FUNC_LEAVE(*(long *)value1 == *(long *)value2);
 }
 
 unsigned int
 pdc_default_uint64_hash_func(HashTableKey value)
 {
-    return (unsigned int)*(uint64_t *)value;
+    FUNC_ENTER(NULL);
+    FUNC_LEAVE((unsigned int)*(uint64_t *)value);
 }
 
 int
 pdc_default_uint64_equal_func(HashTableKey value1, HashTableKey value2)
 {
-    return *(uint64_t *)value1 == *(uint64_t *)value2;
+    FUNC_ENTER(NULL);
+    FUNC_LEAVE(*(uint64_t *)value1 == *(uint64_t *)value2);
 }
 
 // For floating-point numbers (double)
 unsigned int
 pdc_default_double_hash_func(HashTableKey value)
 {
+    FUNC_ENTER(NULL);
+
     double d     = *(const double *)value;
     double abs_d = fabs(d);
 
     if (d == 0) {
-        return 0;
+        FUNC_LEAVE(9);
     }
-    else {
-        int    exp;
-        double frexp_d = frexp(abs_d, &exp);
-        return (unsigned int)((frexp_d * (1 << 31)) + exp);
-    }
+
+    int    exp;
+    double frexp_d = frexp(abs_d, &exp);
+
+    FUNC_LEAVE((unsigned int)((frexp_d * (1 << 31)) + exp));
 }
 
 int
 pdc_default_double_equal_func(HashTableKey value1, HashTableKey value2)
 {
+    FUNC_ENTER(NULL);
+
     double d1 = *(const double *)value1;
     double d2 = *(const double *)value2;
 
-    return fabs(d1 - d2) < 1e-9; // use a small epsilon for comparing floats
+    FUNC_LEAVE(fabs(d1 - d2) < 1e-9); // use a small epsilon for comparing floats
 }
 
 /************ Default function pointer **************/
@@ -167,6 +181,8 @@ HashTableEqualFunc pdc_default_double_equal_func_ptr = pdc_default_double_equal_
 static int
 hash_table_allocate_table(HashTable *hash_table)
 {
+    FUNC_ENTER(NULL);
+
     unsigned int new_table_size;
 
     /* Determine the table size based on the current prime index.
@@ -186,13 +202,15 @@ hash_table_allocate_table(HashTable *hash_table)
     /* Allocate the table and initialise to NULL for all entries */
     hash_table->table = calloc(hash_table->table_size, sizeof(HashTableEntry *));
 
-    return hash_table->table != NULL;
+    FUNC_LEAVE(hash_table->table != NULL);
 }
 
 /* Free an entry, calling the free functions if there are any registered */
 static void
 hash_table_free_entry(HashTable *hash_table, HashTableEntry *entry)
 {
+    FUNC_ENTER(NULL);
+
     HashTablePair *pair;
 
     pair = &(entry->pair);
@@ -210,18 +228,22 @@ hash_table_free_entry(HashTable *hash_table, HashTableEntry *entry)
 
     /* Free the data structure */
     free(entry);
+
+    FUNC_LEAVE_VOID();
 }
 
 HashTable *
 hash_table_new(HashTableHashFunc hash_func, HashTableEqualFunc equal_func)
 {
+    FUNC_ENTER(NULL);
+
     HashTable *hash_table;
 
     /* Allocate a new hash table structure */
     hash_table = (HashTable *)malloc(sizeof(HashTable));
 
     if (hash_table == NULL) {
-        return NULL;
+        FUNC_LEAVE(NULL);
     }
 
     hash_table->hash_func       = hash_func;
@@ -235,15 +257,17 @@ hash_table_new(HashTableHashFunc hash_func, HashTableEqualFunc equal_func)
     if (!hash_table_allocate_table(hash_table)) {
         free(hash_table);
 
-        return NULL;
+        FUNC_LEAVE(NULL);
     }
 
-    return hash_table;
+    FUNC_LEAVE(hash_table);
 }
 
 void
 hash_table_free(HashTable *hash_table)
 {
+    FUNC_ENTER(NULL);
+
     HashTableEntry *rover;
     HashTableEntry *next;
     unsigned int    i;
@@ -263,25 +287,33 @@ hash_table_free(HashTable *hash_table)
 
     /* Free the hash table structure */
     free(hash_table);
+
+    FUNC_LEAVE_VOID();
 }
 
 void
 hash_table_register_free_functions(HashTable *hash_table, HashTableKeyFreeFunc key_free_func,
                                    HashTableValueFreeFunc value_free_func)
 {
+    FUNC_ENTER(NULL);
+
     hash_table->key_free_func   = key_free_func;
     hash_table->value_free_func = value_free_func;
+
+    FUNC_LEAVE_VOID();
 }
 
 static int
 hash_table_enlarge(HashTable *hash_table)
 {
+    FUNC_ENTER(NULL);
+
     HashTableEntry **old_table;
     unsigned int     old_table_size;
     unsigned int     old_prime_index;
-    HashTableEntry * rover;
-    HashTablePair *  pair;
-    HashTableEntry * next;
+    HashTableEntry  *rover;
+    HashTablePair   *pair;
+    HashTableEntry  *next;
     unsigned int     index;
     unsigned int     i;
 
@@ -301,7 +333,7 @@ hash_table_enlarge(HashTable *hash_table)
         hash_table->table_size  = old_table_size;
         hash_table->prime_index = old_prime_index;
 
-        return 0;
+        FUNC_LEAVE(0);
     }
 
     /* Link all entries from all chains into the new table */
@@ -329,14 +361,16 @@ hash_table_enlarge(HashTable *hash_table)
     /* Free the old table */
     free(old_table);
 
-    return 1;
+    FUNC_LEAVE(1);
 }
 
 int
 hash_table_insert(HashTable *hash_table, HashTableKey key, HashTableValue value)
 {
+    FUNC_ENTER(NULL);
+
     HashTableEntry *rover;
-    HashTablePair * pair;
+    HashTablePair  *pair;
     HashTableEntry *newentry;
     unsigned int    index;
 
@@ -348,7 +382,7 @@ hash_table_insert(HashTable *hash_table, HashTableKey key, HashTableValue value)
         /* Table is more than 1/3 full */
         if (!hash_table_enlarge(hash_table)) {
             /* Failed to enlarge the table */
-            return 0;
+            FUNC_LEAVE(0);
         }
     }
 
@@ -383,7 +417,7 @@ hash_table_insert(HashTable *hash_table, HashTableKey key, HashTableValue value)
             pair->value = value;
 
             /* Finished */
-            return 1;
+            FUNC_LEAVE(1);
         }
 
         rover = rover->next;
@@ -393,7 +427,7 @@ hash_table_insert(HashTable *hash_table, HashTableKey key, HashTableValue value)
     newentry = (HashTableEntry *)PDC_malloc(sizeof(HashTableEntry));
 
     if (newentry == NULL) {
-        return 0;
+        FUNC_LEAVE(0);
     }
     newentry->pair.key   = key;
     newentry->pair.value = value;
@@ -413,14 +447,16 @@ hash_table_insert(HashTable *hash_table, HashTableKey key, HashTableValue value)
     hg_thread_mutex_unlock(&hash_table_new_mutex_g);
 #endif
 
-    return 1;
+    FUNC_LEAVE(1);
 }
 
 HashTableValue
 hash_table_lookup(HashTable *hash_table, HashTableKey key)
 {
+    FUNC_ENTER(NULL);
+
     HashTableEntry *rover;
-    HashTablePair * pair;
+    HashTablePair  *pair;
     unsigned int    index;
 
     /* Generate the hash of the key and hence the index into the table */
@@ -436,22 +472,24 @@ hash_table_lookup(HashTable *hash_table, HashTableKey key)
         if (hash_table->equal_func(key, pair->key) != 0) {
 
             /* Found the entry.  Return the data. */
-            return pair->value;
+            FUNC_LEAVE(pair->value);
         }
 
         rover = rover->next;
     }
 
     /* Not found */
-    return HASH_TABLE_NULL;
+    FUNC_LEAVE(HASH_TABLE_NULL);
 }
 
 int
 hash_table_remove(HashTable *hash_table, HashTableKey key)
 {
+    FUNC_ENTER(NULL);
+
     HashTableEntry **rover;
-    HashTableEntry * entry;
-    HashTablePair *  pair;
+    HashTableEntry  *entry;
+    HashTablePair   *pair;
     unsigned int     index;
     int              result;
 
@@ -494,18 +532,21 @@ hash_table_remove(HashTable *hash_table, HashTableKey key)
         rover = &((*rover)->next);
     }
 
-    return result;
+    FUNC_LEAVE(result);
 }
 
 unsigned int
 hash_table_num_entries(HashTable *hash_table)
 {
-    return hash_table->entries;
+    FUNC_ENTER(NULL);
+    FUNC_LEAVE(hash_table->entries);
 }
 
 void
 hash_table_iterate(HashTable *hash_table, HashTableIterator *iterator)
 {
+    FUNC_ENTER(NULL);
+
     unsigned int chain;
 
     iterator->hash_table = hash_table;
@@ -522,19 +563,24 @@ hash_table_iterate(HashTable *hash_table, HashTableIterator *iterator)
             break;
         }
     }
+
+    FUNC_LEAVE_VOID();
 }
 
 int
 hash_table_iter_has_more(HashTableIterator *iterator)
 {
-    return iterator->next_entry != NULL;
+    FUNC_ENTER(NULL);
+    FUNC_LEAVE(iterator->next_entry != NULL);
 }
 
 HashTablePair
 hash_table_iter_next(HashTableIterator *iterator)
 {
+    FUNC_ENTER(NULL);
+
     HashTableEntry *current_entry;
-    HashTable *     hash_table;
+    HashTable      *hash_table;
     HashTablePair   pair = {NULL, NULL};
     unsigned int    chain;
 
@@ -576,5 +622,5 @@ hash_table_iter_next(HashTableIterator *iterator)
         iterator->next_chain = chain;
     }
 
-    return pair;
+    FUNC_LEAVE(pair);
 }

@@ -32,12 +32,12 @@
 pdcid_t
 PDCobj_create_mpi(pdcid_t cont_id, const char *obj_name, pdcid_t obj_prop_id, int rank_id, MPI_Comm comm)
 {
+    FUNC_ENTER(NULL);
+
     struct _pdc_obj_info *p       = NULL;
-    struct _pdc_id_info * id_info = NULL;
+    struct _pdc_id_info  *id_info = NULL;
     int                   rank;
     pdcid_t               ret_value;
-
-    FUNC_ENTER(NULL);
 
     MPI_Comm_rank(comm, &rank);
     if (rank == rank_id) {
@@ -67,12 +67,12 @@ done:
 perr_t
 PDCobj_encode(pdcid_t obj_id, pdcid_t *meta_id)
 {
+    FUNC_ENTER(NULL);
+
     perr_t                ret_value = FAIL;
-    struct _pdc_id_info * objinfo;
+    struct _pdc_id_info  *objinfo;
     struct _pdc_obj_info *obj;
     int                   client_rank, client_size;
-
-    FUNC_ENTER(NULL);
 
     MPI_Comm_size(MPI_COMM_WORLD, &client_size);
     if (client_size < 2)
@@ -97,12 +97,12 @@ done:
 pdcid_t
 PDCobj_decode(pdcid_t obj_id, pdcid_t meta_id)
 {
+    FUNC_ENTER(NULL);
+
     pdcid_t               ret_value = 0;
-    struct _pdc_id_info * objinfo;
+    struct _pdc_id_info  *objinfo;
     struct _pdc_obj_info *obj;
     int                   client_rank, client_size;
-
-    FUNC_ENTER(NULL);
 
     MPI_Comm_size(MPI_COMM_WORLD, &client_size);
     if (client_size < 2)

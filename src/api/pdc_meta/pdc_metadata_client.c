@@ -14,6 +14,8 @@
 char *
 trimWhitespace(char *str)
 {
+    FUNC_ENTER(NULL);
+
     char *end;
 
     // Trim leading space
@@ -21,7 +23,7 @@ trimWhitespace(char *str)
         str++;
 
     if (*str == 0) // All spaces?
-        return str;
+        FUNC_LEAVE(str);
 
     // Trim trailing space
     end = str + strlen(str) - 1;
@@ -31,14 +33,16 @@ trimWhitespace(char *str)
     // Write new null terminator character
     end[1] = '\0';
 
-    return str;
+    FUNC_LEAVE(str);
 }
 
 void
 splitExpression(const char *expression, char conditions[][CONDITION_LENGTH], int *count)
 {
+    FUNC_ENTER(NULL);
+
     char       tempExpr[1024];
-    char *     token;
+    char      *token;
     const char delimiters[] = "AND OR";
     int        index        = 0;
 
@@ -59,6 +63,8 @@ splitExpression(const char *expression, char conditions[][CONDITION_LENGTH], int
     }
 
     *count = index; // Update the count of extracted conditions
+
+    FUNC_LEAVE_VOID();
 }
 
 /**
@@ -70,9 +76,11 @@ void
 send_query_condition_get_separate_result(char conditions[][CONDITION_LENGTH], int conditionCount,
                                          MPI_Comm world_comm, separate_query_result_t **result)
 {
+    FUNC_ENTER(NULL);
+
     if (conditionCount <= 0) {
         LOG_INFO("No conditions to send\n");
-        return;
+        FUNC_LEAVE_VOID();
     }
     *result = (separate_query_result_t *)malloc(conditionCount * sizeof(separate_query_result_t));
     for (int i = 0; i < conditionCount; i++) {
@@ -94,16 +102,20 @@ send_query_condition_get_separate_result(char conditions[][CONDITION_LENGTH], in
             PDC_Client_search_obj_ref_through_dart(DART_HASH, condition, REF_PRIMARY_ID, &n_res, &out);
         if (rst != SUCCEED) {
             LOG_ERROR("Error with PDC_Client_search_obj_ref_through_dart\n");
-            return;
+            FUNC_LEAVE_VOID();
         }
         (*result)[i] = (separate_query_result_t){n_res, out, condition};
     }
+
+    FUNC_LEAVE_VOID();
 }
 
 void
 query_execution_and_local_merge(char conditions[][CONDITION_LENGTH], int conditionCount, int isCollective,
                                 uint64_t **object_id_list, uint64_t *count)
 {
+    FUNC_ENTER(NULL);
+
     // step 1: send each condition to a separate server for execution, from a different rank
     separate_query_result_t *separate_result;
     send_query_condition_get_separate_result(conditions, conditionCount, isCollective, &separate_result);
@@ -116,12 +128,16 @@ query_execution_and_local_merge(char conditions[][CONDITION_LENGTH], int conditi
             break;
         }
     }
+
+    FUNC_LEAVE_VOID();
 }
 
 size_t
 PDC_metadata_multi_condition_query(char *queryString, int isCollective, uint64_t **object_id_list,
                                    uint64_t *count)
 {
+    FUNC_ENTER(NULL);
+
     char conditions[MAX_CONDITIONS][CONDITION_LENGTH];
     int  conditionCount = 0;
 
@@ -143,5 +159,5 @@ PDC_metadata_multi_condition_query(char *queryString, int isCollective, uint64_t
     }
     *count = 10;
 
-    return 10;
+    FUNC_LEAVE(10);
 }

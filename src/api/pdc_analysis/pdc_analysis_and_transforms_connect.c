@@ -27,7 +27,7 @@
 #include "pdc_analysis_pkg.h"
 #include "pdc_transforms_common.h"
 
-static hg_context_t *     send_context_g     = NULL;
+static hg_context_t      *send_context_g     = NULL;
 static hg_atomic_int32_t *atomic_work_todo_g = NULL;
 
 /* Forward References:: */
@@ -49,16 +49,17 @@ perr_t PDC_free_obj_info(struct _pdc_obj_info *obj);
 perr_t
 PDC_Client_send_iter_recv_id(pdcid_t iter_id, pdcid_t *meta_id)
 {
+    FUNC_ENTER(NULL);
+
     uint64_t                   ret_value = SUCCEED;
     struct _pdc_iterator_info *thisIter  = NULL;
-    struct _pdc_my_rpc_state * my_rpc_state_p;
+    struct _pdc_my_rpc_state  *my_rpc_state_p;
     obj_data_iterator_in_t     in;
     hg_return_t                hg_ret;
     int                        server_id = 0;
     int                        n_retry   = 0;
-    struct _pdc_obj_info *     object_info;
+    struct _pdc_obj_info      *object_info;
 
-    FUNC_ENTER(NULL);
     if (atomic_work_todo_g == NULL) {
         hg_atomic_init32(atomic_work_todo_g, 0);
     }
@@ -140,11 +141,11 @@ done:
 static hg_return_t
 client_register_iterator_rpc_cb(const struct hg_cb_info *info)
 {
+    FUNC_ENTER(NULL);
+
     hg_return_t               ret_value      = HG_SUCCESS;
     struct _pdc_my_rpc_state *my_rpc_state_p = info->arg;
     obj_data_iterator_out_t   output;
-
-    FUNC_ENTER(NULL);
 
     if (info->ret == HG_SUCCESS) {
         ret_value = HG_Get_output(info->info.forward.handle, &output);
@@ -168,17 +169,18 @@ PDC_Client_register_obj_analysis(struct _pdc_region_analysis_ftn_info *thisFtn, 
                                  const char *loadpath, pdcid_t in_local, pdcid_t out_local, pdcid_t in_meta,
                                  pdcid_t out_meta)
 {
+    FUNC_ENTER(NULL);
+
     perr_t                     ret_value = SUCCEED;
     uint32_t                   server_id = 0;
     hg_return_t                hg_ret;
     analysis_ftn_in_t          in;
-    struct _pdc_my_rpc_state * my_rpc_state_p;
+    struct _pdc_my_rpc_state  *my_rpc_state_p;
     struct _pdc_iterator_info *thisIter;
     int                        n_retry      = 0;
     int                        input_server = -1, output_server = -1;
-    struct _pdc_obj_info *     obj_prop;
+    struct _pdc_obj_info      *obj_prop;
 
-    FUNC_ENTER(NULL);
     if (atomic_work_todo_g == NULL) {
         hg_atomic_init32(atomic_work_todo_g, 0);
     }
@@ -260,11 +262,11 @@ done:
 static hg_return_t
 client_register_analysis_rpc_cb(const struct hg_cb_info *info)
 {
+    FUNC_ENTER(NULL);
+
     hg_return_t               ret_value      = HG_SUCCESS;
     struct _pdc_my_rpc_state *my_rpc_state_p = info->arg;
     analysis_ftn_out_t        output;
-
-    FUNC_ENTER(NULL);
 
     if (info->ret == HG_SUCCESS) {
         ret_value = HG_Get_output(info->info.forward.handle, &output);
@@ -289,14 +291,15 @@ PDC_Client_register_region_transform(const char *func, const char *loadpath,
                                      pdcid_t obj_id, int start_state, int next_state, int op_type, int when,
                                      int client_index)
 {
+    FUNC_ENTER(NULL);
+
     perr_t                    ret_value = SUCCEED;
     uint32_t                  server_id = 0;
     hg_return_t               hg_ret;
     transform_ftn_in_t        in;
-    struct _pdc_obj_info *    object_info = NULL;
+    struct _pdc_obj_info     *object_info = NULL;
     struct _pdc_my_rpc_state *my_rpc_state_p;
 
-    FUNC_ENTER(NULL);
     if (atomic_work_todo_g == NULL) {
         hg_atomic_init32(atomic_work_todo_g, 0);
     }
@@ -355,10 +358,10 @@ done:
 static hg_return_t
 client_register_transform_rpc_cb(const struct hg_cb_info *info)
 {
+    FUNC_ENTER(NULL);
+
     hg_return_t         ret_value = HG_SUCCESS;
     transform_ftn_out_t output;
-
-    FUNC_ENTER(NULL);
 
     if (info->ret == HG_SUCCESS) {
         ret_value = HG_Get_output(info->info.forward.handle, &output);

@@ -131,17 +131,17 @@ typedef struct pdc_kvtag_list_t {
 
 typedef struct get_storage_loc_args_t {
     perr_t (*cb)();
-    void *          cb_args;
+    void           *cb_args;
     region_list_t **region_lists;
     hg_handle_t     rpc_handle;
-    uint32_t *      n_loc;
-    void *          void_buf;
+    uint32_t       *n_loc;
+    void           *void_buf;
 } get_storage_loc_args_t;
 
 typedef struct update_region_storage_meta_bulk_args_t {
     perr_t (*cb)();
-    void *      meta_list_target;
-    int *       n_updated;
+    void       *meta_list_target;
+    int        *n_updated;
     int         server_id;
     hg_bulk_t   bulk_handle;
     hg_handle_t rpc_handle;
@@ -164,8 +164,8 @@ typedef struct region_list_t {
     int                   is_data_ready;
     char                  shm_addr[ADDR_MAX];
     int                   shm_fd;
-    pdc_histogram_t *     region_hist;
-    char *                buf;
+    pdc_histogram_t      *region_hist;
+    char                 *buf;
     _pdc_data_loc_t       data_loc_type;
     char                  storage_location[ADDR_MAX];
     uint64_t              offset;
@@ -258,7 +258,7 @@ typedef struct region_map_t {
     pdcid_t                local_reg_id;  /* origin of region id */
     region_info_transfer_t local_region;
     size_t                 local_ndim;
-    uint64_t *             local_reg_size;
+    uint64_t              *local_reg_size;
     hg_addr_t              local_addr;
     hg_bulk_t              local_bulk_handle;
     pdc_var_type_t         local_data_type;
@@ -269,7 +269,7 @@ typedef struct region_map_t {
 } region_map_t;
 
 typedef struct region_buf_map_t {
-    void *                            remote_data_ptr;
+    void                             *remote_data_ptr;
     pdcid_t                           remote_obj_id; /* target of object id */
     pdcid_t                           remote_reg_id; /* target of region id */
     int32_t                           remote_client_id;
@@ -283,7 +283,7 @@ typedef struct region_buf_map_t {
     pdcid_t                local_reg_id; /* origin of region id */
     region_info_transfer_t local_region;
     size_t                 local_ndim;
-    uint64_t *             local_reg_size;
+    uint64_t              *local_reg_size;
     hg_addr_t              local_addr;
     hg_bulk_t              local_bulk_handle;
     pdc_var_type_t         local_data_type;
@@ -325,8 +325,8 @@ typedef struct data_server_region_t {
     region_list_t *region_storage_head;
     // For non-mapped object analysis
     // Used primarily as a local_temp
-    void *                       obj_data_ptr;
-    char *                       storage_location; // save the file location to enable reopening
+    void                        *obj_data_ptr;
+    char                        *storage_location; // save the file location to enable reopening
     struct data_server_region_t *prev;
     struct data_server_region_t *next;
 } data_server_region_t;
@@ -335,7 +335,7 @@ typedef struct data_server_region_unmap_t {
     uint64_t obj_id;
 
     region_info_transfer_t unmap_region;
-    const struct hg_info * info;
+    const struct hg_info  *info;
 
     struct data_server_region_unmap_t *prev;
     struct data_server_region_unmap_t *next;
@@ -387,7 +387,7 @@ typedef struct pdc_metadata_t {
     // For hash table list
     struct pdc_metadata_t *prev;
     struct pdc_metadata_t *next;
-    void *                 bloom;
+    void                  *bloom;
 
 } pdc_metadata_t;
 
@@ -408,7 +408,7 @@ typedef struct query_read_names_args_t {
     int    cnt;
     int    is_select_all;
     char **obj_names;
-    char * obj_names_1d;
+    char  *obj_names_1d;
 } query_read_names_args_t;
 
 /********************************************************/
@@ -1100,7 +1100,7 @@ typedef struct pdc_query_xfer_t {
     int                     n_unique_obj;
     int                     query_op;
     int                     n_combine_ops;
-    int *                   combine_ops;
+    int                    *combine_ops;
     int                     n_constraints;
     int                     get_op;
     int                     next_server_id;
@@ -1131,7 +1131,7 @@ typedef struct query_storage_region_transfer_t {
     int                    manager;
     uint64_t               obj_id;
     region_info_transfer_t region_transfer;
-    char *                 storage_location;
+    char                  *storage_location;
     uint64_t               offset;
     uint64_t               size;
     int                    has_hist;
@@ -1155,10 +1155,10 @@ typedef struct {
 typedef struct {
     int8_t   op_type;
     int8_t   hash_algo;
-    char *   attr_key;
+    char    *attr_key;
     uint32_t attr_vsize;
     uint8_t  attr_vtype;
-    void *   attr_val;
+    void    *attr_val;
     uint64_t vnode_id;
     int8_t   obj_ref_type;
     uint64_t obj_primary_ref;
@@ -1190,23 +1190,22 @@ typedef struct {
 static hg_return_t
 hg_proc_pdc_kvtag_t(hg_proc_t proc, void *data)
 {
+    FUNC_ENTER(NULL);
+
     hg_return_t  ret;
     pdc_kvtag_t *struct_data = (pdc_kvtag_t *)data;
 
     ret = hg_proc_hg_string_t(proc, &struct_data->name);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
     ret = hg_proc_uint32_t(proc, &struct_data->size);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
     ret = hg_proc_int8_t(proc, &struct_data->type);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
     if (struct_data->size) {
         switch (hg_proc_get_op(proc)) {
@@ -1224,1217 +1223,1197 @@ hg_proc_pdc_kvtag_t(hg_proc_t proc, void *data)
         }
     }
 
-    return ret;
+    FUNC_LEAVE(ret);
 }
 
 /* Define hg_proc_region_info_transfer_t */
 static hg_return_t
 hg_proc_region_info_transfer_t(hg_proc_t proc, void *data)
 {
+    FUNC_ENTER(NULL);
+
     hg_return_t             ret;
     region_info_transfer_t *struct_data = (region_info_transfer_t *)data;
 
     ret = hg_proc_hg_size_t(proc, &struct_data->ndim);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
 
     for (int i = 0; i < DIM_MAX; i++) {
         ret = hg_proc_uint64_t(proc, &(struct_data->start[i]));
         if (ret != HG_SUCCESS) {
-            return ret;
+            FUNC_LEAVE(ret);
         }
     }
     for (int i = 0; i < DIM_MAX; i++) {
         ret = hg_proc_uint64_t(proc, &(struct_data->count[i]));
         if (ret != HG_SUCCESS) {
-            return ret;
+            FUNC_LEAVE(ret);
         }
     }
 
-    return ret;
+    FUNC_LEAVE(ret);
 }
 
 /* Define hg_proc_region_lock_in_t */
 static HG_INLINE hg_return_t
 hg_proc_region_lock_in_t(hg_proc_t proc, void *data)
 {
+    FUNC_ENTER(NULL);
+
     hg_return_t       ret;
     region_lock_in_t *struct_data = (region_lock_in_t *)data;
 
     ret = hg_proc_int32_t(proc, &struct_data->meta_server_id);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
     ret = hg_proc_uint64_t(proc, &struct_data->obj_id);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
     ret = hg_proc_uint8_t(proc, &struct_data->access_type);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
     ret = hg_proc_uint64_t(proc, &struct_data->local_reg_id);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
     ret = hg_proc_region_info_transfer_t(proc, &struct_data->region);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
     ret = hg_proc_uint8_t(proc, &struct_data->mapping);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
     ret = hg_proc_uint8_t(proc, &struct_data->data_type);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
     ret = hg_proc_hg_size_t(proc, &struct_data->data_unit);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
     ret = hg_proc_uint8_t(proc, &struct_data->lock_mode);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
-    return ret;
+
+    FUNC_LEAVE(ret);
 }
 
 /* Define hg_proc_region_lock_out_t */
 static HG_INLINE hg_return_t
 hg_proc_region_lock_out_t(hg_proc_t proc, void *data)
 {
+    FUNC_ENTER(NULL);
+
     hg_return_t        ret;
     region_lock_out_t *struct_data = (region_lock_out_t *)data;
 
     ret = hg_proc_uint32_t(proc, &struct_data->ret);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
-    return ret;
+
+    FUNC_LEAVE(ret);
 }
 
 /* Define hg_proc_region_transform_and_lock_in_t */
 static HG_INLINE hg_return_t
 hg_proc_region_transform_and_lock_in_t(hg_proc_t proc, void *data)
 {
+    FUNC_ENTER(NULL);
+
     hg_return_t                     ret;
     region_transform_and_lock_in_t *struct_data = (region_transform_and_lock_in_t *)data;
 
     ret = hg_proc_int32_t(proc, &struct_data->meta_server_id);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
     ret = hg_proc_uint64_t(proc, &struct_data->obj_id);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
     ret = hg_proc_uint8_t(proc, &struct_data->access_type);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
     ret = hg_proc_uint64_t(proc, &struct_data->local_reg_id);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
     ret = hg_proc_region_info_transfer_t(proc, &struct_data->region);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
     ret = hg_proc_uint8_t(proc, &struct_data->mapping);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
     ret = hg_proc_uint8_t(proc, &struct_data->data_type);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
     ret = hg_proc_uint8_t(proc, &struct_data->lock_mode);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
     ret = hg_proc_uint8_t(proc, &struct_data->dest_type);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
     ret = hg_proc_int32_t(proc, &struct_data->transform_id);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
     ret = hg_proc_int32_t(proc, &struct_data->transform_state);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
     ret = hg_proc_hg_bulk_t(proc, &struct_data->local_bulk_handle);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
     ret = hg_proc_int64_t(proc, &struct_data->transform_data_size);
     if (ret != HG_SUCCESS) {
+        FUNC_LEAVE(ret);
     }
     ret = hg_proc_uint64_t(proc, &struct_data->client_data_ptr);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
 
-    return ret;
+    FUNC_LEAVE(ret);
 }
 
 /* Define hg_proc_region_analysis_and_lock_in_t */
 static HG_INLINE hg_return_t
 hg_proc_region_analysis_and_lock_in_t(hg_proc_t proc, void *data)
 {
+    FUNC_ENTER(NULL);
+
     hg_return_t                    ret;
     region_analysis_and_lock_in_t *struct_data = (region_analysis_and_lock_in_t *)data;
 
     ret = hg_proc_int32_t(proc, &struct_data->meta_server_id);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
     ret = hg_proc_uint64_t(proc, &struct_data->obj_id);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
     ret = hg_proc_uint8_t(proc, &struct_data->access_type);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
     ret = hg_proc_uint64_t(proc, &struct_data->local_reg_id);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
     ret = hg_proc_region_info_transfer_t(proc, &struct_data->region);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
     ret = hg_proc_uint8_t(proc, &struct_data->mapping);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
     ret = hg_proc_uint8_t(proc, &struct_data->data_type);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
     ret = hg_proc_uint8_t(proc, &struct_data->lock_mode);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
     ret = hg_proc_int32_t(proc, &struct_data->analysis_meta_index);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
     ret = hg_proc_int32_t(proc, &struct_data->n_args);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
     ret = hg_proc_uint64_t(proc, &struct_data->output_obj_id);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
     ret = hg_proc_uint64_t(proc, &struct_data->type_extent);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
     ret = hg_proc_uint64_t(proc, &struct_data->output_type_extent);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
     ret = hg_proc_uint64_t(proc, &struct_data->input_iter);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
     ret = hg_proc_uint64_t(proc, &struct_data->output_iter);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
-    return ret;
+
+    FUNC_LEAVE(ret);
 }
 
 /* Define hg_proc_metadata_query_transfer_in_t */
 static HG_INLINE hg_return_t
 hg_proc_metadata_query_transfer_in_t(hg_proc_t proc, void *data)
 {
+    FUNC_ENTER(NULL);
+
     hg_return_t                   ret;
     metadata_query_transfer_in_t *struct_data = (metadata_query_transfer_in_t *)data;
 
     ret = hg_proc_int32_t(proc, &struct_data->is_list_all);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
     ret = hg_proc_int32_t(proc, &struct_data->user_id);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
     ret = hg_proc_hg_string_t(proc, &struct_data->app_name);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
     ret = hg_proc_hg_string_t(proc, &struct_data->obj_name);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
     ret = hg_proc_int32_t(proc, &struct_data->time_step_from);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
     ret = hg_proc_int32_t(proc, &struct_data->time_step_to);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
     ret = hg_proc_hg_size_t(proc, &struct_data->ndim);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
     ret = hg_proc_hg_string_t(proc, &struct_data->tags);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
     ret = hg_proc_hg_string_t(proc, &struct_data->k_query);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
     ret = hg_proc_hg_string_t(proc, &struct_data->vfrom_query);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
     ret = hg_proc_hg_string_t(proc, &struct_data->vto_query);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
-    return ret;
+
+    FUNC_LEAVE(ret);
 }
 
 /* Define hg_proc_metadata_query_transfer_out_t */
 static HG_INLINE hg_return_t
 hg_proc_metadata_query_transfer_out_t(hg_proc_t proc, void *data)
 {
+    FUNC_ENTER(NULL);
+
     hg_return_t                    ret;
     metadata_query_transfer_out_t *struct_data = (metadata_query_transfer_out_t *)data;
 
     ret = hg_proc_int32_t(proc, &struct_data->ret);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
     ret = hg_proc_int64_t(proc, &struct_data->server_time_elapsed);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
     ret = hg_proc_int64_t(proc, &struct_data->server_memory_consumption);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
     ret = hg_proc_hg_bulk_t(proc, &struct_data->bulk_handle);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
-    return ret;
+
+    FUNC_LEAVE(ret);
 }
 
 /* Define hg_proc_pdc_metadata_transfer_t */
 static hg_return_t
 hg_proc_pdc_metadata_transfer_t(hg_proc_t proc, void *data)
 {
+    FUNC_ENTER(NULL);
+
     hg_return_t              ret;
     pdc_metadata_transfer_t *struct_data = (pdc_metadata_transfer_t *)data;
 
     ret = hg_proc_uint32_t(proc, &struct_data->user_id);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
     ret = hg_proc_hg_string_t(proc, &struct_data->app_name);
     if (ret != HG_SUCCESS) {
-        // HG_LOG_ERROR("Proc app_name error");
-        return ret;
+        FUNC_LEAVE(ret);
     }
     ret = hg_proc_hg_string_t(proc, &struct_data->obj_name);
     if (ret != HG_SUCCESS) {
-        // HG_LOG_ERROR("Proc obj_name error");
-        return ret;
+        FUNC_LEAVE(ret);
     }
     ret = hg_proc_int32_t(proc, &struct_data->time_step);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
     ret = hg_proc_uint64_t(proc, &struct_data->cont_id);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
     ret = hg_proc_uint64_t(proc, &struct_data->obj_id);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
     ret = hg_proc_int8_t(proc, &struct_data->data_type);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
     ret = hg_proc_hg_size_t(proc, &struct_data->ndim);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
-
     ret = hg_proc_uint64_t(proc, &struct_data->dims0);
-
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
     ret = hg_proc_uint64_t(proc, &struct_data->dims1);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
     ret = hg_proc_uint64_t(proc, &struct_data->dims2);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
     ret = hg_proc_uint64_t(proc, &struct_data->dims3);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
     ret = hg_proc_hg_string_t(proc, &struct_data->data_location);
     if (ret != HG_SUCCESS) {
-        // HG_LOG_ERROR("Proc data_location error");
-        return ret;
+        FUNC_LEAVE(ret);
     }
     ret = hg_proc_hg_string_t(proc, &struct_data->tags);
     if (ret != HG_SUCCESS) {
-        // HG_LOG_ERROR("Proc tags error");
-        return ret;
+        FUNC_LEAVE(ret);
     }
     ret = hg_proc_uint32_t(proc, &struct_data->data_server_id);
     if (ret != HG_SUCCESS) {
-        // HG_LOG_ERROR("Proc data_server_id error");
-        return ret;
+        FUNC_LEAVE(ret);
     }
     ret = hg_proc_uint8_t(proc, &struct_data->region_partition);
     if (ret != HG_SUCCESS) {
-        // HG_LOG_ERROR("Proc region_partition error");
-        return ret;
+        FUNC_LEAVE(ret);
     }
     ret = hg_proc_uint8_t(proc, &struct_data->consistency);
     if (ret != HG_SUCCESS) {
-        // HG_LOG_ERROR("Proc consistency error");
-        return ret;
+        FUNC_LEAVE(ret);
     }
     // Added to support transforms
     ret = hg_proc_int32_t(proc, &struct_data->current_state);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
     ret = hg_proc_int8_t(proc, &struct_data->t_storage_order);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
     ret = hg_proc_int8_t(proc, &struct_data->t_dtype);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
     ret = hg_proc_hg_size_t(proc, &struct_data->t_ndim);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
     ret = hg_proc_uint64_t(proc, &struct_data->t_dims0);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
     ret = hg_proc_uint64_t(proc, &struct_data->t_dims1);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
     ret = hg_proc_uint64_t(proc, &struct_data->t_dims2);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
     ret = hg_proc_uint64_t(proc, &struct_data->t_dims3);
-
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
     ret = hg_proc_int32_t(proc, &struct_data->t_meta_index);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
-    return ret;
+
+    FUNC_LEAVE(ret);
 }
 
 /* Define hg_proc_send_rpc_in_t */
 static HG_INLINE hg_return_t
 hg_proc_send_rpc_in_t(hg_proc_t proc, void *data)
 {
+    FUNC_ENTER(NULL);
+
     hg_return_t    ret;
     send_rpc_in_t *struct_data = (send_rpc_in_t *)data;
 
     ret = hg_proc_int32_t(proc, &struct_data->value);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
-    return ret;
+
+    FUNC_LEAVE(ret);
 }
 
 /* Define hg_proc_send_rpc_out_t */
 static HG_INLINE hg_return_t
 hg_proc_send_rpc_out_t(hg_proc_t proc, void *data)
 {
+    FUNC_ENTER(NULL);
+
     hg_return_t     ret;
     send_rpc_out_t *struct_data = (send_rpc_out_t *)data;
 
     ret = hg_proc_int32_t(proc, &struct_data->value);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
-    return ret;
+
+    FUNC_LEAVE(ret);
 }
 
 /* Define hg_proc_metadata_add_tag_in_t */
 static HG_INLINE hg_return_t
 hg_proc_metadata_add_tag_in_t(hg_proc_t proc, void *data)
 {
+    FUNC_ENTER(NULL);
+
     hg_return_t            ret;
     metadata_add_tag_in_t *struct_data = (metadata_add_tag_in_t *)data;
 
     ret = hg_proc_hg_uint64_t(proc, &struct_data->obj_id);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
     ret = hg_proc_uint32_t(proc, &struct_data->hash_value);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
     ret = hg_proc_hg_const_string_t(proc, &struct_data->new_tag);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
-    return ret;
+
+    FUNC_LEAVE(ret);
 }
 
 /* Define hg_proc_metadata_get_kvtag_in_t */
 static HG_INLINE hg_return_t
 hg_proc_metadata_get_kvtag_in_t(hg_proc_t proc, void *data)
 {
+    FUNC_ENTER(NULL);
+
     hg_return_t              ret;
     metadata_get_kvtag_in_t *struct_data = (metadata_get_kvtag_in_t *)data;
 
     ret = hg_proc_hg_uint64_t(proc, &struct_data->obj_id);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
     ret = hg_proc_uint32_t(proc, &struct_data->hash_value);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
     ret = hg_proc_hg_string_t(proc, &struct_data->key);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
-    return ret;
+
+    FUNC_LEAVE(ret);
 }
 
 /* Define hg_proc_metadata_add_tag_out_t */
 static HG_INLINE hg_return_t
 hg_proc_metadata_add_tag_out_t(hg_proc_t proc, void *data)
 {
+    FUNC_ENTER(NULL);
+
     hg_return_t             ret;
     metadata_add_tag_out_t *struct_data = (metadata_add_tag_out_t *)data;
 
     ret = hg_proc_int32_t(proc, &struct_data->ret);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
-    return ret;
+
+    FUNC_LEAVE(ret);
 }
 
 /* Define hg_proc_metadata_get_kvtag_out_t */
 static HG_INLINE hg_return_t
 hg_proc_metadata_get_kvtag_out_t(hg_proc_t proc, void *data)
 {
+    FUNC_ENTER(NULL);
+
     hg_return_t               ret;
     metadata_get_kvtag_out_t *struct_data = (metadata_get_kvtag_out_t *)data;
 
     ret = hg_proc_int32_t(proc, &struct_data->ret);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
     ret = hg_proc_pdc_kvtag_t(proc, &struct_data->kvtag);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
 
-    return ret;
+    FUNC_LEAVE(ret);
 }
 
 static HG_INLINE hg_return_t
 hg_proc_metadata_add_kvtag_in_t(hg_proc_t proc, void *data)
 {
+    FUNC_ENTER(NULL);
+
     hg_return_t              ret;
     metadata_add_kvtag_in_t *struct_data = (metadata_add_kvtag_in_t *)data;
 
     ret = hg_proc_hg_uint64_t(proc, &struct_data->obj_id);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
     ret = hg_proc_uint32_t(proc, &struct_data->hash_value);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
     ret = hg_proc_pdc_kvtag_t(proc, &struct_data->kvtag);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
-    return ret;
+
+    FUNC_LEAVE(ret);
 }
 
 /* Define hg_proc_metadata_update_in_t */
 static HG_INLINE hg_return_t
 hg_proc_metadata_update_in_t(hg_proc_t proc, void *data)
 {
+    FUNC_ENTER(NULL);
+
     hg_return_t           ret;
     metadata_update_in_t *struct_data = (metadata_update_in_t *)data;
 
     ret = hg_proc_hg_uint64_t(proc, &struct_data->obj_id);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
     ret = hg_proc_uint32_t(proc, &struct_data->hash_value);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
     ret = hg_proc_pdc_metadata_transfer_t(proc, &struct_data->new_metadata);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
-    return ret;
+
+    FUNC_LEAVE(ret);
 }
 
 /* Define hg_proc_metadata_update_out_t */
 static HG_INLINE hg_return_t
 hg_proc_metadata_update_out_t(hg_proc_t proc, void *data)
 {
+    FUNC_ENTER(NULL);
+
     hg_return_t            ret;
     metadata_update_out_t *struct_data = (metadata_update_out_t *)data;
 
     ret = hg_proc_int32_t(proc, &struct_data->ret);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
-    return ret;
+
+    FUNC_LEAVE(ret);
 }
 
 /* Define hg_proc_metadata_delete_by_id_in_t */
 static HG_INLINE hg_return_t
 hg_proc_metadata_delete_by_id_in_t(hg_proc_t proc, void *data)
 {
+    FUNC_ENTER(NULL);
+
     hg_return_t                 ret;
     metadata_delete_by_id_in_t *struct_data = (metadata_delete_by_id_in_t *)data;
 
     ret = hg_proc_uint64_t(proc, &struct_data->obj_id);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
-    return ret;
+
+    FUNC_LEAVE(ret);
 }
 
 /* Define hg_proc_metadata_delete_by_id_out_t */
 static HG_INLINE hg_return_t
 hg_proc_metadata_delete_by_id_out_t(hg_proc_t proc, void *data)
-
 {
+    FUNC_ENTER(NULL);
+
     hg_return_t                  ret;
     metadata_delete_by_id_out_t *struct_data = (metadata_delete_by_id_out_t *)data;
 
     ret = hg_proc_int32_t(proc, &struct_data->ret);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
-    return ret;
+
+    FUNC_LEAVE(ret);
 }
 
 /* Define hg_proc_metadata_delete_in_t */
 static HG_INLINE hg_return_t
 hg_proc_metadata_delete_in_t(hg_proc_t proc, void *data)
 {
+    FUNC_ENTER(NULL);
+
     hg_return_t           ret;
     metadata_delete_in_t *struct_data = (metadata_delete_in_t *)data;
 
     ret = hg_proc_hg_string_t(proc, &struct_data->obj_name);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
     ret = hg_proc_int32_t(proc, &struct_data->time_step);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
     ret = hg_proc_uint32_t(proc, &struct_data->hash_value);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
-    return ret;
+
+    FUNC_LEAVE(ret);
 }
 
 /* Define hg_proc_metadata_delete_out_t */
 static HG_INLINE hg_return_t
 hg_proc_metadata_delete_out_t(hg_proc_t proc, void *data)
 {
+    FUNC_ENTER(NULL);
+
     hg_return_t            ret;
     metadata_delete_out_t *struct_data = (metadata_delete_out_t *)data;
 
     ret = hg_proc_int32_t(proc, &struct_data->ret);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
-    return ret;
+
+    FUNC_LEAVE(ret);
 }
 
 /* Define hg_proc_metadata_query_in_t */
 static HG_INLINE hg_return_t
 hg_proc_metadata_query_in_t(hg_proc_t proc, void *data)
 {
+    FUNC_ENTER(NULL);
+
     hg_return_t          ret;
     metadata_query_in_t *struct_data = (metadata_query_in_t *)data;
 
     ret = hg_proc_hg_const_string_t(proc, &struct_data->obj_name);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
     ret = hg_proc_int32_t(proc, &struct_data->time_step);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
     ret = hg_proc_uint32_t(proc, &struct_data->hash_value);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
 
-    return ret;
+    FUNC_LEAVE(ret);
 }
 
 /* Define hg_proc_metadata_query_out_t */
 static HG_INLINE hg_return_t
 hg_proc_metadata_query_out_t(hg_proc_t proc, void *data)
 {
+    FUNC_ENTER(NULL);
+
     hg_return_t           ret         = HG_SUCCESS;
     metadata_query_out_t *struct_data = (metadata_query_out_t *)data;
 
     ret = hg_proc_pdc_metadata_transfer_t(proc, &struct_data->ret);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
-    return ret;
+
+    FUNC_LEAVE(ret);
 }
 
 /* Define hg_proc_gen_cont_id_in_t */
 static HG_INLINE hg_return_t
 hg_proc_gen_cont_id_in_t(hg_proc_t proc, void *data)
 {
+    FUNC_ENTER(NULL);
+
     hg_return_t       ret;
     gen_cont_id_in_t *struct_data = (gen_cont_id_in_t *)data;
 
     ret = hg_proc_hg_const_string_t(proc, &struct_data->cont_name);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
     ret = hg_proc_uint32_t(proc, &struct_data->hash_value);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
 
-    return ret;
+    FUNC_LEAVE(ret);
 }
 
 /* Define hg_proc_gen_cont_id_out_t */
 static HG_INLINE hg_return_t
 hg_proc_gen_cont_id_out_t(hg_proc_t proc, void *data)
 {
+    FUNC_ENTER(NULL);
+
     hg_return_t        ret;
     gen_cont_id_out_t *struct_data = (gen_cont_id_out_t *)data;
 
     ret = hg_proc_uint64_t(proc, &struct_data->cont_id);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
-    return ret;
+
+    FUNC_LEAVE(ret);
 }
 
 /* Define hg_proc_gen_obj_id_in_t */
 static HG_INLINE hg_return_t
 hg_proc_gen_obj_id_in_t(hg_proc_t proc, void *data)
 {
+    FUNC_ENTER(NULL);
+
     hg_return_t      ret;
     gen_obj_id_in_t *struct_data = (gen_obj_id_in_t *)data;
 
     ret = hg_proc_pdc_metadata_transfer_t(proc, &struct_data->data);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
     ret = hg_proc_uint32_t(proc, &struct_data->hash_value);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
     ret = hg_proc_int8_t(proc, &struct_data->data_type);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
-    return ret;
+
+    FUNC_LEAVE(ret);
 }
 
 /* Define hg_proc_gen_obj_id_out_t */
 static HG_INLINE hg_return_t
 hg_proc_gen_obj_id_out_t(hg_proc_t proc, void *data)
 {
+    FUNC_ENTER(NULL);
+
     hg_return_t       ret;
     gen_obj_id_out_t *struct_data = (gen_obj_id_out_t *)data;
 
     ret = hg_proc_uint64_t(proc, &struct_data->obj_id);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
-    return ret;
+
+    FUNC_LEAVE(ret);
 }
 
 /* Define hg_proc_server_lookup_remote_server_in_t */
 static HG_INLINE hg_return_t
 hg_proc_server_lookup_remote_server_in_t(hg_proc_t proc, void *data)
 {
+    FUNC_ENTER(NULL);
+
     hg_return_t                       ret;
     server_lookup_remote_server_in_t *struct_data = (server_lookup_remote_server_in_t *)data;
 
     ret = hg_proc_int32_t(proc, &struct_data->server_id);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
-    return ret;
+
+    FUNC_LEAVE(ret);
 }
 
 /* Define hg_proc_server_lookup_remote_server_out_t */
 static HG_INLINE hg_return_t
 hg_proc_server_lookup_remote_server_out_t(hg_proc_t proc, void *data)
 {
+    FUNC_ENTER(NULL);
+
     hg_return_t                        ret;
     server_lookup_remote_server_out_t *struct_data = (server_lookup_remote_server_out_t *)data;
 
     ret = hg_proc_int32_t(proc, &struct_data->ret);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
-    return ret;
+
+    FUNC_LEAVE(ret);
 }
 
 /* Define hg_proc_server_lookup_client_in_t */
 static HG_INLINE hg_return_t
 hg_proc_server_lookup_client_in_t(hg_proc_t proc, void *data)
 {
+    FUNC_ENTER(NULL);
+
     hg_return_t                ret;
     server_lookup_client_in_t *struct_data = (server_lookup_client_in_t *)data;
 
     ret = hg_proc_int32_t(proc, &struct_data->server_id);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
     ret = hg_proc_int32_t(proc, &struct_data->nserver);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
     ret = hg_proc_hg_string_t(proc, &struct_data->server_addr);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
-    return ret;
+
+    FUNC_LEAVE(ret);
 }
 
 /* Define hg_proc_server_lookup_client_out_t */
 static HG_INLINE hg_return_t
 hg_proc_server_lookup_client_out_t(hg_proc_t proc, void *data)
 {
+    FUNC_ENTER(NULL);
+
     hg_return_t                 ret;
     server_lookup_client_out_t *struct_data = (server_lookup_client_out_t *)data;
 
     ret = hg_proc_int32_t(proc, &struct_data->ret);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
-    return ret;
+
+    FUNC_LEAVE(ret);
 }
 
 /* Define hg_proc_client_test_connect_in_t */
 static HG_INLINE hg_return_t
 hg_proc_client_test_connect_in_t(hg_proc_t proc, void *data)
 {
+    FUNC_ENTER(NULL);
+
     hg_return_t               ret;
     client_test_connect_in_t *struct_data = (client_test_connect_in_t *)data;
 
     ret = hg_proc_uint32_t(proc, &struct_data->client_id);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
     ret = hg_proc_int32_t(proc, &struct_data->nclient);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
     ret = hg_proc_int32_t(proc, &struct_data->is_init);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
     ret = hg_proc_hg_string_t(proc, &struct_data->client_addr);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
-    return ret;
+
+    FUNC_LEAVE(ret);
 }
 
 /* Define hg_proc_client_test_connect_out_t */
 static HG_INLINE hg_return_t
 hg_proc_client_test_connect_out_t(hg_proc_t proc, void *data)
 {
+    FUNC_ENTER(NULL);
+
     hg_return_t                ret;
     client_test_connect_out_t *struct_data = (client_test_connect_out_t *)data;
 
     ret = hg_proc_int32_t(proc, &struct_data->ret);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
-    return ret;
+
+    FUNC_LEAVE(ret);
 }
 
 /* Define hg_proc_notify_io_complete_in_t */
 static HG_INLINE hg_return_t
 hg_proc_notify_io_complete_in_t(hg_proc_t proc, void *data)
 {
+    FUNC_ENTER(NULL);
+
     hg_return_t              ret;
     notify_io_complete_in_t *struct_data = (notify_io_complete_in_t *)data;
 
     ret = hg_proc_int32_t(proc, &struct_data->io_type);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
     ret = hg_proc_uint64_t(proc, &struct_data->obj_id);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
     ret = hg_proc_hg_string_t(proc, &struct_data->shm_addr);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
-    return ret;
+
+    FUNC_LEAVE(ret);
 }
 
 /* Define hg_proc_notify_io_complete_out_t */
 static HG_INLINE hg_return_t
 hg_proc_notify_io_complete_out_t(hg_proc_t proc, void *data)
 {
+    FUNC_ENTER(NULL);
+
     hg_return_t               ret;
     notify_io_complete_out_t *struct_data = (notify_io_complete_out_t *)data;
 
     ret = hg_proc_int32_t(proc, &struct_data->ret);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
-    return ret;
+
+    FUNC_LEAVE(ret);
 }
 
 /* Define hg_proc_notify_region_update_in_t */
 static HG_INLINE hg_return_t
 hg_proc_notify_region_update_in_t(hg_proc_t proc, void *data)
 {
+    FUNC_ENTER(NULL);
+
     hg_return_t                ret;
     notify_region_update_in_t *struct_data = (notify_region_update_in_t *)data;
 
     ret = hg_proc_uint64_t(proc, &struct_data->obj_id);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
     ret = hg_proc_uint64_t(proc, &struct_data->reg_id);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
-    return ret;
+
+    FUNC_LEAVE(ret);
 }
 
 /* Define hg_proc_notify_region_update_out_t */
 static HG_INLINE hg_return_t
 hg_proc_notify_region_update_out_t(hg_proc_t proc, void *data)
 {
+    FUNC_ENTER(NULL);
+
     hg_return_t                 ret;
     notify_region_update_out_t *struct_data = (notify_region_update_out_t *)data;
 
     ret = hg_proc_int32_t(proc, &struct_data->ret);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
-    return ret;
+
+    FUNC_LEAVE(ret);
 }
 
 /* Define hg_proc_flush_obj_all_in_t */
 static HG_INLINE hg_return_t
 hg_proc_flush_obj_all_in_t(hg_proc_t proc, void *data)
 {
+    FUNC_ENTER(NULL);
+
     hg_return_t         ret;
     flush_obj_all_in_t *struct_data = (flush_obj_all_in_t *)data;
 
     ret = hg_proc_uint8_t(proc, &struct_data->tag);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
-    return ret;
+
+    FUNC_LEAVE(ret);
 }
 
 /* Define hg_proc_flush_obj_all_out_t */
 static HG_INLINE hg_return_t
 hg_proc_flush_obj_all_out_t(hg_proc_t proc, void *data)
 {
+    FUNC_ENTER(NULL);
+
     hg_return_t          ret;
     flush_obj_all_out_t *struct_data = (flush_obj_all_out_t *)data;
 
     ret = hg_proc_int32_t(proc, &struct_data->ret);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
-    return ret;
+
+    FUNC_LEAVE(ret);
 }
 
 /* Define hg_proc_obj_reset_dims_in_t */
 static HG_INLINE hg_return_t
 hg_proc_obj_reset_dims_in_t(hg_proc_t proc, void *data)
 {
+    FUNC_ENTER(NULL);
+
     hg_return_t          ret;
     obj_reset_dims_in_t *struct_data = (obj_reset_dims_in_t *)data;
 
     ret = hg_proc_hg_const_string_t(proc, &struct_data->obj_name);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
     ret = hg_proc_int32_t(proc, &struct_data->time_step);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
     ret = hg_proc_uint32_t(proc, &struct_data->hash_value);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
     ret = hg_proc_int32_t(proc, &struct_data->ndim);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
     ret = hg_proc_uint64_t(proc, &struct_data->dims0);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
     ret = hg_proc_uint64_t(proc, &struct_data->dims1);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
     ret = hg_proc_uint64_t(proc, &struct_data->dims2);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
-    return ret;
+
+    FUNC_LEAVE(ret);
 }
 
 /* Define hg_proc_obj_reset_dims_out_t */
 static HG_INLINE hg_return_t
 hg_proc_obj_reset_dims_out_t(hg_proc_t proc, void *data)
 {
+    FUNC_ENTER(NULL);
+
     hg_return_t           ret;
     obj_reset_dims_out_t *struct_data = (obj_reset_dims_out_t *)data;
 
     ret = hg_proc_int32_t(proc, &struct_data->ret);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
-    return ret;
+
+    FUNC_LEAVE(ret);
 }
 
 /* Define hg_proc_flush_obj_in_t */
 static HG_INLINE hg_return_t
 hg_proc_flush_obj_in_t(hg_proc_t proc, void *data)
 {
+    FUNC_ENTER(NULL);
+
     hg_return_t     ret;
     flush_obj_in_t *struct_data = (flush_obj_in_t *)data;
 
     ret = hg_proc_uint64_t(proc, &struct_data->obj_id);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
-    return ret;
+
+    FUNC_LEAVE(ret);
 }
 
 /* Define hg_proc_flush_obj_out_t */
 static HG_INLINE hg_return_t
 hg_proc_flush_obj_out_t(hg_proc_t proc, void *data)
 {
+    FUNC_ENTER(NULL);
+
     hg_return_t      ret;
     flush_obj_out_t *struct_data = (flush_obj_out_t *)data;
 
     ret = hg_proc_int32_t(proc, &struct_data->ret);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
-    return ret;
+
+    FUNC_LEAVE(ret);
 }
 
 /* Define hg_proc_close_server_in_t */
 static HG_INLINE hg_return_t
 hg_proc_close_server_in_t(hg_proc_t proc, void *data)
 {
+    FUNC_ENTER(NULL);
+
     hg_return_t        ret;
     close_server_in_t *struct_data = (close_server_in_t *)data;
 
     ret = hg_proc_uint32_t(proc, &struct_data->client_id);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
-    return ret;
+
+    FUNC_LEAVE(ret);
 }
 
 /* Define hg_proc_close_server_out_t */
 static HG_INLINE hg_return_t
 hg_proc_close_server_out_t(hg_proc_t proc, void *data)
 {
+    FUNC_ENTER(NULL);
+
     hg_return_t         ret;
     close_server_out_t *struct_data = (close_server_out_t *)data;
 
     ret = hg_proc_int32_t(proc, &struct_data->ret);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
-    return ret;
+
+    FUNC_LEAVE(ret);
 }
 
 /* Define hg_proc_bulk_rpc_in_t */
@@ -2442,800 +2421,807 @@ hg_proc_close_server_out_t(hg_proc_t proc, void *data)
 static HG_INLINE hg_return_t
 hg_proc_bulk_rpc_in_t(hg_proc_t proc, void *data)
 {
+    FUNC_ENTER(NULL);
+
     hg_return_t    ret         = HG_SUCCESS;
     bulk_rpc_in_t *struct_data = (bulk_rpc_in_t *)data;
 
     ret = hg_proc_uint64_t(proc, &struct_data->obj_id);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
 
     ret = hg_proc_int32_t(proc, &struct_data->ndim);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
     ret = hg_proc_uint64_t(proc, &struct_data->cnt);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
     ret = hg_proc_uint64_t(proc, &struct_data->total);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
     ret = hg_proc_int32_t(proc, &struct_data->seq_id);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
     ret = hg_proc_int32_t(proc, &struct_data->seq_id2);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
     ret = hg_proc_int32_t(proc, &struct_data->origin);
-
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
-
     ret = hg_proc_int32_t(proc, &struct_data->op_id);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
-
     ret = hg_proc_int32_t(proc, &struct_data->data_type);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
 
     if (struct_data->cnt > 0) {
         ret = hg_proc_hg_bulk_t(proc, &struct_data->bulk_handle);
 
         if (ret != HG_SUCCESS) {
-
-            return ret;
+            FUNC_LEAVE(ret);
         }
     }
-    return ret;
+
+    FUNC_LEAVE(ret);
 }
 
 /* Define hg_proc_bulk_rpc_out_t */
 static HG_INLINE hg_return_t
 hg_proc_bulk_rpc_out_t(hg_proc_t proc, void *data)
 {
+    FUNC_ENTER(NULL);
+
     hg_return_t     ret         = HG_SUCCESS;
     bulk_rpc_out_t *struct_data = (bulk_rpc_out_t *)data;
 
     ret = hg_proc_uint64_t(proc, &struct_data->ret);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
-    return ret;
+
+    FUNC_LEAVE(ret);
 }
 
 /* Define hg_proc_get_remote_metadata_in_t */
 static HG_INLINE hg_return_t
 hg_proc_get_remote_metadata_in_t(hg_proc_t proc, void *data)
 {
+    FUNC_ENTER(NULL);
+
     hg_return_t               ret;
     get_remote_metadata_in_t *struct_data = (get_remote_metadata_in_t *)data;
 
     ret = hg_proc_uint64_t(proc, &struct_data->obj_id);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
-    return ret;
+
+    FUNC_LEAVE(ret);
 }
 
 /* Define hg_proc_get_remote_metadata_out_t */
 static HG_INLINE hg_return_t
 hg_proc_get_remote_metadata_out_t(hg_proc_t proc, void *data)
 {
+    FUNC_ENTER(NULL);
+
     hg_return_t                ret;
     get_remote_metadata_out_t *struct_data = (get_remote_metadata_out_t *)data;
 
     ret = hg_proc_pdc_metadata_transfer_t(proc, &struct_data->ret);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
-    return ret;
+
+    FUNC_LEAVE(ret);
 }
 
 /* Define hg_proc_buf_map_in_t */
 static HG_INLINE hg_return_t
 hg_proc_buf_map_in_t(hg_proc_t proc, void *data)
 {
+    FUNC_ENTER(NULL);
+
     hg_return_t   ret;
     buf_map_in_t *struct_data = (buf_map_in_t *)data;
 
     ret = hg_proc_int32_t(proc, &struct_data->meta_server_id);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
     ret = hg_proc_uint64_t(proc, &struct_data->local_reg_id);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
     ret = hg_proc_uint64_t(proc, &struct_data->remote_obj_id);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
     ret = hg_proc_uint8_t(proc, &struct_data->local_type);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
     ret = hg_proc_uint8_t(proc, &struct_data->remote_type);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
     ret = hg_proc_hg_size_t(proc, &struct_data->ndim);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
     ret = hg_proc_hg_size_t(proc, &struct_data->remote_unit);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
     ret = hg_proc_hg_bulk_t(proc, &struct_data->local_bulk_handle);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
     ret = hg_proc_region_info_transfer_t(proc, &struct_data->remote_region_unit);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
     ret = hg_proc_region_info_transfer_t(proc, &struct_data->remote_region_nounit);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
     ret = hg_proc_region_info_transfer_t(proc, &struct_data->local_region);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
-    return ret;
+
+    FUNC_LEAVE(ret);
 }
 
 /* Define hg_proc_buf_map_out_t */
 static HG_INLINE hg_return_t
 hg_proc_buf_map_out_t(hg_proc_t proc, void *data)
 {
+    FUNC_ENTER(NULL);
+
     hg_return_t    ret;
     buf_map_out_t *struct_data = (buf_map_out_t *)data;
 
     ret = hg_proc_int32_t(proc, &struct_data->ret);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
-    return ret;
+
+    FUNC_LEAVE(ret);
 }
 
 static HG_INLINE hg_return_t
 hg_proc_transfer_request_in_t(hg_proc_t proc, void *data)
 {
+    FUNC_ENTER(NULL);
+
     hg_return_t            ret;
     transfer_request_in_t *struct_data = (transfer_request_in_t *)data;
     ret                                = hg_proc_hg_bulk_t(proc, &struct_data->local_bulk_handle);
     if (ret != HG_SUCCESS) {
-        return ret;
+        FUNC_LEAVE(ret);
     }
     ret = hg_proc_region_info_transfer_t(proc, &struct_data->remote_region);
     if (ret != HG_SUCCESS) {
-        return ret;
+        FUNC_LEAVE(ret);
     }
     ret = hg_proc_uint64_t(proc, &struct_data->obj_id);
     if (ret != HG_SUCCESS) {
-        return ret;
+        FUNC_LEAVE(ret);
     }
     for (int i = 0; i < DIM_MAX; i++) {
         ret = hg_proc_uint64_t(proc, &struct_data->obj_dims[i]);
         if (ret != HG_SUCCESS) {
-            return ret;
+            FUNC_LEAVE(ret);
         }
     }
     ret = hg_proc_hg_size_t(proc, &struct_data->remote_unit);
     if (ret != HG_SUCCESS) {
-        return ret;
+        FUNC_LEAVE(ret);
     }
     ret = hg_proc_int32_t(proc, &struct_data->obj_ndim);
     if (ret != HG_SUCCESS) {
-        return ret;
+        FUNC_LEAVE(ret);
     }
     ret = hg_proc_uint32_t(proc, &struct_data->meta_server_id);
     if (ret != HG_SUCCESS) {
-        return ret;
+        FUNC_LEAVE(ret);
     }
     ret = hg_proc_uint8_t(proc, &struct_data->access_type);
     if (ret != HG_SUCCESS) {
-        return ret;
+        FUNC_LEAVE(ret);
     }
-    return ret;
+
+    FUNC_LEAVE(ret);
 }
 
 /* Define hg_proc_transfer_request_out_t */
 static HG_INLINE hg_return_t
 hg_proc_transfer_request_out_t(hg_proc_t proc, void *data)
 {
+    FUNC_ENTER(NULL);
+
     hg_return_t             ret;
     transfer_request_out_t *struct_data = (transfer_request_out_t *)data;
     ret                                 = hg_proc_uint64_t(proc, &struct_data->metadata_id);
     if (ret != HG_SUCCESS) {
-        return ret;
+        FUNC_LEAVE(ret);
     }
     ret = hg_proc_int32_t(proc, &struct_data->ret);
     if (ret != HG_SUCCESS) {
-        return ret;
+        FUNC_LEAVE(ret);
     }
-    return ret;
+
+    FUNC_LEAVE(ret);
 }
 
 /* Define hg_proc_transfer_request_status_in_t */
 static HG_INLINE hg_return_t
 hg_proc_transfer_request_status_in_t(hg_proc_t proc, void *data)
 {
+    FUNC_ENTER(NULL);
+
     hg_return_t                   ret;
     transfer_request_status_in_t *struct_data = (transfer_request_status_in_t *)data;
     ret                                       = hg_proc_uint64_t(proc, &struct_data->transfer_request_id);
     if (ret != HG_SUCCESS) {
-        return ret;
+        FUNC_LEAVE(ret);
     }
-    return ret;
+
+    FUNC_LEAVE(ret);
 }
 
 /* Define hg_proc_transfer_request_status_out_t */
 static HG_INLINE hg_return_t
 hg_proc_transfer_request_status_out_t(hg_proc_t proc, void *data)
 {
+    FUNC_ENTER(NULL);
+
     hg_return_t                    ret;
     transfer_request_status_out_t *struct_data = (transfer_request_status_out_t *)data;
 
     ret = hg_proc_uint32_t(proc, &struct_data->status);
     if (ret != HG_SUCCESS) {
-        return ret;
+        FUNC_LEAVE(ret);
     }
-
     ret = hg_proc_int32_t(proc, &struct_data->ret);
     if (ret != HG_SUCCESS) {
-        return ret;
+        FUNC_LEAVE(ret);
     }
-    return ret;
+
+    FUNC_LEAVE(ret);
 }
 
 /* Define hg_proc_transfer_request_wait_all_in_t */
 static HG_INLINE hg_return_t
 hg_proc_transfer_request_wait_all_in_t(hg_proc_t proc, void *data)
 {
+    FUNC_ENTER(NULL);
+
     hg_return_t                     ret;
     transfer_request_wait_all_in_t *struct_data = (transfer_request_wait_all_in_t *)data;
     ret                                         = hg_proc_hg_bulk_t(proc, &struct_data->local_bulk_handle);
     if (ret != HG_SUCCESS) {
-        return ret;
+        FUNC_LEAVE(ret);
     }
     ret = hg_proc_uint64_t(proc, &struct_data->total_buf_size);
     if (ret != HG_SUCCESS) {
-        return ret;
+        FUNC_LEAVE(ret);
     }
     ret = hg_proc_int32_t(proc, &struct_data->n_objs);
     if (ret != HG_SUCCESS) {
-        return ret;
+        FUNC_LEAVE(ret);
     }
-    return ret;
+
+    FUNC_LEAVE(ret);
 }
 
 /* Define hg_proc_transfer_request_wait_all_out_t */
 static HG_INLINE hg_return_t
 hg_proc_transfer_request_wait_all_out_t(hg_proc_t proc, void *data)
 {
+    FUNC_ENTER(NULL);
+
     hg_return_t                      ret;
     transfer_request_wait_all_out_t *struct_data = (transfer_request_wait_all_out_t *)data;
 
     ret = hg_proc_int32_t(proc, &struct_data->ret);
     if (ret != HG_SUCCESS) {
-        return ret;
+        FUNC_LEAVE(ret);
     }
-    return ret;
+
+    FUNC_LEAVE(ret);
 }
 
 /* Define hg_proc_transfer_request_all_in_t */
 static HG_INLINE hg_return_t
 hg_proc_transfer_request_all_in_t(hg_proc_t proc, void *data)
 {
+    FUNC_ENTER(NULL);
+
     hg_return_t                ret;
     transfer_request_all_in_t *struct_data = (transfer_request_all_in_t *)data;
     ret                                    = hg_proc_hg_bulk_t(proc, &struct_data->local_bulk_handle);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
     ret = hg_proc_uint64_t(proc, &struct_data->total_buf_size);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
     ret = hg_proc_int32_t(proc, &struct_data->n_objs);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
     ret = hg_proc_uint8_t(proc, &struct_data->access_type);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
     ret = hg_proc_int32_t(proc, &struct_data->client_id);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
-    return ret;
+
+    FUNC_LEAVE(ret);
 }
 
 /* Define hg_proc_transfer_request_all_out_t */
 static HG_INLINE hg_return_t
 hg_proc_transfer_request_all_out_t(hg_proc_t proc, void *data)
 {
+    FUNC_ENTER(NULL);
+
     hg_return_t                 ret;
     transfer_request_all_out_t *struct_data = (transfer_request_all_out_t *)data;
     ret                                     = hg_proc_uint64_t(proc, &struct_data->metadata_id);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
     ret = hg_proc_int32_t(proc, &struct_data->ret);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
-    return ret;
+
+    FUNC_LEAVE(ret);
 }
 
 /* Define hg_proc_transfer_request_metadata_query_in_t */
 static HG_INLINE hg_return_t
 hg_proc_transfer_request_metadata_query_in_t(hg_proc_t proc, void *data)
 {
+    FUNC_ENTER(NULL);
+
     hg_return_t                           ret;
     transfer_request_metadata_query_in_t *struct_data = (transfer_request_metadata_query_in_t *)data;
     ret = hg_proc_hg_bulk_t(proc, &struct_data->local_bulk_handle);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
     ret = hg_proc_uint64_t(proc, &struct_data->total_buf_size);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
     ret = hg_proc_int32_t(proc, &struct_data->n_objs);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
     ret = hg_proc_uint8_t(proc, &struct_data->is_write);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
-    return ret;
+
+    FUNC_LEAVE(ret);
 }
 
 /* Define hg_proc_transfer_request_metadata_query_out_t */
 static HG_INLINE hg_return_t
 hg_proc_transfer_request_metadata_query_out_t(hg_proc_t proc, void *data)
 {
+    FUNC_ENTER(NULL);
+
     hg_return_t                            ret;
     transfer_request_metadata_query_out_t *struct_data = (transfer_request_metadata_query_out_t *)data;
 
     ret = hg_proc_uint64_t(proc, &struct_data->query_id);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
-
     ret = hg_proc_uint64_t(proc, &struct_data->total_buf_size);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
-
     ret = hg_proc_int32_t(proc, &struct_data->ret);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
-    return ret;
+
+    FUNC_LEAVE(ret);
 }
 
 /* Define hg_proc_transfer_request_metadata_query2_in_t */
 static HG_INLINE hg_return_t
 hg_proc_transfer_request_metadata_query2_in_t(hg_proc_t proc, void *data)
 {
+    FUNC_ENTER(NULL);
+
     hg_return_t                            ret;
     transfer_request_metadata_query2_in_t *struct_data = (transfer_request_metadata_query2_in_t *)data;
     ret = hg_proc_hg_bulk_t(proc, &struct_data->local_bulk_handle);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
     ret = hg_proc_uint64_t(proc, &struct_data->total_buf_size);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
     ret = hg_proc_uint64_t(proc, &struct_data->query_id);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
-    return ret;
+
+    FUNC_LEAVE(ret);
 }
 
 /* Define hg_proc_transfer_request_metadata_query2_out_t */
 static HG_INLINE hg_return_t
 hg_proc_transfer_request_metadata_query2_out_t(hg_proc_t proc, void *data)
 {
+    FUNC_ENTER(NULL);
+
     hg_return_t                             ret;
     transfer_request_metadata_query2_out_t *struct_data = (transfer_request_metadata_query2_out_t *)data;
 
     ret = hg_proc_int32_t(proc, &struct_data->ret);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
-    return ret;
+
+    FUNC_LEAVE(ret);
 }
 
 /* Define hg_proc_transfer_request_wait_in_t */
 static HG_INLINE hg_return_t
 hg_proc_transfer_request_wait_in_t(hg_proc_t proc, void *data)
 {
+    FUNC_ENTER(NULL);
+
     hg_return_t                 ret;
     transfer_request_wait_in_t *struct_data = (transfer_request_wait_in_t *)data;
     ret                                     = hg_proc_int32_t(proc, &struct_data->access_type);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
 
     ret = hg_proc_uint64_t(proc, &struct_data->transfer_request_id);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
-    return ret;
+
+    FUNC_LEAVE(ret);
 }
 
 /* Define hg_proc_transfer_request_wait_out_t */
 static HG_INLINE hg_return_t
 hg_proc_transfer_request_wait_out_t(hg_proc_t proc, void *data)
 {
+    FUNC_ENTER(NULL);
+
     hg_return_t                  ret;
     transfer_request_wait_out_t *struct_data = (transfer_request_wait_out_t *)data;
     ret                                      = hg_proc_int32_t(proc, &struct_data->ret);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
-    return ret;
+
+    FUNC_LEAVE(ret);
 }
 
 /* Define hg_proc_buf_unmap_in_t */
 static HG_INLINE hg_return_t
 hg_proc_buf_unmap_in_t(hg_proc_t proc, void *data)
 {
+    FUNC_ENTER(NULL);
+
     hg_return_t     ret;
     buf_unmap_in_t *struct_data = (buf_unmap_in_t *)data;
 
     ret = hg_proc_uint32_t(proc, &struct_data->meta_server_id);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
     ret = hg_proc_uint64_t(proc, &struct_data->remote_obj_id);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
     ret = hg_proc_uint64_t(proc, &struct_data->remote_reg_id);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
     ret = hg_proc_region_info_transfer_t(proc, &struct_data->remote_region);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
-    return ret;
+
+    FUNC_LEAVE(ret);
 }
 
 /* Define hg_proc_buf_unmap_out_t */
 static HG_INLINE hg_return_t
 hg_proc_buf_unmap_out_t(hg_proc_t proc, void *data)
 {
+    FUNC_ENTER(NULL);
+
     hg_return_t      ret;
     buf_unmap_out_t *struct_data = (buf_unmap_out_t *)data;
 
     ret = hg_proc_int32_t(proc, &struct_data->ret);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
-    return ret;
+
+    FUNC_LEAVE(ret);
 }
 
 /* Define hg_proc_data_server_read_in_t */
 static HG_INLINE hg_return_t
 hg_proc_data_server_read_in_t(hg_proc_t proc, void *data)
 {
+    FUNC_ENTER(NULL);
+
     hg_return_t            ret;
     data_server_read_in_t *struct_data = (data_server_read_in_t *)data;
 
     ret = hg_proc_uint32_t(proc, &struct_data->client_id);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
     ret = hg_proc_int32_t(proc, &struct_data->nclient);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
     ret = hg_proc_int32_t(proc, &struct_data->nupdate);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
     ret = hg_proc_pdc_metadata_transfer_t(proc, &struct_data->meta);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
     ret = hg_proc_region_info_transfer_t(proc, &struct_data->region);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
     ret = hg_proc_int32_t(proc, &struct_data->cache_percentage);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
-    return ret;
+
+    FUNC_LEAVE(ret);
 }
 
 /* Define hg_proc_data_server_read_out_t */
 static HG_INLINE hg_return_t
 hg_proc_data_server_read_out_t(hg_proc_t proc, void *data)
 {
+    FUNC_ENTER(NULL);
+
     hg_return_t             ret;
     data_server_read_out_t *struct_data = (data_server_read_out_t *)data;
 
     ret = hg_proc_int32_t(proc, &struct_data->ret);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
-    return ret;
+
+    FUNC_LEAVE(ret);
 }
 
 /* Define hg_proc_data_server_write_in_t */
 static HG_INLINE hg_return_t
 hg_proc_data_server_write_in_t(hg_proc_t proc, void *data)
 {
+    FUNC_ENTER(NULL);
+
     hg_return_t             ret;
     data_server_write_in_t *struct_data = (data_server_write_in_t *)data;
 
     ret = hg_proc_uint32_t(proc, &struct_data->client_id);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
     ret = hg_proc_int32_t(proc, &struct_data->nclient);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
     ret = hg_proc_int32_t(proc, &struct_data->nupdate);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
     ret = hg_proc_hg_string_t(proc, &struct_data->shm_addr);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
     ret = hg_proc_pdc_metadata_transfer_t(proc, &struct_data->meta);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
     ret = hg_proc_region_info_transfer_t(proc, &struct_data->region);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
-    return ret;
+
+    FUNC_LEAVE(ret);
 }
 
 /* Define hg_proc_data_server_write_out_t */
 static HG_INLINE hg_return_t
 hg_proc_data_server_write_out_t(hg_proc_t proc, void *data)
 {
+    FUNC_ENTER(NULL);
+
     hg_return_t              ret;
     data_server_write_out_t *struct_data = (data_server_write_out_t *)data;
 
     ret = hg_proc_int32_t(proc, &struct_data->ret);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
-    return ret;
+
+    FUNC_LEAVE(ret);
 }
 
 /* Define hg_proc_data_server_read_check_in_t */
 static HG_INLINE hg_return_t
 hg_proc_data_server_read_check_in_t(hg_proc_t proc, void *data)
 {
+    FUNC_ENTER(NULL);
+
     hg_return_t                  ret;
     data_server_read_check_in_t *struct_data = (data_server_read_check_in_t *)data;
 
     ret = hg_proc_uint32_t(proc, &struct_data->client_id);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
     ret = hg_proc_pdc_metadata_transfer_t(proc, &struct_data->meta);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
     ret = hg_proc_region_info_transfer_t(proc, &struct_data->region);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
-    return ret;
+
+    FUNC_LEAVE(ret);
 }
 
 /* Define hg_proc_data_server_read_check_out_t */
 static HG_INLINE hg_return_t
 hg_proc_data_server_read_check_out_t(hg_proc_t proc, void *data)
 {
+    FUNC_ENTER(NULL);
+
     hg_return_t                   ret;
     data_server_read_check_out_t *struct_data = (data_server_read_check_out_t *)data;
 
     ret = hg_proc_int32_t(proc, &struct_data->ret);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
     ret = hg_proc_hg_string_t(proc, &struct_data->shm_addr);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
-    return ret;
+
+    FUNC_LEAVE(ret);
 }
 
 /* Define hg_proc_data_server_write_check_in_t */
 static HG_INLINE hg_return_t
 hg_proc_data_server_write_check_in_t(hg_proc_t proc, void *data)
 {
+    FUNC_ENTER(NULL);
+
     hg_return_t                   ret;
     data_server_write_check_in_t *struct_data = (data_server_write_check_in_t *)data;
 
     ret = hg_proc_uint32_t(proc, &struct_data->client_id);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
     ret = hg_proc_pdc_metadata_transfer_t(proc, &struct_data->meta);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
     ret = hg_proc_region_info_transfer_t(proc, &struct_data->region);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
-    return ret;
+
+    FUNC_LEAVE(ret);
 }
 
 /* Define hg_proc_data_server_write_check_out_t */
 static HG_INLINE hg_return_t
 hg_proc_data_server_write_check_out_t(hg_proc_t proc, void *data)
 {
+    FUNC_ENTER(NULL);
+
     hg_return_t                    ret;
     data_server_write_check_out_t *struct_data = (data_server_write_check_out_t *)data;
 
     ret = hg_proc_int32_t(proc, &struct_data->ret);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
-    return ret;
+
+    FUNC_LEAVE(ret);
 }
 
 /* Define hg_proc_region_storage_meta_t */
 static HG_INLINE hg_return_t
 hg_proc_region_storage_meta_t(hg_proc_t proc, void *data)
 {
+    FUNC_ENTER(NULL);
+
     hg_return_t            ret;
     region_storage_meta_t *struct_data = (region_storage_meta_t *)data;
 
     ret = hg_proc_uint64_t(proc, &struct_data->obj_id);
 
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
     ret = hg_proc_region_info_transfer_t(proc, &struct_data->region_transfer);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
     ret = hg_proc_hg_string_t(proc, &struct_data->storage_location);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
     ret = hg_proc_uint64_t(proc, &struct_data->offset);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
     ret = hg_proc_uint64_t(proc, &struct_data->size);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
-    return ret;
+
+    FUNC_LEAVE(ret);
 }
 
 /* Define hg_proc_pdc_histogram_t */
 static HG_INLINE hg_return_t
 hg_proc_pdc_histogram_t(hg_proc_t proc, void *data)
 {
+    FUNC_ENTER(NULL);
+
     hg_return_t      ret;
     pdc_histogram_t *struct_data = (pdc_histogram_t *)data;
 
     ret = hg_proc_int32_t(proc, &struct_data->dtype);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
     ret = hg_proc_int32_t(proc, &struct_data->nbin);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
     ret = hg_proc_int64_t(proc, &struct_data->incr);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
     if (struct_data->nbin > 0) {
         switch (hg_proc_get_op(proc)) {
@@ -3259,389 +3245,402 @@ hg_proc_pdc_histogram_t(hg_proc_t proc, void *data)
         }
     }
 
-    return ret;
+    FUNC_LEAVE(ret);
 }
 
 /* Define hg_proc_update_region_loc_in_t */
 static HG_INLINE hg_return_t
 hg_proc_update_region_loc_in_t(hg_proc_t proc, void *data)
 {
+    FUNC_ENTER(NULL);
+
     hg_return_t             ret;
     update_region_loc_in_t *struct_data = (update_region_loc_in_t *)data;
 
     ret = hg_proc_uint64_t(proc, &struct_data->obj_id);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
     ret = hg_proc_hg_string_t(proc, &struct_data->storage_location);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
     ret = hg_proc_uint64_t(proc, &struct_data->offset);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
     ret = hg_proc_uint32_t(proc, &struct_data->type);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
     ret = hg_proc_region_info_transfer_t(proc, &struct_data->region);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
     ret = hg_proc_int32_t(proc, &struct_data->has_hist);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
     if (struct_data->has_hist == 1) {
         ret = hg_proc_pdc_histogram_t(proc, &struct_data->hist);
         if (ret != HG_SUCCESS) {
-
-            return ret;
+            FUNC_LEAVE(ret);
         }
     }
-    return ret;
+
+    FUNC_LEAVE(ret);
 }
 
 /* Define hg_proc_update_region_loc_out_t */
 static HG_INLINE hg_return_t
 hg_proc_update_region_loc_out_t(hg_proc_t proc, void *data)
 {
+    FUNC_ENTER(NULL);
+
     hg_return_t              ret;
     update_region_loc_out_t *struct_data = (update_region_loc_out_t *)data;
 
     ret = hg_proc_int32_t(proc, &struct_data->ret);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
-    return ret;
+
+    FUNC_LEAVE(ret);
 }
 
 /* Define hg_proc_get_metadata_by_id_in_t */
 static HG_INLINE hg_return_t
 hg_proc_get_metadata_by_id_in_t(hg_proc_t proc, void *data)
 {
+    FUNC_ENTER(NULL);
+
     hg_return_t              ret;
     get_metadata_by_id_in_t *struct_data = (get_metadata_by_id_in_t *)data;
 
     ret = hg_proc_uint64_t(proc, &struct_data->obj_id);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
-    return ret;
+
+    FUNC_LEAVE(ret);
 }
 
 /* Define hg_proc_get_metadata_by_id_out_t */
 static HG_INLINE hg_return_t
 hg_proc_get_metadata_by_id_out_t(hg_proc_t proc, void *data)
 {
+    FUNC_ENTER(NULL);
+
     hg_return_t               ret;
     get_metadata_by_id_out_t *struct_data = (get_metadata_by_id_out_t *)data;
 
     ret = hg_proc_pdc_metadata_transfer_t(proc, &struct_data->res_meta);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
-    return ret;
+
+    FUNC_LEAVE(ret);
 }
 
 /* Define hg_proc_pdc_serialized_data_t */
 static HG_INLINE hg_return_t
 hg_proc_pdc_serialized_data_t(hg_proc_t proc, void *data)
 {
+    FUNC_ENTER(NULL);
+
     hg_return_t            ret;
     pdc_serialized_data_t *struct_data = (pdc_serialized_data_t *)data;
 
     ret = hg_proc_hg_string_t(proc, &struct_data->buf);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
-    return ret;
+
+    FUNC_LEAVE(ret);
 }
 
 /* Define hg_proc_get_storage_info_single_out_t */
 static HG_INLINE hg_return_t
 hg_proc_get_storage_info_single_out_t(hg_proc_t proc, void *data)
 {
+    FUNC_ENTER(NULL);
+
     hg_return_t                    ret;
     get_storage_info_single_out_t *struct_data = (get_storage_info_single_out_t *)data;
     ret = hg_proc_region_info_transfer_t(proc, &struct_data->region_transfer);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
     ret = hg_proc_hg_string_t(proc, &struct_data->storage_loc);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
     ret = hg_proc_uint64_t(proc, &struct_data->file_offset);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
-    return ret;
+
+    FUNC_LEAVE(ret);
 }
 
 /* Define hg_proc_get_storage_info_in_t */
 static HG_INLINE hg_return_t
 hg_proc_get_storage_info_in_t(hg_proc_t proc, void *data)
 {
+    FUNC_ENTER(NULL);
+
     hg_return_t            ret;
     get_storage_info_in_t *struct_data = (get_storage_info_in_t *)data;
 
     ret = hg_proc_uint64_t(proc, &struct_data->obj_id);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
     ret = hg_proc_region_info_transfer_t(proc, &struct_data->req_region);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
-    return ret;
+
+    FUNC_LEAVE(ret);
 }
 
 /* Define hg_proc_pdc_int_send_t */
 static HG_INLINE hg_return_t
 hg_proc_pdc_int_send_t(hg_proc_t proc, void *data)
 {
+    FUNC_ENTER(NULL);
+
     hg_return_t     ret;
     pdc_int_send_t *struct_data = (pdc_int_send_t *)data;
 
     ret = hg_proc_int32_t(proc, &struct_data->origin);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
-    return ret;
+
+    FUNC_LEAVE(ret);
 }
 
 /* Define hg_proc_pdc_int_ret_t */
 static HG_INLINE hg_return_t
 hg_proc_pdc_int_ret_t(hg_proc_t proc, void *data)
 {
+    FUNC_ENTER(NULL);
+
     hg_return_t    ret;
     pdc_int_ret_t *struct_data = (pdc_int_ret_t *)data;
 
     ret = hg_proc_int32_t(proc, &struct_data->ret);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
-    return ret;
+
+    FUNC_LEAVE(ret);
 }
 
 /* Define hg_proc_pdc_aggregated_io_to_server_t */
 static HG_INLINE hg_return_t
 hg_proc_pdc_aggregated_io_to_server_t(hg_proc_t proc, void *data)
 {
+    FUNC_ENTER(NULL);
+
     hg_return_t                    ret;
     pdc_aggregated_io_to_server_t *struct_data = (pdc_aggregated_io_to_server_t *)data;
 
     ret = hg_proc_hg_string_t(proc, &struct_data->buf);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
     ret = hg_proc_pdc_metadata_transfer_t(proc, &struct_data->meta);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
-    return ret;
+
+    FUNC_LEAVE(ret);
 }
 
 /* Define hg_proc_cont_add_del_objs_rpc_in_t*/
 static HG_INLINE hg_return_t
 hg_proc_cont_add_del_objs_rpc_in_t(hg_proc_t proc, void *data)
 {
+    FUNC_ENTER(NULL);
+
     hg_return_t                 ret         = HG_SUCCESS;
     cont_add_del_objs_rpc_in_t *struct_data = (cont_add_del_objs_rpc_in_t *)data;
 
     ret = hg_proc_int32_t(proc, &struct_data->op);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
     ret = hg_proc_int32_t(proc, &struct_data->cnt);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
     ret = hg_proc_int32_t(proc, &struct_data->origin);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
     ret = hg_proc_uint64_t(proc, &struct_data->cont_id);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
     ret = hg_proc_hg_bulk_t(proc, &struct_data->bulk_handle);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
-    return ret;
+
+    FUNC_LEAVE(ret);
 }
 
 /* Define hg_proc_bulk_rpc_out_t */
 static HG_INLINE hg_return_t
 hg_proc_cont_add_del_objs_rpc_out_t(hg_proc_t proc, void *data)
 {
+    FUNC_ENTER(NULL);
+
     hg_return_t     ret         = HG_SUCCESS;
     bulk_rpc_out_t *struct_data = (bulk_rpc_out_t *)data;
 
     ret = hg_proc_uint32_t(proc, &struct_data->ret);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
-    return ret;
+
+    FUNC_LEAVE(ret);
 }
 
 /* Define hg_proc_cont_add_tags_rpc_in_t */
 static HG_INLINE hg_return_t
 hg_proc_cont_add_tags_rpc_in_t(hg_proc_t proc, void *data)
 {
+    FUNC_ENTER(NULL);
+
     hg_return_t             ret         = HG_SUCCESS;
     cont_add_tags_rpc_in_t *struct_data = (cont_add_tags_rpc_in_t *)data;
 
     ret = hg_proc_uint64_t(proc, &struct_data->cont_id);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
     ret = hg_proc_hg_string_t(proc, &struct_data->tags);
-
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
-    return ret;
+
+    FUNC_LEAVE(ret);
 }
 
 /* Define hg_proc_query_read_obj_name_in_t */
 static HG_INLINE hg_return_t
 hg_proc_query_read_obj_name_in_t(hg_proc_t proc, void *data)
 {
+    FUNC_ENTER(NULL);
+
     hg_return_t               ret         = HG_SUCCESS;
     query_read_obj_name_in_t *struct_data = (query_read_obj_name_in_t *)data;
 
     ret = hg_proc_int32_t(proc, &struct_data->client_seq_id);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
     ret = hg_proc_int32_t(proc, &struct_data->cnt);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
     ret = hg_proc_int32_t(proc, &struct_data->total_size);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
     ret = hg_proc_int32_t(proc, &struct_data->origin);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
     ret = hg_proc_hg_bulk_t(proc, &struct_data->bulk_handle);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
-    return ret;
+
+    FUNC_LEAVE(ret);
 }
 
 /* Define hg_proc_query_read_obj_name_out_t */
 static HG_INLINE hg_return_t
 hg_proc_query_read_obj_name_out_t(hg_proc_t proc, void *data)
 {
+    FUNC_ENTER(NULL);
+
     hg_return_t     ret         = HG_SUCCESS;
     bulk_rpc_out_t *struct_data = (bulk_rpc_out_t *)data;
 
     ret = hg_proc_uint32_t(proc, &struct_data->ret);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
-    return ret;
+
+    FUNC_LEAVE(ret);
 }
 
 /* Define hg_proc_container_query_in_t */
 static HG_INLINE hg_return_t
 hg_proc_container_query_in_t(hg_proc_t proc, void *data)
 {
+    FUNC_ENTER(NULL);
+
     hg_return_t           ret;
     container_query_in_t *struct_data = (container_query_in_t *)data;
 
     ret = hg_proc_hg_string_t(proc, &struct_data->cont_name);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
     ret = hg_proc_uint32_t(proc, &struct_data->hash_value);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
-    return ret;
+
+    FUNC_LEAVE(ret);
 }
 
 /* Define hg_proc_container_query_out_t */
 static HG_INLINE hg_return_t
 hg_proc_container_query_out_t(hg_proc_t proc, void *data)
 {
+    FUNC_ENTER(NULL);
+
     hg_return_t            ret         = HG_SUCCESS;
     container_query_out_t *struct_data = (container_query_out_t *)data;
 
     ret = hg_proc_uint64_t(proc, &struct_data->cont_id);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
-    return ret;
+
+    FUNC_LEAVE(ret);
 }
 
 /* Define hg_proc_storage_meta_name_query_in_t */
 static HG_INLINE hg_return_t
 hg_proc_storage_meta_name_query_in_t(hg_proc_t proc, void *data)
 {
+    FUNC_ENTER(NULL);
+
     hg_return_t                   ret;
     storage_meta_name_query_in_t *struct_data = (storage_meta_name_query_in_t *)data;
 
     ret = hg_proc_hg_string_t(proc, &struct_data->obj_name);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
     ret = hg_proc_int32_t(proc, &struct_data->task_id);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
     ret = hg_proc_int32_t(proc, &struct_data->origin_id);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
-    return ret;
+
+    FUNC_LEAVE(ret);
 }
 
 /* Define hg_proc_pdc_query_xfer_t */
@@ -3652,235 +3651,214 @@ hg_return_t hg_proc_pdc_query_xfer_t(hg_proc_t proc, void *data);
 static HG_INLINE hg_return_t
 hg_proc_get_sel_data_rpc_in_t(hg_proc_t proc, void *data)
 {
+    FUNC_ENTER(NULL);
+
     hg_return_t            ret;
     get_sel_data_rpc_in_t *struct_data = (get_sel_data_rpc_in_t *)data;
 
     ret = hg_proc_uint64_t(proc, &struct_data->obj_id);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
     ret = hg_proc_int32_t(proc, &struct_data->origin);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
     ret = hg_proc_int32_t(proc, &struct_data->query_id);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
-    return ret;
+
+    FUNC_LEAVE(ret);
 }
 
 /* Define hg_proc_send_nhits_t */
 static HG_INLINE hg_return_t
 hg_proc_send_nhits_t(hg_proc_t proc, void *data)
 {
+    FUNC_ENTER(NULL);
+
     hg_return_t   ret;
     send_nhits_t *struct_data = (send_nhits_t *)data;
 
     ret = hg_proc_int32_t(proc, &struct_data->query_id);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
-
     ret = hg_proc_uint64_t(proc, &struct_data->nhits);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
-    return ret;
+
+    FUNC_LEAVE(ret);
 }
 
 /* Define hg_proc_query_storage_region_transfer_t */
 static HG_INLINE hg_return_t
 hg_proc_query_storage_region_transfer_t(hg_proc_t proc, void *data)
 {
+    FUNC_ENTER(NULL);
+
     hg_return_t                      ret;
     query_storage_region_transfer_t *struct_data = (query_storage_region_transfer_t *)data;
 
     ret = hg_proc_int32_t(proc, &struct_data->origin);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
     ret = hg_proc_int32_t(proc, &struct_data->total_region);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
     ret = hg_proc_int32_t(proc, &struct_data->op);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
     ret = hg_proc_int32_t(proc, &struct_data->is_done);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
     ret = hg_proc_int32_t(proc, &struct_data->data_type);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
     ret = hg_proc_int32_t(proc, &struct_data->query_id);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
     ret = hg_proc_int32_t(proc, &struct_data->manager);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
     ret = hg_proc_uint64_t(proc, &struct_data->obj_id);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
     ret = hg_proc_region_info_transfer_t(proc, &struct_data->region_transfer);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
     ret = hg_proc_hg_string_t(proc, &struct_data->storage_location);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
     ret = hg_proc_uint64_t(proc, &struct_data->offset);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
     ret = hg_proc_uint64_t(proc, &struct_data->size);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
     ret = hg_proc_int32_t(proc, &struct_data->has_hist);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
     if (struct_data->has_hist == 1) {
         ret = hg_proc_pdc_histogram_t(proc, &struct_data->hist);
         if (ret != HG_SUCCESS) {
-
-            return ret;
+            FUNC_LEAVE(ret);
         }
     }
 
-    return ret;
+    FUNC_LEAVE(ret);
 }
 
 static HG_INLINE hg_return_t
 hg_proc_dart_get_server_info_in_t(hg_proc_t proc, void *data)
 {
-    hg_return_t ret;
+    FUNC_ENTER(NULL);
 
+    hg_return_t                ret;
     dart_get_server_info_in_t *struct_data = (dart_get_server_info_in_t *)data;
 
     ret = hg_proc_uint32_t(proc, &struct_data->serverId);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
-    return ret;
+
+    FUNC_LEAVE(ret);
 }
 
 static HG_INLINE hg_return_t
 hg_proc_dart_get_server_info_out_t(hg_proc_t proc, void *data)
 {
+    FUNC_ENTER(NULL);
+
     hg_return_t                 ret;
     dart_get_server_info_out_t *struct_data = (dart_get_server_info_out_t *)data;
 
     ret = hg_proc_int64_t(proc, &struct_data->indexed_word_count);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
 
     ret = hg_proc_int64_t(proc, &struct_data->request_count);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
-    return ret;
+
+    FUNC_LEAVE(ret);
 }
 
 static HG_INLINE hg_return_t
 hg_proc_dart_perform_one_server_in_t(hg_proc_t proc, void *data)
 {
+    FUNC_ENTER(NULL);
+
     hg_return_t                   ret;
     dart_perform_one_server_in_t *struct_data = (dart_perform_one_server_in_t *)data;
     ret                                       = hg_proc_int8_t(proc, &struct_data->op_type);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
     ret = hg_proc_int8_t(proc, &struct_data->hash_algo);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
     ret = hg_proc_hg_string_t(proc, &struct_data->attr_key);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
     ret = hg_proc_uint32_t(proc, &struct_data->attr_vsize);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
     ret = hg_proc_uint8_t(proc, &struct_data->attr_vtype);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
     ret = hg_proc_uint64_t(proc, &struct_data->vnode_id);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
     ret = hg_proc_int8_t(proc, &struct_data->obj_ref_type);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
     ret = hg_proc_uint64_t(proc, &struct_data->obj_primary_ref);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
     ret = hg_proc_uint64_t(proc, &struct_data->obj_secondary_ref);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
     ret = hg_proc_uint64_t(proc, &struct_data->obj_server_ref);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
     ret = hg_proc_int8_t(proc, &struct_data->inserting_suffix);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
     ret = hg_proc_int64_t(proc, &struct_data->timestamp);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
     ret = hg_proc_uint32_t(proc, &struct_data->src_client_id);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
     if (struct_data->attr_vsize) {
         switch (hg_proc_get_op(proc)) {
@@ -3897,65 +3875,59 @@ hg_proc_dart_perform_one_server_in_t(hg_proc_t proc, void *data)
                 break;
         }
     }
-    return ret;
+
+    FUNC_LEAVE(ret);
 }
 
 static HG_INLINE hg_return_t
 hg_proc_dart_perform_one_server_out_t(hg_proc_t proc, void *data)
 {
+    FUNC_ENTER(NULL);
+
     hg_return_t                    ret;
     dart_perform_one_server_out_t *struct_data = (dart_perform_one_server_out_t *)data;
     ret                                        = hg_proc_int8_t(proc, &struct_data->op_type);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
     ret = hg_proc_int32_t(proc, &struct_data->ret);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
     ret = hg_proc_hg_bulk_t(proc, &struct_data->bulk_handle);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
     ret = hg_proc_int64_t(proc, &struct_data->indexed_word_count);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
     ret = hg_proc_int64_t(proc, &struct_data->request_count);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
     ret = hg_proc_int8_t(proc, &struct_data->has_bulk);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
     ret = hg_proc_int64_t(proc, &struct_data->n_items);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
     ret = hg_proc_int64_t(proc, &struct_data->timestamp);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
     ret = hg_proc_int64_t(proc, &struct_data->server_time_elapsed);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
     ret = hg_proc_int64_t(proc, &struct_data->server_memory_consumption);
     if (ret != HG_SUCCESS) {
-
-        return ret;
+        FUNC_LEAVE(ret);
     }
-    return ret;
+
+    FUNC_LEAVE(ret);
 }
 
 /***************************/
@@ -3970,10 +3942,10 @@ struct bulk_args_t {
     size_t            nbytes;
     int               origin;
     size_t            ret;
-    pdc_metadata_t ** meta_arr;
+    pdc_metadata_t  **meta_arr;
     uint32_t          n_meta;
     uint64_t          obj_id;
-    uint64_t *        obj_ids;
+    uint64_t         *obj_ids;
     int               client_seq_id;
     int               is_id; // if is_id == true, then use uint64_t; otherwise, pdc_metadata_t
     int8_t            op_type;
@@ -3997,7 +3969,7 @@ struct buf_map_release_bulk_args {
     double start_time;
 #endif
     hg_handle_t             handle;
-    void *                  data_buf;
+    void                   *data_buf;
     pdcid_t                 remote_obj_id; /* target of object id */
     pdcid_t                 remote_reg_id; /* target of region id */
     int32_t                 remote_client_id;
@@ -4025,11 +3997,11 @@ struct buf_map_release_bulk_args {
 
 struct buf_map_transform_and_release_bulk_args {
     hg_handle_t                    handle;
-    void *                         data_buf;
+    void                          *data_buf;
     pdcid_t                        remote_obj_id; /* target of object id */
     pdcid_t                        remote_reg_id; /* target of region id */
     int32_t                        remote_client_id;
-    struct pdc_region_info *       remote_reg_info;
+    struct pdc_region_info        *remote_reg_info;
     region_info_transfer_t         remote_region;
     hg_bulk_t                      remote_bulk_handle;
     hg_bulk_t                      local_bulk_handle;
@@ -4043,7 +4015,7 @@ struct buf_map_transform_and_release_bulk_args {
 
 struct buf_map_analysis_and_release_bulk_args {
     hg_handle_t             handle;
-    void *                  data_buf;
+    void                   *data_buf;
     pdcid_t                 remote_obj_id; /* target of object id */
     pdcid_t                 remote_reg_id; /* target of region id */
     int32_t                 remote_client_id;
@@ -4064,8 +4036,8 @@ struct lock_bulk_args {
     hg_handle_t             handle;
     region_lock_in_t        in;
     struct pdc_region_info *server_region;
-    void *                  data_buf;
-    region_map_t *          mapping_list;
+    void                   *data_buf;
+    region_map_t           *mapping_list;
     hg_addr_t               addr;
 };
 
@@ -4075,14 +4047,14 @@ struct region_lock_update_bulk_args {
     pdcid_t                 remote_obj_id;
     pdcid_t                 remote_reg_id;
     int32_t                 remote_client_id;
-    void *                  data_buf;
+    void                   *data_buf;
     struct pdc_region_info *server_region;
 };
 
 struct transfer_request_wait_all_local_bulk_args {
     hg_handle_t                    handle;
     hg_bulk_t                      bulk_handle;
-    void *                         data_buf;
+    void                          *data_buf;
     transfer_request_wait_all_in_t in;
 #ifdef PDC_TIMING
     double start_time;
@@ -4093,8 +4065,8 @@ struct transfer_request_all_local_bulk_args {
     hg_handle_t               handle;
     hg_bulk_t                 bulk_handle;
     transfer_request_all_in_t in;
-    uint64_t *                transfer_request_id;
-    void *                    data_buf;
+    uint64_t                 *transfer_request_id;
+    void                     *data_buf;
 #ifdef PDC_TIMING
     double start_time;
 #endif
@@ -4104,8 +4076,8 @@ struct transfer_request_all_local_bulk_args2 {
     hg_handle_t               handle;
     transfer_request_all_data request_data;
     hg_bulk_t                 bulk_handle;
-    uint64_t *                transfer_request_id;
-    void *                    data_buf;
+    uint64_t                 *transfer_request_id;
+    void                     *data_buf;
 #ifdef PDC_TIMING
     double start_time;
 #endif
@@ -4115,7 +4087,7 @@ struct transfer_request_metadata_query_local_bulk_args {
     hg_handle_t                          handle;
     hg_bulk_t                            bulk_handle;
     transfer_request_metadata_query_in_t in;
-    void *                               data_buf;
+    void                                *data_buf;
 #ifdef PDC_TIMING
     double start_time;
 #endif
@@ -4124,7 +4096,7 @@ struct transfer_request_metadata_query_local_bulk_args {
 struct transfer_request_metadata_query2_local_bulk_args {
     hg_handle_t handle;
     hg_bulk_t   bulk_handle;
-    void *      data_buf;
+    void       *data_buf;
 #ifdef PDC_TIMING
     double start_time;
 #endif
@@ -4135,7 +4107,7 @@ struct transfer_request_local_bulk_args {
     hg_bulk_t             bulk_handle;
     transfer_request_in_t in;
     uint64_t              transfer_request_id;
-    void *                data_buf;
+    void                 *data_buf;
     size_t                total_mem_size;
 
 #ifdef PDC_TIMING
@@ -4184,12 +4156,12 @@ typedef struct process_bulk_storage_meta_args_t {
 
 typedef struct region_meta_transfer_t {
     int                    loc_len;
-    char *                 storage_location;
+    char                  *storage_location;
     region_info_transfer_t region_info;
     uint64_t               offset;
     uint64_t               size;
     int                    has_hist;
-    pdc_histogram_t *      histogram;
+    pdc_histogram_t       *histogram;
 } region_meta_transfer_t;
 
 typedef struct storage_region_bulk_header_t {

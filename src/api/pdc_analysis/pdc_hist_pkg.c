@@ -2,11 +2,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "pdc_logger.h"
+#include "pdc_timing.h"
 
 #define MACRO_SAMPLE_MIN_MAX(TYPE, n, data, sample_pct, min, max)                                            \
     ({                                                                                                       \
         uint64_t i, sample_n, iter = 0;                                                                      \
-        TYPE *   ldata = (TYPE *)data;                                                                       \
+        TYPE    *ldata = (TYPE *)data;                                                                       \
         (min)          = ldata[0];                                                                           \
         (max)          = ldata[0];                                                                           \
         sample_n       = (n) * (sample_pct);                                                                 \
@@ -22,9 +23,9 @@
 perr_t
 PDC_sample_min_max(pdc_var_type_t dtype, uint64_t n, void *data, double sample_pct, double *min, double *max)
 {
-    perr_t ret_value = SUCCEED;
-
     FUNC_ENTER(NULL);
+
+    perr_t ret_value = SUCCEED;
 
     if (NULL == data || NULL == min || NULL == max)
         PGOTO_DONE(FAIL);
@@ -53,11 +54,11 @@ done:
 double
 ceil_power_of_2(double number)
 {
+    FUNC_ENTER(NULL);
+
     double ret_value = 0;
     double res       = 1.0;
     double sign      = number > 0 ? 1.0 : -1.0;
-
-    FUNC_ENTER(NULL);
 
     number *= sign;
 
@@ -81,11 +82,11 @@ ceil_power_of_2(double number)
 double
 floor_power_of_2(double number)
 {
+    FUNC_ENTER(NULL);
+
     double ret_value = 0;
     double res       = 1.0;
     double sign      = number > 0 ? 1.0 : -1.0;
-
-    FUNC_ENTER(NULL);
 
     number *= sign;
 
@@ -110,12 +111,12 @@ floor_power_of_2(double number)
 pdc_histogram_t *
 PDC_create_hist(pdc_var_type_t dtype, int nbin, double min, double max)
 {
+    FUNC_ENTER(NULL);
+
     pdc_histogram_t *ret_value = NULL;
     pdc_histogram_t *hist;
     int              i;
     double           min_bin, max_bin, bin_incr;
-
-    FUNC_ENTER(NULL);
 
     if (nbin < 4 || min > max)
         PGOTO_DONE(NULL);
@@ -162,7 +163,7 @@ done:
     ({                                                                                                       \
         uint64_t i;                                                                                          \
         int      lo, mid = 0, hi;                                                                            \
-        TYPE *   ldata = (TYPE *)(_data);                                                                    \
+        TYPE    *ldata = (TYPE *)(_data);                                                                    \
         if ((hist)->incr > 0) {                                                                              \
             for (i = 0; i < (n); i++) {                                                                      \
                 if (ldata[i] < (hist)->range[1]) {                                                           \
@@ -214,9 +215,9 @@ done:
 perr_t
 PDC_hist_incr_all(pdc_histogram_t *hist, pdc_var_type_t dtype, uint64_t n, void *data)
 {
-    perr_t ret_value = SUCCEED;
-
     FUNC_ENTER(NULL);
+
+    perr_t ret_value = SUCCEED;
 
     if (dtype != hist->dtype || 0 == n || NULL == data)
         return FAIL;
@@ -244,6 +245,8 @@ done:
 pdc_histogram_t *
 PDC_gen_hist(pdc_var_type_t dtype, uint64_t n, void *data)
 {
+    FUNC_ENTER(NULL);
+
     pdc_histogram_t *ret_value = NULL;
     pdc_histogram_t *hist;
     double           min, max;
@@ -251,8 +254,6 @@ PDC_gen_hist(pdc_var_type_t dtype, uint64_t n, void *data)
     double         gen_hist_time;
     struct timeval pdc_timer_start, pdc_timer_end;
 #endif
-
-    FUNC_ENTER(NULL);
 
     if (0 == n || NULL == data) {
         PGOTO_DONE(NULL);
@@ -298,15 +299,15 @@ PDC_free_hist(pdc_histogram_t *hist)
 
 done:
     fflush(stdout);
-    FUNC_LEAVE_VOID;
+    FUNC_LEAVE_VOID();
 }
 
 void
 PDC_print_hist(pdc_histogram_t *hist)
 {
-    int i;
-
     FUNC_ENTER(NULL);
+
+    int i;
 
     if (NULL == hist)
         PGOTO_DONE_VOID;
@@ -321,17 +322,17 @@ PDC_print_hist(pdc_histogram_t *hist)
 
 done:
     fflush(stdout);
-    FUNC_LEAVE_VOID;
+    FUNC_LEAVE_VOID();
 }
 
 pdc_histogram_t *
 PDC_dup_hist(pdc_histogram_t *hist)
 {
+    FUNC_ENTER(NULL);
+
     pdc_histogram_t *ret_value = NULL;
     pdc_histogram_t *res;
     int              nbin;
-
-    FUNC_ENTER(NULL);
 
     if (NULL == hist)
         PGOTO_DONE(NULL);
@@ -357,12 +358,12 @@ done:
 pdc_histogram_t *
 PDC_merge_hist(int n, pdc_histogram_t **hists)
 {
+    FUNC_ENTER(NULL);
+
     pdc_histogram_t *ret_value = NULL;
     int              i, j, incr_max_idx = 0, hi, lo, mid = 0;
     double           tot_min, tot_max, incr_max;
     pdc_histogram_t *res;
-
-    FUNC_ENTER(NULL);
 
     if (n == 0 || NULL == hists)
         PGOTO_DONE(NULL);
@@ -427,9 +428,9 @@ done:
 void
 PDC_copy_hist(pdc_histogram_t *to, pdc_histogram_t *from)
 {
-    int nbin = from->nbin;
-
     FUNC_ENTER(NULL);
+
+    int nbin = from->nbin;
 
     to->incr  = from->incr;
     to->dtype = from->dtype;
@@ -441,5 +442,5 @@ PDC_copy_hist(pdc_histogram_t *to, pdc_histogram_t *from)
     memcpy(to->bin, from->bin, sizeof(uint64_t) * nbin);
     to->nbin = from->nbin;
 
-    FUNC_LEAVE_VOID;
+    FUNC_LEAVE_VOID();
 }

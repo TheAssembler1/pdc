@@ -6,6 +6,7 @@
 #include "query_utils.h"
 #include "timer_utils.h"
 #include "pdc_generic.h"
+#include "pdc_timing.h"
 #include "art.h"
 #include "pdc_set.h"
 #include "pdc_hash.h"
@@ -24,7 +25,7 @@
 typedef struct {
     art_tree *art_key_prefix_tree_g;
     art_tree *art_key_suffix_tree_g;
-    DART *    dart_info_g;
+    DART     *dart_info_g;
     uint32_t  server_id_g;
     uint32_t  num_servers_g;
     int64_t   index_record_count_g;
@@ -37,12 +38,12 @@ typedef struct {
 } IDIOMS_t;
 
 typedef struct {
-    char *           key;
+    char            *key;
     int8_t           is_key_suffix;
     uint64_t         virtual_node_id;
     pdc_c_var_type_t type;
     // int              simple_value_type; // 0: uint64_t, 1: int64_t, 2: double, 3: char*
-    void *    value;
+    void     *value;
     size_t    value_len;
     uint64_t *obj_ids;
     size_t    num_obj_ids;
@@ -59,18 +60,18 @@ typedef struct {
     // Also, for key lookup ART, we also maintain the pointer to the value tree
     art_tree *primary_trie;
     art_tree *secondary_trie;
-    rbt_t *   primary_rbt;
-    rbt_t *   secondary_rbt;
+    rbt_t    *primary_rbt;
+    rbt_t    *secondary_rbt;
     uint8_t   val_idx_dtype; // 0: uint64_t, 1: int64_t, 2: double
 } key_index_leaf_content_t;
 
 typedef struct {
-    Set *  obj_id_set;
+    Set   *obj_id_set;
     size_t indexed_item_count;
 } value_index_leaf_content_t;
 
 typedef struct {
-    void *    value;
+    void     *value;
     size_t    value_len;
     uint64_t *obj_ids;
     size_t    num_obj_ids;
@@ -79,12 +80,12 @@ typedef struct {
 typedef struct {
     value_index_record_t *value_idx_record;
     uint64_t              num_value_idx_record;
-    char *                key;
+    char                 *key;
     uint64_t              virtual_node_id;
 } key_index_record_t;
 
 typedef struct {
-    void * buffer;
+    void  *buffer;
     size_t buffer_size;
     size_t buffer_capacity;
     size_t num_keys;
@@ -93,14 +94,20 @@ typedef struct {
 static void
 _init_dart_space_via_idioms(DART *dart, int num_server)
 {
+    FUNC_ENTER(NULL);
+
     dart_space_init(dart, num_server);
+
+    FUNC_LEAVE_VOID();
 }
 
 static void
 _encodeTypeToBitmap(uint8_t *bitmap, enum pdc_c_var_type_t type)
 {
+    FUNC_ENTER(NULL);
+
     if (bitmap == NULL) {
-        return;
+        FUNC_LEAVE_VOID();
     }
     if (type >= PDC_STRING) {                      // Non-numerical types
         *bitmap |= ((type - PDC_STRING + 1) << 4); // Shift by 4 to set in the higher 4 bits
@@ -108,21 +115,25 @@ _encodeTypeToBitmap(uint8_t *bitmap, enum pdc_c_var_type_t type)
     else {                        // Numerical types
         *bitmap |= (type & 0x0F); // Ensure only lower 4 bits are used for numerical types
     }
+
+    FUNC_LEAVE_VOID();
 }
 
 // Function to get numerical type from the bitmap
 static enum pdc_c_var_type_t
 _getNumericalTypeFromBitmap(uint8_t bitmap)
 {
-    return (enum pdc_c_var_type_t)(bitmap & 0x0F); // Extract lower 4 bits
+    FUNC_ENTER(NULL);
+    FUNC_LEAVE((enum pdc_c_var_type_t)(bitmap & 0x0F)); // Extract lower 4 bits
 }
 
 // Function to get string (non-numerical) type from the bitmap
 static enum pdc_c_var_type_t
 _getCompoundTypeFromBitmap(uint8_t bitmap)
 {
-    return (enum pdc_c_var_type_t)(((bitmap >> 4) & 0x0F) + PDC_STRING -
-                                   1); // Extract higher 4 bits and adjust index
+    FUNC_ENTER(NULL);
+    FUNC_LEAVE((enum pdc_c_var_type_t)(((bitmap >> 4) & 0x0F) + PDC_STRING -
+                                       1)); // Extract higher 4 bits and adjust index
 }
 
 /**

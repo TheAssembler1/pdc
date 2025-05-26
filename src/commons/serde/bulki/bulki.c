@@ -1,12 +1,15 @@
 #include "bulki.h"
 #include "bulki_vle_util.h"
 #include "pdc_logger.h"
+#include "pdc_timing.h"
 
 size_t
 get_BULKI_Entity_size(BULKI_Entity *bulk_entity)
 {
+    FUNC_ENTER(NULL);
+
     if (bulk_entity == NULL) {
-        return 0;
+        FUNC_LEAVE(0);
     }
 
     size_t size = sizeof(int8_t) * 2 + sizeof(uint64_t) * 2;
@@ -42,14 +45,17 @@ get_BULKI_Entity_size(BULKI_Entity *bulk_entity)
         }
     }
     bulk_entity->size = size;
-    return size;
+
+    FUNC_LEAVE(size);
 }
 
 size_t
 get_BULKI_size(BULKI *bulki)
 {
+    FUNC_ENTER(NULL);
+
     if (bulki == NULL) {
-        return 0;
+        FUNC_LEAVE(0);
     }
     size_t size = sizeof(uint64_t) * 6; // totalSize, numKeys, headerSize, dataSize, headerOffset, dataOffset
 
@@ -58,15 +64,18 @@ get_BULKI_size(BULKI *bulki)
         size += get_BULKI_Entity_size(&bulki->data->values[i]);
     }
     bulki->totalSize = size;
-    return size;
+
+    FUNC_LEAVE(size);
 }
 
 void
 BULKI_Entity_print(BULKI_Entity *bulk_entity)
 {
+    FUNC_ENTER(NULL);
+
     if (bulk_entity == NULL) {
         LOG_ERROR("bulki_entity is NULL\n");
-        return;
+        FUNC_LEAVE_VOID();
     }
     LOG_INFO("BULKI_Entity:\n");
     LOG_INFO("pdc_class: %d\n", bulk_entity->pdc_class);
@@ -105,14 +114,18 @@ BULKI_Entity_print(BULKI_Entity *bulk_entity)
             LOG_INFO("%s\n", DataTypeNames[bulk_entity->pdc_type]);
         }
     }
+
+    FUNC_LEAVE_VOID();
 }
 
 void
 BULKI_print(BULKI *bulki)
 {
+    FUNC_ENTER(NULL);
+
     if (bulki == NULL) {
         LOG_ERROR("Error: bulki is NULL\n");
-        return;
+        FUNC_LEAVE_VOID();
     }
     LOG_INFO("BULKI:\n");
     LOG_INFO("totalSize: %zu\n", bulki->totalSize);
@@ -125,110 +138,132 @@ BULKI_print(BULKI *bulki)
         LOG_INFO("value[%zu]:\n", i);
         BULKI_Entity_print(&bulki->data->values[i]);
     }
+
+    FUNC_LEAVE_VOID();
 }
 
 BULKI_Entity *
 empty_BULKI_Array_Entity()
 {
+    FUNC_ENTER(NULL);
+
     BULKI_Entity *bulki_entity = (BULKI_Entity *)calloc(1, sizeof(BULKI_Entity));
     bulki_entity->pdc_type     = PDC_BULKI;
     bulki_entity->pdc_class    = PDC_CLS_ARRAY;
     bulki_entity->count        = 0;
     bulki_entity->data         = NULL;
     get_BULKI_Entity_size(bulki_entity);
-    return bulki_entity;
+
+    FUNC_LEAVE(bulki_entity);
 }
 
 BULKI_Entity *
 empty_Bent_Array_Entity()
 {
+    FUNC_ENTER(NULL);
+
     BULKI_Entity *bulki_entity = (BULKI_Entity *)calloc(1, sizeof(BULKI_Entity));
     bulki_entity->pdc_type     = PDC_BULKI_ENT;
     bulki_entity->pdc_class    = PDC_CLS_ARRAY;
     bulki_entity->count        = 0;
     bulki_entity->data         = NULL;
     get_BULKI_Entity_size(bulki_entity);
-    return bulki_entity;
+
+    FUNC_LEAVE(bulki_entity);
 }
 
 BULKI_Entity *
 BULKI_ENTITY_append_BULKI(BULKI_Entity *dest, BULKI *src)
 {
+    FUNC_ENTER(NULL);
+
     if (src == NULL || dest == NULL) {
         LOG_ERROR("Error: bulki is NULL\n");
-        return NULL;
+        FUNC_LEAVE(NULL);
     }
     if (dest->pdc_class != PDC_CLS_ARRAY || dest->pdc_type != PDC_BULKI) {
         LOG_ERROR("Error: dest is not an array of BULKI structure\n");
-        return NULL;
+        FUNC_LEAVE(NULL);
     }
     dest->count = dest->count + 1;
     dest->data  = realloc(dest->data, dest->count * sizeof(BULKI));
     memcpy(dest->data + (dest->count - 1) * sizeof(BULKI), src, sizeof(BULKI));
     get_BULKI_Entity_size(dest);
-    return dest;
+
+    FUNC_LEAVE(dest);
 }
 
 BULKI *
 BULKI_ENTITY_get_BULKI(BULKI_Entity *bulki_entity, size_t idx)
 {
+    FUNC_ENTER(NULL);
+
     if (bulki_entity == NULL) {
         LOG_ERROR("Error: bulki_entity is NULL\n");
-        return NULL;
+        FUNC_LEAVE(NULL);
     }
     if (bulki_entity->pdc_class != PDC_CLS_ARRAY || bulki_entity->pdc_type != PDC_BULKI) {
         LOG_ERROR("Error: bulki_entity is not an array of BULKI structure\n");
-        return NULL;
+        FUNC_LEAVE(NULL);
     }
     if (idx >= bulki_entity->count) {
         LOG_WARNING("idx = %d, count = %d Warning: index for bulki_entity is out of bound\n", idx,
                     bulki_entity->count);
-        return NULL;
+        FUNC_LEAVE(NULL);
     }
-    return &((BULKI *)bulki_entity->data)[idx];
+
+    FUNC_LEAVE(&((BULKI *)bulki_entity->data)[idx]);
 }
 
 BULKI_Entity *
 BULKI_ENTITY_append_BULKI_Entity(BULKI_Entity *dest, BULKI_Entity *src)
 {
+    FUNC_ENTER(NULL);
+
     if (src == NULL || dest == NULL) {
         LOG_ERROR("Error: bulki is NULL\n");
-        return NULL;
+        FUNC_LEAVE(NULL);
     }
     if (dest->pdc_class != PDC_CLS_ARRAY || dest->pdc_type != PDC_BULKI_ENT) {
         LOG_ERROR("Error: dest is not an array of BULKI_Entity structure\n");
-        return NULL;
+        FUNC_LEAVE(NULL);
     }
     dest->count = dest->count + 1;
     dest->data  = realloc(dest->data, dest->count * sizeof(BULKI_Entity));
     memcpy(dest->data + (dest->count - 1) * sizeof(BULKI_Entity), src, sizeof(BULKI_Entity));
     get_BULKI_Entity_size(dest);
-    return dest;
+
+    FUNC_LEAVE(dest);
 }
 
 BULKI_Entity *
 BULKI_ENTITY_get_BULKI_Entity(BULKI_Entity *bulki_entity, size_t idx)
 {
+    FUNC_ENTER(NULL);
+
     if (bulki_entity == NULL) {
         LOG_ERROR("Error: bulki_entity is NULL\n");
-        return NULL;
+        FUNC_LEAVE(NULL);
     }
     if (bulki_entity->pdc_class != PDC_CLS_ARRAY || bulki_entity->pdc_type != PDC_BULKI_ENT) {
         LOG_ERROR("Error: bulki_entity is not an array of BULKI_Entity structure\n");
-        return NULL;
+        FUNC_LEAVE(NULL);
     }
     if (idx >= bulki_entity->count) {
-        return NULL;
+        FUNC_LEAVE(NULL);
     }
-    return &((BULKI_Entity *)bulki_entity->data)[idx];
+
+    FUNC_LEAVE(&((BULKI_Entity *)bulki_entity->data)[idx]);
 }
 
 BULKI_Entity *
 BULKI_ENTITY(void *data, uint64_t count, pdc_c_var_type_t pdc_type, pdc_c_var_class_t pdc_class)
 {
+    FUNC_ENTER(NULL);
+
     if (pdc_type == PDC_BULKI_ENT && pdc_class == PDC_CLS_ITEM) {
         LOG_ERROR("Error: BULKI_Entity cannot be an single item in another BULKI_Entity\n");
-        return NULL;
+        FUNC_LEAVE(NULL);
     }
     BULKI_Entity *bulki_entity = (BULKI_Entity *)calloc(1, sizeof(BULKI_Entity));
     bulki_entity->pdc_type     = pdc_type;
@@ -249,24 +284,29 @@ BULKI_ENTITY(void *data, uint64_t count, pdc_c_var_type_t pdc_type, pdc_c_var_cl
     }
 
     get_BULKI_Entity_size(bulki_entity);
-    return bulki_entity;
+
+    FUNC_LEAVE(bulki_entity);
 }
 
 BULKI_Entity *
 BULKI_singleton_ENTITY(void *data, pdc_c_var_type_t pdc_type)
 {
-    return BULKI_ENTITY(data, 1, pdc_type, PDC_CLS_ITEM);
+    FUNC_ENTER(NULL);
+    FUNC_LEAVE(BULKI_ENTITY(data, 1, pdc_type, PDC_CLS_ITEM));
 }
 
 BULKI_Entity *
 BULKI_array_ENTITY(void *data, uint64_t count, pdc_c_var_type_t pdc_type)
 {
-    return BULKI_ENTITY(data, count, pdc_type, PDC_CLS_ARRAY);
+    FUNC_ENTER(NULL);
+    FUNC_LEAVE(BULKI_ENTITY(data, count, pdc_type, PDC_CLS_ARRAY));
 }
 
 BULKI *
 BULKI_init(int initial_field_count)
 {
+    FUNC_ENTER(NULL);
+
     BULKI *buiki              = calloc(1, sizeof(BULKI));
     buiki->numKeys            = 0;
     buiki->capacity           = initial_field_count;
@@ -277,16 +317,19 @@ BULKI_init(int initial_field_count)
     buiki->data->values       = calloc(buiki->capacity, sizeof(BULKI_Entity));
     buiki->data->dataSize     = 0;
     get_BULKI_size(buiki);
-    return buiki;
+
+    FUNC_LEAVE(buiki);
 }
 
 int
 BULKI_Entity_equal(BULKI_Entity *be1, BULKI_Entity *be2)
 {
+    FUNC_ENTER(NULL);
+
     int meta_equal = be1->pdc_type == be2->pdc_type && be1->pdc_class == be2->pdc_class &&
                      be1->count == be2->count && be1->size == be2->size;
     if (!meta_equal) {
-        return 0;
+        FUNC_LEAVE(0);
     }
     if (be1->pdc_class == PDC_CLS_ARRAY) {
         if (be1->pdc_type == PDC_BULKI) {
@@ -294,7 +337,7 @@ BULKI_Entity_equal(BULKI_Entity *be1, BULKI_Entity *be2)
             BULKI *bulki_array2 = (BULKI *)be2->data;
             for (size_t i = 0; i < be1->count; i++) {
                 if (!BULKI_equal(&bulki_array1[i], &bulki_array2[i])) {
-                    return 0;
+                    FUNC_LEAVE(0);
                 }
             }
         }
@@ -303,56 +346,62 @@ BULKI_Entity_equal(BULKI_Entity *be1, BULKI_Entity *be2)
             BULKI_Entity *bulki_entity_array2 = (BULKI_Entity *)be2->data;
             for (size_t i = 0; i < be1->count; i++) {
                 if (!BULKI_Entity_equal(&bulki_entity_array1[i], &bulki_entity_array2[i])) {
-                    return 0;
+                    FUNC_LEAVE(0);
                 }
             }
         }
         else {
             if (memcmp(be1->data, be2->data, be1->size - sizeof(uint8_t) * 2 - sizeof(uint64_t) * 2) != 0) {
-                return 0;
+                FUNC_LEAVE(0);
             }
         }
     }
     else if (be1->pdc_class == PDC_CLS_ITEM) {
         if (be1->pdc_type == PDC_BULKI) {
             if (!BULKI_equal((BULKI *)be1->data, (BULKI *)be2->data)) {
-                return 0;
+                FUNC_LEAVE(0);
             }
         }
         else {
             if (memcmp(be1->data, be2->data, be1->size - sizeof(uint8_t) * 2 - sizeof(uint64_t) * 2) != 0) {
-                return 0;
+                FUNC_LEAVE(0);
             }
         }
     }
-    return 1;
+
+    FUNC_LEAVE(1);
 }
 
 int
 BULKI_equal(BULKI *bulki1, BULKI *bulki2)
 {
+    FUNC_ENTER(NULL);
+
     if (bulki1->numKeys != bulki2->numKeys || bulki1->totalSize != bulki2->totalSize ||
         bulki1->header->headerSize != bulki2->header->headerSize ||
         bulki1->data->dataSize != bulki2->data->dataSize) {
         LOG_ERROR("Error: bulki1 and bulki2 are not equal in terms of metadata\n");
-        return 0;
+        FUNC_LEAVE(0);
     }
     for (size_t i = 0; i < bulki1->numKeys; i++) {
         if (!BULKI_Entity_equal(&bulki1->header->keys[i], &bulki2->header->keys[i]) ||
             !BULKI_Entity_equal(&bulki1->data->values[i], &bulki2->data->values[i])) {
             LOG_ERROR("Error: bulki1 and bulki2 are not equal in terms of data\n");
-            return 0;
+            FUNC_LEAVE(0);
         }
     }
-    return 1;
+
+    FUNC_LEAVE(1);
 }
 
 void
 BULKI_put(BULKI *bulki, BULKI_Entity *key, BULKI_Entity *value)
 {
+    FUNC_ENTER(NULL);
+
     if (bulki == NULL || key == NULL || value == NULL) {
         LOG_ERROR("Error: bulki, key, or value is NULL\n");
-        return;
+        FUNC_LEAVE_VOID();
     }
     // search for existing key
     BULKI_Entity *existing_value = BULKI_get(bulki, key);
@@ -363,7 +412,7 @@ BULKI_put(BULKI *bulki, BULKI_Entity *key, BULKI_Entity *value)
         bulki->header->headerSize += key->size;
         bulki->data->dataSize += value->size;
         get_BULKI_size(bulki);
-        return;
+        FUNC_LEAVE_VOID();
     }
     if (bulki->numKeys >= bulki->capacity) {
         bulki->capacity *= 2;
@@ -380,11 +429,15 @@ BULKI_put(BULKI *bulki, BULKI_Entity *key, BULKI_Entity *value)
 
     bulki->numKeys++;
     get_BULKI_size(bulki);
+
+    FUNC_LEAVE_VOID();
 }
 
 BULKI_Entity *
 BULKI_delete(BULKI *bulki, BULKI_Entity *key)
 {
+    FUNC_ENTER(NULL);
+
     BULKI_Entity *value = NULL;
     for (size_t i = 0; i < bulki->numKeys; i++) {
         if (BULKI_Entity_equal(&bulki->header->keys[i], key)) {
@@ -398,15 +451,18 @@ BULKI_delete(BULKI *bulki, BULKI_Entity *key)
         }
     }
     get_BULKI_size(bulki);
-    return value;
+
+    FUNC_LEAVE(value);
 }
 
 BULKI_Entity_Iterator *
 Bent_iterator_init(BULKI_Entity *array, void *filter, pdc_c_var_type_t filter_type)
 {
+    FUNC_ENTER(NULL);
+
     if (array == NULL || array->pdc_class != PDC_CLS_ARRAY) {
         LOG_ERROR("Error: not a proper array\n");
-        return NULL;
+        FUNC_LEAVE(NULL);
     }
     BULKI_Entity_Iterator *iter = (BULKI_Entity_Iterator *)calloc(1, sizeof(BULKI_Entity_Iterator));
     iter->entity_array          = array;
@@ -419,14 +475,17 @@ Bent_iterator_init(BULKI_Entity *array, void *filter, pdc_c_var_type_t filter_ty
             iter->filter_type = filter_type;
         } // if the filter is not appropriate, just ignore it.
     }
-    return iter;
+
+    FUNC_LEAVE(iter);
 }
 
 int
 Bent_iterator_has_next_BULKI(BULKI_Entity_Iterator *it)
 {
+    FUNC_ENTER(NULL);
+
     if (it->bent_filter == NULL) {
-        return it->current_idx < it->total_size;
+        FUNC_LEAVE(it->current_idx < it->total_size);
     }
     else {
         while (it->current_idx < it->total_size) {
@@ -434,20 +493,23 @@ Bent_iterator_has_next_BULKI(BULKI_Entity_Iterator *it)
                 BULKI *array_content = (BULKI *)it->entity_array->data;
                 BULKI *current_bulki = &(array_content[it->current_idx]);
                 if (BULKI_equal(current_bulki, it->bent_filter)) {
-                    return 1;
+                    FUNC_LEAVE(1);
                 }
             }
             it->current_idx++;
         }
     }
-    return 0;
+
+    FUNC_LEAVE(0);
 }
 
 int
 Bent_iterator_has_next_Bent(BULKI_Entity_Iterator *it)
 {
+    FUNC_ENTER(NULL);
+
     if (it->bent_filter == NULL) {
-        return it->current_idx < it->total_size;
+        FUNC_LEAVE(it->current_idx < it->total_size);
     }
     else {
         while (it->current_idx < it->total_size) {
@@ -455,86 +517,105 @@ Bent_iterator_has_next_Bent(BULKI_Entity_Iterator *it)
                 BULKI_Entity *array_content  = (BULKI_Entity *)it->entity_array->data;
                 BULKI_Entity *current_entity = &(array_content[it->current_idx]);
                 if (BULKI_Entity_equal(current_entity, it->bent_filter)) {
-                    return 1;
+                    FUNC_LEAVE(1);
                 }
             }
             it->current_idx++;
         }
     }
-    return 0;
+
+    FUNC_LEAVE(0);
 }
 
 BULKI *
 Bent_iterator_next_BULKI(BULKI_Entity_Iterator *it)
 {
+    FUNC_ENTER(NULL);
+
     if (it->current_idx < it->total_size) {
         if (it->entity_array->pdc_type == PDC_BULKI) {
             BULKI *array_content = (BULKI *)it->entity_array->data;
-            return &(array_content[it->current_idx++]);
+            FUNC_LEAVE(&(array_content[it->current_idx++]));
         }
     }
-    return NULL;
+
+    FUNC_LEAVE(NULL);
 }
 
 BULKI_Entity *
 Bent_iterator_next_Bent(BULKI_Entity_Iterator *it)
 {
+    FUNC_ENTER(NULL);
+
     if (it->current_idx < it->total_size) {
         if (it->entity_array->pdc_type == PDC_BULKI_ENT) {
             BULKI_Entity *array_content = (BULKI_Entity *)it->entity_array->data;
-            return &(array_content[it->current_idx++]);
+            FUNC_LEAVE(&(array_content[it->current_idx++]));
         }
     }
-    return NULL;
+
+    FUNC_LEAVE(NULL);
 }
 
 BULKI_KV_Pair_Iterator *
 BULKI_KV_Pair_iterator_init(BULKI *bulki)
 {
+    FUNC_ENTER(NULL);
+
     if (bulki == NULL) {
         LOG_ERROR("Error: bulki is NULL\n");
-        return NULL;
+        FUNC_LEAVE(NULL);
     }
     BULKI_KV_Pair_Iterator *iter = (BULKI_KV_Pair_Iterator *)calloc(1, sizeof(BULKI_KV_Pair_Iterator));
     iter->bulki                  = bulki;
     iter->total_size             = bulki->numKeys;
     iter->current_idx            = 0;
-    return iter;
+
+    FUNC_LEAVE(iter);
 }
 
 int
 BULKI_KV_Pair_iterator_has_next(BULKI_KV_Pair_Iterator *it)
 {
-    return it->current_idx < it->total_size;
+    FUNC_ENTER(NULL);
+    FUNC_LEAVE(it->current_idx < it->total_size);
 }
 
 BULKI_KV_Pair *
 BULKI_KV_Pair_iterator_next(BULKI_KV_Pair_Iterator *it)
 {
+    FUNC_ENTER(NULL);
+
     if (it->current_idx < it->total_size) {
         BULKI_KV_Pair *pair = (BULKI_KV_Pair *)calloc(1, sizeof(BULKI_KV_Pair));
         pair->key           = it->bulki->header->keys[it->current_idx];
         pair->value         = it->bulki->data->values[it->current_idx];
         it->current_idx++;
-        return pair;
+        FUNC_LEAVE(pair);
     }
-    return NULL;
+
+    FUNC_LEAVE(NULL);
 }
 
 BULKI_Entity *
 BULKI_get(BULKI *bulki, BULKI_Entity *key)
 {
+    FUNC_ENTER(NULL);
+
     for (size_t i = 0; i < bulki->numKeys; i++) {
         if (BULKI_Entity_equal(&bulki->header->keys[i], key)) {
-            return &bulki->data->values[i];
+            FUNC_LEAVE(&bulki->data->values[i]);
         }
     }
-    return NULL;
+
+    FUNC_LEAVE(NULL);
 }
 
 void
 BULKI_Entity_free(BULKI_Entity *bulk_entity, int free_struct)
 {
+    FUNC_ENTER(NULL);
+
     if (bulk_entity != NULL) {
         if (bulk_entity->pdc_class == PDC_CLS_ARRAY) { // if the entity is an array of BULKI or BULKI_Entity
             if (bulk_entity->pdc_type == PDC_BULKI && bulk_entity->data != NULL) {
@@ -575,11 +656,15 @@ BULKI_Entity_free(BULKI_Entity *bulk_entity, int free_struct)
             bulk_entity = NULL;
         }
     }
+
+    FUNC_LEAVE_VOID();
 } // BULKI_Entity_free
 
 void
 BULKI_free(BULKI *bulki, int free_struct)
 {
+    FUNC_ENTER(NULL);
+
     if (bulki != NULL) {
         if (bulki->header != NULL) {
             if (bulki->header->keys != NULL) {
@@ -608,4 +693,6 @@ BULKI_free(BULKI *bulki, int free_struct)
             bulki = NULL;
         }
     }
+
+    FUNC_LEAVE_VOID();
 } // BULKI_free

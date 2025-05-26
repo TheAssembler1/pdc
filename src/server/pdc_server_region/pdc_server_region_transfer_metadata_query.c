@@ -4,10 +4,11 @@
 #include <string.h>
 #include "pdc_region.h"
 #include "pdc_logger.h"
+#include "pdc_timing.h"
 
 typedef struct pdc_region_metadata_pkg {
-    uint64_t *                      reg_offset;
-    uint64_t *                      reg_size;
+    uint64_t                       *reg_offset;
+    uint64_t                       *reg_size;
     uint32_t                        data_server_id;
     struct pdc_region_metadata_pkg *next;
 } pdc_region_metadata_pkg;
@@ -15,8 +16,8 @@ typedef struct pdc_region_metadata_pkg {
 typedef struct pdc_obj_metadata_pkg {
     int                          ndim;
     uint64_t                     obj_id;
-    pdc_region_metadata_pkg *    regions;
-    pdc_region_metadata_pkg *    regions_end;
+    pdc_region_metadata_pkg     *regions;
+    pdc_region_metadata_pkg     *regions_end;
     struct pdc_obj_metadata_pkg *next;
 } pdc_obj_metadata_pkg;
 
@@ -29,13 +30,13 @@ typedef struct pdc_obj_region_metadata {
 
 typedef struct pdc_metadata_query_buf {
     uint64_t                       id;
-    char *                         buf;
+    char                          *buf;
     struct pdc_metadata_query_buf *next;
 } pdc_metadata_query_buf;
 
-static pdc_obj_metadata_pkg *  metadata_server_objs;
-static pdc_obj_metadata_pkg *  metadata_server_objs_end;
-static uint64_t *              data_server_bytes;
+static pdc_obj_metadata_pkg   *metadata_server_objs;
+static pdc_obj_metadata_pkg   *metadata_server_objs_end;
+static uint64_t               *data_server_bytes;
 static int                     pdc_server_size;
 static uint64_t                query_id_g;
 static pdc_metadata_query_buf *metadata_query_buf_head;
@@ -58,11 +59,12 @@ static uint64_t metadata_query_buf_create(pdc_obj_region_metadata *regions, int 
 perr_t
 transfer_request_metadata_query_init(int pdc_server_size_input, char *checkpoint)
 {
+    FUNC_ENTER(NULL);
+
     hg_return_t ret_value = HG_SUCCESS;
-    char *      ptr;
+    char       *ptr;
     int         n_objs, reg_count;
     int         i, j;
-    FUNC_ENTER(NULL);
 
     metadata_server_objs     = NULL;
     metadata_server_objs_end = NULL;
@@ -138,10 +140,11 @@ transfer_request_metadata_query_init(int pdc_server_size_input, char *checkpoint
 perr_t
 transfer_request_metadata_query_finalize()
 {
-    hg_return_t              ret_value = HG_SUCCESS;
-    pdc_obj_metadata_pkg *   obj_temp, *obj_temp2;
-    pdc_region_metadata_pkg *region_temp, *region_temp2;
     FUNC_ENTER(NULL);
+
+    hg_return_t              ret_value = HG_SUCCESS;
+    pdc_obj_metadata_pkg    *obj_temp, *obj_temp2;
+    pdc_region_metadata_pkg *region_temp, *region_temp2;
 
     obj_temp = metadata_server_objs;
     while (obj_temp) {
@@ -176,12 +179,14 @@ transfer_request_metadata_query_finalize()
 perr_t
 transfer_request_metadata_query_checkpoint(char **checkpoint, uint64_t *checkpoint_size)
 {
-    hg_return_t              ret_value = HG_SUCCESS;
-    pdc_obj_metadata_pkg *   obj_temp;
-    pdc_region_metadata_pkg *region_temp;
-    char *                   ptr;
-    int                      reg_count, obj_count;
     FUNC_ENTER(NULL);
+
+    hg_return_t              ret_value = HG_SUCCESS;
+    pdc_obj_metadata_pkg    *obj_temp;
+    pdc_region_metadata_pkg *region_temp;
+    char                    *ptr;
+    int                      reg_count, obj_count;
+
     pthread_mutex_lock(&metadata_query_mutex);
 
     // First value is the size of objects
@@ -245,18 +250,19 @@ transfer_request_metadata_query_checkpoint(char **checkpoint, uint64_t *checkpoi
 static uint64_t
 metadata_query_buf_create(pdc_obj_region_metadata *regions, int size, uint64_t *total_buf_size_ptr)
 {
-    pdc_obj_metadata_pkg *   temp;
+    FUNC_ENTER(NULL);
+
+    pdc_obj_metadata_pkg    *temp;
     pdc_region_metadata_pkg *region_metadata;
     int                      i;
     uint64_t                 total_data_size;
-    pdc_metadata_query_buf * query_buf;
+    pdc_metadata_query_buf  *query_buf;
     uint64_t                 query_id;
-    uint64_t *               overlap_offset, *overlap_size;
-    char *                   ptr;
-    int *                    transfer_request_counters;
+    uint64_t                *overlap_offset, *overlap_size;
+    char                    *ptr;
+    int                     *transfer_request_counters;
     int                      transfer_request_counter_total;
 
-    FUNC_ENTER(NULL);
     // Iterate through all input regions. We compute the total buf size in this loop
     total_data_size                = sizeof(int);
     transfer_request_counter_total = 0;
@@ -362,10 +368,10 @@ done:
 perr_t
 transfer_request_metadata_query_lookup_query_buf(uint64_t query_id, char **buf_ptr)
 {
+    FUNC_ENTER(NULL);
+
     pdc_metadata_query_buf *metadata_query, *previous;
     perr_t                  ret_value = SUCCEED;
-    FUNC_ENTER(NULL);
-    /* pthread_mutex_lock(&metadata_query_mutex); */
 
     previous       = NULL;
     int i          = 0;
@@ -406,16 +412,15 @@ uint64_t
 transfer_request_metadata_query_parse(int32_t n_objs, char *buf, uint8_t is_write,
                                       uint64_t *total_buf_size_ptr)
 {
-    char *                   ptr = buf;
+    FUNC_ENTER(NULL);
+
+    char                    *ptr = buf;
     int                      i;
     uint64_t                 query_id = 0;
     size_t                   unit;
     uint64_t                 data_server_id;
     uint8_t                  region_partition;
     pdc_obj_region_metadata *region_metadata;
-
-    FUNC_ENTER(NULL);
-    /* pthread_mutex_lock(&metadata_query_mutex); */
 
     region_metadata = (pdc_obj_region_metadata *)malloc(sizeof(pdc_obj_region_metadata) * n_objs);
 
@@ -452,12 +457,13 @@ transfer_request_metadata_reg_append(pdc_region_metadata_pkg *regions, int ndim,
                                      uint64_t *reg_size, size_t unit, uint32_t data_server_id,
                                      uint8_t region_partition)
 {
+    FUNC_ENTER(NULL);
+
     hg_return_t ret_value = HG_SUCCESS;
     uint64_t    min_bytes;
     uint64_t    min_bytes_server;
     int         i;
     uint64_t    total_reg_size;
-    FUNC_ENTER(NULL);
 
     regions->next = NULL;
 
@@ -497,11 +503,12 @@ static uint64_t
 transfer_request_metadata_query_append(uint64_t obj_id, int ndim, uint64_t *reg_offset, uint64_t *reg_size,
                                        size_t unit, uint32_t data_server_id, uint8_t region_partition)
 {
-    pdc_obj_metadata_pkg *   temp;
+    FUNC_ENTER(NULL);
+
+    pdc_obj_metadata_pkg    *temp;
     pdc_region_metadata_pkg *region_metadata;
     pdc_region_metadata_pkg *temp_region_metadata;
 
-    FUNC_ENTER(NULL);
     temp = metadata_server_objs;
     while (temp) {
         if (temp->obj_id == obj_id) {

@@ -1,5 +1,6 @@
 #include "dart_core.h"
 #include "pdc_logger.h"
+#include "pdc_timing.h"
 
 int32_t request_count_g;
 
@@ -8,12 +9,14 @@ dart_server *all_servers;
 dart_server
 virtual_dart_retrieve_server_info_cb(uint32_t server_id)
 {
-    return all_servers[server_id];
+    FUNC_ENTER(NULL);
+    FUNC_LEAVE(all_servers[server_id]);
 }
 
 int
 main(int argc, char *argv[])
 {
+    FUNC_ENTER(NULL);
 
     if (argc != 4) {
         LOG_JUST_PRINT("Usage: %s <query_str> <num_server> <replication_factor>\n", argv[0]);
@@ -89,5 +92,5 @@ main(int argc, char *argv[])
     }
     LOG_JUST_PRINT("\n}\n");
 
-    return 0;
+    FUNC_LEAVE(0);
 }

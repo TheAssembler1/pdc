@@ -8,6 +8,7 @@
 #include "string_utils.h"
 #include "query_utils.h"
 #include "pdc_logger.h"
+#include "pdc_timing.h"
 #include <unistd.h>
 #include <inttypes.h>
 #include <stdint.h>
@@ -19,6 +20,8 @@
 IDIOMS_t *
 IDIOMS_init(uint32_t server_id, uint32_t num_servers)
 {
+    FUNC_ENTER(NULL);
+
     IDIOMS_t *idioms              = (IDIOMS_t *)calloc(1, sizeof(IDIOMS_t));
     idioms->art_key_prefix_tree_g = (art_tree *)calloc(1, sizeof(art_tree));
     art_tree_init(idioms->art_key_prefix_tree_g);
@@ -32,7 +35,7 @@ IDIOMS_init(uint32_t server_id, uint32_t num_servers)
     idioms->dart_info_g = (DART *)calloc(1, sizeof(DART));
     _init_dart_space_via_idioms(idioms->dart_info_g, idioms->num_servers_g);
 
-    return idioms;
+    FUNC_LEAVE(idioms);
 }
 
 /****************************/
@@ -43,10 +46,12 @@ perr_t
 insert_obj_ids_into_value_leaf(void *index, void *attr_val, int is_trie, size_t value_len, uint64_t *obj_ids,
                                size_t num_obj_ids)
 {
+    FUNC_ENTER(NULL);
+
     perr_t ret = SUCCEED;
     if (index == NULL) {
         LOG_ERROR("index was null\n");
-        return FAIL;
+        FUNC_LEAVE(FAIL);
     }
 
     void *entry     = NULL;
@@ -82,28 +87,31 @@ insert_obj_ids_into_value_leaf(void *index, void *attr_val, int is_trie, size_t 
         set_insert(((value_index_leaf_content_t *)entry)->obj_id_set, (SetValue)obj_id);
         size_t num_entires = set_num_entries(((value_index_leaf_content_t *)entry)->obj_id_set);
     }
-    return ret;
+
+    FUNC_LEAVE(ret);
 }
 
 perr_t
 insert_value_into_second_level_index(key_index_leaf_content_t *leaf_content,
-                                     IDIOMS_md_idx_record_t *  idx_record)
+                                     IDIOMS_md_idx_record_t   *idx_record)
 {
+    FUNC_ENTER(NULL);
+
     perr_t ret = SUCCEED;
     if (leaf_content == NULL) {
-        return FAIL;
+        FUNC_LEAVE(FAIL);
     }
     char *value_type_str = get_enum_name_by_dtype(idx_record->type);
 
     if (_getCompoundTypeFromBitmap(leaf_content->val_idx_dtype) == PDC_STRING &&
         is_PDC_STRING(idx_record->type)) {
-        void * attr_val      = stripQuotes(idx_record->value);
+        void  *attr_val      = stripQuotes(idx_record->value);
         size_t value_str_len = strlen(attr_val);
         ret                  = insert_obj_ids_into_value_leaf(leaf_content->primary_trie, attr_val,
-                                             idx_record->type == PDC_STRING, value_str_len,
-                                             idx_record->obj_ids, idx_record->num_obj_ids);
+                                                              idx_record->type == PDC_STRING, value_str_len,
+                                                              idx_record->obj_ids, idx_record->num_obj_ids);
         if (ret == FAIL) {
-            return ret;
+            FUNC_LEAVE(ret);
         }
 #ifndef PDC_DART_SFX_TREE
         void *reverted_val = reverse_str((char *)attr_val);
@@ -129,15 +137,18 @@ insert_value_into_second_level_index(key_index_leaf_content_t *leaf_content,
                                              idx_record->type == PDC_STRING, idx_record->value_len,
                                              idx_record->obj_ids, idx_record->num_obj_ids);
     }
-    return ret;
+
+    FUNC_LEAVE(ret);
 }
 
 perr_t
 insert_into_key_trie(art_tree *key_trie, char *key, int len, IDIOMS_md_idx_record_t *idx_record)
 {
+    FUNC_ENTER(NULL);
+
     perr_t ret = SUCCEED;
     if (key_trie == NULL) {
-        return FAIL;
+        FUNC_LEAVE(FAIL);
     }
 
     // look up for leaf_content
@@ -186,12 +197,14 @@ insert_into_key_trie(art_tree *key_trie, char *key, int len, IDIOMS_md_idx_recor
 
     // insert the value part into second level index.
     ret = insert_value_into_second_level_index(key_leaf_content, idx_record);
-    return ret;
+    FUNC_LEAVE(ret);
 }
 
 perr_t
 idioms_local_index_create(IDIOMS_t *idioms, IDIOMS_md_idx_record_t *idx_record)
 {
+    FUNC_ENTER(NULL);
+
     perr_t ret = SUCCEED;
     // get the key and create key_index_leaf_content node for it.
     char *key = idx_record->key;
@@ -261,7 +274,7 @@ idioms_local_index_create(IDIOMS_t *idioms, IDIOMS_md_idx_record_t *idx_record)
     idioms->index_record_count_g++;
     idioms->insert_request_count_g++;
 
-    return ret;
+    FUNC_LEAVE(ret);
 }
 
 /****************************/
@@ -271,9 +284,11 @@ perr_t
 delete_obj_ids_from_value_leaf(void *index, void *attr_val, int is_trie, size_t value_len, uint64_t *obj_ids,
                                size_t num_obj_ids)
 {
+    FUNC_ENTER(NULL);
+
     perr_t ret = SUCCEED;
     if (index == NULL) {
-        return ret;
+        FUNC_LEAVE(ret);
     }
 
     void *entry     = NULL;
@@ -287,13 +302,13 @@ delete_obj_ids_from_value_leaf(void *index, void *attr_val, int is_trie, size_t 
     }
 
     if (idx_found != 0) { // not found
-        return SUCCEED;
+        FUNC_LEAVE(SUCCEED);
     }
 
     uint64_t *obj_id = (uint64_t *)PDC_calloc(1, sizeof(uint64_t));
     for (int j = 0; j < num_obj_ids; j++) {
         if (ret == FAIL) {
-            return ret;
+            FUNC_LEAVE(ret);
         }
         // obj_id here is just for comparison purpose, and no need to allocate memory for it every time.
         *obj_id = obj_ids[j];
@@ -312,16 +327,19 @@ delete_obj_ids_from_value_leaf(void *index, void *attr_val, int is_trie, size_t 
         }
         // PDC_free(entry);
     }
-    return ret;
+
+    FUNC_LEAVE(ret);
 }
 
 perr_t
 delete_value_from_second_level_index(key_index_leaf_content_t *leaf_content,
-                                     IDIOMS_md_idx_record_t *  idx_record)
+                                     IDIOMS_md_idx_record_t   *idx_record)
 {
+    FUNC_ENTER(NULL);
+
     perr_t ret = SUCCEED;
     if (leaf_content == NULL) {
-        return FAIL;
+        FUNC_LEAVE(FAIL);
     }
     char *value_type_str = get_enum_name_by_dtype(idx_record->type);
     if (_getCompoundTypeFromBitmap(leaf_content->val_idx_dtype) == PDC_STRING &&
@@ -331,10 +349,10 @@ delete_value_from_second_level_index(key_index_leaf_content_t *leaf_content,
 
         size_t value_str_len = strlen(attr_val);
         ret                  = delete_obj_ids_from_value_leaf(leaf_content->primary_trie, attr_val,
-                                             idx_record->type == PDC_STRING, value_str_len,
-                                             idx_record->obj_ids, idx_record->num_obj_ids);
+                                                              idx_record->type == PDC_STRING, value_str_len,
+                                                              idx_record->obj_ids, idx_record->num_obj_ids);
         if (ret == FAIL) {
-            return ret;
+            FUNC_LEAVE(ret);
         }
 #ifndef PDC_DART_SFX_TREE
         void *reverted_val = reverse_str((char *)attr_val);
@@ -350,8 +368,8 @@ delete_value_from_second_level_index(key_index_leaf_content_t *leaf_content,
         for (int j = 0; j < sub_loop_count; j++) {
             char *suffix = substring(attr_val, j, value_str_len);
             ret          = delete_obj_ids_from_value_leaf(leaf_content->secondary_trie, suffix,
-                                                 idx_record->type == PDC_STRING, value_str_len - j,
-                                                 idx_record->obj_ids, idx_record->num_obj_ids);
+                                                          idx_record->type == PDC_STRING, value_str_len - j,
+                                                          idx_record->obj_ids, idx_record->num_obj_ids);
         }
 #endif
     }
@@ -363,17 +381,21 @@ delete_value_from_second_level_index(key_index_leaf_content_t *leaf_content,
                                              idx_record->type == PDC_STRING, idx_record->value_len,
                                              idx_record->obj_ids, idx_record->num_obj_ids);
     }
-    return ret;
+
+    FUNC_LEAVE(ret);
 }
 
 int
 is_key_leaf_cnt_empty(key_index_leaf_content_t *leaf_content)
 {
+    FUNC_ENTER(NULL);
+
     if (leaf_content->primary_trie == NULL && leaf_content->secondary_trie == NULL &&
         leaf_content->primary_rbt == NULL && leaf_content->secondary_rbt == NULL) {
-        return 1;
+        FUNC_LEAVE(1);
     }
-    return 0;
+
+    FUNC_LEAVE(0);
 }
 
 /**
@@ -382,22 +404,24 @@ is_key_leaf_cnt_empty(key_index_leaf_content_t *leaf_content)
 perr_t
 delete_from_key_trie(art_tree *key_trie, char *key, int len, IDIOMS_md_idx_record_t *idx_record)
 {
+    FUNC_ENTER(NULL);
+
     perr_t ret = SUCCEED;
     if (key_trie == NULL) {
-        return FAIL;
+        FUNC_LEAVE(FAIL);
     }
     // look up for leaf_content
     key_index_leaf_content_t *key_leaf_content =
         (key_index_leaf_content_t *)art_search(key_trie, (unsigned char *)key, len);
     // if no corresponding leaf_content, that means the key has been deleted already.
     if (key_leaf_content == NULL) {
-        return SUCCEED;
+        FUNC_LEAVE(SUCCEED);
     }
 
     // delete the value part from second level index.
     ret = delete_value_from_second_level_index(key_leaf_content, idx_record);
     if (ret == FAIL) {
-        return ret;
+        FUNC_LEAVE(ret);
     }
 
     char *value_type_str       = get_enum_name_by_dtype(idx_record->type);
@@ -429,10 +453,10 @@ delete_from_key_trie(art_tree *key_trie, char *key, int len, IDIOMS_md_idx_recor
         free(key_leaf_content);
         // LOG_DEBUG("Deleted key %s from the key trie\n", key);
         art_delete(key_trie, (unsigned char *)key, len);
-        return SUCCEED;
+        FUNC_LEAVE(SUCCEED);
     }
 
-    return ret;
+    FUNC_LEAVE(ret);
 }
 
 /**
@@ -441,6 +465,8 @@ delete_from_key_trie(art_tree *key_trie, char *key, int len, IDIOMS_md_idx_recor
 perr_t
 idioms_local_index_delete(IDIOMS_t *idioms, IDIOMS_md_idx_record_t *idx_record)
 {
+    FUNC_ENTER(NULL);
+
     perr_t ret = SUCCEED;
     // get the key and create key_index_leaf_content node for it.
     char *key = idx_record->key; // in a delete function for trie, there is no need to duplicate the string.
@@ -485,7 +511,8 @@ idioms_local_index_delete(IDIOMS_t *idioms, IDIOMS_md_idx_record_t *idx_record)
     idioms->time_to_delete_index_g += timer_delta_us(&index_timer);
     idioms->index_record_count_g--;
     idioms->delete_request_count_g++;
-    return ret;
+
+    FUNC_LEAVE(ret);
 }
 
 /****************************/
@@ -495,6 +522,8 @@ idioms_local_index_delete(IDIOMS_t *idioms, IDIOMS_md_idx_record_t *idx_record)
 int
 collect_obj_ids(value_index_leaf_content_t *value_index_leaf, IDIOMS_md_idx_record_t *idx_record)
 {
+    FUNC_ENTER(NULL);
+
     Set *obj_id_set = (Set *)value_index_leaf->obj_id_set;
 
     // get number of object IDs in the set
@@ -517,39 +546,46 @@ collect_obj_ids(value_index_leaf_content_t *value_index_leaf, IDIOMS_md_idx_reco
     else {
         LOG_ERROR("ERROR: offset %zu != num_obj_ids %d\n", offset, num_obj_ids);
     }
-    return 0;
+
+    FUNC_LEAVE(0);
 }
 
 int
 value_trie_callback(void *data, const unsigned char *key, uint32_t key_len, void *value)
 {
-    value_index_leaf_content_t *value_index_leaf = (value_index_leaf_content_t *)(value);
-    IDIOMS_md_idx_record_t *    idx_record       = (IDIOMS_md_idx_record_t *)(data);
+    FUNC_ENTER(NULL);
 
-    char *         v_query          = (char *)idx_record->value;
+    value_index_leaf_content_t *value_index_leaf = (value_index_leaf_content_t *)(value);
+    IDIOMS_md_idx_record_t     *idx_record       = (IDIOMS_md_idx_record_t *)(data);
+
+    char          *v_query          = (char *)idx_record->value;
     pattern_type_t value_query_type = determine_pattern_type(v_query);
     if (value_query_type == PATTERN_MIDDLE) {
         char *infix = substring(v_query, 1, strlen(v_query) - 1);
         if (contains((char *)key, infix) == 0) {
-            return 0;
+            FUNC_LEAVE(0);
         }
     }
 
     if (value_index_leaf != NULL) {
         collect_obj_ids(value_index_leaf, idx_record);
     }
-    return 0;
+
+    FUNC_LEAVE(0);
 }
 
 rbt_walk_return_code_t
 value_rbt_callback(rbt_t *rbt, void *key, size_t klen, void *value, void *priv)
 {
+    FUNC_ENTER(NULL);
+
     value_index_leaf_content_t *value_index_leaf = (value_index_leaf_content_t *)(value);
-    IDIOMS_md_idx_record_t *    idx_record       = (IDIOMS_md_idx_record_t *)(priv);
+    IDIOMS_md_idx_record_t     *idx_record       = (IDIOMS_md_idx_record_t *)(priv);
     if (value_index_leaf != NULL) {
         collect_obj_ids(value_index_leaf, idx_record);
     }
-    return RBT_WALK_CONTINUE;
+
+    FUNC_LEAVE(RBT_WALK_CONTINUE);
 }
 
 /**
@@ -570,8 +606,10 @@ int
 value_number_query(char *secondary_query, key_index_leaf_content_t *leafcnt,
                    IDIOMS_md_idx_record_t *idx_record)
 {
+    FUNC_ENTER(NULL);
+
     if (leafcnt->primary_rbt == NULL) {
-        return 0;
+        FUNC_LEAVE(0);
     }
 
     // allocate memory according to the val_idx_dtype for value 1 and value 2.
@@ -579,7 +617,7 @@ value_number_query(char *secondary_query, key_index_leaf_content_t *leafcnt,
     void *val2;
     if (startsWith(secondary_query, "|") && startsWith(secondary_query, "|")) {
         // exact number search
-        char * num_str = substring(secondary_query, 1, strlen(secondary_query) - 1);
+        char  *num_str = substring(secondary_query, 1, strlen(secondary_query) - 1);
         size_t klen1 =
             get_number_from_string(num_str, _getNumericalTypeFromBitmap(leafcnt->val_idx_dtype), &val1);
         value_index_leaf_content_t *value_index_leaf = NULL;
@@ -592,7 +630,7 @@ value_number_query(char *secondary_query, key_index_leaf_content_t *leafcnt,
         int endInclusive = secondary_query[1] == '|';
         // find all numbers that are smaller than the given number
         int    beginPos = endInclusive ? 2 : 1;
-        char * numstr   = substring(secondary_query, beginPos, strlen(secondary_query));
+        char  *numstr   = substring(secondary_query, beginPos, strlen(secondary_query));
         size_t klen1 =
             get_number_from_string(numstr, _getNumericalTypeFromBitmap(leafcnt->val_idx_dtype), &val1);
         rbt_range_lt(leafcnt->primary_rbt, val1, klen1, value_rbt_callback, idx_record, endInclusive);
@@ -601,7 +639,7 @@ value_number_query(char *secondary_query, key_index_leaf_content_t *leafcnt,
         int beginInclusive = secondary_query[strlen(secondary_query) - 2] == '|';
         int endPos         = beginInclusive ? strlen(secondary_query) - 2 : strlen(secondary_query) - 1;
         // find all numbers that are greater than the given number
-        char * numstr = substring(secondary_query, 0, endPos);
+        char  *numstr = substring(secondary_query, 0, endPos);
         size_t klen1 =
             get_number_from_string(numstr, _getNumericalTypeFromBitmap(leafcnt->val_idx_dtype), &val1);
         rbt_range_gt(leafcnt->primary_rbt, val1, klen1, value_rbt_callback, idx_record, beginInclusive);
@@ -613,15 +651,15 @@ value_number_query(char *secondary_query, key_index_leaf_content_t *leafcnt,
         split_string(secondary_query, "~", &tokens, &num_tokens);
         if (num_tokens != 2) {
             LOG_ERROR("ERROR: invalid range query: %s\n", secondary_query);
-            return -1;
+            FUNC_LEAVE(-1);
         }
         char *lo_tok = tokens[0];
         char *hi_tok = tokens[1];
         // lo_tok might be ended with '|', and hi_tok might be started with '|', to indicate inclusivity.
         int    beginInclusive = endsWith(lo_tok, "|");
         int    endInclusive   = startsWith(hi_tok, "|");
-        char * lo_num_str     = beginInclusive ? substring(lo_tok, 0, strlen(lo_tok) - 1) : lo_tok;
-        char * hi_num_str     = endInclusive ? substring(hi_tok, 1, strlen(hi_tok)) : hi_tok;
+        char  *lo_num_str     = beginInclusive ? substring(lo_tok, 0, strlen(lo_tok) - 1) : lo_tok;
+        char  *hi_num_str     = endInclusive ? substring(hi_tok, 1, strlen(hi_tok)) : hi_tok;
         size_t klen1 =
             get_number_from_string(lo_num_str, _getNumericalTypeFromBitmap(leafcnt->val_idx_dtype), &val1);
         size_t klen2 =
@@ -634,7 +672,7 @@ value_number_query(char *secondary_query, key_index_leaf_content_t *leafcnt,
     else {
         // exact query by default
         // exact number search
-        char * num_str = strdup(secondary_query);
+        char  *num_str = strdup(secondary_query);
         size_t klen1 =
             get_number_from_string(num_str, _getNumericalTypeFromBitmap(leafcnt->val_idx_dtype), &val1);
         value_index_leaf_content_t *value_index_leaf = NULL;
@@ -644,15 +682,18 @@ value_number_query(char *secondary_query, key_index_leaf_content_t *leafcnt,
         }
         // free(num_str);
     }
-    return 0;
+
+    FUNC_LEAVE(0);
 }
 
 int
 value_string_query(char *secondary_query, key_index_leaf_content_t *leafcnt,
                    IDIOMS_md_idx_record_t *idx_record)
 {
+    FUNC_ENTER(NULL);
+
     pattern_type_t level_two_ptn_type = determine_pattern_type(secondary_query);
-    char *         tok                = NULL;
+    char          *tok                = NULL;
     switch (level_two_ptn_type) {
         case PATTERN_EXACT:
             tok = secondary_query;
@@ -706,14 +747,17 @@ value_string_query(char *secondary_query, key_index_leaf_content_t *leafcnt,
         default:
             break;
     }
-    return 0;
+
+    FUNC_LEAVE(0);
 }
 
 int
 key_index_search_callback(void *data, const unsigned char *key, uint32_t key_len, void *value)
 {
+    FUNC_ENTER(NULL);
+
     key_index_leaf_content_t *leafcnt    = (key_index_leaf_content_t *)value;
-    IDIOMS_md_idx_record_t *  idx_record = (IDIOMS_md_idx_record_t *)(data);
+    IDIOMS_md_idx_record_t   *idx_record = (IDIOMS_md_idx_record_t *)(data);
 
     char *k_query = idx_record->key;
     char *v_query = idx_record->value;
@@ -722,7 +766,7 @@ key_index_search_callback(void *data, const unsigned char *key, uint32_t key_len
     if (key_query_type == PATTERN_MIDDLE) {
         char *infix = substring(k_query, 1, strlen(k_query) - 1);
         if (contains((char *)key, infix) == 0) {
-            return 0;
+            FUNC_LEAVE(0);
         }
     }
 
@@ -740,7 +784,8 @@ key_index_search_callback(void *data, const unsigned char *key, uint32_t key_len
         // perform number search
         query_rst |= value_number_query(v_query, leafcnt, idx_record);
     }
-    return query_rst;
+
+    FUNC_LEAVE(query_rst);
 }
 
 /**
@@ -765,14 +810,16 @@ key_index_search_callback(void *data, const unsigned char *key, uint32_t key_len
 uint64_t
 idioms_local_index_search(IDIOMS_t *idioms, IDIOMS_md_idx_record_t *idx_record)
 {
+    FUNC_ENTER(NULL);
+
     uint64_t    result_count = 0;
     stopwatch_t index_timer;
     if (idioms == NULL) {
         println("[Server_Side_Query_%d] idioms is NULL.", idioms->server_id_g);
-        return result_count;
+        FUNC_LEAVE(result_count);
     }
     if (idx_record == NULL) {
-        return result_count;
+        FUNC_LEAVE(result_count);
     }
 
     char *query      = idx_record->key;
@@ -782,7 +829,7 @@ idioms_local_index_search(IDIOMS_t *idioms, IDIOMS_md_idx_record_t *idx_record)
         if (DART_SERVER_DEBUG) {
             println("[Server_Side_Query_%d]query string '%s' is not valid.", idioms->server_id_g, query);
         }
-        return result_count;
+        FUNC_LEAVE(result_count);
     }
 
     char *k_query = get_key(query, KV_DELIM);
@@ -798,8 +845,8 @@ idioms_local_index_search(IDIOMS_t *idioms, IDIOMS_md_idx_record_t *idx_record)
 
     timer_start(&index_timer);
 
-    char *                    qType_string = "Exact";
-    char *                    tok;
+    char                     *qType_string = "Exact";
+    char                     *tok;
     pattern_type_t            level_one_ptn_type = determine_pattern_type(k_query);
     key_index_leaf_content_t *leafcnt            = NULL;
     // if (index_type == DHT_FULL_HASH || index_type == DHT_INITIAL_HASH) {
@@ -811,7 +858,7 @@ idioms_local_index_search(IDIOMS_t *idioms, IDIOMS_md_idx_record_t *idx_record)
             qType_string = "Exact";
             tok          = k_query;
             leafcnt      = (key_index_leaf_content_t *)art_search(idioms->art_key_prefix_tree_g,
-                                                             (unsigned char *)tok, strlen(tok));
+                                                                  (unsigned char *)tok, strlen(tok));
             if (leafcnt != NULL) {
                 key_index_search_callback((void *)idx_record, (unsigned char *)tok, strlen(tok),
                                           (void *)leafcnt);
@@ -863,5 +910,6 @@ idioms_local_index_search(IDIOMS_t *idioms, IDIOMS_md_idx_record_t *idx_record)
     }
     idioms->time_to_search_index_g += timer_delta_us(&index_timer);
     idioms->search_request_count_g += 1;
-    return result_count;
+
+    FUNC_LEAVE(result_count);
 }

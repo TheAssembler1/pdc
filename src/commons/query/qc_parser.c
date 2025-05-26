@@ -1,9 +1,12 @@
 #include "qc_parser.h"
 #include "pdc_logger.h"
+#include "pdc_timing.h"
 
 void
 printSubExpression(char *expression, Condition *condition)
 {
+    FUNC_ENTER(NULL);
+
     if (condition == NULL) {
         LOG_JUST_PRINT("NULL\n");
         return;
@@ -19,23 +22,30 @@ printSubExpression(char *expression, Condition *condition)
     printSubExpression(expression, condition->left);
     LOG_JUST_PRINT("right:");
     printSubExpression(expression, condition->right);
+
+    FUNC_LEAVE_VOID();
 }
 
 Condition *
 createSubCondition(int start, int end, int level)
 {
+    FUNC_ENTER(NULL);
+
     Condition *condition = (Condition *)malloc(sizeof(Condition));
     condition->start     = start;
     condition->end       = end;
     condition->level     = level;
-    return condition;
+
+    FUNC_LEAVE(condition);
 }
 
 int
 isFactor(char *expression, Condition *condition)
 {
+    FUNC_ENTER(NULL);
+
     if (condition->start == condition->end) {
-        return 0;
+        FUNC_LEAVE(0);
     }
     // if the string contains matching pairs of '(' and ')' then it is a string of expression
     int pLevel = 0;
@@ -46,7 +56,7 @@ isFactor(char *expression, Condition *condition)
         if (expression[i] == ')') {
             pLevel--;
             if (pLevel == 0) {
-                return 1;
+                FUNC_LEAVE(1);
             }
         }
     }
@@ -54,20 +64,23 @@ isFactor(char *expression, Condition *condition)
     // if the string contains 'AND'/'OR' then it is not a factor
     for (int i = condition->start; i < condition->end; i++) {
         if (expression[i] == 'A' && expression[i + 1] == 'N' && expression[i + 2] == 'D') {
-            return 0;
+            FUNC_LEAVE(0);
         }
         if (expression[i] == 'O' && expression[i + 1] == 'R') {
-            return 0;
+            FUNC_LEAVE(0);
         }
     }
-    return 1;
+
+    FUNC_LEAVE(1);
 }
 
 int
 isTerm(char *expression, Condition *condition)
 {
+    FUNC_ENTER(NULL);
+
     if (condition->start == condition->end) {
-        return 0;
+        FUNC_LEAVE(0);
     }
     // if the string contains matching pairs of '(' and ')' then it is a string of expression
     int pLevel = 0;
@@ -80,22 +93,26 @@ isTerm(char *expression, Condition *condition)
         }
     }
     if (pLevel == 0) {
-        return 1;
+        FUNC_LEAVE(1);
     }
     // if the string contains 'AND'/'OR' then it is not a factor
     for (int i = condition->start; i < condition->end; i++) {
         if (expression[i] == 'A' && expression[i + 1] == 'N' && expression[i + 2] == 'D') {
-            return 1;
+            FUNC_LEAVE(1);
         }
     }
-    return 0;
+
+    FUNC_LEAVE(0);
 }
+
 int isExpression(char *expression, Condition *condition);
 int isExpressionStringFactor(char *expression, Condition *condition);
 
 int
 extractExpression(char *expression, Condition *condition)
 {
+    FUNC_ENTER(NULL);
+
     int levelCounter = condition->level;
     int i1           = condition->start;
     int i2           = i1 + 1;
@@ -137,16 +154,18 @@ extractExpression(char *expression, Condition *condition)
         i2  = i1 + 1;
         rst = 0;
     }
-    return rst;
+
+    FUNC_LEAVE(rst);
 }
 
 int extractTerm(char *expression, Condition *condition);
-
 int extractFactor(char *expression, Condition *condition);
 
 int
 splitCondition(char *expression, Condition *condition)
 {
+    FUNC_ENTER(NULL);
+
     int levelCounter = condition->level;
     int i1           = condition->start;
     int i2           = i1 + 1;
@@ -197,12 +216,15 @@ splitCondition(char *expression, Condition *condition)
         i2  = i1 + 1;
         rst = 0;
     }
-    return rst;
+
+    FUNC_LEAVE(rst);
 }
 
 int
 subClauseExtractor(char *expression, int start, int end, int level, subClause **subPtr)
 {
+    FUNC_ENTER(NULL);
+
     int levelCounter  = level;
     *subPtr           = NULL; // Initially, there are no subclauses.
     int numSubClauses = 0;
@@ -230,12 +252,15 @@ subClauseExtractor(char *expression, int start, int end, int level, subClause **
             }
         }
     }
-    return numSubClauses;
+
+    FUNC_LEAVE(numSubClauses);
 }
 
 void
 printSubClauses(char *expression, subClause *subPtr, int numSubClauses)
 {
+    FUNC_ENTER(NULL);
+
     for (int i = 0; i < numSubClauses; i++) {
         LOG_JUST_PRINT("SubClause %d: Level: %d, Expression: ", i, subPtr[i].level);
         for (int j = subPtr[i].start; j <= subPtr[i].end; j++) {
@@ -246,4 +271,6 @@ printSubClauses(char *expression, subClause *subPtr, int numSubClauses)
             printSubClauses(expression, subPtr[i].subClauseArray, subPtr[i].numSubClauses);
         }
     }
+
+    FUNC_LEAVE_VOID();
 }

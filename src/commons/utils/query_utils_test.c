@@ -1,18 +1,25 @@
 #include "query_utils.h"
+#include "pdc_timing.h"
 
 void
 print_query_output(query_gen_output_t *output)
 {
+    FUNC_ENTER(NULL);
+
     println("key query: %s, len: %lu", output->key_query, output->key_query_len);
     println("value query: %s, len: %lu", output->value_query, output->value_query_len);
     char *final_query_str = gen_query_str(output);
     println("final query: %s, len: %lu", final_query_str, strlen(final_query_str));
     free(final_query_str);
+
+    FUNC_LEAVE_VOID();
 }
 
 int
 main(int argc, char *argv[])
 {
+    FUNC_ENTER(NULL);
+
     int          affix_length = atoi(argv[1]);
     pdc_kvtag_t *base_string_tag;
     base_string_tag        = (pdc_kvtag_t *)calloc(1, sizeof(pdc_kvtag_t));
@@ -60,5 +67,5 @@ main(int argc, char *argv[])
         free_query_output(&output);
     }
 
-    return 0;
+    FUNC_LEAVE(0);
 }

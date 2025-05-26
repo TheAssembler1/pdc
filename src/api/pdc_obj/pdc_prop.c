@@ -27,6 +27,7 @@
 #include "pdc_prop.h"
 #include "pdc_prop_pkg.h"
 #include "pdc_interface.h"
+#include "pdc_timing.h"
 #include <string.h>
 
 static perr_t pdc_prop_cont_close(struct _pdc_cont_prop *cp);
@@ -36,9 +37,9 @@ static perr_t pdc_prop_obj_close(struct _pdc_obj_prop *cp);
 perr_t
 PDC_prop_init()
 {
-    perr_t ret_value = SUCCEED;
-
     FUNC_ENTER(NULL);
+
+    perr_t ret_value = SUCCEED;
 
     /* Initialize the atom group for the container property IDs */
     if (PDC_register_type(PDC_CONT_PROP, (PDC_free_t)pdc_prop_cont_close) < 0)
@@ -56,15 +57,15 @@ done:
 pdcid_t
 PDCprop_create(pdc_prop_type_t type, pdcid_t pdcid)
 {
+    FUNC_ENTER(NULL);
+
     pdcid_t                ret_value = 0;
     struct _pdc_cont_prop *p         = NULL;
-    struct _pdc_obj_prop * q         = NULL;
-    struct _pdc_id_info *  id_info   = NULL;
-    struct _pdc_class *    pdc_class;
+    struct _pdc_obj_prop  *q         = NULL;
+    struct _pdc_id_info   *id_info   = NULL;
+    struct _pdc_class     *pdc_class;
     pdcid_t                new_id_c;
     pdcid_t                new_id_o;
-
-    FUNC_ENTER(NULL);
 
     if (type == PDC_CONT_CREATE) {
         p = (struct _pdc_cont_prop *)PDC_malloc(sizeof(struct _pdc_cont_prop));
@@ -127,14 +128,14 @@ done:
 pdcid_t
 PDCprop_obj_dup(pdcid_t prop_id)
 {
+    FUNC_ENTER(NULL);
+
     pdcid_t               ret_value = 0;
     struct _pdc_obj_prop *q         = NULL;
     struct _pdc_obj_prop *info      = NULL;
-    struct _pdc_id_info * prop      = NULL;
+    struct _pdc_id_info  *prop      = NULL;
     pdcid_t               new_id;
     size_t                i;
-
-    FUNC_ENTER(NULL);
 
     prop = PDC_find_id(prop_id);
     if (prop == NULL)
@@ -183,10 +184,10 @@ done:
 perr_t
 PDC_prop_cont_list_null()
 {
+    FUNC_ENTER(NULL);
+
     perr_t ret_value = SUCCEED;
     int    nelemts;
-
-    FUNC_ENTER(NULL);
 
     // list is not empty
     nelemts = PDC_id_list_null(PDC_CONT_PROP);
@@ -203,10 +204,9 @@ done:
 perr_t
 PDC_prop_obj_list_null()
 {
+    FUNC_ENTER(NULL);
     perr_t ret_value = SUCCEED;
     int    nelemts;
-
-    FUNC_ENTER(NULL);
 
     // list is not empty
     nelemts = PDC_id_list_null(PDC_OBJ_PROP);
@@ -223,9 +223,9 @@ done:
 static perr_t
 pdc_prop_cont_close(struct _pdc_cont_prop *cp)
 {
-    perr_t ret_value = SUCCEED;
-
     FUNC_ENTER(NULL);
+
+    perr_t ret_value = SUCCEED;
 
     free(cp->pdc->name);
     cp->pdc = (struct _pdc_class *)(intptr_t)PDC_free(cp->pdc);
@@ -237,9 +237,9 @@ pdc_prop_cont_close(struct _pdc_cont_prop *cp)
 static perr_t
 pdc_prop_obj_close(struct _pdc_obj_prop *cp)
 {
-    perr_t ret_value = SUCCEED;
-
     FUNC_ENTER(NULL);
+
+    perr_t ret_value = SUCCEED;
 
     free(cp->pdc->name);
     cp->pdc = (struct _pdc_class *)(intptr_t)PDC_free(cp->pdc);
@@ -258,9 +258,9 @@ pdc_prop_obj_close(struct _pdc_obj_prop *cp)
 perr_t
 PDCprop_close(pdcid_t id)
 {
-    perr_t ret_value = SUCCEED;
-
     FUNC_ENTER(NULL);
+
+    perr_t ret_value = SUCCEED;
 
     /* When the reference count reaches zero the resources are freed */
     if (PDC_dec_ref(id) < 0)
@@ -274,9 +274,9 @@ done:
 perr_t
 PDC_prop_end()
 {
-    perr_t ret_value = SUCCEED;
-
     FUNC_ENTER(NULL);
+
+    perr_t ret_value = SUCCEED;
 
     if (PDC_destroy_type(PDC_CONT_PROP) < 0)
         PGOTO_ERROR(FAIL, "unable to destroy container property interface");
@@ -292,11 +292,11 @@ done:
 struct _pdc_cont_prop *
 PDCcont_prop_get_info(pdcid_t cont_prop)
 {
+    FUNC_ENTER(NULL);
+
     struct _pdc_cont_prop *ret_value = NULL;
     struct _pdc_cont_prop *info      = NULL;
-    struct _pdc_id_info *  prop;
-
-    FUNC_ENTER(NULL);
+    struct _pdc_id_info   *prop;
 
     prop = PDC_find_id(cont_prop);
     if (prop == NULL)
@@ -324,12 +324,12 @@ done:
 struct pdc_obj_prop *
 PDCobj_prop_get_info(pdcid_t obj_prop)
 {
-    struct pdc_obj_prop * ret_value = NULL;
-    struct _pdc_obj_prop *info      = NULL;
-    struct _pdc_id_info * prop;
-    size_t                i;
-
     FUNC_ENTER(NULL);
+
+    struct pdc_obj_prop  *ret_value = NULL;
+    struct _pdc_obj_prop *info      = NULL;
+    struct _pdc_id_info  *prop;
+    size_t                i;
 
     prop = PDC_find_id(obj_prop);
     if (prop == NULL)
@@ -355,12 +355,12 @@ done:
 struct _pdc_obj_prop *
 PDC_obj_prop_get_info(pdcid_t obj_prop)
 {
+    FUNC_ENTER(NULL);
+
     struct _pdc_obj_prop *ret_value = NULL;
     struct _pdc_obj_prop *info      = NULL;
-    struct _pdc_id_info * prop;
+    struct _pdc_id_info  *prop;
     size_t                i;
-
-    FUNC_ENTER(NULL);
 
     prop = PDC_find_id(obj_prop);
     if (prop == NULL)
@@ -408,11 +408,10 @@ done:
 perr_t
 PDC_obj_prop_free(struct _pdc_obj_prop *cp)
 {
-    perr_t ret_value = SUCCEED;
-
     FUNC_ENTER(NULL);
 
-    ret_value = pdc_prop_obj_close(cp);
+    perr_t ret_value = SUCCEED;
+    ret_value        = pdc_prop_obj_close(cp);
 
     FUNC_LEAVE(ret_value);
 }

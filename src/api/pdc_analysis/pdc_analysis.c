@@ -51,18 +51,21 @@ static char *default_pdc_analysis_lib = "libpdcanalysis.so";
 void *
 PDC_Server_get_region_data_ptr(pdcid_t object_id)
 {
+    FUNC_ENTER(NULL);
     UNUSED(object_id);
-    return NULL;
+    FUNC_LEAVE(NULL);
 }
 #endif
 
 static int
 iterator_init(pdcid_t objectId, pdcid_t reg_id, int blocks, struct _pdc_iterator_info *iter)
 {
+    FUNC_ENTER(NULL);
+
     int                     ret_value = 0;
     int                     k, d_offset;
     size_t                  i, element_size = 0;
-    char *                  data             = NULL;
+    char                   *data             = NULL;
     size_t                  sliceCount       = 1;
     size_t                  elementsPerSlice = 1;
     size_t                  elementsPerBlock;
@@ -71,10 +74,8 @@ iterator_init(pdcid_t objectId, pdcid_t reg_id, int blocks, struct _pdc_iterator
     size_t                  skipCount   = 0;
     size_t                  totalElements;
     struct pdc_region_info *region_info = NULL;
-    struct _pdc_obj_info *  object_info = PDC_obj_get_info(objectId);
-    struct _pdc_obj_prop *  obj_prop_ptr;
-
-    FUNC_ENTER(NULL);
+    struct _pdc_obj_info   *object_info = PDC_obj_get_info(objectId);
+    struct _pdc_obj_prop   *obj_prop_ptr;
 
     /* Gather Information about the underlying object, e.g.
      * the object data type, object size, etc. refers to the
@@ -254,11 +255,11 @@ done:
 pdcid_t
 PDCobj_data_block_iterator_create(pdcid_t obj_id, pdcid_t reg_id, int contig_blocks)
 {
+    FUNC_ENTER(NULL);
+
     pdcid_t                    ret_value = 0;
     pdcid_t                    iterId;
     struct _pdc_iterator_info *p = NULL;
-
-    FUNC_ENTER(NULL);
 
     iterId = PDCiter_get_nextId();
 
@@ -281,11 +282,10 @@ done:
 pdcid_t
 PDCobj_data_iter_create(pdcid_t obj_id, pdcid_t reg_id)
 {
-    pdcid_t ret_value = 0;
-
     FUNC_ENTER(NULL);
 
-    ret_value = PDCobj_data_block_iterator_create(obj_id, reg_id, 1);
+    pdcid_t ret_value = 0;
+    ret_value         = PDCobj_data_block_iterator_create(obj_id, reg_id, 1);
 
     FUNC_LEAVE(ret_value);
 }
@@ -308,7 +308,9 @@ PDCobj_data_iter_create(pdcid_t obj_id, pdcid_t reg_id)
 char *
 PDC_get_argv0_()
 {
-    char *       ret_value          = NULL;
+    FUNC_ENTER(NULL);
+
+    char        *ret_value          = NULL;
     static char *_argv0             = NULL;
     char         fullPath[PATH_MAX] = {
         0,
@@ -317,12 +319,10 @@ PDC_get_argv0_()
         0,
     };
     pid_t  mypid = getpid();
-    char * next;
-    char * procpath = NULL;
-    FILE * shellcmd = NULL;
+    char  *next;
+    char  *procpath = NULL;
+    FILE  *shellcmd = NULL;
     size_t cmdLength;
-
-    FUNC_ENTER(NULL);
 
     if (_argv0 == NULL) {
         // UNIX derived systems e.g. linux, allow us to find the
@@ -384,13 +384,13 @@ done:
 char *
 PDC_get_realpath(char *fname, char *app_path)
 {
+    FUNC_ENTER(NULL);
+
     char *ret_value = NULL;
     int   notreadable;
     char  fullPath[PATH_MAX] = {
         0,
     };
-
-    FUNC_ENTER(NULL);
 
     do {
         if (app_path) {
@@ -414,21 +414,21 @@ done:
 perr_t
 PDCobj_analysis_register(char *func, pdcid_t iterIn, pdcid_t iterOut)
 {
+    FUNC_ENTER(NULL);
+
     perr_t ret_value                              = SUCCEED; /* Return value */
-    void * ftnHandle                              = NULL;
+    void  *ftnHandle                              = NULL;
     int (*ftnPtr)(pdcid_t, pdcid_t)               = NULL;
     struct _pdc_region_analysis_ftn_info *thisFtn = NULL;
-    struct _pdc_iterator_info *           i_in = NULL, *i_out = NULL;
+    struct _pdc_iterator_info            *i_in = NULL, *i_out = NULL;
     pdcid_t                               meta_id_in = 0, meta_id_out = 0;
     pdcid_t                               local_id_in = 0, local_id_out = 0;
-    char *                                thisApp        = NULL;
-    char *                                colonsep       = NULL;
-    char *                                analyislibrary = NULL;
-    char *                                applicationDir = NULL;
-    char *                                userdefinedftn = NULL;
-    char *                                loadpath       = NULL;
-
-    FUNC_ENTER(NULL);
+    char                                 *thisApp        = NULL;
+    char                                 *colonsep       = NULL;
+    char                                 *analyislibrary = NULL;
+    char                                 *applicationDir = NULL;
+    char                                 *userdefinedftn = NULL;
+    char                                 *loadpath       = NULL;
 
     thisApp = PDC_get_argv0_();
     if (thisApp) {
@@ -510,10 +510,10 @@ done:
 size_t
 PDCobj_data_getSliceCount(pdcid_t iter)
 {
+    FUNC_ENTER(NULL);
+
     size_t                     ret_value = 0;
     struct _pdc_iterator_info *thisIter  = NULL;
-
-    FUNC_ENTER(NULL);
 
     /* Special case to handle a NULL iterator */
     if (iter == 0)
@@ -534,13 +534,13 @@ done:
 size_t
 PDCobj_data_getNextBlock(pdcid_t iter, void **nextBlock, size_t *dims)
 {
+    FUNC_ENTER(NULL);
+
     size_t                     ret_value = 0;
     struct _pdc_iterator_info *thisIter  = NULL;
     size_t                     current_total, remaining, offset;
-    struct _pdc_obj_info *     object_info;
-    struct _pdc_obj_prop *     obj_prop_ptr;
-
-    FUNC_ENTER(NULL);
+    struct _pdc_obj_info      *object_info;
+    struct _pdc_obj_prop      *obj_prop_ptr;
 
     /* Special case to handle a NULL iterator */
     if (iter == 0) {
@@ -634,10 +634,9 @@ done:
 perr_t
 PDC_analysis_end()
 {
-    perr_t ret_value = SUCCEED;
-
     FUNC_ENTER(NULL);
 
+    perr_t ret_value = SUCCEED;
     PDC_free_analysis_registry();
 
     FUNC_LEAVE(ret_value);
@@ -646,10 +645,9 @@ PDC_analysis_end()
 perr_t
 PDC_iterator_end()
 {
-    perr_t ret_value = SUCCEED;
-
     FUNC_ENTER(NULL);
 
+    perr_t ret_value = SUCCEED;
     PDC_free_iterator_cache();
 
     FUNC_LEAVE(ret_value);

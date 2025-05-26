@@ -1,25 +1,29 @@
 #include "pdc_vector.h"
+#include "pdc_timing.h"
 
 PDC_VECTOR *
 pdc_vector_new()
 {
-    return pdc_vector_create(100, 2.0);
+    FUNC_ENTER(NULL);
+    FUNC_LEAVE(pdc_vector_create(100, 2.0));
 }
 
 PDC_VECTOR *
 pdc_vector_create(size_t initial_capacity, double expansion_factor)
 {
+    FUNC_ENTER(NULL);
+
     // Allocate memory for the vector struct.
     PDC_VECTOR *vector = (PDC_VECTOR *)malloc(sizeof(PDC_VECTOR));
     if (vector == NULL) {
-        return NULL;
+        FUNC_LEAVE(NULL);
     }
 
     // Allocate memory for the array of items.
     vector->items = (void **)malloc(initial_capacity * sizeof(void *));
     if (vector->items == NULL) {
         free(vector);
-        return NULL;
+        FUNC_LEAVE(NULL);
     }
 
     // Initialize the vector fields.
@@ -27,14 +31,16 @@ pdc_vector_create(size_t initial_capacity, double expansion_factor)
     vector->capacity         = initial_capacity;
     vector->expansion_factor = expansion_factor;
 
-    return vector;
+    FUNC_LEAVE(vector);
 }
 
 void
 pdc_vector_destroy(PDC_VECTOR *vector)
 {
+    FUNC_ENTER(NULL);
+
     if (vector == NULL) {
-        return;
+        FUNC_LEAVE_VOID();
     }
 
     // Free all allocated memory for each item.
@@ -45,13 +51,17 @@ pdc_vector_destroy(PDC_VECTOR *vector)
     // Free the array of items and the vector struct.
     free(vector->items);
     free(vector);
+
+    FUNC_LEAVE_VOID();
 }
 
 void
 pdc_vector_add(PDC_VECTOR *vector, void *item)
 {
+    FUNC_ENTER(NULL);
+
     if (vector == NULL || item == NULL) {
-        return;
+        FUNC_LEAVE_VOID();
     }
 
     // Expand the array of items if necessary.
@@ -59,107 +69,129 @@ pdc_vector_add(PDC_VECTOR *vector, void *item)
         vector->capacity *= vector->expansion_factor;
         vector->items = (void **)realloc(vector->items, vector->capacity * sizeof(void *));
         if (vector->items == NULL) {
-            return;
+            FUNC_LEAVE_VOID();
         }
     }
 
     // Add the new item to the end of the array.
     vector->items[vector->item_count++] = item;
+
+    FUNC_LEAVE_VOID();
 }
 
 void *
 pdc_vector_get(PDC_VECTOR *vector, size_t index)
 {
+    FUNC_ENTER(NULL);
+
     if (vector == NULL || index >= vector->item_count) {
-        return NULL;
+        FUNC_LEAVE(NULL);
     }
 
     // Return a pointer to the item at the given index.
-    return vector->items[index];
+    FUNC_LEAVE(vector->items[index]);
 }
 
 size_t
 pdc_vector_size(PDC_VECTOR *vector)
 {
+    FUNC_ENTER(NULL);
+
     if (vector == NULL) {
-        return 0;
+        FUNC_LEAVE(0);
     }
 
     // Return the number of items in the vector.
-    return vector->item_count;
+    FUNC_LEAVE(vector->item_count);
 }
 
 void
 pdc_vector_set_expansion_factor(PDC_VECTOR *vector, double expansion_factor)
 {
+    FUNC_ENTER(NULL);
+
     if (vector == NULL) {
-        return;
+        FUNC_LEAVE_VOID();
     }
 
     // Set the new expansion factor for the vector.
     vector->expansion_factor = expansion_factor;
+
+    FUNC_LEAVE_VOID();
 }
 
 double
 pdc_vector_get_expansion_factor(PDC_VECTOR *vector)
 {
+    FUNC_ENTER(NULL);
+
     if (vector == NULL) {
-        return 0;
+        FUNC_LEAVE(0);
     }
 
     // Return the current expansion factor for the vector.
-    return vector->expansion_factor;
+    FUNC_LEAVE(vector->expansion_factor);
 }
 
 PDC_VECTOR_ITERATOR *
 pdc_vector_iterator_new(PDC_VECTOR *vector)
 {
+    FUNC_ENTER(NULL);
+
     if (vector == NULL) {
-        return NULL;
+        FUNC_LEAVE(NULL);
     }
 
     // Allocate memory for the iterator struct.
     PDC_VECTOR_ITERATOR *iterator = (PDC_VECTOR_ITERATOR *)malloc(sizeof(PDC_VECTOR_ITERATOR));
     if (iterator == NULL) {
-        return NULL;
+        FUNC_LEAVE(NULL);
     }
 
     // Initialize the iterator fields.
     iterator->vector = vector;
     iterator->index  = 0;
 
-    return iterator;
+    FUNC_LEAVE(iterator);
 }
 
 void
 pdc_vector_iterator_destroy(PDC_VECTOR_ITERATOR *iterator)
 {
+    FUNC_ENTER(NULL);
+
     if (iterator == NULL) {
-        return;
+        FUNC_LEAVE_VOID();
     }
 
     // Free the iterator struct.
     free(iterator);
+
+    FUNC_LEAVE_VOID();
 }
 
 void *
 pdc_vector_iterator_next(PDC_VECTOR_ITERATOR *iterator)
 {
+    FUNC_ENTER(NULL);
+
     if (iterator == NULL) {
-        return NULL;
+        FUNC_LEAVE(NULL);
     }
 
     // Return the next item in the vector.
-    return pdc_vector_get(iterator->vector, iterator->index++);
+    FUNC_LEAVE(pdc_vector_get(iterator->vector, iterator->index++));
 }
 
 int
 pdc_vector_iterator_has_next(PDC_VECTOR_ITERATOR *iterator)
 {
+    FUNC_ENTER(NULL);
+
     if (iterator == NULL) {
-        return 0;
+        FUNC_LEAVE(0);
     }
 
     // Return true if there are more items in the vector.
-    return iterator->index < pdc_vector_size(iterator->vector);
+    FUNC_LEAVE(iterator->index < pdc_vector_size(iterator->vector));
 }

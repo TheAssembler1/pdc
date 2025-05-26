@@ -38,6 +38,7 @@ Boston, MA 02111-1307, USA.  */
 #include "pdc_config.h"
 #include "pdc_hashtab.h"
 #include "pdc_logger.h"
+#include "pdc_timing.h"
 
 /* This macro defines reserved value for empty table entry. */
 
@@ -52,7 +53,7 @@ static unsigned long higher_prime_number(unsigned long);
 static hashval_t     hash_pointer(const void *);
 static int           eq_pointer(const void *, const void *);
 static int           htab_expand(htab_t);
-static PTR *         find_empty_slot_for_expand(htab_t, hashval_t);
+static PTR          *find_empty_slot_for_expand(htab_t, hashval_t);
 
 /* At some point, we could make these be NULL, and modify the
    hash-table routines to handle NULL specially; that would avoid
@@ -63,8 +64,12 @@ htab_eq   htab_eq_pointer   = eq_pointer;
 /* The following function returns a nearest prime number which is
    greater than N, and near a power of two. */
 
-static unsigned long higher_prime_number(n) unsigned long n;
+static unsigned long
+              higher_prime_number(n)
+unsigned long n;
 {
+    FUNC_ENTER(NULL);
+
     /* These are primes that are near, but slightly smaller than, a
        power of two.  */
     static const unsigned long primes[] = {
@@ -118,14 +123,15 @@ static unsigned long higher_prime_number(n) unsigned long n;
         abort();
     }
 
-    return *low;
+    FUNC_LEAVE(*low);
 }
 
 /* Returns a hash code for P.  */
 
 static hashval_t hash_pointer(p) const PTR p;
 {
-    return (hashval_t)((long)p >> 3);
+    FUNC_ENTER(NULL);
+    FUNC_LEAVE((hashval_t)((long)p >> 3));
 }
 
 /* Returns non-zero if P1 and P2 are equal.  */
@@ -133,7 +139,8 @@ static hashval_t hash_pointer(p) const PTR p;
 static int eq_pointer(p1, p2) const PTR p1;
 const PTR  p2;
 {
-    return p1 == p2;
+    FUNC_ENTER(NULL);
+    FUNC_LEAVE(p1 == p2);
 }
 
 /* This function creates table with length slightly longer than given
@@ -141,24 +148,28 @@ const PTR  p2;
    hash table entries are EMPTY_ENTRY).  The function returns the
    created hash table, or NULL if memory allocation fails.  */
 
-htab_t     htab_create_alloc(size, hash_f, eq_f, del_f, alloc_f, free_f) size_t size;
+htab_t
+           htab_create_alloc(size, hash_f, eq_f, del_f, alloc_f, free_f)
+size_t     size;
 htab_hash  hash_f;
 htab_eq    eq_f;
 htab_del   del_f;
 htab_alloc alloc_f;
 htab_free  free_f;
 {
+    FUNC_ENTER(NULL);
+
     htab_t result;
     size   = higher_prime_number(size);
     result = (htab_t)(*alloc_f)(1, sizeof(struct htab));
     if (result == NULL)
-        return NULL;
+        FUNC_LEAVE(NULL);
 
     result->entries = (PTR *)(*alloc_f)(size, sizeof(PTR));
     if (result->entries == NULL) {
         if (free_f != NULL)
             (*free_f)(result);
-        return NULL;
+        FUNC_LEAVE(NULL);
     }
     result->size    = size;
     result->hash_f  = hash_f;
@@ -167,26 +178,32 @@ htab_free  free_f;
     result->alloc_f = alloc_f;
     result->free_f  = free_f;
 
-    return result;
+    FUNC_LEAVE(result);
 }
 
 /* These functions exist solely for backward compatibility.  */
 
 #undef htab_create
-htab_t    htab_create(size, hash_f, eq_f, del_f) size_t size;
+htab_t
+          htab_create(size, hash_f, eq_f, del_f)
+size_t    size;
 htab_hash hash_f;
 htab_eq   eq_f;
 htab_del  del_f;
 {
-    return htab_create_alloc(size, hash_f, eq_f, del_f, calloc, free);
+    FUNC_ENTER(NULL);
+    FUNC_LEAVE(htab_create_alloc(size, hash_f, eq_f, del_f, calloc, free));
 }
 
-htab_t    htab_try_create(size, hash_f, eq_f, del_f) size_t size;
+htab_t
+          htab_try_create(size, hash_f, eq_f, del_f)
+size_t    size;
 htab_hash hash_f;
 htab_eq   eq_f;
 htab_del  del_f;
 {
-    return htab_create_alloc(size, hash_f, eq_f, del_f, calloc, free);
+    FUNC_ENTER(NULL);
+    FUNC_LEAVE(htab_create_alloc(size, hash_f, eq_f, del_f, calloc, free));
 }
 
 /* This function frees all memory allocated for given hash table.
@@ -194,6 +211,8 @@ htab_del  del_f;
 
 void htab_delete(htab) htab_t htab;
 {
+    FUNC_ENTER(NULL);
+
     int i;
 
     if (htab->del_f) {
@@ -205,12 +224,16 @@ void htab_delete(htab) htab_t htab;
         (*htab->free_f)(htab->entries);
         (*htab->free_f)(htab);
     }
+
+    FUNC_LEAVE_VOID();
 }
 
 /* This function clears all entries in the given hash table.  */
 
 void htab_empty(htab) htab_t htab;
 {
+    FUNC_ENTER(NULL);
+
     int i;
 
     if (htab->del_f)
@@ -219,6 +242,8 @@ void htab_empty(htab) htab_t htab;
                 (*htab->del_f)(htab->entries[i]);
 
     memset(htab->entries, 0, htab->size * sizeof(PTR));
+
+    FUNC_LEAVE_VOID();
 }
 
 /* Similar to htab_find_slot, but without several unwanted side effects:
@@ -228,16 +253,20 @@ void htab_empty(htab) htab_t htab;
    This function also assumes there are no deleted entries in the table.
    HASH is the hash value for the element to be inserted.  */
 
-static PTR *find_empty_slot_for_expand(htab, hash) htab_t htab;
-hashval_t   hash;
+static PTR           *
+find_empty_slot_for_expand(htab, hash)
+htab_t    htab;
+hashval_t hash;
 {
+    FUNC_ENTER(NULL);
+
     size_t       size  = htab->size;
     unsigned int index = hash % size;
-    PTR *        slot  = htab->entries + index;
+    PTR         *slot  = htab->entries + index;
     hashval_t    hash2;
 
     if (*slot == EMPTY_ENTRY)
-        return slot;
+        FUNC_LEAVE(slot);
     else if (*slot == DELETED_ENTRY)
         abort();
 
@@ -249,7 +278,7 @@ hashval_t   hash;
 
         slot = htab->entries + index;
         if (*slot == EMPTY_ENTRY)
-            return slot;
+            FUNC_LEAVE(slot);
         else if (*slot == DELETED_ENTRY)
             abort();
     }
@@ -263,8 +292,12 @@ hashval_t   hash;
    this function will return zero, indicating that the table could not be
    expanded.  If all goes well, it will return a non-zero value.  */
 
-static int htab_expand(htab) htab_t htab;
+static int
+       htab_expand(htab)
+htab_t htab;
 {
+    FUNC_ENTER(NULL);
+
     PTR *oentries;
     PTR *olimit;
     PTR *p;
@@ -277,7 +310,7 @@ static int htab_expand(htab) htab_t htab;
 
     nentries = (PTR *)(*htab->alloc_f)(htab->size, sizeof(PTR *));
     if (nentries == NULL)
-        return 0;
+        FUNC_LEAVE(0);
     htab->entries = nentries;
     htab->n_elements -= htab->n_deleted;
     htab->n_deleted = 0;
@@ -296,16 +329,20 @@ static int htab_expand(htab) htab_t htab;
     if (htab->free_f != NULL)
         (*htab->free_f)(oentries);
 
-    return 1;
+    FUNC_LEAVE(1);
 }
 
 /* This function searches for a hash table entry equal to the given
    element.  It cannot be used to insert or delete an element.  */
 
-PTR       htab_find_with_hash(htab, element, hash) htab_t htab;
+PTR
+          htab_find_with_hash(htab, element, hash)
+htab_t    htab;
 const PTR element;
 hashval_t hash;
 {
+    FUNC_ENTER(NULL);
+
     unsigned int index;
     hashval_t    hash2;
     size_t       size;
@@ -317,7 +354,7 @@ hashval_t hash;
 
     entry = htab->entries[index];
     if (entry == EMPTY_ENTRY || (entry != DELETED_ENTRY && (*htab->eq_f)(entry, element)))
-        return entry;
+        FUNC_LEAVE(entry);
 
     hash2 = 1 + hash % (size - 2);
 
@@ -329,17 +366,20 @@ hashval_t hash;
 
         entry = htab->entries[index];
         if (entry == EMPTY_ENTRY || (entry != DELETED_ENTRY && (*htab->eq_f)(entry, element)))
-            return entry;
+            FUNC_LEAVE(entry);
     }
 }
 
 /* Like htab_find_slot_with_hash, but compute the hash value from the
    element.  */
 
-PTR       htab_find(htab, element) htab_t htab;
+PTR
+          htab_find(htab, element)
+htab_t    htab;
 const PTR element;
 {
-    return htab_find_with_hash(htab, element, (*htab->hash_f)(element));
+    FUNC_ENTER(NULL);
+    FUNC_LEAVE(htab_find_with_hash(htab, element, (*htab->hash_f)(element)));
 }
 
 /* This function searches for a hash table slot containing an entry
@@ -350,19 +390,23 @@ const PTR element;
    When inserting an entry, NULL may be returned if memory allocation
    fails.  */
 
-PTR *              htab_find_slot_with_hash(htab, element, hash, insert) htab_t htab;
+PTR                    *
+htab_find_slot_with_hash(htab, element, hash, insert)
+htab_t             htab;
 const PTR          element;
 hashval_t          hash;
 enum insert_option insert;
 {
-    PTR *        first_deleted_slot;
+    FUNC_ENTER(NULL);
+
+    PTR         *first_deleted_slot;
     unsigned int index;
     hashval_t    hash2;
     size_t       size;
     PTR          entry;
 
     if (insert == INSERT && htab->size * 3 <= htab->n_elements * 4 && htab_expand(htab) == 0)
-        return NULL;
+        FUNC_LEAVE(NULL);
 
     size  = htab->size;
     index = hash % size;
@@ -376,7 +420,7 @@ enum insert_option insert;
     else if (entry == DELETED_ENTRY)
         first_deleted_slot = &htab->entries[index];
     else if ((*htab->eq_f)(entry, element))
-        return &htab->entries[index];
+        FUNC_LEAVE(&htab->entries[index]);
 
     hash2 = 1 + hash % (size - 2);
     for (;;) {
@@ -393,31 +437,34 @@ enum insert_option insert;
                 first_deleted_slot = &htab->entries[index];
         }
         else if ((*htab->eq_f)(entry, element))
-            return &htab->entries[index];
+            FUNC_LEAVE(&htab->entries[index]);
     }
 
 empty_entry:
     if (insert == NO_INSERT)
-        return NULL;
+        FUNC_LEAVE(NULL);
 
     htab->n_elements++;
 
     if (first_deleted_slot) {
         *first_deleted_slot = EMPTY_ENTRY;
-        return first_deleted_slot;
+        FUNC_LEAVE(first_deleted_slot);
     }
 
-    return &htab->entries[index];
+    FUNC_LEAVE(&htab->entries[index]);
 }
 
 /* Like htab_find_slot_with_hash, but compute the hash value from the
    element.  */
 
-PTR *              htab_find_slot(htab, element, insert) htab_t htab;
+PTR                    *
+htab_find_slot(htab, element, insert)
+htab_t             htab;
 const PTR          element;
 enum insert_option insert;
 {
-    return htab_find_slot_with_hash(htab, element, (*htab->hash_f)(element), insert);
+    FUNC_ENTER(NULL);
+    FUNC_LEAVE(htab_find_slot_with_hash(htab, element, (*htab->hash_f)(element), insert));
 }
 
 /* This function deletes an element with the given value from hash
@@ -427,17 +474,21 @@ enum insert_option insert;
 void htab_remove_elt(htab, element) htab_t htab;
 PTR  element;
 {
+    FUNC_ENTER(NULL);
+
     PTR *slot;
 
     slot = htab_find_slot(htab, element, NO_INSERT);
     if (*slot == EMPTY_ENTRY)
-        return;
+        FUNC_LEAVE_VOID();
 
     if (htab->del_f)
         (*htab->del_f)(*slot);
 
     *slot = DELETED_ENTRY;
     htab->n_deleted++;
+
+    FUNC_LEAVE_VOID();
 }
 
 /* This function clears a specified slot in a hash table.  It is
@@ -447,6 +498,8 @@ PTR  element;
 void htab_clear_slot(htab, slot) htab_t htab;
 PTR *slot;
 {
+    FUNC_ENTER(NULL);
+
     if (slot < htab->entries || slot >= htab->entries + htab->size || *slot == EMPTY_ENTRY ||
         *slot == DELETED_ENTRY)
         abort();
@@ -456,6 +509,8 @@ PTR *slot;
 
     *slot = DELETED_ENTRY;
     htab->n_deleted++;
+
+    FUNC_LEAVE_VOID();
 }
 
 /* This function scans over the entire hash table calling
@@ -467,6 +522,8 @@ void      htab_traverse(htab, callback, info) htab_t htab;
 htab_trav callback;
 PTR       info;
 {
+    FUNC_ENTER(NULL);
+
     PTR *slot  = htab->entries;
     PTR *limit = slot + htab->size;
 
@@ -476,31 +533,43 @@ PTR       info;
             if (!(*callback)(slot, info))
                 break;
     } while (++slot < limit);
+
+    FUNC_LEAVE_VOID();
 }
 
 /* Return the current size of given hash table. */
 
-size_t htab_size(htab) htab_t htab;
+size_t
+       htab_size(htab)
+htab_t htab;
 {
-    return htab->size;
+    FUNC_ENTER(NULL);
+    FUNC_LEAVE(htab->size);
 }
 
 /* Return the current number of elements in given hash table. */
 
-size_t htab_elements(htab) htab_t htab;
+size_t
+       htab_elements(htab)
+htab_t htab;
 {
-    return htab->n_elements - htab->n_deleted;
+    FUNC_ENTER(NULL);
+    FUNC_LEAVE(htab->n_elements - htab->n_deleted);
 }
 
 /* Return the fraction of fixed collisions during all work with given
    hash table. */
 
-double htab_collisions(htab) htab_t htab;
+double
+       htab_collisions(htab)
+htab_t htab;
 {
-    if (htab->searches == 0)
-        return 0.0;
+    FUNC_ENTER(NULL);
 
-    return (double)htab->collisions / (double)htab->searches;
+    if (htab->searches == 0)
+        FUNC_LEAVE(0.0);
+
+    FUNC_LEAVE((double)htab->collisions / (double)htab->searches);
 }
 
 /* Hash P as a null-terminated string.
@@ -530,6 +599,8 @@ double htab_collisions(htab) htab_t htab;
 
 hashval_t htab_hash_string(p) const PTR p;
 {
+    FUNC_ENTER(NULL);
+
     const unsigned char *str = (const unsigned char *)p;
     hashval_t            r   = 0;
     unsigned char        c;
@@ -537,5 +608,5 @@ hashval_t htab_hash_string(p) const PTR p;
     while ((c = *str++) != 0)
         r = r * 67 + c - 113;
 
-    return r;
+    FUNC_LEAVE(r);
 }

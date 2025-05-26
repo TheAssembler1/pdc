@@ -4,7 +4,6 @@
 #include "pdc_logger.h"
 
 /* #define TANG_DEBUG 1 */
-
 #ifdef PDC_SERVER_CACHE
 
 #ifdef PDC_SERVER_CACHE_MAX_GB
@@ -20,7 +19,7 @@
 #endif
 
 typedef struct pdc_region_cache {
-    struct pdc_region_info * region_cache_info;
+    struct pdc_region_info  *region_cache_info;
     struct pdc_region_cache *next;
 } pdc_region_cache;
 
@@ -28,9 +27,9 @@ typedef struct pdc_obj_cache {
     struct pdc_obj_cache *next;
     uint64_t              obj_id;
     int                   ndim;
-    uint64_t *            dims;
-    pdc_region_cache *    region_cache;
-    pdc_region_cache *    region_cache_end;
+    uint64_t             *dims;
+    pdc_region_cache     *region_cache;
+    pdc_region_cache     *region_cache_end;
     int                   region_cache_size;
     struct timeval        timestamp;
 } pdc_obj_cache;
@@ -47,6 +46,8 @@ static int             pdc_idle_flush_time_g;
 int
 PDC_region_server_cache_init()
 {
+    FUNC_ENTER(NULL);
+
     int   server_rank = 0;
     char *p;
 
@@ -82,13 +83,15 @@ PDC_region_server_cache_init()
 
     gettimeofday(&last_cache_activity_timeval_g, NULL);
 
-    return 0;
+    FUNC_LEAVE(0);
 }
 
 // PDC cache finalize, has to be done here in case of checkpoint for region data earlier.
 int
 PDC_region_server_cache_finalize()
 {
+    FUNC_ENTER(NULL);
+
 #ifdef PDC_TIMING
     double start = MPI_Wtime();
 #endif
@@ -103,7 +106,8 @@ PDC_region_server_cache_finalize()
 #ifdef PDC_TIMING
     pdc_server_timings->PDCcache_clean += MPI_Wtime() - start;
 #endif
-    return 0;
+
+    FUNC_LEAVE(0);
 }
 
 /*
@@ -113,6 +117,8 @@ PDC_region_server_cache_finalize()
 int
 PDC_check_region_relation(uint64_t *offset, uint64_t *size, uint64_t *offset2, uint64_t *size2, int ndim)
 {
+    FUNC_ENTER(NULL);
+
     int i;
     int flag;
     flag = 1;
@@ -122,7 +128,7 @@ PDC_check_region_relation(uint64_t *offset, uint64_t *size, uint64_t *offset2, u
         }
     }
     if (flag) {
-        return PDC_REGION_CONTAINED;
+        FUNC_LEAVE(PDC_REGION_CONTAINED);
     }
     for (i = 0; i < ndim; ++i) {
         if (offset[i] > offset2[i] || offset[i] + size[i] < offset2[i] + size2[i]) {
@@ -130,7 +136,7 @@ PDC_check_region_relation(uint64_t *offset, uint64_t *size, uint64_t *offset2, u
         }
     }
     if (flag) {
-        return PDC_REGION_CONTAINED_BY;
+        FUNC_LEAVE(PDC_REGION_CONTAINED_BY);
     }
     flag = 1;
     for (i = 0; i < ndim; ++i) {
@@ -139,12 +145,13 @@ PDC_check_region_relation(uint64_t *offset, uint64_t *size, uint64_t *offset2, u
         }
     }
     if (flag) {
-        return PDC_REGION_PARTIAL_OVERLAP;
+        FUNC_LEAVE(PDC_REGION_PARTIAL_OVERLAP);
     }
     else {
-        return PDC_REGION_NO_OVERLAP;
+        FUNC_LEAVE(PDC_REGION_NO_OVERLAP);
     }
-    return 0;
+
+    FUNC_LEAVE(0);
 }
 
 /*
@@ -155,6 +162,8 @@ int
 extract_overlaping_region(const uint64_t *offset, const uint64_t *size, const uint64_t *offset2,
                           const uint64_t *size2, int ndim, uint64_t **offset_merged, uint64_t **size_merged)
 {
+    FUNC_ENTER(NULL);
+
     int i;
     *offset_merged = (uint64_t *)malloc(sizeof(uint64_t) * ndim);
     *size_merged   = (uint64_t *)malloc(sizeof(uint64_t) * ndim);
@@ -168,7 +177,8 @@ extract_overlaping_region(const uint64_t *offset, const uint64_t *size, const ui
             size_merged[0][i]   = offset2[i] + size2[i] - offset[i];
         }
     }
-    return 0;
+
+    FUNC_LEAVE(0);
 }
 
 /*
@@ -181,6 +191,8 @@ pdc_region_merge_buf_copy(const uint64_t *offset, const uint64_t *size, const ui
                           const uint64_t *size2, const char *buf, const char *buf2, char **buf_merged,
                           int unit, int connect_flag)
 {
+    FUNC_ENTER(NULL);
+
     uint64_t overlaps;
     int      i;
     for (i = 0; i < connect_flag; ++i) {
@@ -221,7 +233,8 @@ pdc_region_merge_buf_copy(const uint64_t *offset, const uint64_t *size, const ui
             *buf_merged += unit * size2[connect_flag];
         }
     }
-    return 0;
+
+    FUNC_LEAVE(0);
 }
 /*
  * This function merges two regions. The two regions must have the same offset/size in all dimensions but one.
@@ -232,16 +245,18 @@ PDC_region_merge(const char *buf, const char *buf2, const uint64_t *offset, cons
                  const uint64_t *offset2, const uint64_t *size2, char **buf_merged_ptr,
                  uint64_t **offset_merged, uint64_t **size_merged, int ndim, int unit)
 {
+    FUNC_ENTER(NULL);
+
     int      connect_flag, i, j;
     uint64_t tmp_buf_size;
-    char *   buf_merged;
+    char    *buf_merged;
     connect_flag = -1;
     // Detect if two regions are connected. This means one dimension is fully connected and all other
     // dimensions are identical.
     for (i = 0; i < ndim; ++i) {
         // A dimension is detached, immediately return with failure
         if (offset[i] > offset2[i] + size2[i] || offset2[i] > offset[i] + size[i]) {
-            return PDC_MERGE_FAILED;
+            FUNC_LEAVE(PDC_MERGE_FAILED);
         }
         // If we pass the previous condition, this dimension is connected between these two regions.
         if (offset[i] != offset2[i] || size[i] != size2[i]) {
@@ -253,7 +268,7 @@ PDC_region_merge(const char *buf, const char *buf2, const uint64_t *offset, cons
             }
             else {
                 // We have seen such a dimension before, immediately return with failure.
-                return PDC_MERGE_FAILED;
+                FUNC_LEAVE(PDC_MERGE_FAILED);
             }
         }
     }
@@ -336,7 +351,8 @@ PDC_region_merge(const char *buf, const char *buf2, const uint64_t *offset, cons
                                       connect_flag);
         }
     }
-    return PDC_MERGE_SUCCESS;
+
+    FUNC_LEAVE(PDC_MERGE_SUCCESS);
 }
 
 /*
@@ -350,7 +366,9 @@ int
 PDC_region_cache_copy(char *buf, char *buf2, const uint64_t *offset, const uint64_t *size,
                       const uint64_t *offset2, const uint64_t *size2, int ndim, size_t unit, int direction)
 {
-    char *    src, *dst;
+    FUNC_ENTER(NULL);
+
+    char     *src, *dst;
     uint64_t  i, j;
     uint64_t *local_offset = (uint64_t *)malloc(sizeof(uint64_t) * ndim);
     memcpy(local_offset, offset2, sizeof(uint64_t) * ndim);
@@ -405,7 +423,8 @@ PDC_region_cache_copy(char *buf, char *buf2, const uint64_t *offset, const uint6
         }
     }
     free(local_offset);
-    return 0;
+
+    FUNC_LEAVE(0);
 }
 
 /*
@@ -420,11 +439,13 @@ PDC_region_cache_register(uint64_t obj_id, int obj_ndim, const uint64_t *obj_dim
                           size_t buf_size, const uint64_t *offset, const uint64_t *size, int ndim,
                           size_t unit)
 {
-    pdc_obj_cache *         obj_cache_iter, *obj_cache = NULL;
+    FUNC_ENTER(NULL);
+
+    pdc_obj_cache          *obj_cache_iter, *obj_cache = NULL;
     struct pdc_region_info *region_cache_info;
     if (obj_ndim != ndim && obj_ndim > 0) {
         LOG_INFO("reports obj_ndim != ndim, %d != %d\n", obj_ndim, ndim);
-        return FAIL;
+        FUNC_LEAVE(FAIL);
     }
 
 #ifdef TANG_DEBUG
@@ -511,13 +532,15 @@ PDC_region_cache_register(uint64_t obj_id, int obj_ndim, const uint64_t *obj_dim
         PDC_region_cache_flush_all();
     }
 
-    return 0;
+    FUNC_LEAVE(0);
 }
 
 int
 PDC_region_cache_free()
 {
-    pdc_obj_cache *   obj_cache_iter, *obj_temp;
+    FUNC_ENTER(NULL);
+
+    pdc_obj_cache    *obj_cache_iter, *obj_temp;
     pdc_region_cache *region_cache_iter, *region_temp;
     obj_cache_iter = obj_cache_list;
     while (obj_cache_iter != NULL) {
@@ -532,22 +555,24 @@ PDC_region_cache_free()
         obj_cache_iter = obj_cache_iter->next;
         free(obj_temp);
     }
-    return 0;
+
+    FUNC_LEAVE(0);
 }
 
 perr_t
 PDC_transfer_request_data_write_out(uint64_t obj_id, int obj_ndim, const uint64_t *obj_dims,
                                     struct pdc_region_info *region_info, void *buf, size_t unit)
 {
+    FUNC_ENTER(NULL);
+
     // flag indicates whether the input region is fully contained in another cached region.
     int               flag;
-    pdc_obj_cache *   obj_cache, *obj_cache_iter;
+    pdc_obj_cache    *obj_cache, *obj_cache_iter;
     pdc_region_cache *region_cache_iter;
-    uint64_t *        overlap_offset, *overlap_size;
+    uint64_t         *overlap_offset, *overlap_size;
     perr_t            ret_value = SUCCEED;
     char              cur_time[64];
 
-    FUNC_ENTER(NULL);
 #ifdef PDC_TIMING
     double start = MPI_Wtime();
 #endif
@@ -641,11 +666,14 @@ static int
 merge_requests(uint64_t *start, uint64_t *end, int request_size, char **buf, uint64_t **new_start,
                uint64_t **new_end, char ***new_buf, uint64_t unit, int *request_size_ptr)
 {
+    FUNC_ENTER(NULL);
+
     int      i, index;
     int      merged_requests = 1;
-    char *   ptr;
+    char    *ptr;
     size_t   total_data_size = end[0] - start[0];
     uint64_t prev_end        = end[0];
+
     for (i = 1; i < request_size; ++i) {
         if (prev_end < start[i]) {
             merged_requests++;
@@ -692,31 +720,35 @@ merge_requests(uint64_t *start, uint64_t *end, int request_size, char **buf, uin
     }
 
     *request_size_ptr = merged_requests;
-    return 0;
+    FUNC_LEAVE(0);
 }
 
 static int
 sort_by_offset(const void *elem1, const void *elem2)
 {
+    FUNC_ENTER(NULL);
+
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wcast-qual"
     if ((*(struct pdc_region_info **)elem1)->offset[0] > (*(struct pdc_region_info **)elem2)->offset[0])
-        return 1;
+        FUNC_LEAVE(1);
     if ((*(struct pdc_region_info **)elem1)->offset[0] < (*(struct pdc_region_info **)elem2)->offset[0])
-        return -1;
-    return 0;
+        FUNC_LEAVE(-1);
+    FUNC_LEAVE(0);
 #pragma GCC diagnostic pop
 }
 
 int
 PDC_region_cache_flush_by_pointer(uint64_t obj_id, pdc_obj_cache *obj_cache, int flag)
 {
+    FUNC_ENTER(NULL);
+
     int                      i, nflush = 0;
-    pdc_region_cache *       region_cache_iter, *region_cache_temp;
-    struct pdc_region_info * region_cache_info;
+    pdc_region_cache        *region_cache_iter, *region_cache_temp;
+    struct pdc_region_info  *region_cache_info;
     uint64_t                 write_size = 0;
-    char **                  buf, **new_buf, *buf_ptr = NULL, *env_char;
-    uint64_t *               start, *end, *new_start, *new_end;
+    char                   **buf, **new_buf, *buf_ptr = NULL, *env_char;
+    uint64_t                *start, *end, *new_start, *new_end;
     int                      merged_request_size = 0;
     uint64_t                 unit;
     struct pdc_region_info **obj_regions;
@@ -727,7 +759,7 @@ PDC_region_cache_flush_by_pointer(uint64_t obj_id, pdc_obj_cache *obj_cache, int
     env_char = getenv("PDC_SERVER_CACHE_NO_FLUSH");
     if (env_char && atoi(env_char) != 0) {
         LOG_ERROR("==PDC_SERVER[%d]: flushed disabled\n", PDC_get_rank());
-        return 0;
+        FUNC_LEAVE(0);
     }
 
     /* PDC_get_time_str(cur_time); */
@@ -740,7 +772,7 @@ PDC_region_cache_flush_by_pointer(uint64_t obj_id, pdc_obj_cache *obj_cache, int
 
         // Sort the regions based on start index
         obj_regions       = (struct pdc_region_info **)malloc(sizeof(struct pdc_region_info *) *
-                                                        obj_cache->region_cache_size);
+                                                              obj_cache->region_cache_size);
         unit              = obj_cache->region_cache->region_cache_info->unit;
         region_cache_iter = obj_cache->region_cache;
         i                 = 0;
@@ -838,13 +870,14 @@ PDC_region_cache_flush_by_pointer(uint64_t obj_id, pdc_obj_cache *obj_cache, int
 #endif
 
     /* PDC_get_time_str(cur_time); */
-
-    return nflush;
+    FUNC_LEAVE(nflush);
 }
 
 int
 PDC_region_cache_flush(uint64_t obj_id)
 {
+    FUNC_ENTER(NULL);
+
     pdc_obj_cache *obj_cache = NULL, *obj_cache_iter;
 
     obj_cache_iter = obj_cache_list;
@@ -856,7 +889,7 @@ PDC_region_cache_flush(uint64_t obj_id)
         obj_cache_iter = obj_cache_iter->next;
     }
     if (obj_cache == NULL) {
-        return 1;
+        FUNC_LEAVE(1);
     }
 
 #ifdef TANG_DEBUG
@@ -866,12 +899,14 @@ PDC_region_cache_flush(uint64_t obj_id)
 #endif
 
     PDC_region_cache_flush_by_pointer(obj_id, obj_cache, 0);
-    return 0;
+    FUNC_LEAVE(0);
 }
 
 int
 PDC_region_cache_flush_all()
 {
+    FUNC_ENTER(NULL);
+
     pdc_obj_cache *obj_cache_iter, *obj_cache_temp;
     pthread_mutex_lock(&pdc_obj_cache_list_mutex);
 
@@ -895,19 +930,22 @@ PDC_region_cache_flush_all()
     }
     obj_cache_list = NULL;
     pthread_mutex_unlock(&pdc_obj_cache_list_mutex);
-    return 0;
+
+    FUNC_LEAVE(0);
 }
 
 void *
 PDC_region_cache_clock_cycle(void *ptr)
 {
+    FUNC_ENTER(NULL);
+
     pdc_obj_cache *obj_cache, *obj_cache_iter;
     struct timeval current_time;
     struct timeval finish_time;
     int            nflush = 0;
     double         elapsed_time;
     time_t         t;
-    struct tm *    tm;
+    struct tm     *tm;
     char           cur_time[64];
 
     if (ptr == NULL) {
@@ -965,15 +1003,17 @@ PDC_region_cache_clock_cycle(void *ptr)
         pthread_mutex_unlock(&pdc_cache_mutex);
         usleep(10000);
     }
-    return 0;
+
+    FUNC_LEAVE(0);
 }
 
 perr_t
 PDC_transfer_request_data_read_from(uint64_t obj_id, int obj_ndim, const uint64_t *obj_dims,
                                     struct pdc_region_info *region_info, void *buf, size_t unit)
 {
-    perr_t ret_value = SUCCEED;
     FUNC_ENTER(NULL);
+
+    perr_t ret_value = SUCCEED;
 #ifdef PDC_TIMING
     double start = MPI_Wtime();
 #endif
@@ -998,11 +1038,13 @@ int
 PDC_region_fetch(uint64_t obj_id, int obj_ndim, const uint64_t *obj_dims, struct pdc_region_info *region_info,
                  void *buf, size_t unit)
 {
+    FUNC_ENTER(NULL);
+
     pdc_obj_cache *obj_cache = NULL, *obj_cache_iter;
     int            flag      = 0;
     // size_t                  j;
     pdc_region_cache *region_cache_iter;
-    uint64_t *        overlap_offset, *overlap_size;
+    uint64_t         *overlap_offset, *overlap_size;
 
     obj_cache_iter = obj_cache_list;
     while (obj_cache_iter != NULL) {
@@ -1048,6 +1090,7 @@ PDC_region_fetch(uint64_t obj_id, int obj_ndim, const uint64_t *obj_dims, struct
         }
         PDC_Server_transfer_request_io(obj_id, obj_ndim, obj_dims, region_info, buf, unit, 0);
     }
-    return 0;
+
+    FUNC_LEAVE(0);
 }
 #endif

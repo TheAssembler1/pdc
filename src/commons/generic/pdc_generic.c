@@ -1,13 +1,16 @@
 #include "pdc_generic.h"
+#include "pdc_timing.h"
 
 size_t
 get_number_from_string(char *str, pdc_c_var_type_t type, void **val_ptr)
 {
+    FUNC_ENTER(NULL);
+
     if (val_ptr == NULL) {
-        return 0;
+        FUNC_LEAVE(0);
     }
 
-    void * k       = NULL;
+    void  *k       = NULL;
     size_t key_len = get_size_by_dtype(type);
 
     k = malloc(key_len);
@@ -53,9 +56,10 @@ get_number_from_string(char *str, pdc_c_var_type_t type, void **val_ptr)
             break;
         default:
             free(k);
-            return 0;
+            FUNC_LEAVE(0);
     }
 
     *val_ptr = k;
-    return key_len;
+
+    FUNC_LEAVE(key_len);
 }

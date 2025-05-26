@@ -10,6 +10,7 @@
 #endif /* HOST_NAME_MAX */
 
 #include "pdc_config.h"
+#include "pdc_stack_ops.h"
 #ifdef ENABLE_MPI
 #include <mpi.h>
 #endif
@@ -132,8 +133,8 @@ typedef struct pdc_timestamp {
 } pdc_timestamp;
 
 pdc_server_timing *pdc_server_timings;
-pdc_timestamp *    pdc_buf_obj_map_timestamps;
-pdc_timestamp *    pdc_buf_obj_unmap_timestamps;
+pdc_timestamp     *pdc_buf_obj_map_timestamps;
+pdc_timestamp     *pdc_buf_obj_unmap_timestamps;
 
 pdc_timestamp *pdc_obtain_lock_write_timestamps;
 pdc_timestamp *pdc_obtain_lock_read_timestamps;
@@ -195,4 +196,45 @@ int PDC_timing_report(const char *prefix);
 extern int pdc_timing_rank_g;
 void       PDC_get_time_str(char *cur_time);
 int        PDC_get_rank();
+#endif
+
+/* Include a basic profiling interface */
+#ifdef ENABLE_PROFILING
+#include "pdc_stack_ops.h"
+
+#define FUNC_ENTER(X)                                                                                        \
+    do {                                                                                                     \
+        if (enableProfiling)                                                                                 \
+            push(__func__, (X));                                                                             \
+    } while (0)
+
+#define FUNC_LEAVE(ret_value)                                                                                \
+    do {                                                                                                     \
+        if (enableProfiling)                                                                                 \
+            pop();                                                                                           \
+        return (ret_value);                                                                                  \
+    } while (0)
+
+#define FUNC_LEAVE_VOID()                                                                                    \
+    do {                                                                                                     \
+        if (enableProfiling)                                                                                 \
+            pop();                                                                                           \
+        return;                                                                                              \
+    } while (0)
+
+#else
+
+#define FUNC_ENTER(X)                                                                                        \
+    do {                                                                                                     \
+    } while (0)
+
+#define FUNC_LEAVE(ret_value)                                                                                \
+    do {                                                                                                     \
+        return (ret_value);                                                                                  \
+    } while (0)
+
+#define FUNC_LEAVE_VOID()                                                                                    \
+    do {                                                                                                     \
+        return;                                                                                              \
+    } while (0)
 #endif

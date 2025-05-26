@@ -1,9 +1,12 @@
 #include "bulki_vle_util.h"
+#include "pdc_timing.h"
 
 // Encode an unsigned integer using Variable-Length Encoding
 size_t
 BULKI_vle_encode_uint(uint64_t value, uint8_t *buffer)
 {
+    FUNC_ENTER(NULL);
+
     size_t bytes_written = 0;
     do {
         uint8_t byte = value & 0x7F;
@@ -13,26 +16,32 @@ BULKI_vle_encode_uint(uint64_t value, uint8_t *buffer)
         }
         buffer[bytes_written++] = byte;
     } while (value != 0);
-    return bytes_written;
+
+    FUNC_LEAVE(bytes_written);
 }
 
 // quickly calculate the encoded size of an unsigned integer
 size_t
 BULKI_vle_encoded_uint_size(uint64_t value)
 {
+    FUNC_ENTER(NULL);
+
     size_t bytes_written = 1;
     // 0x80 is 128 in decimal, meaning we have more than 7 bits to encode
     while (value >= 0x80) { // this test will help us to save some computation.
         value >>= 7;
         bytes_written++;
     }
-    return bytes_written;
+
+    FUNC_LEAVE(bytes_written);
 }
 
 // Decode an unsigned integer using Variable-Length Encoding
 uint64_t
 BULKI_vle_decode_uint(const uint8_t *buffer, size_t *bytes_read)
 {
+    FUNC_ENTER(NULL);
+
     uint64_t result     = 0;
     size_t   shift      = 0;
     size_t   byte_count = 0;
@@ -50,28 +59,37 @@ BULKI_vle_decode_uint(const uint8_t *buffer, size_t *bytes_read)
         *bytes_read = byte_count;
     }
 
-    return result;
+    FUNC_LEAVE(result);
 }
 
 size_t
 BULKI_vle_encode_int(int64_t value, uint8_t *buffer)
 {
+    FUNC_ENTER(NULL);
+
     // ZigZag encode the signed integer
     uint64_t zigzag_encoded = (value << 1) ^ (value >> 63);
-    return BULKI_vle_encode_uint(zigzag_encoded, buffer);
+
+    FUNC_LEAVE(BULKI_vle_encode_uint(zigzag_encoded, buffer));
 }
 
 int64_t
 BULKI_vle_decode_int(const uint8_t *buffer, size_t *bytes_read)
 {
+    FUNC_ENTER(NULL);
+
     uint64_t zigzag_encoded = BULKI_vle_decode_uint(buffer, bytes_read);
-    return (zigzag_encoded >> 1) ^ -(zigzag_encoded & 1);
+
+    FUNC_LEAVE((zigzag_encoded >> 1) ^ -(zigzag_encoded & 1));
 }
 
 size_t
 BULKI_vle_encoded_int_size(int64_t value)
 {
+    FUNC_ENTER(NULL);
+
     // ZigZag encode the signed integer
     uint64_t zigzag_encoded = (value << 1) ^ (value >> 63);
-    return BULKI_vle_encoded_uint_size(zigzag_encoded);
+
+    FUNC_LEAVE(BULKI_vle_encoded_uint_size(zigzag_encoded));
 }

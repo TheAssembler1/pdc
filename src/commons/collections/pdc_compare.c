@@ -1,4 +1,5 @@
 #include "pdc_compare.h"
+#include "pdc_timing.h"
 
 #include <ctype.h>
 #include <inttypes.h>
@@ -10,18 +11,22 @@
 int
 int_equal(void *vlocation1, void *vlocation2)
 {
+    FUNC_ENTER(NULL);
+
     int *location1;
     int *location2;
 
     location1 = (int *)vlocation1;
     location2 = (int *)vlocation2;
 
-    return *location1 == *location2;
+    FUNC_LEAVE(*location1 == *location2);
 }
 
 int
 int_compare(void *vlocation1, void *vlocation2)
 {
+    FUNC_ENTER(NULL);
+
     int *location1;
     int *location2;
 
@@ -29,31 +34,34 @@ int_compare(void *vlocation1, void *vlocation2)
     location2 = (int *)vlocation2;
 
     if (*location1 < *location2) {
-        return -1;
+        FUNC_LEAVE(-1);
     }
     else if (*location1 > *location2) {
-        return 1;
+        FUNC_LEAVE(1);
     }
-    else {
-        return 0;
-    }
+
+    FUNC_LEAVE(0);
 }
 
 int
 ui64_equal(void *vlocation1, void *vlocation2)
 {
+    FUNC_ENTER(NULL);
+
     uint64_t *location1;
     uint64_t *location2;
 
     location1 = (uint64_t *)vlocation1;
     location2 = (uint64_t *)vlocation2;
 
-    return *location1 == *location2;
+    FUNC_LEAVE(*location1 == *location2);
 }
 
 int
 ui64_compare(void *vlocation1, void *vlocation2)
 {
+    FUNC_ENTER(NULL);
+
     uint64_t *location1;
     uint64_t *location2;
 
@@ -61,14 +69,13 @@ ui64_compare(void *vlocation1, void *vlocation2)
     location2 = (uint64_t *)vlocation2;
 
     if (*location1 < *location2) {
-        return -1;
+        FUNC_LEAVE(-1);
     }
     else if (*location1 > *location2) {
-        return 1;
+        FUNC_LEAVE(1);
     }
-    else {
-        return 0;
-    }
+
+    FUNC_LEAVE(0);
 }
 
 /* Comparison functions for a generic void pointer */
@@ -76,21 +83,23 @@ ui64_compare(void *vlocation1, void *vlocation2)
 int
 pointer_equal(void *location1, void *location2)
 {
-    return location1 == location2;
+    FUNC_ENTER(NULL);
+    FUNC_LEAVE(location1 == location2);
 }
 
 int
 pointer_compare(void *location1, void *location2)
 {
+    FUNC_ENTER(NULL);
+
     if (location1 < location2) {
-        return -1;
+        FUNC_LEAVE(-1);
     }
     else if (location1 > location2) {
-        return 1;
+        FUNC_LEAVE(1);
     }
-    else {
-        return 0;
-    }
+
+    FUNC_LEAVE(0);
 }
 
 /* Comparison functions for strings */
@@ -98,25 +107,27 @@ pointer_compare(void *location1, void *location2)
 int
 string_equal(void *string1, void *string2)
 {
-    return strcmp((char *)string1, (char *)string2) == 0;
+    FUNC_ENTER(NULL);
+    FUNC_LEAVE(strcmp((char *)string1, (char *)string2) == 0);
 }
 
 int
 string_compare(void *string1, void *string2)
 {
+    FUNC_ENTER(NULL);
+
     int result;
 
     result = strcmp((char *)string1, (char *)string2);
 
     if (result < 0) {
-        return -1;
+        FUNC_LEAVE(-1);
     }
     else if (result > 0) {
-        return 1;
+        FUNC_LEAVE(1);
     }
-    else {
-        return 0;
-    }
+
+    FUNC_LEAVE(0);
 }
 
 /* Comparison functions for strings, which ignore the case of letters. */
@@ -124,7 +135,8 @@ string_compare(void *string1, void *string2)
 int
 string_nocase_equal(void *string1, void *string2)
 {
-    return string_nocase_compare((char *)string1, (char *)string2) == 0;
+    FUNC_ENTER(NULL);
+    FUNC_LEAVE(string_nocase_compare((char *)string1, (char *)string2) == 0);
 }
 
 /* On many systems, strcasecmp or stricmp will give the same functionality
@@ -134,6 +146,8 @@ string_nocase_equal(void *string1, void *string2)
 int
 string_nocase_compare(void *string1, void *string2)
 {
+    FUNC_ENTER(NULL);
+
     char *p1;
     char *p2;
     int   c1, c2;
@@ -153,10 +167,10 @@ string_nocase_compare(void *string1, void *string2)
             /* Strings are different */
 
             if (c1 < c2) {
-                return -1;
+                FUNC_LEAVE(-1);
             }
             else {
-                return 1;
+                FUNC_LEAVE(1);
             }
         }
 
@@ -173,5 +187,5 @@ string_nocase_compare(void *string1, void *string2)
 
     /* Reached the end of string and no difference found */
 
-    return 0;
+    FUNC_LEAVE(0);
 }

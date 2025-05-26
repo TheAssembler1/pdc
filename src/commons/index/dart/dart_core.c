@@ -2,6 +2,7 @@
 #include "dart_algo.h"
 #include "dart_math.h"
 #include "dart_core.h"
+#include "pdc_timing.h"
 
 #ifdef PDC_DART_MAX_SERVER_NUM_TO_ADAPT
 #define DART_MAX_SERVER_NUM_TO_ADAPT PDC_DART_MAX_SERVER_NUM_TO_ADAPT
@@ -26,32 +27,41 @@ threadpool dart_thpool_g;
 threadpool
 get_dart_temp_thpool(int count)
 {
-    return thpool_init(count);
+    FUNC_ENTER(NULL);
+    FUNC_LEAVE(thpool_init(count));
 }
 
 threadpool
 get_dart_thpool_g()
 {
-    return dart_thpool_g;
+    FUNC_ENTER(NULL);
+    FUNC_LEAVE(dart_thpool_g);
 }
 
 int
 is_index_write_op(dart_op_type_t op_type)
 {
-    return (op_type == OP_INSERT || op_type == OP_DELETE);
+    FUNC_ENTER(NULL);
+    FUNC_LEAVE((op_type == OP_INSERT || op_type == OP_DELETE));
 }
 
 void
 dart_space_init(DART *dart, int num_server)
 {
+    FUNC_ENTER(NULL);
+
     __dart_space_init(dart, num_server, DART_ALPHABET_SIZE, 0, DART_REPLICATION_FACTOR,
                       DART_MAX_SERVER_NUM_TO_ADAPT);
+
+    FUNC_LEAVE_VOID();
 }
 
 void
 __dart_space_init(DART *dart, int num_server, int alphabet_size, int extra_tree_height,
                   int replication_factor, int max_server_num_to_adapt)
 {
+    FUNC_ENTER(NULL);
+
     if (dart == NULL) {
         dart = (DART *)calloc(1, sizeof(DART));
     }
@@ -68,13 +78,17 @@ __dart_space_init(DART *dart, int num_server, int alphabet_size, int extra_tree_
     dart->num_vnode          = (uint64_t)pow(dart->alphabet_size, dart->dart_tree_height);
     dart->replication_factor = replication_factor;
     // dart_thpool_g            = thpool_init(num_server);
+
+    FUNC_LEAVE_VOID();
 }
 
 void
 dart_determine_query_token_by_key_query(char *k_query, char **out_token, dart_op_type_t *out_op_type)
 {
+    FUNC_ENTER(NULL);
+
     if (out_token == NULL || out_op_type == NULL) {
-        return;
+        FUNC_LEAVE_VOID();
     }
     char *affix = NULL;
 
@@ -110,6 +124,8 @@ dart_determine_query_token_by_key_query(char *k_query, char **out_token, dart_op
         free(affix);
         affix = NULL;
     }
+
+    FUNC_LEAVE_VOID();
 }
 
 /**
@@ -119,15 +135,20 @@ dart_determine_query_token_by_key_query(char *k_query, char **out_token, dart_op
 uint64_t
 get_server_id_by_vnode_id(DART *dart, uint64_t vnode_id)
 {
+    FUNC_ENTER(NULL);
+
     int num_vnode_per_server = dart->num_vnode / dart->num_server;
-    return (vnode_id / num_vnode_per_server) % dart->num_server;
+
+    FUNC_LEAVE((vnode_id / num_vnode_per_server) % dart->num_server);
 }
 
 size_t
 get_vnode_ids_by_serverID(DART *dart, uint32_t serverID, uint64_t **out)
 {
+    FUNC_ENTER(NULL);
+
     if (out == NULL) {
-        return 0;
+        FUNC_LEAVE(0);
     }
     size_t    num_result = 0;
     uint64_t *temp_out   = (uint64_t *)calloc(dart->num_vnode, sizeof(uint64_t));
@@ -141,7 +162,8 @@ get_vnode_ids_by_serverID(DART *dart, uint32_t serverID, uint64_t **out)
     out[0] = (uint64_t *)calloc(num_result, sizeof(uint64_t));
     memcpy(out[0], temp_out, num_result * sizeof(uint64_t));
     free(temp_out);
-    return num_result;
+
+    FUNC_LEAVE(num_result);
 }
 
 /**
@@ -151,11 +173,14 @@ get_vnode_ids_by_serverID(DART *dart, uint32_t serverID, uint64_t **out)
 int
 dart_client_request_count_incr(DART *dart_g)
 {
+    FUNC_ENTER(NULL);
+
     if (dart_g->client_request_count < 0) {
         dart_g->client_request_count = 0;
     }
     dart_g->client_request_count = dart_g->client_request_count + 1;
-    return dart_g->client_request_count;
+
+    FUNC_LEAVE(dart_g->client_request_count);
 }
 
 /**
@@ -165,6 +190,8 @@ dart_client_request_count_incr(DART *dart_g)
 uint64_t
 get_base_virtual_node_id_by_string(DART *dart, char *str)
 {
+    FUNC_ENTER(NULL);
+
     int      n = 0;
     uint64_t c;
     uint64_t rst = 0;
@@ -180,7 +207,8 @@ get_base_virtual_node_id_by_string(DART *dart, char *str)
         c = (i_t_n) * ((uint64_t)uint32_pow(dart->alphabet_size, dart->dart_tree_height - n));
         rst += c;
     }
-    return (rst % (uint64_t)dart->num_vnode);
+
+    FUNC_LEAVE((rst % (uint64_t)dart->num_vnode));
 }
 
 /**
@@ -191,6 +219,7 @@ uint64_t
 get_reconciled_vnode_id_with_power_of_two_choice_rehashing_2(DART *dart, uint64_t base_vnode_idx, char *word,
                                                              get_server_info_callback get_server_cb)
 {
+    FUNC_ENTER(NULL);
 
     // base virtual node address always in the first element of the array.
     uint64_t rst = base_vnode_idx;
@@ -205,7 +234,7 @@ get_reconciled_vnode_id_with_power_of_two_choice_rehashing_2(DART *dart, uint64_
     uint64_t reconciled_vnode_idx = base_vnode_idx;
 
     if (dart->dart_tree_height <= 1) {
-        return reconciled_vnode_idx;
+        FUNC_LEAVE(reconciled_vnode_idx);
     }
 
     // The procedure of picking alternative virtual node is important.
@@ -299,7 +328,8 @@ get_reconciled_vnode_id_with_power_of_two_choice_rehashing_2(DART *dart, uint64_
     else {
         rst = reconciled_vnode_idx;
     }
-    return rst;
+
+    FUNC_LEAVE(rst);
 }
 
 /**
@@ -311,8 +341,10 @@ get_reconciled_vnode_id_with_power_of_two_choice_rehashing_2(DART *dart, uint64_
 int
 get_replica_node_ids(DART *dart, uint64_t master_node_id, int is_physical, uint64_t **out)
 {
+    FUNC_ENTER(NULL);
+
     if (out == NULL) {
-        return 0;
+        FUNC_LEAVE(0);
     }
     out[0] = (uint64_t *)calloc(dart->replication_factor, sizeof(uint64_t));
 
@@ -331,7 +363,7 @@ get_replica_node_ids(DART *dart, uint64_t master_node_id, int is_physical, uint6
         }
     }
 
-    return dart->replication_factor;
+    FUNC_LEAVE(dart->replication_factor);
 }
 
 /**
@@ -348,8 +380,10 @@ get_replica_node_ids(DART *dart, uint64_t master_node_id, int is_physical, uint6
 int
 get_server_ids_for_insert(DART *dart_g, char *keyword, get_server_info_callback get_server_cb, uint64_t **out)
 {
+    FUNC_ENTER(NULL);
+
     if (out == NULL) {
-        return 0;
+        FUNC_LEAVE(0);
     }
     int      rst                  = 0; // not success
     uint64_t base_virtual_node_id = get_base_virtual_node_id_by_string(dart_g, keyword);
@@ -360,7 +394,8 @@ get_server_ids_for_insert(DART *dart_g, char *keyword, get_server_info_callback 
     // We call the following function to calculate all the server IDs.
     int is_physical = 0;
     int rst_len     = get_replica_node_ids(dart_g, alter_virtual_node_id, is_physical, out);
-    return rst_len;
+
+    FUNC_LEAVE(rst_len);
 }
 
 /**
@@ -394,11 +429,13 @@ get_server_ids_for_insert(DART *dart_g, char *keyword, get_server_info_callback 
 int
 get_server_ids_for_query(DART *dart_g, char *token, dart_op_type_t op_type, uint64_t **out)
 {
+    FUNC_ENTER(NULL);
+
     if (out == NULL) {
-        return 0;
+        FUNC_LEAVE(0);
     }
     if (op_type == OP_INSERT) {
-        return 0;
+        FUNC_LEAVE(0);
     } // For INSERT operation, we return nothing here.
 
     // We first eliminate possibility of INFIX query.
@@ -410,7 +447,7 @@ get_server_ids_for_query(DART *dart_g, char *token, dart_op_type_t op_type, uint
         for (i = 0; i < dart_g->num_server; i++) {
             out[0][i] = i;
         }
-        return dart_g->num_server;
+        FUNC_LEAVE(dart_g->num_server);
     }
 #endif
 
@@ -441,7 +478,7 @@ get_server_ids_for_query(DART *dart_g, char *token, dart_op_type_t op_type, uint
         for (; srvId <= server_end; srvId++) {
             out[0][num_srv_ids++] = srvId;
         }
-        return num_srvs;
+        FUNC_LEAVE(num_srvs);
     }
     else {
         // this branch handles the following cases:
@@ -482,7 +519,7 @@ get_server_ids_for_query(DART *dart_g, char *token, dart_op_type_t op_type, uint
             for (i = 0; i < num_alter_reps; i++) {
                 out[0][num_base_reps + i] = alter_replicas[i];
             }
-            return num_base_reps + num_alter_reps;
+            FUNC_LEAVE(num_base_reps + num_alter_reps);
         }
         else {
             // for other query operations, we only provide two servers for them to access
@@ -496,7 +533,7 @@ get_server_ids_for_query(DART *dart_g, char *token, dart_op_type_t op_type, uint
                 rst_size  = 2;
                 out[0][1] = alter_replicas[rep_index];
             }
-            return rst_size;
+            FUNC_LEAVE(rst_size);
         }
     }
 }
@@ -524,15 +561,17 @@ int
 DART_hash(DART *dart_g, char *key, dart_op_type_t op_type, get_server_info_callback get_server_cb,
           index_hash_result_t **out)
 {
+    FUNC_ENTER(NULL);
+
     int ret_value = 0;
 
     if (out == NULL) {
-        return ret_value;
+        FUNC_LEAVE(ret_value);
     }
 
     uint64_t *temp_out    = NULL;
     int       tmp_out_len = 0;
-    char *    tok         = NULL;
+    char     *tok         = NULL;
     *out                  = NULL;
 
     // regardless of suffix tree mode, we only need to get the DART hash result for one time for query
@@ -588,7 +627,8 @@ DART_hash(DART *dart_g, char *key, dart_op_type_t op_type, get_server_info_callb
         if (temp_out != NULL)
             free(temp_out);
     }
-    return ret_value;
+
+    FUNC_LEAVE(ret_value);
 }
 
 /**
@@ -598,8 +638,10 @@ DART_hash(DART *dart_g, char *key, dart_op_type_t op_type, get_server_info_callb
 int
 DHT_hash(DART *dart_g, size_t len, char *key, dart_op_type_t op_type, index_hash_result_t **out)
 {
+    FUNC_ENTER(NULL);
+
     if (out == NULL) {
-        return 0;
+        FUNC_LEAVE(0);
     }
     uint64_t hashVal   = djb2_hash(key, (int)len);
     uint64_t server_id = hashVal % (dart_g->num_server);
@@ -641,5 +683,6 @@ DHT_hash(DART *dart_g, size_t len, char *key, dart_op_type_t op_type, index_hash
         (*out)[0].server_id = server_id;
         (*out)[0].key       = key;
     }
-    return ret_value;
+
+    FUNC_LEAVE(ret_value);
 }

@@ -22,13 +22,13 @@
 pdc_query_t *
 PDCquery_create(pdcid_t obj_id, pdc_query_op_t op, pdc_var_type_t type, void *value)
 {
-    pdc_query_t *         ret_value = NULL;
-    pdc_query_t *         query;
+    FUNC_ENTER(NULL);
+
+    pdc_query_t          *ret_value = NULL;
+    pdc_query_t          *query;
     int                   type_size;
     struct _pdc_obj_info *obj_prop;
     uint64_t              meta_id;
-
-    FUNC_ENTER(NULL);
 
     if (obj_id == 0 || op == PDC_OP_NONE || NULL == value)
         PGOTO_DONE(NULL);
@@ -61,10 +61,9 @@ done:
 perr_t
 PDCquery_sel_region(pdc_query_t *query, struct pdc_region_info *obj_region)
 {
-    perr_t ret_value = SUCCEED;
-
     FUNC_ENTER(NULL);
 
+    perr_t ret_value = SUCCEED;
     if (NULL == query || NULL == obj_region)
         PGOTO_DONE(FAIL);
 
@@ -78,6 +77,8 @@ done:
 pdc_query_t *
 PDCquery_and(pdc_query_t *q1, pdc_query_t *q2)
 {
+    FUNC_ENTER(NULL);
+
     pdc_query_t *ret_value = NULL;
     pdc_query_t *query, *tmp;
     int          can_combine = 0;
@@ -87,8 +88,6 @@ PDCquery_and(pdc_query_t *q1, pdc_query_t *q2)
     uint32_t     ulo, uhi;
     int64_t      i64lo, i64hi;
     uint64_t     ui64lo, ui64hi;
-
-    FUNC_ENTER(NULL);
 
     if (NULL == q1 || NULL == q2)
         return NULL;
@@ -230,10 +229,10 @@ done:
 pdc_query_t *
 PDCquery_or(pdc_query_t *q1, pdc_query_t *q2)
 {
+    FUNC_ENTER(NULL);
+
     pdc_query_t *ret_value = NULL;
     pdc_query_t *query;
-
-    FUNC_ENTER(NULL);
 
     if (NULL == q1 || NULL == q2)
         PGOTO_DONE(NULL);
@@ -256,10 +255,9 @@ done:
 perr_t
 PDCquery_get_nhits(pdc_query_t *query, uint64_t *n)
 {
-    perr_t ret_value = SUCCEED;
-
     FUNC_ENTER(NULL);
 
+    perr_t ret_value = SUCCEED;
     if (query == NULL || n == NULL)
         PGOTO_ERROR(FAIL, "==PDC input NULL!");
 
@@ -273,10 +271,9 @@ done:
 perr_t
 PDCquery_get_selection(pdc_query_t *query, pdc_selection_t *sel)
 {
-    perr_t ret_value = SUCCEED;
-
     FUNC_ENTER(NULL);
 
+    perr_t ret_value = SUCCEED;
     if (query == NULL || sel == NULL)
         PGOTO_ERROR(FAIL, "==PDC_CLIENT[] input NULL!");
 
@@ -291,11 +288,11 @@ done:
 perr_t
 PDCquery_get_data(pdcid_t obj_id, pdc_selection_t *sel, void *obj_data)
 {
+    FUNC_ENTER(NULL);
+
     perr_t                ret_value = SUCCEED;
     struct _pdc_obj_info *obj_prop;
     uint64_t              meta_id;
-
-    FUNC_ENTER(NULL);
 
     if (obj_data == NULL || sel == NULL)
         PGOTO_ERROR(FAIL, "==PDC_CLIENT[] input NULL!");
@@ -317,12 +314,13 @@ done:
 perr_t
 PDCquery_get_histogram(pdcid_t obj_id)
 {
+    FUNC_ENTER(NULL);
+
     perr_t ret_value = SUCCEED;
     /*
         struct _pdc_obj_info *obj_prop;
         uint64_t              meta_id = 0;
     */
-    FUNC_ENTER(NULL);
     if (PDC_find_id(obj_id) == NULL) {
         ret_value = 1;
     }

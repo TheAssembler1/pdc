@@ -1,4 +1,6 @@
 #include "pdc_timing.h"
+#include "pdc_logger.h"
+#include "pdc_stack_ops.h"
 #include "assert.h"
 #include "mpi.h"
 
@@ -8,15 +10,20 @@ static double pdc_base_time;
 static int
 pdc_timestamp_clean(pdc_timestamp *timestamp)
 {
+    FUNC_ENTER(NULL);
+
     if (timestamp->timestamp_size) {
         free(timestamp->start);
     }
-    return 0;
+
+    FUNC_LEAVE(0);
 }
 
 static int
 timestamp_log(FILE *stream, const char *header, pdc_timestamp *timestamp)
 {
+    FUNC_ENTER(NULL);
+
     size_t i;
     double total = 0.0;
     fprintf(stream, "%s", header);
@@ -29,12 +36,14 @@ timestamp_log(FILE *stream, const char *header, pdc_timestamp *timestamp)
     if (i > 0)
         fprintf(stream, "%s_total, %f\n", header, total);
 
-    return 0;
+    FUNC_LEAVE(0);
 }
 
 int
 PDC_timing_init()
 {
+    FUNC_ENTER(NULL);
+
     char           hostname[HOST_NAME_MAX];
     int            rank;
     pdc_timestamp *ptr;
@@ -84,12 +93,14 @@ PDC_timing_init()
     ptr++;
     pdc_client_transfer_request_metadata_query_timestamps = ptr;
 
-    return 0;
+    FUNC_LEAVE(0);
 }
 
 int
 PDC_timing_finalize()
 {
+    FUNC_ENTER(NULL);
+
     pdc_timestamp_clean(pdc_client_buf_obj_map_timestamps);
     pdc_timestamp_clean(pdc_client_buf_obj_unmap_timestamps);
 
@@ -110,16 +121,19 @@ PDC_timing_finalize()
     pdc_timestamp_clean(pdc_client_transfer_request_metadata_query_timestamps);
 
     free(pdc_client_buf_obj_map_timestamps);
-    return 0;
+
+    FUNC_LEAVE(0);
 }
 
 int
 PDC_timing_report(const char *prefix)
 {
+    FUNC_ENTER(NULL);
+
     pdc_timing max_timings;
     int        rank;
     char       filename[256], header[256];
-    FILE *     stream;
+    FILE      *stream;
     char       hostname[HOST_NAME_MAX];
     time_t     now;
 
@@ -250,12 +264,14 @@ PDC_timing_report(const char *prefix)
 
     memset(&pdc_timings, 0, sizeof(pdc_timings));
 
-    return 0;
+    FUNC_LEAVE(0);
 }
 
 int
 PDC_server_timing_init()
 {
+    FUNC_ENTER(NULL);
+
     char hostname[HOST_NAME_MAX];
     int  rank;
 
@@ -332,12 +348,14 @@ PDC_server_timing_init()
     // 25 timestamps
 
     pdc_base_time = MPI_Wtime();
-    return 0;
+    FUNC_LEAVE(0);
 }
 
 int
 pdc_timestamp_register(pdc_timestamp *timestamp, double start, double end)
 {
+    FUNC_ENTER(NULL);
+
     double *temp;
 
     if (timestamp->timestamp_max_size == 0) {
@@ -358,16 +376,19 @@ pdc_timestamp_register(pdc_timestamp *timestamp, double start, double end)
     timestamp->start[timestamp->timestamp_size] = start;
     timestamp->end[timestamp->timestamp_size]   = end;
     timestamp->timestamp_size++;
-    return 0;
+
+    FUNC_LEAVE(0);
 }
 
 int
 PDC_server_timing_report()
 {
+    FUNC_ENTER(NULL);
+
     pdc_server_timing max_timings;
     int               rank;
     char              filename[256];
-    FILE *            stream;
+    FILE             *stream;
 
     //    char              hostname[HOST_NAME_MAX];
     time_t now;
@@ -527,14 +548,16 @@ PDC_server_timing_report()
     /* pdc_timestamp_clean(pdc_create_cont_timestamps); */
 
     free(pdc_buf_obj_map_timestamps);
-    return 0;
+
+    FUNC_LEAVE(0);
 }
 
 #else
 int
 PDC_timing_report(const char *prefix __attribute__((unused)))
 {
-    return 0;
+    FUNC_ENTER(NULL);
+    FUNC_LEAVE(0);
 }
 #endif // PDC_TIMING
 
@@ -543,18 +566,23 @@ int pdc_timing_rank_g = -1;
 inline int
 PDC_get_rank()
 {
+    FUNC_ENTER(NULL);
+
 #ifdef ENABLE_MPI
     if (pdc_timing_rank_g == -1)
         MPI_Comm_rank(MPI_COMM_WORLD, &pdc_timing_rank_g);
-    return pdc_timing_rank_g;
+    FUNC_LEAVE(pdc_timing_rank_g);
 #else
-    return 0;
+
+    FUNC_LEAVE(0);
 #endif
 }
 
 inline void
 PDC_get_time_str(char *cur_time)
 {
+    FUNC_ENTER(NULL);
+
     struct timespec ts;
 
     assert(cur_time);
@@ -564,5 +592,5 @@ PDC_get_time_str(char *cur_time)
             localtime(&ts.tv_sec)->tm_mon + 1, localtime(&ts.tv_sec)->tm_mday, localtime(&ts.tv_sec)->tm_hour,
             localtime(&ts.tv_sec)->tm_min, localtime(&ts.tv_sec)->tm_sec, ts.tv_nsec / 1000);
 
-    return;
+    FUNC_LEAVE_VOID();
 }

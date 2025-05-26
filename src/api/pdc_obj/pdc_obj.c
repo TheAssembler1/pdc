@@ -45,9 +45,9 @@ static perr_t PDC_obj_close(struct _pdc_obj_info *op);
 perr_t
 PDC_obj_init()
 {
-    perr_t ret_value = SUCCEED;
-
     FUNC_ENTER(NULL);
+
+    perr_t ret_value = SUCCEED;
 
     /* Initialize the atom group for the object IDs */
     if (PDC_register_type(PDC_OBJ, (PDC_free_t)PDC_obj_close) < 0)
@@ -61,6 +61,8 @@ done:
 pdcid_t
 PDCobj_create(pdcid_t cont_id, const char *obj_name, pdcid_t obj_prop_id)
 {
+    FUNC_ENTER(NULL);
+
 #if 0
     uint64_t               meta_id;
     struct _pdc_cont_info *cont_info;
@@ -71,7 +73,6 @@ PDCobj_create(pdcid_t cont_id, const char *obj_name, pdcid_t obj_prop_id)
     size_t                 i;
 #endif
     pdcid_t ret_value = 0;
-    FUNC_ENTER(NULL);
 #if 0
     p = (struct _pdc_obj_info *)PDC_malloc(sizeof(struct _pdc_obj_info));
     if (!p)
@@ -196,9 +197,9 @@ PDC_Client_attach_metadata_to_local_obj(const char *obj_name, uint64_t obj_id, u
                                         uint32_t data_server_id, pdc_region_partition_t region_partition,
                                         pdc_consistency_t consistency, struct _pdc_obj_info *obj_info)
 {
-    perr_t ret_value = SUCCEED;
-
     FUNC_ENTER(NULL);
+
+    perr_t ret_value = SUCCEED;
 
     obj_info->metadata                              = (pdc_metadata_t *)calloc(1, sizeof(pdc_metadata_t));
     ((pdc_metadata_t *)obj_info->metadata)->user_id = obj_info->obj_pt->user_id;
@@ -228,17 +229,17 @@ PDC_Client_attach_metadata_to_local_obj(const char *obj_name, uint64_t obj_id, u
 pdcid_t
 PDC_obj_create(pdcid_t cont_id, const char *obj_name, pdcid_t obj_prop_id, _pdc_obj_location_t location)
 {
+    FUNC_ENTER(NULL);
+
     pdcid_t                ret_value = 0;
-    struct _pdc_obj_info * p         = NULL;
-    struct _pdc_id_info *  id_info   = NULL;
+    struct _pdc_obj_info  *p         = NULL;
+    struct _pdc_id_info   *id_info   = NULL;
     struct _pdc_cont_info *cont_info = NULL;
-    struct _pdc_obj_prop * obj_prop;
+    struct _pdc_obj_prop  *obj_prop;
     uint64_t               meta_id;
     uint32_t               data_server_id, metadata_server_id;
     size_t                 i;
     perr_t                 ret = SUCCEED;
-
-    FUNC_ENTER(NULL);
 
     p = (struct _pdc_obj_info *)PDC_malloc(sizeof(struct _pdc_obj_info));
     if (!p)
@@ -371,10 +372,10 @@ done:
 perr_t
 PDC_obj_list_null()
 {
+    FUNC_ENTER(NULL);
+
     perr_t ret_value = SUCCEED;
     int    nelemts;
-
-    FUNC_ENTER(NULL);
 
     // list is not empty
     nelemts = PDC_id_list_null(PDC_OBJ);
@@ -391,12 +392,12 @@ done:
 perr_t
 PDC_obj_close(struct _pdc_obj_info *op)
 {
+    FUNC_ENTER(NULL);
+
     perr_t                      ret_value = SUCCEED;
-    pdcid_t *                   transfer_request_id;
+    pdcid_t                    *transfer_request_id;
     pdc_local_transfer_request *temp, *previous;
     int                         i, n;
-
-    FUNC_ENTER(NULL);
 
     if (op->local_transfer_request_size) {
         transfer_request_id = (pdcid_t *)malloc(sizeof(pdcid_t) * op->local_transfer_request_size);
@@ -448,10 +449,9 @@ PDC_obj_close(struct _pdc_obj_info *op)
 perr_t
 PDCobj_flush_start(pdcid_t obj_id)
 {
-    perr_t ret_value = SUCCEED;
-
     FUNC_ENTER(NULL);
 
+    perr_t ret_value = SUCCEED;
     PDC_Client_flush_obj(obj_id);
 
     fflush(stdout);
@@ -461,10 +461,9 @@ PDCobj_flush_start(pdcid_t obj_id)
 perr_t
 PDCobj_flush_all_start()
 {
-    perr_t ret_value = SUCCEED;
-
     FUNC_ENTER(NULL);
 
+    perr_t ret_value = SUCCEED;
     PDC_Client_flush_obj_all();
 
     fflush(stdout);
@@ -474,9 +473,9 @@ PDCobj_flush_all_start()
 perr_t
 PDCobj_flush_start(pdcid_t obj_id __attribute__((unused)))
 {
-    perr_t ret_value = SUCCEED;
-
     FUNC_ENTER(NULL);
+
+    perr_t ret_value = SUCCEED;
 
     fflush(stdout);
     FUNC_LEAVE(ret_value);
@@ -485,11 +484,11 @@ PDCobj_flush_start(pdcid_t obj_id __attribute__((unused)))
 perr_t
 PDCobj_flush_all_start()
 {
-    perr_t ret_value = SUCCEED;
-
     FUNC_ENTER(NULL);
 
+    perr_t ret_value = SUCCEED;
     fflush(stdout);
+
     FUNC_LEAVE(ret_value);
 }
 #endif
@@ -497,10 +496,9 @@ PDCobj_flush_all_start()
 perr_t
 PDCobj_close(pdcid_t obj_id)
 {
-    perr_t ret_value = SUCCEED;
-
     FUNC_ENTER(NULL);
 
+    perr_t ret_value = SUCCEED;
     /* When the reference count reaches zero the resources are freed */
     if (PDC_dec_ref(obj_id) < 0)
         PGOTO_ERROR(FAIL, "object: problem of freeing id");
@@ -513,10 +511,9 @@ done:
 perr_t
 PDC_obj_end()
 {
-    perr_t ret_value = SUCCEED;
-
     FUNC_ENTER(NULL);
 
+    perr_t ret_value = SUCCEED;
     if (PDC_destroy_type(PDC_OBJ) < 0)
         PGOTO_ERROR(FAIL, "unable to destroy object interface");
 
@@ -528,18 +525,18 @@ done:
 static pdcid_t
 PDCobj_open_common(const char *obj_name, pdcid_t pdc, int is_col)
 {
+    FUNC_ENTER(NULL);
+
     pdcid_t               ret_value = 0;
     perr_t                ret       = SUCCEED;
     struct _pdc_obj_info *p         = NULL;
-    pdc_metadata_t *      out       = NULL;
+    pdc_metadata_t       *out       = NULL;
     pdcid_t               obj_prop;
     size_t                i;
     uint32_t              metadata_server_id;
-    obj_handle *          oh;
-    struct pdc_obj_info * info;
+    obj_handle           *oh;
+    struct pdc_obj_info  *info;
     int                   is_opened = 0;
-
-    FUNC_ENTER(NULL);
 
     // Search if the object has already been opened
     oh = PDCobj_iter_start(pdc);
@@ -661,9 +658,9 @@ done:
 pdcid_t
 PDCobj_open(const char *obj_name, pdcid_t pdc)
 {
-    pdcid_t ret_value;
     FUNC_ENTER(NULL);
 
+    pdcid_t ret_value;
     ret_value = PDCobj_open_common(obj_name, pdc, 0);
 
     FUNC_LEAVE(ret_value);
@@ -672,9 +669,9 @@ PDCobj_open(const char *obj_name, pdcid_t pdc)
 pdcid_t
 PDCobj_open_col(const char *obj_name, pdcid_t pdc)
 {
-    pdcid_t ret_value;
     FUNC_ENTER(NULL);
 
+    pdcid_t ret_value;
     ret_value = PDCobj_open_common(obj_name, pdc, 1);
 
     FUNC_LEAVE(ret_value);
@@ -683,11 +680,11 @@ PDCobj_open_col(const char *obj_name, pdcid_t pdc)
 obj_handle *
 PDCobj_iter_start(pdcid_t cont_id)
 {
-    obj_handle *        ret_value = NULL;
-    obj_handle *        objhl     = NULL;
-    struct PDC_id_type *type_ptr;
-
     FUNC_ENTER(NULL);
+
+    obj_handle         *ret_value = NULL;
+    obj_handle         *objhl     = NULL;
+    struct PDC_id_type *type_ptr;
 
     type_ptr = (pdc_id_list_g->PDC_id_type_list_g)[PDC_OBJ];
     if (type_ptr == NULL)
@@ -709,10 +706,9 @@ done:
 pbool_t
 PDCobj_iter_null(obj_handle *ohandle)
 {
-    pbool_t ret_value = FALSE;
-
     FUNC_ENTER(NULL);
 
+    pbool_t ret_value = FALSE;
     if (ohandle == NULL)
         ret_value = TRUE;
 
@@ -722,10 +718,10 @@ PDCobj_iter_null(obj_handle *ohandle)
 obj_handle *
 PDCobj_iter_next(obj_handle *ohandle, pdcid_t cont_id)
 {
+    FUNC_ENTER(NULL);
+
     obj_handle *ret_value = NULL;
     obj_handle *next      = NULL;
-
-    FUNC_ENTER(NULL);
 
     if (ohandle == NULL)
         PGOTO_ERROR(NULL, "no next object");
@@ -746,11 +742,11 @@ done:
 struct pdc_obj_info *
 PDCobj_iter_get_info(obj_handle *ohandle)
 {
-    struct pdc_obj_info * ret_value = NULL;
+    FUNC_ENTER(NULL);
+
+    struct pdc_obj_info  *ret_value = NULL;
     struct _pdc_obj_info *info      = NULL;
     unsigned              i;
-
-    FUNC_ENTER(NULL);
 
     info = (struct _pdc_obj_info *)(ohandle->obj_ptr);
     if (info == NULL)
@@ -779,10 +775,10 @@ done:
 perr_t
 PDCprop_set_obj_user_id(pdcid_t obj_prop, uint32_t user_id)
 {
+    FUNC_ENTER(NULL);
+
     perr_t               ret_value = SUCCEED;
     struct _pdc_id_info *info;
-
-    FUNC_ENTER(NULL);
 
     info = PDC_find_id(obj_prop);
     if (info == NULL)
@@ -797,10 +793,10 @@ done:
 perr_t
 PDCprop_set_obj_app_name(pdcid_t obj_prop, char *app_name)
 {
+    FUNC_ENTER(NULL);
+
     perr_t               ret_value = SUCCEED;
     struct _pdc_id_info *info;
-
-    FUNC_ENTER(NULL);
 
     info = PDC_find_id(obj_prop);
     if (info == NULL)
@@ -818,10 +814,10 @@ done:
 perr_t
 PDCprop_set_obj_time_step(pdcid_t obj_prop, uint32_t time_step)
 {
+    FUNC_ENTER(NULL);
+
     perr_t               ret_value = SUCCEED;
     struct _pdc_id_info *info;
-
-    FUNC_ENTER(NULL);
 
     info = PDC_find_id(obj_prop);
     if (info == NULL)
@@ -836,10 +832,10 @@ done:
 perr_t
 PDCprop_set_obj_data_loc(pdcid_t obj_prop, char *loc)
 {
+    FUNC_ENTER(NULL);
+
     perr_t               ret_value = SUCCEED;
     struct _pdc_id_info *info;
-
-    FUNC_ENTER(NULL);
 
     info = PDC_find_id(obj_prop);
     if (info == NULL)
@@ -857,10 +853,10 @@ done:
 perr_t
 PDCprop_set_obj_tags(pdcid_t obj_prop, char *tags)
 {
+    FUNC_ENTER(NULL);
+
     perr_t               ret_value = SUCCEED;
     struct _pdc_id_info *info;
-
-    FUNC_ENTER(NULL);
 
     info = PDC_find_id(obj_prop);
     if (info == NULL)
@@ -878,11 +874,11 @@ done:
 perr_t
 PDCprop_set_obj_dims(pdcid_t obj_prop, PDC_int_t ndim, uint64_t *dims)
 {
-    perr_t                ret_value = SUCCEED;
-    struct _pdc_id_info * info;
-    struct _pdc_obj_prop *prop;
-
     FUNC_ENTER(NULL);
+
+    perr_t                ret_value = SUCCEED;
+    struct _pdc_id_info  *info;
+    struct _pdc_obj_prop *prop;
 
     info = PDC_find_id(obj_prop);
     if (info == NULL)
@@ -905,11 +901,11 @@ done:
 perr_t
 PDCprop_set_obj_type(pdcid_t obj_prop, pdc_var_type_t type)
 {
-    perr_t                ret_value = SUCCEED;
-    struct _pdc_id_info * info;
-    struct _pdc_obj_prop *prop;
-
     FUNC_ENTER(NULL);
+
+    perr_t                ret_value = SUCCEED;
+    struct _pdc_id_info  *info;
+    struct _pdc_obj_prop *prop;
 
     info = PDC_find_id(obj_prop);
     if (info == NULL)
@@ -925,11 +921,11 @@ done:
 perr_t
 PDCprop_set_obj_transfer_region_type(pdcid_t obj_prop, pdc_region_partition_t region_partition)
 {
-    perr_t                ret_value = SUCCEED;
-    struct _pdc_id_info * info;
-    struct _pdc_obj_prop *prop;
-
     FUNC_ENTER(NULL);
+
+    perr_t                ret_value = SUCCEED;
+    struct _pdc_id_info  *info;
+    struct _pdc_obj_prop *prop;
 
     info = PDC_find_id(obj_prop);
     if (info == NULL)
@@ -945,11 +941,11 @@ done:
 perr_t
 PDCprop_set_obj_consistency_semantics(pdcid_t obj_prop, pdc_consistency_t consistency)
 {
-    perr_t                ret_value = SUCCEED;
-    struct _pdc_id_info * info;
-    struct _pdc_obj_prop *prop;
-
     FUNC_ENTER(NULL);
+
+    perr_t                ret_value = SUCCEED;
+    struct _pdc_id_info  *info;
+    struct _pdc_obj_prop *prop;
 
     info = PDC_find_id(obj_prop);
     if (info == NULL)
@@ -965,11 +961,11 @@ done:
 perr_t
 PDCprop_set_obj_buf(pdcid_t obj_prop, void *buf)
 {
-    perr_t                ret_value = SUCCEED;
-    struct _pdc_id_info * info;
-    struct _pdc_obj_prop *prop;
-
     FUNC_ENTER(NULL);
+
+    perr_t                ret_value = SUCCEED;
+    struct _pdc_id_info  *info;
+    struct _pdc_obj_prop *prop;
 
     info = PDC_find_id(obj_prop);
     if (info == NULL)
@@ -985,12 +981,13 @@ done:
 perr_t
 PDCobj_set_dims(pdcid_t obj_id, int ndim, uint64_t *dims)
 {
+    FUNC_ENTER(NULL);
+
     perr_t                ret_value = SUCCEED;
-    struct _pdc_id_info * info;
+    struct _pdc_id_info  *info;
     struct _pdc_obj_info *object;
     int                   reset;
 
-    FUNC_ENTER(NULL);
     info = PDC_find_id(obj_id);
     if (info == NULL) {
         LOG_ERROR("PDCobj_set_dims: cannnot find obj id");
@@ -1023,10 +1020,11 @@ done:
 perr_t
 PDCobj_get_dims(pdcid_t obj_id, int *ndim, uint64_t **dims)
 {
-    perr_t                ret_value = SUCCEED;
-    struct _pdc_id_info * info;
-    struct _pdc_obj_info *object;
     FUNC_ENTER(NULL);
+
+    perr_t                ret_value = SUCCEED;
+    struct _pdc_id_info  *info;
+    struct _pdc_obj_info *object;
 
     info = PDC_find_id(obj_id);
     if (info == NULL) {
@@ -1043,12 +1041,13 @@ PDCobj_get_dims(pdcid_t obj_id, int *ndim, uint64_t **dims)
 void **
 PDCobj_buf_retrieve(pdcid_t obj_id)
 {
-    void **               ret_value = NULL;
-    struct _pdc_id_info * info;
-    struct _pdc_obj_info *object;
-    void **               buffer;
-
     FUNC_ENTER(NULL);
+
+    void                **ret_value = NULL;
+    struct _pdc_id_info  *info;
+    struct _pdc_obj_info *object;
+    void                **buffer;
+
     info = PDC_find_id(obj_id);
     if (info == NULL)
         PGOTO_ERROR(NULL, "cannot locate object ID");
@@ -1064,12 +1063,12 @@ done:
 struct _pdc_obj_info *
 PDC_obj_get_info(pdcid_t obj_id)
 {
+    FUNC_ENTER(NULL);
+
     struct _pdc_obj_info *ret_value = NULL;
     struct _pdc_obj_info *info      = NULL;
-    struct _pdc_id_info * obj;
+    struct _pdc_id_info  *obj;
     size_t                i;
-
-    FUNC_ENTER(NULL);
 
     obj = PDC_find_id(obj_id);
     if (obj == NULL)
@@ -1192,9 +1191,9 @@ done:
 perr_t
 PDC_free_obj_info(struct _pdc_obj_info *obj)
 {
-    perr_t ret_value = TRUE;
-
     FUNC_ENTER(NULL);
+
+    perr_t ret_value = TRUE;
 
     assert(obj);
 
@@ -1245,11 +1244,11 @@ PDC_free_obj_info(struct _pdc_obj_info *obj)
 struct pdc_obj_info *
 PDCobj_get_info(pdcid_t obj_id)
 {
-    struct pdc_obj_info * ret_value = NULL;
+    FUNC_ENTER(NULL);
+
+    struct pdc_obj_info  *ret_value = NULL;
     struct _pdc_obj_info *tmp       = NULL;
     /* pdcid_t obj_id; */
-
-    FUNC_ENTER(NULL);
 
     /* obj_id = PDC_find_byname(PDC_OBJ, obj_name); */
 

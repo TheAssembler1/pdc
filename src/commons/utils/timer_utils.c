@@ -1,4 +1,5 @@
 #include "timer_utils.h"
+#include "pdc_timing.h"
 
 #define MICROSECONDS_IN_SECONDS 1000000
 
@@ -9,9 +10,11 @@
 int64_t
 timer_us_timestamp()
 {
+    FUNC_ENTER(NULL);
+
     struct timeval tmp;
     gettimeofday(&(tmp), NULL);
-    return ((int64_t)tmp.tv_usec) + (int64_t)(tmp.tv_sec * MICROSECONDS_IN_SECONDS);
+    FUNC_LEAVE(((int64_t)tmp.tv_usec) + (int64_t)(tmp.tv_sec * MICROSECONDS_IN_SECONDS));
 }
 
 /**
@@ -21,7 +24,8 @@ timer_us_timestamp()
 int64_t
 timer_ms_timestamp()
 {
-    return (timer_us_timestamp() / 1000);
+    FUNC_ENTER(NULL);
+    FUNC_LEAVE(timer_us_timestamp() / 1000);
 }
 
 /**
@@ -31,73 +35,92 @@ timer_ms_timestamp()
 int64_t
 timer_s_timestamp()
 {
-    return (timer_ms_timestamp() / 1000);
+    FUNC_ENTER(NULL);
+    FUNC_LEAVE(timer_ms_timestamp() / 1000);
 }
 
 void
 timer_start(stopwatch_t *t)
 {
+    FUNC_ENTER(NULL);
+
     t->start_mark = timer_us_timestamp();
     t->pause_mark = 0;
     t->running    = true;
     t->paused     = false;
+
+    FUNC_LEAVE_VOID();
 }
 
 void
 timer_pause(stopwatch_t *t)
 {
+    FUNC_ENTER(NULL);
+
     if (!(t->running) || (t->paused))
-        return;
+        FUNC_LEAVE_VOID();
 
     t->pause_mark = timer_us_timestamp() - (t->start_mark);
     t->running    = false;
     t->paused     = true;
+
+    FUNC_LEAVE_VOID();
 }
 
 void
 timer_unpause(stopwatch_t *t)
 {
+    FUNC_ENTER(NULL);
+
     if (t->running || !(t->paused))
-        return;
+        FUNC_LEAVE_VOID();
 
     t->start_mark = timer_us_timestamp() - (t->pause_mark);
     t->running    = true;
     t->paused     = false;
+
+    FUNC_LEAVE_VOID();
 }
 
 double
 timer_delta_us(stopwatch_t *t)
 {
+    FUNC_ENTER(NULL);
+
     if (t->running)
-        return timer_us_timestamp() - (t->start_mark);
+        FUNC_LEAVE(timer_us_timestamp() - (t->start_mark));
 
     if (t->paused)
-        return t->pause_mark;
+        FUNC_LEAVE(t->pause_mark);
 
     // Will never actually get here
-    return (double)((t->pause_mark) - (t->start_mark));
+    FUNC_LEAVE((double)((t->pause_mark) - (t->start_mark)));
 }
 
 double
 timer_delta_ms(stopwatch_t *t)
 {
-    return (timer_delta_us(t) / 1000.0);
+    FUNC_ENTER(NULL);
+    FUNC_LEAVE(timer_delta_us(t) / 1000.0);
 }
 
 double
 timer_delta_s(stopwatch_t *t)
 {
-    return (timer_delta_ms(t) / 1000.0);
+    FUNC_ENTER(NULL);
+    FUNC_LEAVE(timer_delta_ms(t) / 1000.0);
 }
 
 double
 timer_delta_m(stopwatch_t *t)
 {
-    return (timer_delta_s(t) / 60.0);
+    FUNC_ENTER(NULL);
+    FUNC_LEAVE(timer_delta_s(t) / 60.0);
 }
 
 double
 timer_delta_h(stopwatch_t *t)
 {
-    return (timer_delta_m(t) / 60.0);
+    FUNC_ENTER(NULL);
+    FUNC_LEAVE(timer_delta_m(t) / 60.0);
 }

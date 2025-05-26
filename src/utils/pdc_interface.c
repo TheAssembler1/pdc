@@ -27,11 +27,12 @@
 #include "pdc_interface.h"
 #include "pdc_cont_pkg.h"
 #include "pdc_cont.h"
+#include "pdc_timing.h"
 #include <stdlib.h>
 #include <assert.h>
 
 /* Combine a Type number and an atom index into an atom */
-#define PDCID_MAKE(g, i) ((((pdcid_t)(g)&TYPE_MASK) << ID_BITS) | ((pdcid_t)(i)&ID_MASK))
+#define PDCID_MAKE(g, i) ((((pdcid_t)(g) & TYPE_MASK) << ID_BITS) | ((pdcid_t)(i) & ID_MASK))
 
 /* Variable to keep track of the number of types allocated.  Its value is the
  * next type ID to be handed out, so it is always one greater than the number
@@ -44,11 +45,11 @@ static PDC_type_t PDC_next_type = (PDC_type_t)PDC_NTYPES;
 struct _pdc_id_info *
 PDC_find_id(pdcid_t idid)
 {
+    FUNC_ENTER(NULL);
+
     struct _pdc_id_info *ret_value = NULL;
     PDC_type_t           type;
-    struct PDC_id_type * type_ptr;
-
-    FUNC_ENTER(NULL);
+    struct PDC_id_type  *type_ptr;
 
     /* Check arguments */
     type = PDC_TYPE(idid);
@@ -70,10 +71,10 @@ done:
 perr_t
 PDC_register_type(PDC_type_t type_id, PDC_free_t free_func)
 {
+    FUNC_ENTER(NULL);
+
     struct PDC_id_type *type_ptr  = NULL;
     perr_t              ret_value = SUCCEED;
-
-    FUNC_ENTER(NULL);
 
     /* Sanity check */
     assert(type_id > 0 && type_id < (int)PDC_MAX_NUM_TYPES);
@@ -108,11 +109,12 @@ done:
 pdcid_t
 PDC_id_register(PDC_type_t type, void *object)
 {
-    struct PDC_id_type * type_ptr;
+    FUNC_ENTER(NULL);
+
+    struct PDC_id_type  *type_ptr;
     struct _pdc_id_info *id_ptr;
     pdcid_t              new_id;
     pdcid_t              ret_value = 0;
-    FUNC_ENTER(NULL);
 
     /* Check arguments */
     if (type <= PDC_BADID || type >= PDC_next_type)
@@ -150,11 +152,11 @@ done:
 int
 PDC_dec_ref(pdcid_t id)
 {
+    FUNC_ENTER(NULL);
+
     int                  ret_value = 0;
     struct _pdc_id_info *id_ptr;
-    struct PDC_id_type * type_ptr;
-
-    FUNC_ENTER(NULL);
+    struct PDC_id_type  *type_ptr;
 
     /* General lookup of the ID */
     if (NULL == (id_ptr = PDC_find_id(id)))
@@ -190,11 +192,11 @@ done:
 pdcid_t
 PDC_find_byname(PDC_type_t type, const char *byname)
 {
+    FUNC_ENTER(NULL);
+
     pdcid_t              ret_value = 0;
     struct _pdc_id_info *id_ptr    = NULL;
-    struct PDC_id_type * type_ptr;
-
-    FUNC_ENTER(NULL);
+    struct PDC_id_type  *type_ptr;
 
     if (type <= PDC_BADID || type >= PDC_next_type)
         PGOTO_ERROR(0, "invalid type number");
@@ -214,10 +216,10 @@ done:
 int
 PDC_inc_ref(pdcid_t id)
 {
+    FUNC_ENTER(NULL);
+
     int                  ret_value = 0;
     struct _pdc_id_info *id_ptr;
-
-    FUNC_ENTER(NULL);
 
     /* General lookup of the ID */
     if (NULL == (id_ptr = PDC_find_id(id)))
@@ -234,10 +236,10 @@ done:
 int
 PDC_id_list_null(PDC_type_t type)
 {
+    FUNC_ENTER(NULL);
+
     perr_t              ret_value = 0;
     struct PDC_id_type *type_ptr;
-
-    FUNC_ENTER(NULL);
 
     if (type <= PDC_BADID || type >= PDC_next_type)
         PGOTO_ERROR(FAIL, "invalid type number");
@@ -254,11 +256,11 @@ done:
 perr_t
 PDC_id_list_clear(PDC_type_t type)
 {
-    perr_t               ret_value = SUCCEED;
-    struct PDC_id_type * type_ptr;
-    struct _pdc_id_info *id_ptr;
-
     FUNC_ENTER(NULL);
+
+    perr_t               ret_value = SUCCEED;
+    struct PDC_id_type  *type_ptr;
+    struct _pdc_id_info *id_ptr;
 
     type_ptr = (pdc_id_list_g->PDC_id_type_list_g)[type];
 
@@ -281,10 +283,10 @@ PDC_id_list_clear(PDC_type_t type)
 perr_t
 PDC_destroy_type(PDC_type_t type)
 {
+    FUNC_ENTER(NULL);
+
     perr_t              ret_value = SUCCEED;
     struct PDC_id_type *type_ptr  = NULL;
-
-    FUNC_ENTER(NULL);
 
     type_ptr = (pdc_id_list_g->PDC_id_type_list_g)[type];
     if (type_ptr == NULL)
