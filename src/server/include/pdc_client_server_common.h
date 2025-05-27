@@ -31,6 +31,7 @@
 #include "pdc_prop_pkg.h"
 #include "pdc_analysis_and_transforms_common.h"
 #include "pdc_query.h"
+#include "pdc_malloc.h"
 
 #include "pdc_timing.h"
 #include "pdc_server_region_transfer_metadata_query.h"
@@ -1211,14 +1212,14 @@ hg_proc_pdc_kvtag_t(hg_proc_t proc, void *data)
     if (struct_data->size) {
         switch (hg_proc_get_op(proc)) {
             case HG_DECODE:
-                struct_data->value = malloc(struct_data->size);
+                struct_data->value = PDC_malloc(struct_data->size);
                 /* HG_FALLTHROUGH(); */
                 /* FALLTHRU */
             case HG_ENCODE:
                 ret = hg_proc_raw(proc, struct_data->value, struct_data->size);
                 break;
             case HG_FREE:
-                free(struct_data->value);
+                struct_data->value = (void *)PDC_free(struct_data->value);
             default:
                 break;
         }
@@ -3240,8 +3241,8 @@ hg_proc_pdc_histogram_t(hg_proc_t proc, void *data)
     if (struct_data->nbin > 0) {
         switch (hg_proc_get_op(proc)) {
             case HG_DECODE:
-                struct_data->range = malloc(struct_data->nbin * sizeof(double) * 2);
-                struct_data->bin   = malloc(struct_data->nbin * sizeof(uint64_t));
+                struct_data->range = PDC_malloc(struct_data->nbin * sizeof(double) * 2);
+                struct_data->bin   = PDC_malloc(struct_data->nbin * sizeof(uint64_t));
                 /* HG_FALLTHROUGH(); */
                 /* FALLTHRU */
             case HG_ENCODE:
@@ -3250,9 +3251,9 @@ hg_proc_pdc_histogram_t(hg_proc_t proc, void *data)
                 break;
             case HG_FREE:
                 if (struct_data->range)
-                    free(struct_data->range);
+                    struct_data->range = (double *)PDC_free(struct_data->range);
                 if (struct_data->bin)
-                    free(struct_data->bin);
+                    struct_data->bin = (uint64_t *)PDC_free(struct_data->bin);
                 /* FALLTHRU */
             default:
                 break;
@@ -3819,80 +3820,68 @@ hg_proc_dart_perform_one_server_in_t(hg_proc_t proc, void *data)
     dart_perform_one_server_in_t *struct_data = (dart_perform_one_server_in_t *)data;
     ret                                       = hg_proc_int8_t(proc, &struct_data->op_type);
     if (ret != HG_SUCCESS) {
-
         return ret;
     }
     ret = hg_proc_int8_t(proc, &struct_data->hash_algo);
     if (ret != HG_SUCCESS) {
-
         return ret;
     }
     ret = hg_proc_hg_string_t(proc, &struct_data->attr_key);
     if (ret != HG_SUCCESS) {
-
         return ret;
     }
     ret = hg_proc_uint32_t(proc, &struct_data->attr_vsize);
     if (ret != HG_SUCCESS) {
-
         return ret;
     }
     ret = hg_proc_uint8_t(proc, &struct_data->attr_vtype);
     if (ret != HG_SUCCESS) {
-
         return ret;
     }
     ret = hg_proc_uint64_t(proc, &struct_data->vnode_id);
     if (ret != HG_SUCCESS) {
-
         return ret;
     }
     ret = hg_proc_int8_t(proc, &struct_data->obj_ref_type);
     if (ret != HG_SUCCESS) {
-
         return ret;
     }
     ret = hg_proc_uint64_t(proc, &struct_data->obj_primary_ref);
     if (ret != HG_SUCCESS) {
-
         return ret;
     }
     ret = hg_proc_uint64_t(proc, &struct_data->obj_secondary_ref);
     if (ret != HG_SUCCESS) {
-
         return ret;
     }
     ret = hg_proc_uint64_t(proc, &struct_data->obj_server_ref);
     if (ret != HG_SUCCESS) {
-
         return ret;
     }
     ret = hg_proc_int8_t(proc, &struct_data->inserting_suffix);
     if (ret != HG_SUCCESS) {
-
         return ret;
     }
     ret = hg_proc_int64_t(proc, &struct_data->timestamp);
     if (ret != HG_SUCCESS) {
-
         return ret;
     }
     ret = hg_proc_uint32_t(proc, &struct_data->src_client_id);
     if (ret != HG_SUCCESS) {
-
         return ret;
     }
     if (struct_data->attr_vsize) {
         switch (hg_proc_get_op(proc)) {
             case HG_DECODE:
-                struct_data->attr_val = malloc(struct_data->attr_vsize);
+                struct_data->attr_val = PDC_malloc(struct_data->attr_vsize);
                 /* HG_FALLTHROUGH(); */
                 /* FALLTHRU */
             case HG_ENCODE:
                 ret = hg_proc_raw(proc, struct_data->attr_val, struct_data->attr_vsize);
                 break;
             case HG_FREE:
-                free(struct_data->attr_val);
+                struct_data->attr_val = (void *)PDC_free(struct_data->attr_val);
+                break;
             default:
                 break;
         }

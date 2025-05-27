@@ -1,5 +1,6 @@
 #include "qc_parser.h"
 #include "pdc_logger.h"
+#include "pdc_malloc.h"
 
 void
 printSubExpression(char *expression, Condition *condition)
@@ -24,7 +25,7 @@ printSubExpression(char *expression, Condition *condition)
 Condition *
 createSubCondition(int start, int end, int level)
 {
-    Condition *condition = (Condition *)malloc(sizeof(Condition));
+    Condition *condition = (Condition *)PDC_malloc(sizeof(Condition));
     condition->start     = start;
     condition->end       = end;
     condition->level     = level;
@@ -212,10 +213,10 @@ subClauseExtractor(char *expression, int start, int end, int level, subClause **
             levelCounter++;
             if (levelCounter == level + 1) {
                 // Allocate or reallocate space for a new subclause.
-                *subPtr              = (subClause *)realloc(*subPtr, sizeof(subClause) * (numSubClauses + 1));
-                subClause *newClause = &((*subPtr)[numSubClauses]);
-                newClause->start     = i + 1;
-                newClause->level     = levelCounter;
+                *subPtr = (subClause *)PDC_realloc(*subPtr, sizeof(subClause) * (numSubClauses + 1));
+                subClause *newClause      = &((*subPtr)[numSubClauses]);
+                newClause->start          = i + 1;
+                newClause->level          = levelCounter;
                 newClause->subClauseArray = NULL; // Important to initialize.
             }
         }

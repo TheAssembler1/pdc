@@ -1,5 +1,6 @@
 #include "pdc_region.h"
 #include "pdc_private.h"
+#include "pdc_malloc.h"
 #include "pdc_logger.h"
 #include <string.h>
 
@@ -30,7 +31,7 @@ PDC_region_overlap_detect(int ndim, uint64_t *offset1, uint64_t *size1, uint64_t
         goto done;
     }
     // Overlapping exist.
-    *output_offset = (uint64_t *)malloc(sizeof(uint64_t) * ndim * 2);
+    *output_offset = (uint64_t *)PDC_malloc(sizeof(uint64_t) * ndim * 2);
     *output_size   = *output_offset + ndim;
     for (i = 0; i < ndim; ++i) {
         output_offset[0][i] = offset2[i] < offset1[i] ? offset1[i] : offset2[i];

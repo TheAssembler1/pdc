@@ -2,6 +2,7 @@
 #include "pdc_compare.h"
 #include "pdc_hash.h"
 #include "pdc_logger.h"
+#include "pdc_malloc.h"
 #include <inttypes.h>
 #include <stdlib.h>
 #include <string.h>
@@ -11,7 +12,7 @@
 void
 set_value_free(SetValue value)
 {
-    free((void *)value);
+    value = (SetValue)PDC_free((void *)value);
 }
 
 int
@@ -29,7 +30,7 @@ main(int argc, char **argv)
     set_register_free_function(set, set_value_free);
 
     for (uint64_t i = 0; i < max_id; i++) {
-        uint64_t *value = malloc(sizeof(uint64_t));
+        uint64_t *value = PDC_malloc(sizeof(uint64_t));
         *value          = i;
         set_insert(set, value);
     }
@@ -43,7 +44,7 @@ main(int argc, char **argv)
 
     // retrieve all values from the set
     for (uint64_t i = 0; i < max_id; i++) {
-        uint64_t *value = malloc(sizeof(uint64_t));
+        uint64_t *value = PDC_malloc(sizeof(uint64_t));
         *value          = i;
         if (!set_query(set, value)) {
             LOG_ERROR("Error: value %" PRIu64 " not found in the set\n", i);

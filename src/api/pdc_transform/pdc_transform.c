@@ -156,9 +156,9 @@ PDCobj_transform_register(char *func, pdcid_t obj_id, int current_state, int nex
 done:
     fflush(stdout);
     if (applicationDir)
-        free(applicationDir);
+        applicationDir = (char *)PDC_free(applicationDir);
     if (userdefinedftn)
-        free(userdefinedftn);
+        userdefinedftn = (char *)PDC_free(userdefinedftn);
 
     FUNC_LEAVE(ret_value);
 }
@@ -265,11 +265,11 @@ PDCbuf_map_transform_register(char *func, void *buf, pdcid_t src_region_id, pdci
 done:
     fflush(stdout);
     if (applicationDir)
-        free(applicationDir);
+        applicationDir = (char *)PDC_free(applicationDir);
     if (userdefinedftn)
-        free(userdefinedftn);
+        userdefinedftn = (char *)PDC_free(userdefinedftn);
     if (loadpath)
-        free(loadpath);
+        loadpath = (char *)PDC_free(loadpath);
 
     FUNC_LEAVE(ret_value);
 }

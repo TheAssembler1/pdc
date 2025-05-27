@@ -163,9 +163,8 @@ PDC_free_knowing_old_size(void *mem, size_t old_size)
 
     if (mem) {
         free(mem);
-        if (_old_size) {
+        if (_old_size)
             PDC_mem_usage_g -= _old_size;
-        }
     }
 
     FUNC_LEAVE(ret_value);

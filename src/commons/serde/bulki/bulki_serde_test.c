@@ -1,5 +1,6 @@
 #include "bulki_serde.h"
 #include "pdc_logger.h"
+#include "pdc_malloc.h"
 
 int
 test_base_type()
@@ -14,7 +15,7 @@ test_base_type()
     BULKI_Entity *intValue   = BULKI_ENTITY(&intVal, 1, PDC_INT, PDC_CLS_ITEM);
     BULKI_put(bulki, intKey, intValue);
 
-    int *intArrVal          = (int *)malloc(3 * sizeof(int));
+    int *intArrVal          = (int *)PDC_malloc(3 * sizeof(int));
     intArrVal[0]            = 9; // x
     intArrVal[1]            = 8; // y
     intArrVal[2]            = 7; // z
@@ -53,7 +54,7 @@ test_base_type()
     long fsize = ftell(fp);
     fseek(fp, 0, SEEK_SET); /* same as rewind(f); */
     // read the file into the buffer
-    void *buffer2 = malloc(fsize + 1);
+    void *buffer2 = PDC_malloc(fsize + 1);
     fread(buffer2, fsize, 1, fp);
     fclose(fp);
 
@@ -66,7 +67,7 @@ test_base_type()
     // Free the memory
     BULKI_free(deserializedBulki, 1);
 
-    free(buffer);
+    buffer = (void *)PDC_free(buffer);
 
     return equal;
 }
@@ -165,7 +166,7 @@ test_base_array_entitiy()
     // Free the memory
     BULKI_free(deserializedBulki, 1);
     BULKI_free(bulki, 1);
-    free(buffer);
+    buffer = (void *)PDC_free(buffer);
 
     return equal;
 }
@@ -217,7 +218,7 @@ test_embedded_entitiy()
     // Free the memory
     BULKI_free(deserializedBulki, 1);
     BULKI_free(bulki, 1);
-    free(buffer);
+    buffer = (void *)PDC_free(buffer);
 
     return equal;
 }

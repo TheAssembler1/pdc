@@ -123,7 +123,7 @@ main(int argc, char **argv)
     if (rank == 0) {
         LOG_INFO("number of dimensions in this test is %d\n", ndim);
         LOG_INFO("data size = %llu\n", (long long unsigned)data_size);
-        LOG_ERROR("First dim has size %" PRIu64 "\n", dims[0]);
+        LOG_INFO("First dim has size %" PRIu64 "\n", dims[0]);
         if (ndim >= 2) {
             LOG_INFO("second dim has size %" PRIu64 "\n", dims[1]);
         }

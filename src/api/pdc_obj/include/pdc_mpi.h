@@ -39,7 +39,7 @@
  *                              returned by PDCprop_create(PDC_OBJ_CREATE)
  * \param rank_id [IN]          MPI process rank
  *
- * \return Object ID on success/Negative on failure
+ * \return Object ID on success/Zero on failure
  */
 pdcid_t PDCobj_create_mpi(pdcid_t cont_id, const char *obj_name, pdcid_t obj_create_prop, int rank_id,
                           MPI_Comm comm);

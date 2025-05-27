@@ -156,8 +156,8 @@ extract_overlaping_region(const uint64_t *offset, const uint64_t *size, const ui
                           const uint64_t *size2, int ndim, uint64_t **offset_merged, uint64_t **size_merged)
 {
     int i;
-    *offset_merged = (uint64_t *)malloc(sizeof(uint64_t) * ndim);
-    *size_merged   = (uint64_t *)malloc(sizeof(uint64_t) * ndim);
+    *offset_merged = (uint64_t *)PDC_malloc(sizeof(uint64_t) * ndim);
+    *size_merged   = (uint64_t *)PDC_malloc(sizeof(uint64_t) * ndim);
     for (i = 0; i < ndim; ++i) {
         if (offset2[i] > offset[i]) {
             offset_merged[0][i] = offset2[i];
@@ -262,8 +262,8 @@ PDC_region_merge(const char *buf, const char *buf2, const uint64_t *offset, cons
         connect_flag = ndim - 1;
     }
     // If we reach here, then the two regions can be merged into one.
-    *offset_merged = (uint64_t *)malloc(sizeof(uint64_t) * ndim);
-    *size_merged   = (uint64_t *)malloc(sizeof(uint64_t) * ndim);
+    *offset_merged = (uint64_t *)PDC_malloc(sizeof(uint64_t) * ndim);
+    *size_merged   = (uint64_t *)PDC_malloc(sizeof(uint64_t) * ndim);
     for (i = 0; i < ndim; ++i) {
         if (i != connect_flag) {
             offset_merged[0][i] = offset[i];
@@ -295,7 +295,7 @@ PDC_region_merge(const char *buf, const char *buf2, const uint64_t *offset, cons
     for (i = 1; i < ndim; ++i) {
         tmp_buf_size *= size_merged[0][i];
     }
-    buf_merged      = (char *)malloc(sizeof(char) * tmp_buf_size);
+    buf_merged      = (char *)PDC_malloc(sizeof(char) * tmp_buf_size);
     *buf_merged_ptr = buf_merged;
     if (ndim == 1) {
         pdc_region_merge_buf_copy(offset, size, offset2, size2, buf, buf2, &buf_merged, unit, connect_flag);
@@ -352,7 +352,7 @@ PDC_region_cache_copy(char *buf, char *buf2, const uint64_t *offset, const uint6
 {
     char *    src, *dst;
     uint64_t  i, j;
-    uint64_t *local_offset = (uint64_t *)malloc(sizeof(uint64_t) * ndim);
+    uint64_t *local_offset = (uint64_t *)PDC_malloc(sizeof(uint64_t) * ndim);
     memcpy(local_offset, offset2, sizeof(uint64_t) * ndim);
     /* Rescale I/O request to cache region offsets. */
     for (i = 0; i < (uint64_t)ndim; ++i) {
@@ -404,7 +404,7 @@ PDC_region_cache_copy(char *buf, char *buf2, const uint64_t *offset, const uint6
             }
         }
     }
-    free(local_offset);
+    local_offset = (uint64_t *)PDC_free(local_offset);
     return 0;
 }
 
@@ -446,7 +446,7 @@ PDC_region_cache_register(uint64_t obj_id, int obj_ndim, const uint64_t *obj_dim
 
     if (obj_cache == NULL) {
         if (obj_cache_list != NULL) {
-            obj_cache_list_end->next = (pdc_obj_cache *)malloc(sizeof(pdc_obj_cache));
+            obj_cache_list_end->next = (pdc_obj_cache *)PDC_malloc(sizeof(pdc_obj_cache));
             obj_cache_list_end       = obj_cache_list_end->next;
             obj_cache_list_end->next = NULL;
 
@@ -456,7 +456,7 @@ PDC_region_cache_register(uint64_t obj_id, int obj_ndim, const uint64_t *obj_dim
             obj_cache_list_end->region_cache_end  = NULL;
         }
         else {
-            obj_cache_list     = (pdc_obj_cache *)malloc(sizeof(pdc_obj_cache));
+            obj_cache_list     = (pdc_obj_cache *)PDC_malloc(sizeof(pdc_obj_cache));
             obj_cache_list_end = obj_cache_list;
 
             obj_cache_list_end->obj_id            = obj_id;
@@ -467,31 +467,31 @@ PDC_region_cache_register(uint64_t obj_id, int obj_ndim, const uint64_t *obj_dim
         }
         obj_cache_list_end->ndim = obj_ndim;
         if (obj_ndim) {
-            obj_cache_list_end->dims = (uint64_t *)malloc(sizeof(uint64_t) * obj_ndim);
+            obj_cache_list_end->dims = (uint64_t *)PDC_malloc(sizeof(uint64_t) * obj_ndim);
             memcpy(obj_cache_list_end->dims, obj_dims, sizeof(uint64_t) * obj_ndim);
         }
         obj_cache = obj_cache_list_end;
     }
 
     if (obj_cache->region_cache == NULL) {
-        obj_cache->region_cache           = (pdc_region_cache *)malloc(sizeof(pdc_region_cache));
+        obj_cache->region_cache           = (pdc_region_cache *)PDC_malloc(sizeof(pdc_region_cache));
         obj_cache->region_cache_end       = obj_cache->region_cache;
         obj_cache->region_cache_end->next = NULL;
     }
     else {
-        obj_cache->region_cache_end->next = (pdc_region_cache *)malloc(sizeof(pdc_region_cache));
+        obj_cache->region_cache_end->next = (pdc_region_cache *)PDC_malloc(sizeof(pdc_region_cache));
         obj_cache->region_cache_end       = obj_cache->region_cache_end->next;
         obj_cache->region_cache_end->next = NULL;
     }
     obj_cache->region_cache_size++;
 
     obj_cache->region_cache_end->region_cache_info =
-        (struct pdc_region_info *)malloc(sizeof(struct pdc_region_info));
+        (struct pdc_region_info *)PDC_malloc(sizeof(struct pdc_region_info));
     region_cache_info         = obj_cache->region_cache_end->region_cache_info;
     region_cache_info->ndim   = ndim;
-    region_cache_info->offset = (uint64_t *)malloc(sizeof(uint64_t) * ndim * 2);
+    region_cache_info->offset = (uint64_t *)PDC_malloc(sizeof(uint64_t) * ndim * 2);
     region_cache_info->size   = region_cache_info->offset + ndim;
-    region_cache_info->buf    = (char *)malloc(sizeof(char) * buf_size);
+    region_cache_info->buf    = (char *)PDC_malloc(sizeof(char) * buf_size);
     region_cache_info->unit   = unit;
 
     memcpy(region_cache_info->offset, offset, sizeof(uint64_t) * ndim);
@@ -523,14 +523,15 @@ PDC_region_cache_free()
     while (obj_cache_iter != NULL) {
         region_cache_iter = obj_cache_iter->region_cache;
         while (region_cache_iter != NULL) {
-            free(region_cache_iter->region_cache_info);
+            region_cache_iter->region_cache_info =
+                (struct pdc_region_info *)PDC_free(region_cache_iter->region_cache_info);
             region_temp       = region_cache_iter;
             region_cache_iter = region_cache_iter->next;
-            free(region_temp);
+            region_temp       = (pdc_region_cache *)PDC_free(region_temp);
         }
         obj_temp       = obj_cache_iter;
         obj_cache_iter = obj_cache_iter->next;
-        free(obj_temp);
+        obj_temp       = (pdc_obj_cache *)PDC_free(obj_temp);
     }
     return 0;
 }
@@ -595,7 +596,7 @@ PDC_transfer_request_data_write_out(uint64_t obj_id, int obj_ndim, const uint64_
                     region_info->ndim, unit, buf, region_info->offset, region_info->size,
                     region_cache_iter->region_cache_info->buf, region_cache_iter->region_cache_info->offset,
                     region_cache_iter->region_cache_info->size, overlap_offset, overlap_size);
-                free(overlap_offset);
+                overlap_offset = (uint64_t *)PDC_free(overlap_offset);
                 if (flag) {
                     break;
                 }
@@ -659,15 +660,15 @@ merge_requests(uint64_t *start, uint64_t *end, int request_size, char **buf, uin
             }
         }
     }
-    *new_start = (uint64_t *)malloc(sizeof(uint64_t) * merged_requests * 2);
+    *new_start = (uint64_t *)PDC_malloc(sizeof(uint64_t) * merged_requests * 2);
     *new_end   = new_start[0] + merged_requests;
 
     index           = 0;
     new_start[0][0] = start[0];
     new_end[0][0]   = end[0];
 
-    *new_buf      = (char **)malloc(merged_requests * sizeof(char *));
-    new_buf[0][0] = (char *)malloc(total_data_size * unit);
+    *new_buf      = (char **)PDC_malloc(merged_requests * sizeof(char *));
+    new_buf[0][0] = (char *)PDC_malloc(total_data_size * unit);
     ptr           = new_buf[0][0];
     memcpy(ptr, buf[0], (end[0] - start[0]) * unit);
     ptr += (end[0] - start[0]) * unit;
@@ -707,7 +708,6 @@ sort_by_offset(const void *elem1, const void *elem2)
     return 0;
 #pragma GCC diagnostic pop
 }
-
 int
 PDC_region_cache_flush_by_pointer(uint64_t obj_id, pdc_obj_cache *obj_cache, int flag)
 {
@@ -734,13 +734,13 @@ PDC_region_cache_flush_by_pointer(uint64_t obj_id, pdc_obj_cache *obj_cache, int
 
     // For 1D case, we can merge regions to minimize the number of POSIX calls.
     if (obj_cache->ndim == 1 && obj_cache->region_cache_size) {
-        start = (uint64_t *)malloc(sizeof(uint64_t) * obj_cache->region_cache_size * 2);
+        start = (uint64_t *)PDC_malloc(sizeof(uint64_t) * obj_cache->region_cache_size * 2);
         end   = start + obj_cache->region_cache_size;
-        buf   = (char **)malloc(sizeof(char *) * obj_cache->region_cache_size);
+        buf   = (char **)PDC_malloc(sizeof(char *) * obj_cache->region_cache_size);
 
         // Sort the regions based on start index
-        obj_regions       = (struct pdc_region_info **)malloc(sizeof(struct pdc_region_info *) *
-                                                        obj_cache->region_cache_size);
+        obj_regions       = (struct pdc_region_info **)PDC_malloc(sizeof(struct pdc_region_info *) *
+                                                            obj_cache->region_cache_size);
         unit              = obj_cache->region_cache->region_cache_info->unit;
         region_cache_iter = obj_cache->region_cache;
         i                 = 0;
@@ -755,13 +755,13 @@ PDC_region_cache_flush_by_pointer(uint64_t obj_id, pdc_obj_cache *obj_cache, int
             end[i]   = obj_regions[i]->offset[0] + obj_regions[i]->size[0];
             buf[i]   = obj_regions[i]->buf;
         }
-        free(obj_regions);
+        obj_regions = (struct pdc_region_info **)PDC_free(obj_regions);
 
         // Merge adjacent regions
         merge_requests(start, end, obj_cache->region_cache_size, buf, &new_start, &new_end, &new_buf, unit,
                        &merged_request_size);
-        free(start);
-        free(buf);
+        start = (uint64_t *)PDC_free(start);
+        buf   = (char **)PDC_free(buf);
         // Record buffer pointer to be freed later.
         buf_ptr = new_buf[0];
         // Override the first merge_request_size number of cache regions with the merge regions
@@ -771,8 +771,8 @@ PDC_region_cache_flush_by_pointer(uint64_t obj_id, pdc_obj_cache *obj_cache, int
             region_cache_info            = region_cache_iter->region_cache_info;
             region_cache_info->offset[0] = new_start[i];
             region_cache_info->size[0]   = new_end[i] - new_start[i];
-            free(region_cache_info->buf);
-            region_cache_info->buf = new_buf[i];
+            region_cache_info->buf       = (void *)PDC_free(region_cache_info->buf);
+            region_cache_info->buf       = new_buf[i];
             if (i == merged_request_size - 1) {
                 region_cache_temp       = region_cache_iter->next;
                 region_cache_iter->next = NULL;
@@ -782,17 +782,17 @@ PDC_region_cache_flush_by_pointer(uint64_t obj_id, pdc_obj_cache *obj_cache, int
                 region_cache_iter = region_cache_iter->next;
             }
         }
-        free(new_start);
-        free(new_buf);
+        new_start = (uint64_t *)PDC_free(new_start);
+        new_buf   = (char **)PDC_free(new_buf);
         // Free other regions.
         while (region_cache_iter) {
-            region_cache_info = region_cache_iter->region_cache_info;
-            free(region_cache_info->offset);
-            free(region_cache_info->buf);
-            free(region_cache_info);
-            region_cache_temp = region_cache_iter;
-            region_cache_iter = region_cache_iter->next;
-            free(region_cache_temp);
+            region_cache_info         = region_cache_iter->region_cache_info;
+            region_cache_info->offset = (uint64_t *)PDC_free(region_cache_info->offset);
+            region_cache_info->buf    = (void *)PDC_free(region_cache_info->buf);
+            region_cache_info         = (struct pdc_region_info *)PDC_free(region_cache_info);
+            region_cache_temp         = region_cache_iter;
+            region_cache_iter         = region_cache_iter->next;
+            region_cache_temp         = (pdc_region_cache *)PDC_free(region_cache_temp);
         }
         nflush += merged_request_size;
     } // End for 1D
@@ -817,18 +817,17 @@ PDC_region_cache_flush_by_pointer(uint64_t obj_id, pdc_obj_cache *obj_cache, int
         }
 
         total_cache_size -= write_size;
-        free(region_cache_info->offset);
-        if (obj_cache->ndim > 1) {
-            free(region_cache_info->buf);
-        }
-        free(region_cache_info);
+        region_cache_info->offset = (uint64_t *)PDC_free(region_cache_info->offset);
+        if (obj_cache->ndim > 1)
+            region_cache_info->buf = (void *)PDC_free(region_cache_info->buf);
+        region_cache_info = (struct pdc_region_info *)PDC_free(region_cache_info);
         region_cache_temp = region_cache_iter;
         region_cache_iter = region_cache_iter->next;
-        free(region_cache_temp);
+        region_cache_temp = (pdc_region_cache *)PDC_free(region_cache_temp);
         nflush++;
     }
     if (merged_request_size && obj_cache->ndim == 1) {
-        free(buf_ptr);
+        buf_ptr = (char *)PDC_free(buf_ptr);
     }
     obj_cache->region_cache      = NULL;
     obj_cache->region_cache_size = 0;
@@ -877,21 +876,14 @@ PDC_region_cache_flush_all()
 
     obj_cache_iter = obj_cache_list;
     while (obj_cache_iter != NULL) {
-
-#ifdef TANG_DEBUG
-        char cur_time[64];
-        PDC_get_time_str(cur_time);
-        LOG_INFO("%s ==PDC_SERVER[%d]: going to flush\n", cur_time, PDC_get_rank());
-#endif
-
         PDC_region_cache_flush_by_pointer(obj_cache_iter->obj_id, obj_cache_iter, 0);
         obj_cache_temp = obj_cache_iter;
         obj_cache_iter = obj_cache_iter->next;
         if (obj_cache_temp->ndim) {
-            free(obj_cache_temp->dims);
+            obj_cache_temp->dims = (uint64_t *)PDC_free(obj_cache_temp->dims);
         }
 
-        free(obj_cache_temp);
+        obj_cache_temp = (pdc_obj_cache *)PDC_free(obj_cache_temp);
     }
     obj_cache_list = NULL;
     pthread_mutex_unlock(&pdc_obj_cache_list_mutex);
@@ -1029,7 +1021,7 @@ PDC_region_fetch(uint64_t obj_id, int obj_ndim, const uint64_t *obj_dims, struct
                                          region_cache_iter->region_cache_info->offset,
                                          region_cache_iter->region_cache_info->size, buf, region_info->offset,
                                          region_info->size, overlap_offset, overlap_size);
-                free(overlap_offset);
+                overlap_offset = (uint64_t *)PDC_free(overlap_offset);
                 // flag = 1 at here.
                 break;
             }

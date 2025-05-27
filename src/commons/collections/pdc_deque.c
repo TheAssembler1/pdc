@@ -1,5 +1,6 @@
 #include "pdc_deque.h"
 #include "pdc_logger.h"
+#include "pdc_malloc.h"
 #include <stdio.h>
 
 #define DEFAULT_CAPACITY 16
@@ -7,7 +8,7 @@
 void
 PDC_deque_init(PDC_deque_t *deque)
 {
-    deque->data     = malloc(sizeof(void *) * DEFAULT_CAPACITY);
+    deque->data     = PDC_malloc(sizeof(void *) * DEFAULT_CAPACITY);
     deque->size     = 0;
     deque->capacity = DEFAULT_CAPACITY;
     deque->head     = 0;
@@ -17,7 +18,7 @@ PDC_deque_init(PDC_deque_t *deque)
 static void
 resize_deque(PDC_deque_t *deque, size_t new_capacity)
 {
-    void **new_data = malloc(sizeof(void *) * new_capacity);
+    void **new_data = PDC_malloc(sizeof(void *) * new_capacity);
     if (new_data == NULL) {
         LOG_ERROR("Failed to allocate memory for deque!\n");
         exit(1);
@@ -29,7 +30,7 @@ resize_deque(PDC_deque_t *deque, size_t new_capacity)
         deque->head   = (deque->head + 1) % deque->capacity;
     }
 
-    free(deque->data);
+    deque->data     = (void **)PDC_free(deque->data);
     deque->data     = new_data;
     deque->capacity = new_capacity;
     deque->head     = 0;
@@ -91,5 +92,5 @@ PDC_deque_pop_back(PDC_deque_t *deque)
 void
 PDC_deque_free(PDC_deque_t *deque)
 {
-    free(deque->data);
+    deque->data = (void **)PDC_free(deque->data);
 }

@@ -144,9 +144,9 @@ void
 query_result_from_kvtag(char *key_value_query, int8_t op_type)
 {
     dart_perform_one_server_in_t *input =
-        (dart_perform_one_server_in_t *)calloc(1, sizeof(dart_perform_one_server_in_t));
+        (dart_perform_one_server_in_t *)PDC_calloc(1, sizeof(dart_perform_one_server_in_t));
     dart_perform_one_server_out_t *output =
-        (dart_perform_one_server_out_t *)calloc(1, sizeof(dart_perform_one_server_out_t));
+        (dart_perform_one_server_out_t *)PDC_calloc(1, sizeof(dart_perform_one_server_out_t));
     uint64_t  n_obj_ids = 0;
     uint64_t *buf_ptr   = NULL;
     input->op_type      = op_type;
@@ -165,8 +165,8 @@ test_PDC_Server_dart_perform_one_server()
 
     PDC_Server_metadata_index_init(1, 0);
 
-    char *kv    = (char *)calloc(20, sizeof(char));
-    char *numkv = (char *)calloc(20, sizeof(char));
+    char *kv    = (char *)PDC_calloc(20, sizeof(char));
+    char *numkv = (char *)PDC_calloc(20, sizeof(char));
 
     for (int i = 0; i < 1000; i++) {
         sprintf(kv, "key%03dkey=\"val%03dval\"", i, i);
