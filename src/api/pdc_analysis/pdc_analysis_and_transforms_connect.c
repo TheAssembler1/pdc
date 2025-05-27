@@ -42,8 +42,6 @@ static hg_return_t client_register_iterator_rpc_cb(const struct hg_cb_info *info
 static hg_return_t client_register_analysis_rpc_cb(const struct hg_cb_info *info);
 static hg_return_t client_register_transform_rpc_cb(const struct hg_cb_info *info);
 
-perr_t PDC_free_obj_info(struct _pdc_obj_info *obj);
-
 /* Client APIs */
 
 perr_t

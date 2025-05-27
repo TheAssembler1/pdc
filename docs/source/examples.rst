@@ -16,7 +16,6 @@ Usage:
 	./mpi_test.sh ./pdc_client_application MPIRUN_CMD number_of_servers number_of_clients arg1 arg2 ....
 	./run_multiple_test.sh ./pdc_client_application_1 ./pdc_client_application_2 ......
 
-
 ---------------------------
 PDC Hello World
 ---------------------------
@@ -42,7 +41,6 @@ PDC Hello World
 * The above command will start a server with 2 processes. Then it will start the application program with 4 processes. Finally, all servers are closed.
 * On supercomputers, "mpiexec" can be replaced with "srun", "jsrun" or "aprun".
 
-
 ---------------------------
 Simple I-O
 ---------------------------
@@ -57,7 +55,6 @@ Simple I-O
 	make obj_get_data
 	./run_test.sh ./obj_get_data
 	./mpi_test.sh ./obj_get_data mpiexec 2 4
-
 
 ---------------------------
 I-O with region mapping
@@ -76,7 +73,6 @@ I-O with region mapping
 	./run_test.sh ./region_obj_map_3D
 	./mpi_test.sh ./region_obj_map_3D mpiexec 2 4
 
-
 ---------------------------
 VPIC-IO and BD-CATS-IO
 ---------------------------
@@ -88,7 +84,6 @@ VPIC-IO and BD-CATS-IO
 .. code-block:: Bash
 
 	./run_multiple_test.sh ./vpicio ./bdcats
-
 
 * VPIC-IO:
 	* vpicio.c
@@ -108,7 +103,6 @@ VPIC-IO and BD-CATS-IO
 HACC-IO
 ---------------------------
 
-
 * The purpose of this benchmark is to evaluate the performance of the I/O system for the Hardware Accelerated Cosmology Code (HACC) simulation. The HACC framework uses N-body techniques to simulate the formation of structure in collisionless fluids under the influence of gravity in an expanding universe.
 * Each MPI rank writes 9 variables (with different data types) per particle for a total of 38 bytes.
 
@@ -116,7 +110,6 @@ HACC-IO
 
 	./mpi_test.sh ./haccio mpiexec 1 num-procs num-particles
 	
-
 ---------------------------
 Tile-IO
 ---------------------------
