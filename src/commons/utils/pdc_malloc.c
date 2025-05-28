@@ -27,6 +27,14 @@
 #include "pdc_malloc.h"
 #include "pdc_timing.h"
 
+// see comment in pdc_stack_ops.c
+#ifdef ENABLE_PROFILING
+#undef FUNC_ENTER
+#undef FUNC_LEAVE
+#define FUNC_ENTER(x)
+#define FUNC_LEAVE(x) return (x)
+#endif
+
 #ifdef HAVE_MALLOC_USABLE_SIZE
 #include <malloc.h>
 #else
@@ -142,7 +150,7 @@ PDC_realloc_addsize_knowing_oldsize(void *ptr, size_t size, size_t old_size, siz
     FUNC_ENTER(NULL);
 
     size_t _old_size = old_size;
-    void * ret_value = PDC_realloc_knowing_oldsize(ptr, size, _old_size);
+    void  *ret_value = PDC_realloc_knowing_oldsize(ptr, size, _old_size);
     if (ret_value && mem_usage_ptr) {
         *mem_usage_ptr += size;
         if (_old_size) {
@@ -172,7 +180,7 @@ PDC_free_knowing_old_size(void *mem, size_t old_size)
     FUNC_ENTER(NULL);
 
     size_t _old_size = old_size;
-    void * ret_value = NULL;
+    void  *ret_value = NULL;
 
     if (mem) {
         free(mem);
