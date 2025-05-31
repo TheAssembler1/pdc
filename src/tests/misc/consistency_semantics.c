@@ -60,197 +60,118 @@ main(int argc, char **argv)
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
     MPI_Comm_size(MPI_COMM_WORLD, &size);
 #endif
-    // create a pdc
-    pdc = PDCinit("pdc");
-    LOG_INFO("create a new pdc\n");
 
+    // create a pdc
+    TASSERT((pdc = PDCinit("pdc")) != 0, "Call to PDCinit succeeded", "Call to PDCinit failed");
     // create a container property
-    cont_prop = PDCprop_create(PDC_CONT_CREATE, pdc);
-    if (cont_prop > 0) {
-        LOG_INFO("Create a container property\n");
-    }
-    else {
-        LOG_ERROR("Failed to create container property");
-        ret_value = 1;
-    }
+    TASSERT((cont_prop = PDCprop_create(PDC_CONT_CREATE, pdc)) != 0, "Call to PDCprop_create succeeded",
+            "Call to PDCprop_create failed");
     // create a container
     sprintf(cont_name, "c%d", rank);
-    cont = PDCcont_create(cont_name, cont_prop);
-    if (cont > 0) {
-        LOG_INFO("Create a container c1\n");
-    }
-    else {
-        LOG_ERROR("Failed to create container");
-        ret_value = 1;
-    }
+    TASSERT((cont = PDCcont_create(cont_name, cont_prop)) != 0, "Call to PDCcont_create succeeded",
+            "Call to PDCcont_create failed");
     // create an object property
-    obj_prop = PDCprop_create(PDC_OBJ_CREATE, pdc);
-    if (obj_prop > 0) {
-        LOG_INFO("Create an object property\n");
-    }
-    else {
-        LOG_ERROR("Failed to create object property");
-        ret_value = 1;
-    }
+    TASSERT((obj_prop = PDCprop_create(PDC_OBJ_CREATE, pdc)) != 0, "Call to PDCprop_create succeeded",
+            "Call to PDCprop_create failed");
 
-    ret = PDCprop_set_obj_type(obj_prop, PDC_INT);
-    if (ret != SUCCEED) {
-        LOG_ERROR("Failed to set obj type");
-        ret_value = 1;
-    }
-    PDCprop_set_obj_dims(obj_prop, 2, dims);
-    PDCprop_set_obj_user_id(obj_prop, getuid());
-    PDCprop_set_obj_time_step(obj_prop, 0);
-    PDCprop_set_obj_app_name(obj_prop, "consistency_semantics_test");
-    PDCprop_set_obj_tags(obj_prop, "tag0=1");
-    PDCprop_set_obj_consistency_semantics(obj_prop, PDC_CONSISTENCY_POSIX);
+    TASSERT(PDCprop_set_obj_type(obj_prop, PDC_INT) >= 0, "Call to PDCprop_set_obj_type succeeded",
+            "Call to PDCprop_set_obj_type failed");
+    TASSERT(PDCprop_set_obj_dims(obj_prop, 2, dims) >= 0, "Call to PDCprop_set_obj_dims succeeded",
+            "Call to PDCprop_set_obj_dims failed");
+    TASSERT(PDCprop_set_obj_user_id(obj_prop, getuid()) >= 0, "Call to PDCprop_set_obj_user_id succeeded",
+            "Call to PDCprop_set_obj_user_id failed");
+    TASSERT(PDCprop_set_obj_time_step(obj_prop, 0) >= 0, "Call to PDCprop_set_obj_time_step succeeded",
+            "Call to PDCprop_set_obj_time_step failed");
+    TASSERT(PDCprop_set_obj_app_name(obj_prop, "consistency_semantics_test") >= 0,
+            "Call to PDCprop_set_obj_user_id succeeded", "Call to PDCprop_set_obj_user_id failed");
+    TASSERT(PDCprop_set_obj_tags(obj_prop, "tag0=1") >= 0, "Call to PDCprop_set_obj_tags succeeded",
+            "Call to PDCprop_set_obj_tags failed");
+    TASSERT(PDCprop_set_obj_consistency_semantics(obj_prop, PDC_CONSISTENCY_POSIX) >= 0,
+            "Call to PDCprop_set_obj_consistency_semantics succeeded",
+            "Call to PDCprop_set_obj_consistency_semantics failed");
 
     // create first object
     sprintf(obj_name1, "o1_%d", rank);
-    obj1 = PDCobj_create(cont, obj_name1, obj_prop);
-    if (obj1 > 0) {
-        LOG_INFO("Create an object o1\n");
-    }
-    else {
-        LOG_ERROR("Failed to create object");
-        ret_value = 1;
-    }
+    TASSERT((obj1 = PDCobj_create(cont, obj_name1, obj_prop)) != 0, "Call to PDCobj_create succeeded",
+            "Call to PDCobj_create failed");
     // create second object
     sprintf(obj_name2, "o2_%d", rank);
-    obj2 = PDCobj_create(cont, obj_name2, obj_prop);
-    if (obj2 > 0) {
-        LOG_INFO("Create an object o2\n");
-    }
-    else {
-        LOG_ERROR("Failed to create object");
-        ret_value = 1;
-    }
+    TASSERT((obj2 = PDCobj_create(cont, obj_name2, obj_prop)) != 0, "Call to PDCobj_create succeeded",
+            "Call to PDCobj_create failed");
 
     offset[0]        = 0;
     offset_length[0] = BUF_LEN;
-    reg              = PDCregion_create(1, offset, offset_length);
+    TASSERT((reg = PDCregion_create(1, offset, offset_length)) != 0, "Call to PDCregion_create succeeded",
+            "Call to PDCregion_create failed");
     offset[0]        = 0;
     offset[1]        = 0;
     offset_length[0] = BUF_LEN / 4;
     offset_length[1] = 4;
-    reg_global       = PDCregion_create(2, offset, offset_length);
+    TASSERT((reg_global = PDCregion_create(2, offset, offset_length)) != 0,
+            "Call to PDCregion_create succeeded", "Call to PDCregion_create failed");
 
-    for (i = 0; i < BUF_LEN; ++i) {
+    for (i = 0; i < BUF_LEN; ++i)
         data[i] = i;
-    }
-    transfer_request = PDCregion_transfer_create(data, PDC_WRITE, obj1, reg, reg_global);
 
-    PDCregion_transfer_start(transfer_request);
-
+    TASSERT((transfer_request = PDCregion_transfer_create(data, PDC_WRITE, obj1, reg, reg_global)) != 0,
+            "Call to PDCregion_transfer_create succeeded", "Call to PDCregion_transfer_create failed");
+    TASSERT(PDCregion_transfer_start(transfer_request) >= 0, "Call to PDCregion_transfer_start succeeded",
+            "Call to PDCregion_transfer_start failed");
     // When use POSIX consistency, we do not need to explicitly call wait()
     // PDCregion_transfer_wait(transfer_request);
+    TASSERT(PDCregion_transfer_close(transfer_request) >= 0, "Call to PDCregion_transfer_close succeeded",
+            "Call to PDCregion_transfer_close failed");
 
-    PDCregion_transfer_close(transfer_request);
-
-    if (PDCregion_close(reg) < 0) {
-        LOG_ERROR("Failed to close local region");
-        ret_value = 1;
-    }
-    else {
-        LOG_INFO("successfully closed local region");
-    }
-
-    if (PDCregion_close(reg_global) < 0) {
-        LOG_ERROR("Failed to close global region");
-        ret_value = 1;
-    }
-    else {
-        LOG_INFO("successfully closed global region");
-    }
+    TASSERT(PDCregion_close(reg) >= 0, "Call to PDCregion_close succeeded", "Call to PDCregion_close failed");
+    TASSERT(PDCregion_close(reg_global) >= 0, "Call to PDCregion_close succeeded",
+            "Call to PDCregion_close failed");
 
     offset[0]        = 0;
     offset_length[0] = BUF_LEN;
-    reg              = PDCregion_create(1, offset, offset_length);
+    TASSERT((reg = PDCregion_create(1, offset, offset_length)) != 0, "Call to PDCregion_create succeeded",
+            "Call to PDCregion_create failed");
     offset[0]        = 0;
     offset[1]        = 0;
     offset_length[0] = BUF_LEN / 4;
     offset_length[1] = 4;
-    reg_global       = PDCregion_create(2, offset, offset_length);
+    TASSERT((reg_global = PDCregion_create(2, offset, offset_length)) != 0,
+            "Call to PDCregion_create succeeded", "Call to PDCregion_create failed");
 
-    transfer_request = PDCregion_transfer_create(data_read, PDC_READ, obj1, reg, reg_global);
-
-    PDCregion_transfer_start(transfer_request);
-
+    TASSERT((transfer_request = PDCregion_transfer_create(data_read, PDC_READ, obj1, reg, reg_global)) != 0,
+            "Call to PDCregion_transfer_create succeeded", "Call to PDCregion_transfer_create failed");
+    TASSERT(PDCregion_transfer_start(transfer_request) >= 0, "Call to PDCregion_transfer_start succeeded",
+            "Call to PDCregion_transfer_start failed");
     // When use POSIX consistency, we do not need to explicitly call wait()
     // PDCregion_transfer_wait(transfer_request);
-
-    PDCregion_transfer_close(transfer_request);
+    TASSERT(PDCregion_transfer_close(transfer_request) >= 0, "Call to PDCregion_transfer_close succeeded",
+            "Call to PDCregion_transfer_close failed");
 
     // Check if data written previously has been correctly read.
     for (i = 0; i < BUF_LEN; ++i) {
-        if (data_read[i] != i) {
-            LOG_ERROR("Wrong value %d!=%d\n", data_read[i], i);
-            ret_value = 1;
-            break;
-        }
-    }
-    if (PDCregion_close(reg) < 0) {
-        LOG_ERROR("Failed to close local region");
-        ret_value = 1;
-    }
-    else {
-        LOG_INFO("successfully local region");
+        if (data_read[i] != i)
+            TGOTO_ERROR(TFAIL, "Wrong value %d!=%d", data_read[i], i);
     }
 
-    if (PDCregion_close(reg_global) < 0) {
-        LOG_ERROR("Failed to close global region");
-        ret_value = 1;
-    }
-    else {
-        LOG_INFO("successfully closed global region");
-    }
+    TASSERT(PDCregion_close(reg) >= 0, "Call to PDCregion_close succeeded", "Call to PDCregion_close failed");
+    TASSERT(PDCregion_close(reg_global) >= 0, "Call to PDCregion_close succeeded",
+            "Call to PDCregion_close failed");
 
     // close object
-    if (PDCobj_close(obj1) < 0) {
-        LOG_ERROR("Failed to close object o1");
-        ret_value = 1;
-    }
-    else {
-        LOG_INFO("Successfully closed object o1");
-    }
-    if (PDCobj_close(obj2) < 0) {
-        LOG_ERROR("Failed to close object o2");
-        ret_value = 1;
-    }
-    else {
-        LOG_INFO("Successfully closed object o2");
-    }
+    TASSERT(PDCobj_close(obj1) >= 0, "Call to PDCobj_close succeeded", "Call to PDCobj_close failed");
+    TASSERT(PDCobj_close(obj2) >= 0, "Call to PDCobj_close succeeded", "Call to PDCobj_close failed");
     // close a container
-    if (PDCcont_close(cont) < 0) {
-        LOG_ERROR("Failed to close container c1");
-        ret_value = 1;
-    }
-    else {
-        LOG_INFO("Successfully closed container c1");
-    }
+    TASSERT(PDCcont_close(cont) >= 0, "Call to PDCcont_close succeeded", "Call to PDCcont_close failed");
     // close a object property
-    if (PDCprop_close(obj_prop) < 0) {
-        LOG_ERROR("Failed to close property");
-        ret_value = 1;
-    }
-    else {
-        LOG_INFO("Successfully closed object property");
-    }
+    TASSERT(PDCprop_close(obj_prop) >= 0, "Call to PDCprop_close succeeded", "Call to PDCprop_close failed");
     // close a container property
-    if (PDCprop_close(cont_prop) < 0) {
-        LOG_ERROR("Failed to close property");
-        ret_value = 1;
-    }
-    else {
-        LOG_INFO("Successfully closed container property");
-    }
+    TASSERT(PDCprop_close(cont_prop) >= 0, "Call to PDCprop_close succeeded", "Call to PDCprop_close failed");
+    // close pdc
+    TASSERT(PDCclose(pdc) >= 0, "Call to PDCclose succeeded", "Call to PDCclose failed");
+
     free(data);
     free(data_read);
-    // close pdc
-    if (PDCclose(pdc) < 0) {
-        LOG_ERROR("Failed to close PDC");
-        ret_value = 1;
-    }
+
+done:
 #ifdef ENABLE_MPI
     MPI_Finalize();
 #endif
