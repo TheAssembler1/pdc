@@ -205,9 +205,9 @@ main(int argc, char **argv)
 
 #endif
 
-        LOG_INFO("Importer%2d: Importing %d files\n", rank, my_count);
+        LOG_INFO("Importing %d files\n", my_count);
         for (i = 0; i < my_count; i++)
-            LOG_INFO("Importer%2d: [%s] \n", rank, my_filenames[i]);
+            LOG_INFO("[%s] \n", my_filenames[i]);
 
 #ifdef ENABLE_MPI
         MPI_Barrier(MPI_COMM_WORLD);
@@ -218,7 +218,7 @@ main(int argc, char **argv)
 
         for (i = 0; i < my_count; i++) {
             filename = my_filenames[i];
-            LOG_INFO("Importer%2d: processing [%s]\n", rank, my_filenames[i]);
+            LOG_INFO("Processing [%s]\n", my_filenames[i]);
             file = H5Fopen(filename, H5F_ACC_RDONLY, H5P_DEFAULT);
             if (file < 0) {
                 LOG_ERROR("Failed to open file [%s]\n", filename);
@@ -331,7 +331,7 @@ scan_group(hid_t gid, int level, char *app_name)
                     cont_id_g = PDCcont_create(group_name, cont_prop_g);
                     if (cont_id_g <= 0)
                         LOG_ERROR("Failed to create container");
-                    LOG_INFO("Importer%2d: Created container [%s]\n", rank, group_name);
+                    LOG_INFO("Created container [%s]\n", group_name);
                     add(container_names, group_name);
                 }
                 dsid = H5Dopen(gid, memb_name, H5P_DEFAULT);

@@ -74,35 +74,35 @@ main(int argc, char **argv)
     // create a container property
     cont_prop = PDCprop_create(PDC_CONT_CREATE, pdc);
     if (cont_prop > 0) {
-        LOG_INFO("Create a container property");
+        LOG_INFO("Create a container property\n");
     }
     else {
-        LOG_ERROR("Failed to create container property");
+        LOG_ERROR("Failed to create container property\n");
         ret_value = 1;
     }
     // create a container
     sprintf(cont_name, "c%d", rank);
     cont = PDCcont_create(cont_name, cont_prop);
     if (cont > 0) {
-        LOG_INFO("Create a container c1");
+        LOG_INFO("Create a container c1\n");
     }
     else {
-        LOG_ERROR("Failed to create container");
+        LOG_ERROR("Failed to create container\n");
         ret_value = 1;
     }
     // create an object property
     obj_prop = PDCprop_create(PDC_OBJ_CREATE, pdc);
     if (obj_prop > 0) {
-        LOG_INFO("Create an object property");
+        LOG_INFO("Create an object property\n");
     }
     else {
-        LOG_ERROR("Failed to create object property");
+        LOG_ERROR("Failed to create object property\n");
         ret_value = 1;
     }
 
     ret = PDCprop_set_obj_type(obj_prop, PDC_INT);
     if (ret != SUCCEED) {
-        LOG_ERROR("Failed to set obj type");
+        LOG_ERROR("Failed to set obj type\n");
         ret_value = 1;
     }
     PDCprop_set_obj_buf(obj_prop, obj_data);
@@ -116,20 +116,20 @@ main(int argc, char **argv)
     sprintf(obj_name1, "o1_%d", rank);
     obj1 = PDCobj_create(cont, obj_name1, obj_prop);
     if (obj1 > 0) {
-        LOG_INFO("Create an object o1");
+        LOG_INFO("Create an object o1\n");
     }
     else {
-        LOG_ERROR("Failed to create object");
+        LOG_ERROR("Failed to create object\n");
         ret_value = 1;
     }
     // create second object
     sprintf(obj_name2, "o2_%d", rank);
     obj2 = PDCobj_create(cont, obj_name2, obj_prop);
     if (obj2 > 0) {
-        LOG_INFO("Create an object o2");
+        LOG_INFO("Create an object o2\n");
     }
     else {
-        LOG_ERROR("Failed to create object");
+        LOG_ERROR("Failed to create object\n");
         ret_value = 1;
     }
 
@@ -145,34 +145,34 @@ main(int argc, char **argv)
     }
     ret = PDCbuf_obj_map(data, PDC_INT, reg, obj1, reg_global);
     if (ret != SUCCEED) {
-        LOG_ERROR("PDCbuf_obj_map failed");
+        LOG_ERROR("PDCbuf_obj_map failed\n");
         ret_value = 1;
     }
 
     ret = PDCreg_obtain_lock(obj1, reg_global, PDC_WRITE, PDC_BLOCK);
     if (ret != SUCCEED) {
-        LOG_ERROR("PDCreg_obtain_lock failed");
+        LOG_ERROR("PDCreg_obtain_lock failed\n");
         exit(-1);
     }
 
     ret = PDCreg_release_lock(obj1, reg_global, PDC_WRITE);
     if (ret != SUCCEED) {
-        LOG_ERROR("PDCreg_release_lock failed");
+        LOG_ERROR("PDCreg_release_lock failed\n");
         ret_value = 1;
     }
 
     ret = PDCbuf_obj_unmap(obj1, reg_global);
     if (ret != SUCCEED) {
-        LOG_ERROR("PDCbuf_obj_unmap failed");
+        LOG_ERROR("PDCbuf_obj_unmap failed\n");
         ret_value = 1;
     }
 
     if (PDCregion_close(reg_global) < 0) {
-        LOG_ERROR("Failed to close global region");
+        LOG_ERROR("Failed to close global region\n");
         ret_value = 1;
     }
     else {
-        LOG_INFO("successfully closed global region");
+        LOG_INFO("successfully closed global region\n");
     }
 
     offset[0]        = BUF_LEN / 8;
@@ -183,40 +183,40 @@ main(int argc, char **argv)
 
     ret = PDCbuf_obj_map(data + BUF_LEN / 2, PDC_INT, reg, obj1, reg_global);
     if (ret != SUCCEED) {
-        LOG_ERROR("PDCbuf_obj_map failed");
+        LOG_ERROR("PDCbuf_obj_map failed\n");
         ret_value = 1;
     }
 
     ret = PDCreg_obtain_lock(obj1, reg_global, PDC_WRITE, PDC_BLOCK);
     if (ret != SUCCEED) {
-        LOG_ERROR("PDCreg_obtain_lock failed");
+        LOG_ERROR("PDCreg_obtain_lock failed\n");
         exit(-1);
     }
 
     ret = PDCreg_release_lock(obj1, reg_global, PDC_WRITE);
     if (ret != SUCCEED) {
-        LOG_ERROR("PDCreg_release_lock failed");
+        LOG_ERROR("PDCreg_release_lock failed\n");
         ret_value = 1;
     }
 
     ret = PDCbuf_obj_unmap(obj1, reg_global);
     if (ret != SUCCEED) {
-        LOG_ERROR("PDCbuf_obj_unmap failed");
+        LOG_ERROR("PDCbuf_obj_unmap failed\n");
         ret_value = 1;
     }
     if (PDCregion_close(reg) < 0) {
-        LOG_ERROR("Failed to close local region");
+        LOG_ERROR("Failed to close local region\n");
         ret_value = 1;
     }
     else {
-        LOG_INFO("successfully closed local region");
+        LOG_INFO("successfully closed local region\n");
     }
     if (PDCregion_close(reg_global) < 0) {
-        LOG_ERROR("Failed to close global region");
+        LOG_ERROR("Failed to close global region\n");
         ret_value = 1;
     }
     else {
-        LOG_INFO("successfully closed global region");
+        LOG_INFO("successfully closed global region\n");
     }
 
     offset[0]        = 0;
@@ -234,25 +234,25 @@ main(int argc, char **argv)
 
     ret = PDCbuf_obj_map(data_read, PDC_INT, reg, obj1, reg_global);
     if (ret != SUCCEED) {
-        LOG_ERROR("PDCbuf_obj_map failed");
+        LOG_ERROR("PDCbuf_obj_map failed\n");
         ret_value = 1;
     }
 
     ret = PDCreg_obtain_lock(obj1, reg_global, PDC_READ, PDC_BLOCK);
     if (ret != SUCCEED) {
-        LOG_ERROR("PDCreg_obtain_lock failed");
+        LOG_ERROR("PDCreg_obtain_lock failed\n");
         ret_value = 1;
     }
 
     ret = PDCreg_release_lock(obj1, reg_global, PDC_READ);
     if (ret != SUCCEED) {
-        LOG_ERROR("PDCreg_release_lock failed");
+        LOG_ERROR("PDCreg_release_lock failed\n");
         ret_value = 1;
     }
 
     ret = PDCbuf_obj_unmap(obj1, reg_global);
     if (ret != SUCCEED) {
-        LOG_ERROR("PDCbuf_obj_unmap failed");
+        LOG_ERROR("PDCbuf_obj_unmap failed\n");
         ret_value = 1;
     }
 
@@ -268,19 +268,19 @@ main(int argc, char **argv)
     }
 
     if (PDCregion_close(reg) < 0) {
-        LOG_ERROR("Failed to close local region");
+        LOG_ERROR("Failed to close local region\n");
         ret_value = 1;
     }
     else {
-        LOG_INFO("successfully local region");
+        LOG_INFO("successfully local region\n");
     }
 
     if (PDCregion_close(reg_global) < 0) {
-        LOG_ERROR("Failed to close global region");
+        LOG_ERROR("Failed to close global region\n");
         ret_value = 1;
     }
     else {
-        LOG_INFO("successfully closed global region");
+        LOG_INFO("successfully closed global region\n");
     }
     // Partial write for a region that has been written before
     offset[0]        = 0;
@@ -300,40 +300,40 @@ main(int argc, char **argv)
 
     ret = PDCbuf_obj_map(data + BUF_LEN / 8, PDC_INT, reg, obj1, reg_global);
     if (ret != SUCCEED) {
-        LOG_ERROR("PDCbuf_obj_map failed");
+        LOG_ERROR("PDCbuf_obj_map failed\n");
         ret_value = 1;
     }
 
     ret = PDCreg_obtain_lock(obj1, reg_global, PDC_WRITE, PDC_BLOCK);
     if (ret != SUCCEED) {
-        LOG_ERROR("PDCreg_obtain_lock failed");
+        LOG_ERROR("PDCreg_obtain_lock failed\n");
         exit(-1);
     }
 
     ret = PDCreg_release_lock(obj1, reg_global, PDC_WRITE);
     if (ret != SUCCEED) {
-        LOG_ERROR("PDCreg_release_lock failed");
+        LOG_ERROR("PDCreg_release_lock failed\n");
         ret_value = 1;
     }
 
     ret = PDCbuf_obj_unmap(obj1, reg_global);
     if (ret != SUCCEED) {
-        LOG_ERROR("PDCbuf_obj_unmap failed");
+        LOG_ERROR("PDCbuf_obj_unmap failed\n");
         ret_value = 1;
     }
     if (PDCregion_close(reg) < 0) {
-        LOG_ERROR("Failed to close local region");
+        LOG_ERROR("Failed to close local region\n");
         ret_value = 1;
     }
     else {
-        LOG_INFO("successfully closed local region");
+        LOG_INFO("successfully closed local regio\nn");
     }
     if (PDCregion_close(reg_global) < 0) {
-        LOG_ERROR("Failed to close global region");
+        LOG_ERROR("Failed to close global region\n");
         ret_value = 1;
     }
     else {
-        LOG_INFO("successfully closed global region");
+        LOG_INFO("successfully closed global region\n");
     }
 
     offset[0]        = BUF_LEN / 32;
@@ -351,25 +351,25 @@ main(int argc, char **argv)
 
     ret = PDCbuf_obj_map(data_read, PDC_INT, reg, obj1, reg_global);
     if (ret != SUCCEED) {
-        LOG_ERROR("PDCbuf_obj_map failed");
+        LOG_ERROR("PDCbuf_obj_map failed\n");
         ret_value = 1;
     }
 
     ret = PDCreg_obtain_lock(obj1, reg_global, PDC_READ, PDC_BLOCK);
     if (ret != SUCCEED) {
-        LOG_ERROR("PDCreg_obtain_lock failed");
+        LOG_ERROR("PDCreg_obtain_lock failed\n");
         ret_value = 1;
     }
 
     ret = PDCreg_release_lock(obj1, reg_global, PDC_READ);
     if (ret != SUCCEED) {
-        LOG_ERROR("PDCreg_release_lock failed");
+        LOG_ERROR("PDCreg_release_lock failed\n");
         ret_value = 1;
     }
 
     ret = PDCbuf_obj_unmap(obj1, reg_global);
     if (ret != SUCCEED) {
-        LOG_ERROR("PDCbuf_obj_unmap failed");
+        LOG_ERROR("PDCbuf_obj_unmap failed\n");
         ret_value = 1;
     }
 
@@ -385,65 +385,65 @@ main(int argc, char **argv)
     }
 
     if (PDCregion_close(reg) < 0) {
-        LOG_ERROR("Failed to close local region");
+        LOG_ERROR("Failed to close local region\n");
         ret_value = 1;
     }
     else {
-        LOG_INFO("successfully closed local region");
+        LOG_INFO("successfully closed local region\n");
     }
     if (PDCregion_close(reg_global) < 0) {
-        LOG_ERROR("Failed to close global region");
+        LOG_ERROR("Failed to close global region\n");
         ret_value = 1;
     }
     else {
-        LOG_INFO("successfully closed global region");
+        LOG_INFO("successfully closed global region\n");
     }
 
     // close object
     if (PDCobj_close(obj1) < 0) {
-        LOG_ERROR("Failed to close object o1");
+        LOG_ERROR("Failed to close object o1\n");
         ret_value = 1;
     }
     else {
-        LOG_INFO("Successfully closed object o1");
+        LOG_INFO("Successfully closed object o1\n");
     }
     if (PDCobj_close(obj2) < 0) {
-        LOG_ERROR("Failed to close object o2");
+        LOG_ERROR("Failed to close object o2\n");
         ret_value = 1;
     }
     else {
-        LOG_INFO("Successfully closed object o2");
+        LOG_INFO("Successfully closed object o2\n");
     }
     // close a container
     if (PDCcont_close(cont) < 0) {
-        LOG_ERROR("Failed to close container c1");
+        LOG_ERROR("Failed to close container c1\n");
         ret_value = 1;
     }
     else {
-        LOG_INFO("Successfully closed container c1");
+        LOG_INFO("Successfully closed container c1\n");
     }
     // close a object property
     if (PDCprop_close(obj_prop) < 0) {
-        LOG_ERROR("Failed to close property");
+        LOG_ERROR("Failed to close property\n");
         ret_value = 1;
     }
     else {
-        LOG_INFO("Successfully closed object property");
+        LOG_INFO("Successfully closed object property\n");
     }
     // close a container property
     if (PDCprop_close(cont_prop) < 0) {
-        LOG_ERROR("Failed to close property");
+        LOG_ERROR("Failed to close property\n");
         ret_value = 1;
     }
     else {
-        LOG_INFO("Successfully closed container property");
+        LOG_INFO("Successfully closed container property\n");
     }
     free(data);
     free(data_read);
     free(obj_data);
     // close pdc
     if (PDCclose(pdc) < 0) {
-        LOG_ERROR("Failed to close PDC");
+        LOG_ERROR("Failed to close PDC\n");
         ret_value = 1;
     }
 #ifdef ENABLE_MPI

@@ -65,7 +65,7 @@ main(int argc, char **argv)
         LOG_INFO("Open a container c1\n");
     }
     else {
-        LOG_ERROR("Failed to create container");
+        LOG_ERROR("Failed to create container\n");
         ret_value = 1;
     }
 
@@ -76,7 +76,7 @@ main(int argc, char **argv)
         LOG_INFO("Open an object o1\n");
     }
     else {
-        LOG_ERROR("Failed to create object");
+        LOG_ERROR("Failed to create object\n");
         ret_value = 1;
     }
     // create second object
@@ -86,7 +86,7 @@ main(int argc, char **argv)
         LOG_INFO("Open an object o2\n");
     }
     else {
-        LOG_ERROR("Failed to create object");
+        LOG_ERROR("Failed to create object\n");
         ret_value = 1;
     }
     // create third object
@@ -96,7 +96,7 @@ main(int argc, char **argv)
         LOG_INFO("Open an object o3\n");
     }
     else {
-        LOG_ERROR("Failed to create object");
+        LOG_ERROR("Failed to create object\n");
         ret_value = 1;
     }
 
@@ -109,12 +109,12 @@ main(int argc, char **argv)
 
     ret = PDCregion_transfer_start(transfer_request);
     if (ret != SUCCEED) {
-        LOG_ERROR("Failed to region transfer start");
+        LOG_ERROR("Failed to region transfer start\n");
         ret_value = 1;
     }
     ret = PDCregion_transfer_wait(transfer_request);
     if (ret != SUCCEED) {
-        LOG_ERROR("Failed to region transfer wait");
+        LOG_ERROR("Failed to region transfer wait\n");
         ret_value = 1;
     }
     // Check if data written previously has been correctly read.
@@ -127,23 +127,23 @@ main(int argc, char **argv)
     }
     ret = PDCregion_transfer_close(transfer_request);
     if (ret != SUCCEED) {
-        LOG_ERROR("Failed to region transfer close");
+        LOG_ERROR("Failed to region transfer close\n");
         ret_value = 1;
     }
     if (PDCregion_close(reg) < 0) {
-        LOG_ERROR("Failed to close local region");
+        LOG_ERROR("Failed to close local region\n");
         ret_value = 1;
     }
     else {
-        LOG_INFO("successfully closed local region");
+        LOG_INFO("successfully closed local region\n");
     }
 
     if (PDCregion_close(reg_global) < 0) {
-        LOG_ERROR("Failed to close global region");
+        LOG_ERROR("Failed to close global region\n");
         ret_value = 1;
     }
     else {
-        LOG_INFO("successfully closed global region");
+        LOG_INFO("successfully closed global region\n");
     }
 
     // Read the second object
@@ -156,7 +156,7 @@ main(int argc, char **argv)
         LOG_INFO("Create an region o1\n");
     }
     else {
-        LOG_ERROR("Failed to create region");
+        LOG_ERROR("Failed to create region\n");
         ret_value = 1;
     }
     reg_global = PDCregion_create(2, offset, offset_length);
@@ -164,7 +164,7 @@ main(int argc, char **argv)
         LOG_INFO("Create an region o1\n");
     }
     else {
-        LOG_ERROR("Failed to create region");
+        LOG_ERROR("Failed to create region\n");
         ret_value = 1;
     }
     memset(data_read, 0, BUF_LEN);
@@ -172,12 +172,12 @@ main(int argc, char **argv)
 
     ret = PDCregion_transfer_start(transfer_request);
     if (ret != SUCCEED) {
-        LOG_ERROR("Failed to region transfer start");
+        LOG_ERROR("Failed to region transfer start\n");
         ret_value = 1;
     }
     ret = PDCregion_transfer_wait(transfer_request);
     if (ret != SUCCEED) {
-        LOG_ERROR("Failed to region transfer wait");
+        LOG_ERROR("Failed to region transfer wait\n");
         ret_value = 1;
     }
     // Check if data written previously has been correctly read.
@@ -190,23 +190,23 @@ main(int argc, char **argv)
     }
     ret = PDCregion_transfer_close(transfer_request);
     if (ret != SUCCEED) {
-        LOG_ERROR("Failed to region transfer close");
+        LOG_ERROR("Failed to region transfer close\n");
         ret_value = 1;
     }
     if (PDCregion_close(reg) < 0) {
-        LOG_ERROR("Failed to close local region");
+        LOG_ERROR("Failed to close local region\n");
         ret_value = 1;
     }
     else {
-        LOG_INFO("successfully closed local region");
+        LOG_INFO("successfully closed local region\n");
     }
 
     if (PDCregion_close(reg_global) < 0) {
-        LOG_ERROR("Failed to close global region");
+        LOG_ERROR("Failed to close global region\n");
         ret_value = 1;
     }
     else {
-        LOG_INFO("successfully closed global region");
+        LOG_INFO("successfully closed global region\n");
     }
 
     // Read the third object
@@ -221,7 +221,7 @@ main(int argc, char **argv)
         LOG_INFO("Create an region o1\n");
     }
     else {
-        LOG_ERROR("Failed to create region");
+        LOG_ERROR("Failed to create region\n");
         ret_value = 1;
     }
     reg_global = PDCregion_create(3, offset, offset_length);
@@ -229,7 +229,7 @@ main(int argc, char **argv)
         LOG_INFO("Create an region o1\n");
     }
     else {
-        LOG_ERROR("Failed to create region");
+        LOG_ERROR("Failed to create region\n");
         ret_value = 1;
     }
     memset(data_read, 0, BUF_LEN);
@@ -237,12 +237,12 @@ main(int argc, char **argv)
 
     ret = PDCregion_transfer_start(transfer_request);
     if (ret != SUCCEED) {
-        LOG_ERROR("Failed to region transfer start");
+        LOG_ERROR("Failed to region transfer start\n");
         ret_value = 1;
     }
     ret = PDCregion_transfer_wait(transfer_request);
     if (ret != SUCCEED) {
-        LOG_ERROR("Failed to region transfer wait");
+        LOG_ERROR("Failed to region transfer wait\n");
         ret_value = 1;
     }
     // Check if data written previously has been correctly read.
@@ -255,58 +255,58 @@ main(int argc, char **argv)
     }
     ret = PDCregion_transfer_close(transfer_request);
     if (ret != SUCCEED) {
-        LOG_ERROR("Failed to region transfer close");
+        LOG_ERROR("Failed to region transfer close\n");
         ret_value = 1;
     }
     if (PDCregion_close(reg) < 0) {
-        LOG_ERROR("Failed to close local region");
+        LOG_ERROR("Failed to close local region\n");
         ret_value = 1;
     }
     else {
-        LOG_INFO("successfully closed local region");
+        LOG_INFO("successfully closed local region\n");
     }
 
     if (PDCregion_close(reg_global) < 0) {
-        LOG_ERROR("Failed to close global region");
+        LOG_ERROR("Failed to close global region\n");
         ret_value = 1;
     }
     else {
-        LOG_INFO("successfully closed global region");
+        LOG_INFO("successfully closed global region\n");
     }
     // close object
     if (PDCobj_close(obj1) < 0) {
-        LOG_ERROR("Failed to close object o1");
+        LOG_ERROR("Failed to close object o1\n");
         ret_value = 1;
     }
     else {
-        LOG_INFO("Successfully closed object o1");
+        LOG_INFO("Successfully closed object o1\n");
     }
     if (PDCobj_close(obj2) < 0) {
-        LOG_ERROR("Failed to close object o2");
+        LOG_ERROR("Failed to close object o2\n");
         ret_value = 1;
     }
     else {
-        LOG_INFO("Successfully closed object o2");
+        LOG_INFO("Successfully closed object o2\n");
     }
     if (PDCobj_close(obj3) < 0) {
-        LOG_ERROR("Failed to close object o3");
+        LOG_ERROR("Failed to close object o3\n");
         ret_value = 1;
     }
     else {
-        LOG_INFO("Successfully closed object o3");
+        LOG_INFO("Successfully closed object o3\n");
     }
     // close a container
     if (PDCcont_close(cont) < 0) {
-        LOG_ERROR("Failed to close container c1");
+        LOG_ERROR("Failed to close container c1\n");
         ret_value = 1;
     }
     else {
-        LOG_INFO("Successfully closed container c1");
+        LOG_INFO("Successfully closed container c1\n");
     }
     free(data_read);
     // close pdc
     if (PDCclose(pdc) < 0) {
-        LOG_ERROR("Failed to close PDC");
+        LOG_ERROR("Failed to close PDC\n");
         ret_value = 1;
     }
 #ifdef ENABLE_MPI

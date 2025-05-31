@@ -105,7 +105,7 @@ PDC_Client_send_iter_recv_id(pdcid_t iter_id, pdcid_t *meta_id)
         if (n_retry > 0)
             break;
         if (PDC_Client_lookup_server(server_id, 0) != SUCCEED)
-            PGOTO_ERROR(FAIL, "Rank[%d]: Error with PDC_Client_lookup_server", pdc_client_mpi_rank_g);
+            PGOTO_ERROR(FAIL, "Error with PDC_Client_lookup_server");
 
         n_retry++;
     }
@@ -148,8 +148,7 @@ client_register_iterator_rpc_cb(const struct hg_cb_info *info)
     if (info->ret == HG_SUCCESS) {
         ret_value = HG_Get_output(info->info.forward.handle, &output);
         if (ret_value != HG_SUCCESS)
-            PGOTO_ERROR(FAIL,
-                        "PDC_CLIENT: register_iterator_rpc_cb(): Unable to read the server return values");
+            PGOTO_ERROR(FAIL, "Unable to read the server return values");
 
         my_rpc_state_p->value = output.server_iter_id;
     }
@@ -217,7 +216,7 @@ PDC_Client_register_obj_analysis(struct _pdc_region_analysis_ftn_info *thisFtn, 
         if (n_retry > 0)
             break;
         if (PDC_Client_lookup_server(server_id, 0) != SUCCEED)
-            PGOTO_ERROR(FAIL, "Rank[%d]: Error with PDC_Client_lookup_server", pdc_client_mpi_rank_g);
+            PGOTO_ERROR(FAIL, "Error with PDC_Client_lookup_server");
 
         n_retry++;
     }
@@ -266,8 +265,7 @@ client_register_analysis_rpc_cb(const struct hg_cb_info *info)
     if (info->ret == HG_SUCCESS) {
         ret_value = HG_Get_output(info->info.forward.handle, &output);
         if (ret_value != HG_SUCCESS)
-            PGOTO_ERROR(ret_value,
-                        "PDC_CLIENT: register_analysis_rpc_cb(): Unable to read the server return values");
+            PGOTO_ERROR(ret_value, "Unable to read the server return values");
 
         my_rpc_state_p->value = output.remote_ftn_id;
     }
@@ -358,7 +356,7 @@ client_register_transform_rpc_cb(const struct hg_cb_info *info)
     if (info->ret == HG_SUCCESS) {
         ret_value = HG_Get_output(info->info.forward.handle, &output);
         if (ret_value != HG_SUCCESS)
-            PGOTO_ERROR(ret_value, "PDC_CLIENT: Unable to read the server return values");
+            PGOTO_ERROR(ret_value, "Unable to read the server return values");
 
         PDC_update_transform_server_meta_index(output.client_index, output.ret);
     }

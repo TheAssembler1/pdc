@@ -486,7 +486,7 @@ PDC_Server_add_to_bloom(pdc_metadata_t *metadata, BLOOM_TYPE_T *bloom)
 
     ret_value = BLOOM_ADD(bloom, combined_string, strlen(combined_string));
     if (ret_value != SUCCEED)
-        PGOTO_ERROR(FAIL, "Rank [%d]: PDC_Server_add_to_bloom() - error", pdc_server_rank_g);
+        PGOTO_ERROR(FAIL, "Error with BLOOM_ADD");
 
 done:
     FUNC_LEAVE(ret_value);
@@ -554,14 +554,12 @@ PDC_Server_hash_table_list_insert(pdc_hash_table_entry_head *head, pdc_metadata_
         }
         ret_value = PDC_Server_add_to_bloom(new, head->bloom);
         if (ret_value != SUCCEED)
-            PGOTO_ERROR(FAIL, "Rank [%d]: PDC_Server_hash_table_list_insert - error add to bloom\n",
-                        pdc_server_rank_g);
+            PGOTO_ERROR(FAIL, "Error add to bloom");
     }
     else if (head->n_obj >= CREATE_BLOOM_THRESHOLD || head->bloom != NULL) {
         ret_value = PDC_Server_add_to_bloom(new, head->bloom);
         if (ret_value != SUCCEED)
-            PGOTO_ERROR(FAIL, "Rank [%d]: PDC_Server_hash_table_list_insert - error add to bloom\n",
-                        pdc_server_rank_g);
+            PGOTO_ERROR(FAIL, "Error add to bloom\n");
     }
 
 #ifdef ENABLE_MULTITHREAD
@@ -693,7 +691,7 @@ PDC_Server_add_tag_metadata(metadata_add_tag_in_t *in, metadata_add_tag_out_t *o
     }
 
     if (ret_value != SUCCEED)
-        PGOTO_ERROR(FAIL, "Rank [%d]", pdc_server_rank_g);
+        PGOTO_DONE(FAIL);
 
 #ifdef ENABLE_MULTITHREAD
     // ^ Release hash table lock
@@ -1614,7 +1612,7 @@ PDC_Server_query_kvtag_rocksdb(pdc_kvtag_t *in, uint32_t *n_meta, uint64_t **obj
     if (rocksdb_iter)
         rocksdb_iter_destroy(rocksdb_iter);
 #else
-    LOG_ERROR("Enabled rocksdb but PDC is not compiled with it\n", pdc_server_rank_g);
+    LOG_ERROR("Enabled rocksdb but PDC is not compiled with it\n");
     ret_value = FAIL;
 #endif
 
@@ -1712,11 +1710,11 @@ PDC_Server_query_kvtag_sqlite(pdc_kvtag_t *in, uint32_t *n_meta, uint64_t **obj_
     // Construct a SQL query
     sqlite3_exec(sqlite3_db_g, sql, sqlite_query_kvtag_callback, &query_data, &errMessage);
     if (errMessage)
-        LOG_ERROR("Rank[%d]: Error from SQLite %s\n", pdc_server_rank_g, errMessage);
+        LOG_ERROR("Error from SQLite %s\n", errMessage);
 
     *n_meta = query_data.nobj;
 #else
-    LOG_ERROR("Rank[%d]: Enabled SQLite3 but PDC is not compiled with it\n", pdc_server_rank_g);
+    LOG_ERROR("Enabled SQLite3 but PDC is not compiled with it\n");
     ret_value = FAIL;
 #endif
 
@@ -1774,7 +1772,7 @@ PDC_Server_query_kvtag_someta(pdc_kvtag_t *in, uint32_t *n_meta, uint64_t **obj_
         }         // End looping metadata hash table
         *n_meta = iter;
 #ifdef PDC_DEBUG_OUTPUT
-        LOG_DEBUG("Rank[%d]: found %d objids\n", pdc_server_rank_g, iter);
+        LOG_DEBUG("Found %d objids\n", iter);
 #endif
     }
     else {
@@ -1799,31 +1797,29 @@ PDC_Server_get_kvtag_query_result(pdc_kvtag_t *in /*FIXME: query input should be
     *obj_ids = (void *)PDC_calloc(alloc_size, sizeof(uint64_t));
 
     char *v_query = (char *)in->value;
-    LOG_INFO("Rank[%d] Before stripQuotes: Querying kvtag with key [%s], value [%s]\n", pdc_server_rank_g,
-             in->name, (char *)in->value);
+    LOG_INFO("Before stripQuotes: Querying kvtag with key [%s], value [%s]\n", in->name, (char *)in->value);
     if (is_string_query(v_query)) {
         in->value = stripQuotes(v_query);
         in->type  = PDC_STRING;
     }
 
-    LOG_INFO("Rank[%d] after stripQuotes: Querying kvtag with key [%s], value [%s]\n", pdc_server_rank_g,
-             in->name, (char *)in->value);
+    LOG_INFO("After stripQuotes: Querying kvtag with key [%s], value [%s]\n", in->name, (char *)in->value);
 
     if (use_rocksdb_g == 1) {
         ret_value = PDC_Server_query_kvtag_rocksdb(in, n_meta, obj_ids, alloc_size);
         if (ret_value != SUCCEED)
-            PGOTO_ERROR(FAIL, "Rank [%d]: Error with PDC_Server_query_kvtag_rocksdb", pdc_server_rank_g);
+            PGOTO_ERROR(FAIL, "Error with PDC_Server_query_kvtag_rocksdb");
     }
     else if (use_sqlite3_g) {
         ret_value = PDC_Server_query_kvtag_sqlite(in, n_meta, obj_ids, alloc_size);
         if (ret_value != SUCCEED)
-            PGOTO_ERROR(FAIL, "Rank [%d]: Error with PDC_Server_query_kvtag_sqlite", pdc_server_rank_g);
+            PGOTO_ERROR(FAIL, "Error with PDC_Server_query_kvtag_sqlite");
     } // End if SQLite3
     else {
         // SoMeta backend
         ret_value = PDC_Server_query_kvtag_someta(in, n_meta, obj_ids, alloc_size);
         if (ret_value != SUCCEED)
-            PGOTO_ERROR(FAIL, "Rank [%d]: Error with PDC_Server_query_kvtag_someta", pdc_server_rank_g);
+            PGOTO_ERROR(FAIL, "Error with PDC_Server_query_kvtag_someta");
     }
 
 done:
@@ -1869,7 +1865,7 @@ PDC_Server_search_with_name_timestep(const char *obj_name, uint32_t hash_key, ui
         PGOTO_ERROR(FAIL, "metadata_hash_table_g not initialized");
 
     if (*out == NULL)
-        PGOTO_ERROR(FAIL, "Rank [%d]: Queried object with name [%s] not found", pdc_server_rank_g, name);
+        PGOTO_ERROR(FAIL, "Queried object with name [%s] not found", name);
 
 done:
     FUNC_LEAVE(ret_value);
@@ -1914,7 +1910,7 @@ PDC_Server_search_with_name_hash(const char *obj_name, uint32_t hash_key, pdc_me
         PGOTO_ERROR(FAIL, "metadata_hash_table_g not initialized");
 
     if (*out == NULL)
-        PGOTO_ERROR(FAIL, "Rank [%d]: Queried object with name [%s] not found", pdc_server_rank_g, name);
+        PGOTO_ERROR(FAIL, "Queried object with name [%s] not found", name);
 
 done:
     FUNC_LEAVE(ret_value);
@@ -1985,8 +1981,7 @@ PDC_Server_get_metadata_by_id_cb(const struct hg_cb_info *callback_info)
 
     ret_value = HG_Get_output(handle, &output);
     if (ret_value != HG_SUCCESS)
-        PGOTO_ERROR(ret_value, "Rank [%d]: PDC_Server_get_metadata_by_id_cb - error HG_Get_output",
-                    pdc_server_rank_g);
+        PGOTO_ERROR(ret_value, "Error HG_Get_output");
 
     if (output.res_meta.obj_id != 0) {
         // TODO free metdata
@@ -1994,7 +1989,7 @@ PDC_Server_get_metadata_by_id_cb(const struct hg_cb_info *callback_info)
         PDC_transfer_t_to_metadata_t(&output.res_meta, meta);
     }
     else
-        PGOTO_ERROR(ret_value, "Rank [%d]: no valid metadata is retrieved", pdc_server_rank_g);
+        PGOTO_ERROR(ret_value, "No valid metadata is retrieved");
 
     // Execute the callback function
     if (NULL != cb_args->cb) {
@@ -2002,7 +1997,7 @@ PDC_Server_get_metadata_by_id_cb(const struct hg_cb_info *callback_info)
         cb_args->cb(cb_args->args, PDC_POSIX);
     }
     else
-        PGOTO_ERROR(ret_value, "Rank [%d]: NULL callback ptr", pdc_server_rank_g);
+        PGOTO_ERROR(ret_value, "NULL callback ptr");
 
 done:
     HG_Free_output(handle, &output);
@@ -2030,7 +2025,7 @@ PDC_Server_get_metadata_by_id_with_cb(uint64_t obj_id, perr_t (*cb)(), void *arg
         // Metadata object is local, no need to send update RPC
         ret_value = PDC_Server_get_local_metadata_by_id(obj_id, &res_meta_ptr);
         if (ret_value != SUCCEED)
-            PGOTO_ERROR(FAIL, "Rank [%d]: PDC_Server_get_local_metadata_by_id FAILED", pdc_server_rank_g);
+            PGOTO_ERROR(FAIL, "Error with PDC_Server_get_local_metadata_by_id");
 
         ((region_list_t *)args)->meta = res_meta_ptr;
         // Call the callback function directly and pass in the result metadata ptr
@@ -2038,8 +2033,7 @@ PDC_Server_get_metadata_by_id_with_cb(uint64_t obj_id, perr_t (*cb)(), void *arg
     }
     else {
         if (PDC_Server_lookup_server_id(server_id) != SUCCEED) {
-            PGOTO_ERROR(FAIL, "Rank [%d]: Error getting remote server %d addr via lookup", pdc_server_rank_g,
-                        server_id);
+            PGOTO_ERROR(FAIL, "Error getting remote server %d addr via lookup", server_id);
         }
 
         HG_Create(hg_context_g, pdc_remote_server_info_g[server_id].addr, get_metadata_by_id_register_id_g,
@@ -2056,7 +2050,7 @@ PDC_Server_get_metadata_by_id_with_cb(uint64_t obj_id, perr_t (*cb)(), void *arg
         if (hg_ret != HG_SUCCESS) {
             res_meta_ptr = NULL;
             HG_Destroy(get_metadata_by_id_handle);
-            PGOTO_ERROR(FAIL, "Rank[%d]: Could not forward", pdc_server_rank_g);
+            PGOTO_ERROR(FAIL, "Could not forward");
         }
     }
 
@@ -2128,13 +2122,13 @@ PDC_Server_create_container(gen_cont_id_in_t *in, gen_cont_id_out_t *out)
 #endif
             // Insert to hash table
             if (hash_table_insert(container_hash_table_g, hash_key, entry) != 1)
-                PGOTO_ERROR(FAIL, "Rank[%d]: hash table insert failed", pdc_server_rank_g);
+                PGOTO_ERROR(FAIL, "Hash table insert failed");
             else
                 out->cont_id = entry->cont_id;
         }
     }
     else
-        PGOTO_ERROR(FAIL, "Rank[%d]: container_hash_table_g not initialized", pdc_server_rank_g);
+        PGOTO_ERROR(FAIL, "container_hash_table_g not initialized");
 
 #ifdef ENABLE_MULTITHREAD
     // ^ Release hash table lock
@@ -2190,19 +2184,18 @@ PDC_Server_delete_container_by_name(gen_cont_id_in_t *in, gen_cont_id_out_t *out
         // Is this hash value exist in the Hash table?
         if (lookup_value != NULL) {
             // Check if there exist metadata identical to current one
-            LOG_INFO("Rank[%d]: Found existing container with same hash value, name=%s\n", pdc_server_rank_g,
-                     lookup_value->cont_name);
+            LOG_INFO("Found existing container with same hash value, name=%s\n", lookup_value->cont_name);
             out->cont_id = 0;
             PGOTO_DONE(ret_value);
         }
         else {
             // Check if there exist metadata identical to current one
-            PGOTO_ERROR(FAIL, "Rank[%d]: Did not found existing container with same hash value, name=%s",
-                        pdc_server_rank_g, lookup_value->cont_name);
+            PGOTO_ERROR(FAIL, "Did not found existing container with same hash value, name=%s",
+                        lookup_value->cont_name);
         }
     }
     else
-        PGOTO_ERROR(FAIL, "Rank[%d]: container_hash_table_g not initialized", pdc_server_rank_g);
+        PGOTO_ERROR(FAIL, "container_hash_table_g not initialized");
 
 #ifdef ENABLE_MULTITHREAD
     // ^ Release hash table lock
@@ -2221,7 +2214,7 @@ PDC_Server_find_container_by_name(const char *cont_name, pdc_cont_hash_table_ent
 
     FUNC_ENTER(NULL);
     if (NULL == cont_name || NULL == out)
-        PGOTO_ERROR(FAIL, "Rank[%d]: input is NULL", pdc_server_rank_g);
+        PGOTO_ERROR(FAIL, "Input is NULL");
 
     if (container_hash_table_g != NULL) {
         // lookup
@@ -2238,7 +2231,7 @@ PDC_Server_find_container_by_name(const char *cont_name, pdc_cont_hash_table_ent
         PGOTO_ERROR(FAIL, "container_hash_table_g not initialized");
 
     if (*out == NULL)
-        PGOTO_ERROR(FAIL, "Rank[%d]: container [%s] not found", pdc_server_rank_g, cont_name);
+        PGOTO_ERROR(FAIL, "Container [%s] not found", cont_name);
 
 done:
     FUNC_LEAVE(ret_value);
@@ -2265,7 +2258,7 @@ PDC_Server_find_container_by_id(uint64_t cont_id, pdc_cont_hash_table_entry_t **
     FUNC_ENTER(NULL);
 
     if (NULL == out)
-        PGOTO_ERROR(FAIL, "Rank[%d]: input is NULL", pdc_server_rank_g);
+        PGOTO_ERROR(FAIL, "Input is NULL");
 
     if (container_hash_table_g != NULL) {
         // Since we only have the obj id, need to iterate the entire hash table
@@ -2286,7 +2279,7 @@ PDC_Server_find_container_by_id(uint64_t cont_id, pdc_cont_hash_table_entry_t **
     }
     else {
         out = NULL;
-        PGOTO_ERROR(FAIL, "Rank[%d]: container_hash_table_g not initialized", pdc_server_rank_g);
+        PGOTO_ERROR(FAIL, "container_hash_table_g not initialized");
     }
 
 done:
@@ -2317,13 +2310,13 @@ PDC_Server_container_add_objs(int n_obj, uint64_t *obj_ids, uint64_t cont_id)
             realloc_size *= (sizeof(uint64_t) * 2);
 
             if (is_debug_g == 1) {
-                LOG_DEBUG("Rank[%d]: realloc from %d to %ld\n", pdc_server_rank_g, cont_entry->n_allocated,
+                LOG_DEBUG("RRealloc from %d to %ld\n", cont_entry->n_allocated,
                           realloc_size / sizeof(uint64_t));
             }
 
             cont_entry->obj_ids = (uint64_t *)PDC_realloc(cont_entry->obj_ids, realloc_size);
             if (NULL == cont_entry->obj_ids)
-                PGOTO_ERROR(FAIL, "Rank[%d]: PDC_realloc failed", pdc_server_rank_g);
+                PGOTO_ERROR(FAIL, "PDC_realloc failed");
             total_mem_usage_g -= sizeof(uint64_t) * cont_entry->n_allocated;
 
             cont_entry->n_allocated = realloc_size / sizeof(uint64_t);
@@ -2336,12 +2329,12 @@ PDC_Server_container_add_objs(int n_obj, uint64_t *obj_ids, uint64_t cont_id)
 
         // Debug prints
         if (is_debug_g == 1) {
-            LOG_DEBUG("Rank[%d]: add %d objects to container %" PRIu64 ", total %d\n", pdc_server_rank_g,
-                      n_obj, cont_id, cont_entry->n_obj - cont_entry->n_deleted);
+            LOG_DEBUG("Add %d objects to container %" PRIu64 ", total %d\n", n_obj, cont_id,
+                      cont_entry->n_obj - cont_entry->n_deleted);
         }
     }
     else
-        PGOTO_ERROR(FAIL, "Rank[%d]: container %" PRIu64 " not found", pdc_server_rank_g, cont_id);
+        PGOTO_ERROR(FAIL, "Container %" PRIu64 " not found", cont_id);
 
 done:
     FUNC_LEAVE(ret_value);
@@ -2369,15 +2362,14 @@ PDC_Server_container_del_objs(int n_obj, uint64_t *obj_ids, uint64_t cont_id)
                 }
             }
         }
-        LOG_DEBUG("Rank[%d]: successfully deleted %d objects\n", pdc_server_rank_g, n_deletes);
+        LOG_DEBUG("Successfully deleted %d objects\n", n_deletes);
 
         if (n_deletes != n_obj) {
-            LOG_INFO("Rank[%d]: %d objects are not found to be deleted\n", pdc_server_rank_g,
-                     n_obj - n_deletes);
+            LOG_INFO("%d objects are not found to be deleted\n", n_obj - n_deletes);
         }
     }
     else
-        PGOTO_ERROR(FAIL, "Rank[%d]: container %" PRIu64 " not found", pdc_server_rank_g, cont_id);
+        PGOTO_ERROR(FAIL, "Container %" PRIu64 " not found", cont_id);
 
 done:
     FUNC_LEAVE(ret_value);
@@ -2395,7 +2387,7 @@ PDC_Server_container_add_tags(uint64_t cont_id, char *tags)
     if (cont_entry != NULL && tags != NULL)
         strcat(cont_entry->tags, tags);
     else
-        PGOTO_ERROR(FAIL, "Rank[%d]: container %" PRIu64 " not found", pdc_server_rank_g, cont_id);
+        PGOTO_ERROR(FAIL, "Container %" PRIu64 " not found", cont_id);
 
 done:
     FUNC_LEAVE(ret_value);
@@ -2473,28 +2465,28 @@ PDC_Server_get_storage_meta_by_names(query_read_names_args_t *args)
         // FIXME: currently assumes timestep 0
         PDC_Server_search_with_name_timestep(obj_name, PDC_get_hash_by_name(obj_name), 0, &meta);
         if (meta == NULL) {
-            LOG_ERROR("Rank[%d]: No metadata with name [%s] found\n", pdc_server_rank_g, obj_name);
+            LOG_ERROR("No metadata with name [%s] found\n", obj_name);
             continue;
         }
 
         ret_value = PDC_copy_all_storage_meta(meta, &(all_storage_meta[i]), &(all_nregion[i]));
         if (ret_value != SUCCEED) {
-            LOG_ERROR("Rank[%d]: Error when getting storage meta for [%s]\n", pdc_server_rank_g, obj_name);
+            LOG_ERROR("Error when getting storage meta for [%s]\n", obj_name);
             continue;
         }
         total_region += all_nregion[i];
 
         if (all_storage_meta[i]->storage_location[1] != 'g')
-            LOG_ERROR("Rank[%d]: Error with storage meta for [%s], obj_id %" PRIu64 ", loc [%s], offset "
+            LOG_ERROR("Error with storage meta for [%s], obj_id %" PRIu64 ", loc [%s], offset "
                       "%" PRIu64 "\n",
-                      pdc_server_rank_g, obj_name, all_storage_meta[i]->obj_id,
-                      all_storage_meta[i]->storage_location, all_storage_meta[i]->offset);
+                      obj_name, all_storage_meta[i]->obj_id, all_storage_meta[i]->storage_location,
+                      all_storage_meta[i]->offset);
     } // End for cnt
 
     // Now the storage meta is stored in all_storage_meta;
     client_id = args->client_id;
     if (PDC_Server_lookup_client(client_id) != SUCCEED) {
-        PGOTO_ERROR(FAIL, "Rank[%d]: Error getting client %d addr via lookup", pdc_server_rank_g, client_id);
+        PGOTO_ERROR(FAIL, "Error getting client %d addr via lookup", client_id);
     }
 
     // Now we have all the storage metadata of the queried objects, send them back to client with
@@ -2521,7 +2513,7 @@ PDC_Server_get_storage_meta_by_names(query_read_names_args_t *args)
     if (hg_ret != HG_SUCCESS)
         PGOTO_ERROR(FAIL, "Could not create bulk data handle");
     if (pdc_client_info_g[client_id].addr == NULL)
-        PGOTO_ERROR(FAIL, "Rank[%d]: Error with client %d addr", pdc_server_rank_g, client_id);
+        PGOTO_ERROR(FAIL, "Error with client %d addr", client_id);
     hg_ret = HG_Create(hg_context_g, pdc_client_info_g[client_id].addr,
                        send_client_storage_meta_rpc_register_id_g, &rpc_handle);
     if (hg_ret != HG_SUCCESS)
@@ -2603,13 +2595,13 @@ PDC_Server_add_kvtag_rocksdb(metadata_add_kvtag_in_t *in, metadata_add_tag_out_t
     rocksdb_put(rocksdb_g, writeoptions, rocksdb_key, strlen(rocksdb_key) + 1, in->kvtag.value,
                 in->kvtag.size, &err);
     if (err != NULL) {
-        LOG_ERROR("Rank[%d]: Error with rocksdb_put %s, [%s]\n", pdc_server_rank_g, in->kvtag.name, err);
+        LOG_ERROR("Error with rocksdb_put %s, [%s]\n", in->kvtag.name, err);
         ret_value = FAIL;
     }
     else
         out->ret = 1;
 #else
-    LOG_ERROR("Rank[%d]: enabled rocksdb but PDC is not compiled with it\n", pdc_server_rank_g);
+    LOG_ERROR("Enabled rocksdb but PDC is not compiled with it\n");
     ret_value = FAIL;
 #endif
 
@@ -2641,18 +2633,18 @@ PDC_Server_add_kvtag_sqlite3(metadata_add_kvtag_in_t *in, metadata_add_tag_out_t
                 in->obj_id, in->kvtag.name, *((double *)in->kvtag.value));
     }
     else
-        PGOTO_ERROR(FAIL, "Rank[%d]: datatype not supported %d", pdc_server_rank_g, in->kvtag.type);
+        PGOTO_ERROR(FAIL, "Datatype not supported %d", in->kvtag.type);
 
     sqlite3_exec(sqlite3_db_g, sql, NULL, 0, &errMessage);
 
     if (errMessage)
-        LOG_ERROR("Rank[%d]: Error from SQLite %s\n", pdc_server_rank_g, errMessage);
+        LOG_ERROR("Error from SQLite %s\n", errMessage);
     else
         out->ret = 1;
 
 done:
 #else
-    LOG_ERROR("Rank[%d]: enabled SQLite3 but PDC is not compiled with it\n", pdc_server_rank_g);
+    LOG_ERROR("Enabled SQLite3 but PDC is not compiled with it\n");
     ret_value = FAIL;
 #endif
 
@@ -2690,7 +2682,7 @@ PDC_Server_add_kvtag_someta(metadata_add_kvtag_in_t *in, metadata_add_tag_out_t 
             out->ret = 1;
         }
         else {
-            LOG_ERROR("Rank[%d]: add tag target %" PRIu64 " not found\n", pdc_server_rank_g, in->obj_id);
+            LOG_ERROR("Add tag target %" PRIu64 " not found\n", in->obj_id);
             ret_value = FAIL;
             out->ret  = -1;
         }
@@ -2726,17 +2718,17 @@ PDC_Server_add_kvtag(metadata_add_kvtag_in_t *in, metadata_add_tag_out_t *out)
     if (use_rocksdb_g == 1) {
         ret_value = PDC_Server_add_kvtag_rocksdb(in, out);
         if (ret_value != SUCCEED)
-            PGOTO_ERROR(FAIL, "Rank[%d]: Error with PDC_Server_add_kvtag_rocksdb", pdc_server_rank_g);
+            PGOTO_ERROR(FAIL, "Error with PDC_Server_add_kvtag_rocksdb");
     } // End if rocksdb
     else if (use_sqlite3_g == 1) {
         ret_value = PDC_Server_add_kvtag_sqlite3(in, out);
         if (ret_value != SUCCEED)
-            PGOTO_ERROR(FAIL, "Rank[%d]: Error with PDC_Server_add_kvtag_sqlite3", pdc_server_rank_g);
+            PGOTO_ERROR(FAIL, "Error with PDC_Server_add_kvtag_sqlite3");
     } // End if sqlite3
     else {
         ret_value = PDC_Server_add_kvtag_someta(in, out);
         if (ret_value != SUCCEED)
-            PGOTO_ERROR(FAIL, "Rank[%d]: Error with PDC_Server_add_kvtag_someta", pdc_server_rank_g);
+            PGOTO_ERROR(FAIL, "Error with PDC_Server_add_kvtag_someta");
     }
 
 done:
@@ -2851,7 +2843,7 @@ PDC_Server_get_kvtag_rocksdb(metadata_get_kvtag_in_t *in, metadata_get_kvtag_out
     size_t len;
     char * value = rocksdb_get(rocksdb_g, readoptions, rocksdb_key, strlen(rocksdb_key) + 1, &len, &err);
     if (value == NULL) {
-        LOG_ERROR("Rank[%d]: Error with rocksdb_get %s, [%s]\n", pdc_server_rank_g, in->key, err);
+        LOG_ERROR("Error with rocksdb_get %s, [%s]\n", in->key, err);
         ret_value = FAIL;
     }
     out->kvtag.name  = in->key;
@@ -2859,7 +2851,7 @@ PDC_Server_get_kvtag_rocksdb(metadata_get_kvtag_in_t *in, metadata_get_kvtag_out
     out->kvtag.value = value;
     out->ret         = 1;
 #else
-    LOG_ERROR("Rank[%d]: Enabled rocksdb but PDC is not compiled with it\n", pdc_server_rank_g);
+    LOG_ERROR("Enabled rocksdb but PDC is not compiled with it\n");
     ret_value = FAIL;
 #endif
 
@@ -2880,7 +2872,7 @@ PDC_Server_get_kvtag_sqlite3(metadata_get_kvtag_in_t *in, metadata_get_kvtag_out
 
     sqlite3_exec(sqlite3_db_g, sql, sqlite_get_kvtag_callback, &out->kvtag, &errMessage);
     if (errMessage) {
-        LOG_ERROR("Rank[%d]: Error from SQLite %s\n", pdc_server_rank_g, errMessage);
+        LOG_ERROR("Error from SQLite %s\n", errMessage);
     }
     else {
         // size and value is filled in sqlite_get_kvtag_callback
@@ -2888,7 +2880,7 @@ PDC_Server_get_kvtag_sqlite3(metadata_get_kvtag_in_t *in, metadata_get_kvtag_out
         out->ret        = 1;
     }
 #else
-    LOG_ERROR("Rank[%d]: Enabled SQLite3 but PDC is not compiled with it\n", pdc_server_rank_g);
+    LOG_ERROR("Enabled SQLite3 but PDC is not compiled with it\n");
     ret_value = FAIL;
 #endif
 
@@ -2964,18 +2956,18 @@ PDC_Server_get_kvtag(metadata_get_kvtag_in_t *in, metadata_get_kvtag_out_t *out)
     if (use_rocksdb_g == 1) {
         ret_value = PDC_Server_get_kvtag_rocksdb(in, out);
         if (ret_value != SUCCEED)
-            PGOTO_ERROR(FAIL, "Rank[%d]: Error with PDC_Server_get_kvtag_rocksdb", pdc_server_rank_g);
+            PGOTO_ERROR(FAIL, "Error with PDC_Server_get_kvtag_rocksdb");
     }
     else if (use_sqlite3_g == 1) {
         ret_value = PDC_Server_get_kvtag_sqlite3(in, out);
         if (ret_value != SUCCEED)
-            PGOTO_ERROR(FAIL, "Rank[%d]: Error with PDC_Server_get_kvtag_sqlite3", pdc_server_rank_g);
+            PGOTO_ERROR(FAIL, "Error with PDC_Server_get_kvtag_sqlite3");
     }
     else {
         // Someta
         ret_value = PDC_Server_get_kvtag_someta(in, out);
         if (ret_value != SUCCEED)
-            PGOTO_ERROR(FAIL, "Rank[%d]: Error with PDC_Server_get_kvtag_someta", pdc_server_rank_g);
+            PGOTO_ERROR(FAIL, "Error with PDC_Server_get_kvtag_someta");
     }
 
 done:
@@ -3045,13 +3037,13 @@ PDC_Server_del_kvtag_rocksdb(metadata_get_kvtag_in_t *in, metadata_add_tag_out_t
     sprintf(rocksdb_key, "%lu`%s", in->obj_id, in->key);
     rocksdb_delete(rocksdb_g, writeoptions, rocksdb_key, strlen(rocksdb_key) + 1, &err);
     if (err != NULL) {
-        LOG_ERROR("Rank[%d]: Error with rocksdb_delete [%s], [%s]\n", pdc_server_rank_g, in->key, err);
+        LOG_ERROR("Error with rocksdb_delete [%s], [%s]\n", in->key, err);
         ret_value = FAIL;
     }
     else
         out->ret = 1;
 #else
-    LOG_ERROR("Rank[%d]: Enabled rocksdb but PDC is not compiled with it\n", pdc_server_rank_g);
+    LOG_ERROR("Enabled rocksdb but PDC is not compiled with it\n");
     ret_value = FAIL;
 #endif
 
@@ -3070,13 +3062,13 @@ PDC_Server_del_kvtag_sqlite3(metadata_get_kvtag_in_t *in, metadata_add_tag_out_t
 
     sqlite3_exec(sqlite3_db_g, sql, NULL, 0, &errMessage);
     if (errMessage) {
-        LOG_ERROR("Rank[%d]: Error from SQLite %s\n", pdc_server_rank_g, errMessage);
+        LOG_ERROR("Error from SQLite %s\n", errMessage);
         ret_value = FAIL;
     }
     else
         out->ret = 1;
 #else
-    LOG_ERROR("Rank[%d]: Enabled SQLite3 but PDC is not compiled with it\n", pdc_server_rank_g);
+    LOG_ERROR("Enabled SQLite3 but PDC is not compiled with it\n");
     ret_value = FAIL;
 #endif
 
@@ -3107,7 +3099,7 @@ PDC_Server_del_kvtag_someta(metadata_get_kvtag_in_t *in, metadata_add_tag_out_t 
         else {
             ret_value = FAIL;
             out->ret  = -1;
-            LOG_ERROR("Rank[%d]: Failed to find requested kvtag [%s]\n", pdc_server_rank_g, in->key);
+            LOG_ERROR("Failed to find requested kvtag [%s]\n", in->key);
         }
     }
     else {
@@ -3119,7 +3111,7 @@ PDC_Server_del_kvtag_someta(metadata_get_kvtag_in_t *in, metadata_add_tag_out_t 
         else {
             ret_value = FAIL;
             out->ret  = -1;
-            LOG_ERROR("Rank[%d]: Failed to find requested kvtag [%s]\n", pdc_server_rank_g, in->key);
+            LOG_ERROR("Failed to find requested kvtag [%s]\n", in->key);
         }
     }
 
@@ -3153,17 +3145,17 @@ PDC_Server_del_kvtag(metadata_get_kvtag_in_t *in, metadata_add_tag_out_t *out)
     if (use_rocksdb_g) {
         ret_value = PDC_Server_del_kvtag_rocksdb(in, out);
         if (ret_value != SUCCEED)
-            PGOTO_ERROR(FAIL, "Rank[%d]: Error with PDC_Server_del_kvtag_rocksdb", pdc_server_rank_g);
+            PGOTO_ERROR(FAIL, "Error with PDC_Server_del_kvtag_rocksdb");
     }
     else if (use_sqlite3_g) {
         ret_value = PDC_Server_del_kvtag_sqlite3(in, out);
         if (ret_value != SUCCEED)
-            PGOTO_ERROR(FAIL, "Rank[%d]: Error with PDC_Server_del_kvtag_sqlite3", pdc_server_rank_g);
+            PGOTO_ERROR(FAIL, "Error with PDC_Server_del_kvtag_sqlite3");
     }
     else {
         ret_value = PDC_Server_del_kvtag_someta(in, out);
         if (ret_value != SUCCEED)
-            PGOTO_ERROR(FAIL, "Rank[%d]: Error with PDC_Server_del_kvtag_someta", pdc_server_rank_g);
+            PGOTO_ERROR(FAIL, "Error with PDC_Server_del_kvtag_someta");
     }
 
 done:

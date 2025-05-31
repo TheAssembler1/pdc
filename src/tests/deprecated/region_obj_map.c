@@ -76,7 +76,7 @@ main(int argc, char **argv)
         LOG_INFO("Create a container property\n");
     }
     else {
-        LOG_ERROR("Failed to create container property");
+        LOG_ERROR("Failed to create container property\n");
         ret_value = 1;
     }
     // create a container
@@ -86,7 +86,7 @@ main(int argc, char **argv)
         LOG_INFO("Create a container c1\n");
     }
     else {
-        LOG_ERROR("Failed to create container");
+        LOG_ERROR("Failed to create container\n");
         ret_value = 1;
     }
     // create an object property
@@ -95,7 +95,7 @@ main(int argc, char **argv)
         LOG_INFO("Create an object property\n");
     }
     else {
-        LOG_ERROR("Failed to create object property");
+        LOG_ERROR("Failed to create object property\n");
         ret_value = 1;
     }
 
@@ -118,7 +118,7 @@ main(int argc, char **argv)
         LOG_INFO("Create an object o1\n");
     }
     else {
-        LOG_ERROR("Failed to create object");
+        LOG_ERROR("Failed to create object\n");
         ret_value = 1;
     }
     // create second object

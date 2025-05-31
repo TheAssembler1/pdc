@@ -74,8 +74,8 @@ main(int argc, char **argv)
     remote_reg    = PDCregion_create(3, pdc_offset, pdc_size);
 
     if (nproc <= 16)
-        LOG_INFO("Rank %d: offset %llu, %llu, %llu size %llu, %llu, %llu\n", rank, pdc_offset[0],
-                 pdc_offset[1], pdc_offset[2], pdc_size[0], pdc_size[1], pdc_size[2]);
+        LOG_INFO("Offset %llu, %llu, %llu size %llu, %llu, %llu\n", rank, pdc_offset[0], pdc_offset[1],
+                 pdc_offset[2], pdc_size[0], pdc_size[1], pdc_size[2]);
 
     // Tag retrieval
     sprintf(tag_name, "%llu-%llu\n", pdc_offset[1], pdc_offset[2]);

@@ -92,8 +92,8 @@ main(int argc, char **argv)
     data = (double *)malloc(sizeof(double) * local_size[0] * local_size[1] * local_size[2]);
 
     if (nproc <= 16)
-        LOG_INFO("Rank %d: offset %llu, %llu, %llu size %llu, %llu, %llu\n", rank, offset[0], offset[1],
-                 offset[2], size[0], size[1], size[2]);
+        LOG_INFO("Offset %llu, %llu, %llu size %llu, %llu, %llu\n", offset[0], offset[1], offset[2], size[0],
+                 size[1], size[2]);
 
 #ifdef ENABLE_MPI
     t0 = MPI_Wtime();
@@ -158,7 +158,7 @@ main(int argc, char **argv)
     value_size   = 4 * sizeof(double);
 
     if (PDCobj_put_tag(obj, tag_name, tag_value, PDC_DOUBLE, value_size) < 0)
-        LOG_ERROR("Rank %d fail to put tag\n", rank);
+        LOG_ERROR("Failed to put tag\n", rank);
 
     // Query the created object
     pdc_metadata_t *metadata;

@@ -1,4 +1,5 @@
 #include "pdc_logger.h"
+#include "pdc_timing.h"
 #include <sys/stat.h>
 #include <sys/time.h>
 #include <time.h>
@@ -72,9 +73,9 @@ get_cur_log_file(PDC_LogLevel level)
     return logFiles[level] ? logFiles[level] : stdout;
 }
 
-void
-_log_message(PDC_LogLevel level, const char *file, const char *func, int line_number, const char *format,
-             va_list args, bool just_print)
+static void
+_log_message(bool is_server, PDC_LogLevel level, const char *file, const char *func, int line_number,
+             const char *format, va_list args, bool just_print)
 {
     if (level > logLevel) {
         return;
@@ -98,36 +99,64 @@ _log_message(PDC_LogLevel level, const char *file, const char *func, int line_nu
                 break;
         }
 
-        // Extract only the filename (stem) from the full path
+        // Extract only the filename from the full path
         const char *filename = strrchr(file, '/');
-        if (filename) {
-            filename++;
-        }
-        else {
-            filename = file;
-        }
+        filename             = filename ? filename + 1 : file;
 
-        // Properly format timestamp
+        // Format timestamp
         struct timeval tv;
         gettimeofday(&tv, NULL);
         struct tm timeinfo;
         localtime_r(&tv.tv_sec, &timeinfo);
 
         char timestr[30];
-        strftime(timestr, sizeof(timestr), "%Y-%m-%d %H:%M:%S", &timeinfo);
-
-        const char *log_format = "[%s.%06ld] [%s] [%s:%s:%d] %s";
+        strftime(timestr, sizeof(timestr), "%H:%M:%S", &timeinfo);
 
         char message[MAX_LOG_MSG_LENGTH + 1];
         vsnprintf(message, MAX_LOG_MSG_LENGTH, format, args);
 
-        fprintf(logFile, log_format, timestr, tv.tv_usec, prefix, filename, func, line_number, message);
+#ifdef ENABLE_MPI
+        static int my_rank = -1;
+        if (my_rank == -1)
+            my_rank = PDC_get_rank();
+#endif
+
+        // Print differently based on log level
+        if (level == LOG_LEVEL_ERROR) {
+#ifdef ENABLE_MPI
+            if (is_server)
+                fprintf(logFile, "[%s.%06ld] [%s] [%s:%d] PDC_SERVER[%d]: %s", timestr, tv.tv_usec, prefix,
+                        filename, line_number, my_rank, message);
+            else
+                fprintf(logFile, "[%s.%06ld] [%s] [%s:%d] PDC_CLIENT[%d]: %s", timestr, tv.tv_usec, prefix,
+                        filename, line_number, my_rank, message);
+#else
+            if (is_server)
+                fprintf(logFile, "[%s.%06ld] [%s] [%s:%d] PDC_SERVER: %s", timestr, tv.tv_usec, prefix,
+                        filename, line_number, message);
+            else
+                fprintf(logFile, "[%s.%06ld] [%s] [%s:%d] PC_CLIENT: %s", timestr, tv.tv_usec, prefix,
+                        filename, line_number, message);
+#endif
+        }
+        else {
+#ifdef ENABLE_MPI
+            if (is_server)
+                fprintf(logFile, "[%s] PDC_SERVER[%d]: %s", prefix, my_rank, message);
+            else
+                fprintf(logFile, "[%s] PDC_CLIENT[%d]: %s", prefix, my_rank, message);
+#else
+            if (is_server)
+                fprintf(logFile, "[%s] PDC_SERVER: %s", prefix, message);
+            else
+                fprintf(logFile, "[%s] PC_CLIENT: %s", prefix, message);
+#endif
+        }
     }
     else {
         const char *log_format = "%s";
         char        message[MAX_LOG_MSG_LENGTH + 1];
         vsnprintf(message, MAX_LOG_MSG_LENGTH, format, args);
-
         fprintf(logFile, log_format, message);
     }
 
@@ -135,12 +164,12 @@ _log_message(PDC_LogLevel level, const char *file, const char *func, int line_nu
 }
 
 void
-log_message(bool just_print, PDC_LogLevel level, const char *file, const char *func, int line_number,
-            const char *format, ...)
+log_message(bool is_server, bool just_print, PDC_LogLevel level, const char *file, const char *func,
+            int line_number, const char *format, ...)
 {
 
     va_list args;
     va_start(args, format);
-    _log_message(level, file, func, line_number, format, args, just_print);
+    _log_message(is_server, level, file, func, line_number, format, args, just_print);
     va_end(args);
 }
