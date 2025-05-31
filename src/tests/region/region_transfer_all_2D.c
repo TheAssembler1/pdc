@@ -31,6 +31,8 @@
 #include <unistd.h>
 #include <sys/time.h>
 #include "pdc.h"
+#include "test_helper.h"
+
 #define BUF_LEN 256
 #define OBJ_NUM 13
 
@@ -44,7 +46,7 @@ main(int argc, char **argv)
     pdcid_t *transfer_request;
 
     int   rank = 0, size = 1, i, j;
-    int   ret_value = 0;
+    int   ret_value = TSUCCEED;
     int **data, **data_read;
 
     uint64_t offset[2], offset_length[2];
@@ -78,63 +80,51 @@ main(int argc, char **argv)
     dims[1] = 4;
 
     // create a pdc
-    pdc = PDCinit("pdc");
-    LOG_INFO("create a new pdc\n");
-
+    TASSERT((pdc = PDCinit("pdc")) != 0, "Call to PDCinit succeeded", "Call to PDCinit failed");
     // create a container property
-    cont_prop = PDCprop_create(PDC_CONT_CREATE, pdc);
-    if (cont_prop > 0) {
-        LOG_INFO("Create a container property\n");
-    }
-    else {
-        LOG_ERROR("Failed to create container property");
-        ret_value = 1;
-    }
+    TASSERT((cont_prop = PDCprop_create(PDC_CONT_CREATE, pdc)) != 0, "Call to PDCprop_create succeeded",
+            "Call to PDCprop_create failed");
     // create a container
     sprintf(cont_name, "c%d", rank);
-    cont = PDCcont_create(cont_name, cont_prop);
-    if (cont > 0) {
-        LOG_INFO("Create a container c1\n");
-    }
-    else {
-        LOG_ERROR("Failed to create container");
-        ret_value = 1;
-    }
+    TASSERT((cont = PDCcont_create(cont_name, cont_prop)) != 0, "Call to PDCcont_create succeeded",
+            "Call to PDCcont_create failed");
     // create an object property
-    obj_prop = PDCprop_create(PDC_OBJ_CREATE, pdc);
-    if (obj_prop > 0) {
-        LOG_INFO("Create an object property\n");
-    }
-    else {
-        LOG_ERROR("Failed to create object property");
-        ret_value = 1;
-    }
+    TASSERT((obj_prop = PDCprop_create(PDC_OBJ_CREATE, pdc)) != 0, "Call to PDCprop_create succeeded",
+            "Call to PDCprop_create failed");
 
-    ret = PDCprop_set_obj_type(obj_prop, PDC_INT);
-    if (ret != SUCCEED) {
-        LOG_ERROR("Failed to set obj type");
-        ret_value = 1;
-    }
-    PDCprop_set_obj_dims(obj_prop, 2, dims);
-    PDCprop_set_obj_user_id(obj_prop, getuid());
-    PDCprop_set_obj_time_step(obj_prop, 0);
-    PDCprop_set_obj_app_name(obj_prop, "DataServerTest");
-    PDCprop_set_obj_tags(obj_prop, "tag0=1");
+    TASSERT(PDCprop_set_obj_type(obj_prop, PDC_INT) >= 0, "Call to PDCprop_set_obj_type succeeded",
+            "Call to PDCprop_set_obj_type failed");
+    TASSERT(PDCprop_set_obj_dims(obj_prop, 2, dims) >= 0, "Call to PDCprop_set_obj_dims succeeded",
+            "Call to PDCprop_set_obj_dims failed");
+    TASSERT(PDCprop_set_obj_user_id(obj_prop, getuid()) >= 0, "Call to PDCprop_set_obj_user_id succeeded",
+            "Call to PDCprop_set_obj_user_id failed");
+    TASSERT(PDCprop_set_obj_time_step(obj_prop, 0) >= 0, "Call to PDCprop_set_obj_time_step succeeded",
+            "Call to PDCprop_set_obj_time_step failed");
+    TASSERT(PDCprop_set_obj_app_name(obj_prop, "DataServerTest") >= 0,
+            "Call to PDCprop_set_obj_user_id succeeded", "Call to PDCprop_set_obj_user_id failed");
+    TASSERT(PDCprop_set_obj_tags(obj_prop, "tag0=1") >= 0, "Call to PDCprop_set_obj_tags succeeded",
+            "Call to PDCprop_set_obj_tags failed");
 
     // create many objects
     obj = (pdcid_t *)malloc(sizeof(pdcid_t) * OBJ_NUM);
     for (i = 0; i < OBJ_NUM; ++i) {
         switch (i % 4) {
             case 0: {
-                ret = PDCprop_set_obj_transfer_region_type(obj_prop, PDC_REGION_STATIC);
+                TASSERT(PDCprop_set_obj_transfer_region_type(obj_prop, PDC_REGION_STATIC) >= 0,
+                        "Call to PDCprop_set_obj_transfer_region_type succeeded",
+                        "Call to PDCprop_set_obj_transfer_region_type failed");
                 break;
             }
             case 1: {
-                ret = PDCprop_set_obj_transfer_region_type(obj_prop, PDC_OBJ_STATIC);
+                TASSERT(PDCprop_set_obj_transfer_region_type(obj_prop, PDC_OBJ_STATIC) >= 0,
+                        "Call to PDCprop_set_obj_transfer_region_type succeeded",
+                        "Call to PDCprop_set_obj_transfer_region_type failed");
                 break;
             }
             case 2: {
-                ret = PDCprop_set_obj_transfer_region_type(obj_prop, PDC_REGION_LOCAL);
+                TASSERT(PDCprop_set_obj_transfer_region_type(obj_prop, PDC_REGION_LOCAL) >= 0,
+                        "Call to PDCprop_set_obj_transfer_region_type succeeded",
+                        "Call to PDCprop_set_obj_transfer_region_type failed");
                 break;
             }
             default: {
@@ -142,261 +132,182 @@ main(int argc, char **argv)
             }
         }
         sprintf(obj_name, "o%d_%d", i, rank);
-        obj[i] = PDCobj_create(cont, obj_name, obj_prop);
-        if (obj[i] > 0) {
-            LOG_INFO("Create an object o1\n");
-        }
-        else {
-            LOG_ERROR("Failed to create object");
-            ret_value = 1;
-        }
+        TASSERT((obj[i] = PDCobj_create(cont, obj_name, obj_prop)) != 0, "Call to PDCobj_create succeeded",
+                "Call to PDCobj_create failed");
     }
 
     offset[0]        = 0;
     offset_length[0] = BUF_LEN;
-    reg              = PDCregion_create(1, offset, offset_length);
-    if (reg > 0) {
-        LOG_INFO("Create local region\n");
-    }
-    else {
-        LOG_ERROR("Failed to create region");
-        ret_value = 1;
-    }
-
+    TASSERT((reg = PDCregion_create(1, offset, offset_length)) != 0, "Call to PDCregion_create succeeded",
+            "Call to PDCregion_create failed");
     offset[0]        = 0;
     offset[1]        = 0;
     offset_length[0] = BUF_LEN / 4;
     offset_length[1] = 4;
-    reg_global       = PDCregion_create(2, offset, offset_length);
-    if (reg_global > 0) {
-        LOG_INFO("Create global region\n");
-    }
-    else {
-        LOG_ERROR("Failed to create region");
-        ret_value = 1;
-    }
+    TASSERT((reg_global = PDCregion_create(2, offset, offset_length)) != 0,
+            "Call to PDCregion_create succeeded", "Call to PDCregion_create failed");
+
     for (j = 0; j < OBJ_NUM; ++j) {
-        for (i = 0; i < BUF_LEN; ++i) {
+        for (i = 0; i < BUF_LEN; ++i)
             data[j][i] = i;
-        }
     }
     transfer_request = (pdcid_t *)malloc(sizeof(pdcid_t) * OBJ_NUM);
 
     // Place a transfer request for every objects
     for (i = 0; i < OBJ_NUM; ++i) {
-        transfer_request[i] = PDCregion_transfer_create(data[i], PDC_WRITE, obj[i], reg, reg_global);
+        TASSERT((transfer_request[i] =
+                     PDCregion_transfer_create(data[i], PDC_WRITE, obj[i], reg, reg_global)) != 0,
+                "Call to PDCregion_transfer_create succeeded", "Call to PDCregion_transfer_create failed");
     }
 
     if (start_method) {
-        ret = PDCregion_transfer_start_all(transfer_request, OBJ_NUM);
-        if (ret != SUCCEED) {
-            LOG_ERROR("Failed to region transfer start");
-            ret_value = 1;
-        }
+        TASSERT(PDCregion_transfer_start_all(transfer_request, OBJ_NUM) >= 0,
+                "Call to PDCregion_transfer_start_all succeeded",
+                "Call to PDCregion_transfer_start_all failed");
     }
     else {
         for (i = 0; i < OBJ_NUM; ++i) {
-            ret = PDCregion_transfer_start(transfer_request[i]);
-            if (ret != SUCCEED) {
-                LOG_ERROR("Failed to region transfer start");
-                ret_value = 1;
-            }
+            TASSERT(PDCregion_transfer_start(transfer_request[i]) >= 0,
+                    "Call to PDCregion_transfer_start succeeded", "Call to PDCregion_transfer_start failed");
         }
     }
     if (wait_method == 1) {
-        ret = PDCregion_transfer_wait_all(transfer_request, OBJ_NUM);
-        if (ret != SUCCEED) {
-            LOG_ERROR("Failed to region transfer wait");
-            ret_value = 1;
-        }
+        TASSERT(PDCregion_transfer_wait_all(transfer_request, OBJ_NUM) >= 0,
+                "Call to PDCregion_transfer_wait_all succeeded",
+                "Call to PDCregion_transfer_wait_all failed");
     }
     else if (wait_method == 0) {
         pdcid_t *transfer_request_all = (pdcid_t *)malloc(sizeof(pdcid_t) * OBJ_NUM);
         int      request_size         = 0;
+
         for (i = 0; i < OBJ_NUM; i += 2) {
             transfer_request_all[request_size] = transfer_request[i];
             request_size++;
         }
-        ret = PDCregion_transfer_wait_all(transfer_request_all, request_size);
-        if (ret != SUCCEED) {
-            LOG_ERROR("Failed to region transfer wait");
-            ret_value = 1;
-        }
+
+        TASSERT(PDCregion_transfer_wait_all(transfer_request_all, request_size) >= 0,
+                "Call to PDCregion_transfer_wait_all succeeded",
+                "Call to PDCregion_transfer_wait_all failed");
+
         request_size = 0;
         for (i = 1; i < OBJ_NUM; i += 2) {
             transfer_request_all[request_size] = transfer_request[i];
             request_size++;
         }
-        ret = PDCregion_transfer_wait_all(transfer_request_all, request_size);
-        if (ret != SUCCEED) {
-            LOG_ERROR("Failed to region transfer wait");
-            ret_value = 1;
-        }
+
+        TASSERT(PDCregion_transfer_wait_all(transfer_request_all, request_size) >= 0,
+                "Call to PDCregion_transfer_wait_all succeeded",
+                "Call to PDCregion_transfer_wait_all failed");
+
         free(transfer_request_all);
     }
     for (i = 0; i < OBJ_NUM; ++i) {
-        ret = PDCregion_transfer_close(transfer_request[i]);
-        if (ret != SUCCEED) {
-            LOG_ERROR("Failed to region transfer close");
-            ret_value = 1;
-        }
-    }
-    if (PDCregion_close(reg) < 0) {
-        LOG_ERROR("Failed to close local region");
-        ret_value = 1;
-    }
-    else {
-        LOG_INFO("successfully closed local region");
+        TASSERT(PDCregion_transfer_close(transfer_request[i]) >= 0,
+                "Call to PDCregion_transfer_close succeeded", "Call to PDCregion_transfer_close failed");
     }
 
-    if (PDCregion_close(reg_global) < 0) {
-        LOG_ERROR("Failed to close global region");
-        ret_value = 1;
-    }
-    else {
-        LOG_INFO("successfully closed global region");
-    }
+    TASSERT(PDCregion_close(reg) >= 0, "Call to PDCregion_close succeeded", "Call to PDCregion_close failed");
+    TASSERT(PDCregion_close(reg_global) >= 0, "Call to PDCregion_close succeeded",
+            "Call to PDCregion_close failed");
 
     offset[0]        = 0;
     offset_length[0] = BUF_LEN;
-    reg              = PDCregion_create(1, offset, offset_length);
+    TASSERT((reg = PDCregion_create(1, offset, offset_length)) != 0, "Call to PDCregion_create succeeded",
+            "Call to PDCregion_create failed");
     offset[0]        = 0;
     offset[1]        = 0;
     offset_length[0] = BUF_LEN / 4;
     offset_length[1] = 4;
-    reg_global       = PDCregion_create(2, offset, offset_length);
+    TASSERT((reg_global = PDCregion_create(2, offset, offset_length)) != 0,
+            "Call to PDCregion_create succeeded", "Call to PDCregion_create failed");
 
     for (i = 0; i < OBJ_NUM; ++i) {
         memset(data_read[i], 0, sizeof(int) * BUF_LEN);
-        transfer_request[i] = PDCregion_transfer_create(data_read[i], PDC_READ, obj[i], reg, reg_global);
+        TASSERT((transfer_request[i] =
+                     PDCregion_transfer_create(data_read[i], PDC_READ, obj[i], reg, reg_global)) != 0,
+                "Call to PDCregion_transfer_create succeeded", "Call to PDCregion_transfer_create failed");
     }
     if (start_method) {
-        ret = PDCregion_transfer_start_all(transfer_request, OBJ_NUM);
-        if (ret != SUCCEED) {
-            LOG_ERROR("Failed to region transfer start");
-            ret_value = 1;
-        }
+        TASSERT(PDCregion_transfer_start_all(transfer_request, OBJ_NUM) >= 0,
+                "Call to PDCregion_transfer_start_all succeeded",
+                "Call to PDCregion_transfer_start_all failed");
     }
     else {
         for (i = 0; i < OBJ_NUM; ++i) {
-            ret = PDCregion_transfer_start(transfer_request[i]);
-            if (ret != SUCCEED) {
-                LOG_ERROR("Failed to region transfer start");
-                ret_value = 1;
-            }
+            TASSERT(PDCregion_transfer_start(transfer_request[i]) >= 0,
+                    "Call to PDCregion_transfer_start succeeded", "Call to PDCregion_transfer_start failed");
         }
     }
+
     if (wait_method == 1) {
-        ret = PDCregion_transfer_wait_all(transfer_request, OBJ_NUM);
-        if (ret != SUCCEED) {
-            LOG_ERROR("Failed to region transfer wait");
-            ret_value = 1;
-        }
+        TASSERT(PDCregion_transfer_wait_all(transfer_request, OBJ_NUM) >= 0,
+                "Call to PDCregion_transfer_wait_all succeeded",
+                "Call to PDCregion_transfer_wait_all failed");
     }
     else if (wait_method == 0) {
         pdcid_t *transfer_request_all = (pdcid_t *)malloc(sizeof(pdcid_t) * OBJ_NUM);
         int      request_size         = 0;
+
         for (i = 0; i < OBJ_NUM; i += 2) {
             transfer_request_all[request_size] = transfer_request[i];
             request_size++;
         }
-        ret = PDCregion_transfer_wait_all(transfer_request_all, request_size);
-        if (ret != SUCCEED) {
-            LOG_ERROR("Failed to region transfer wait");
-            ret_value = 1;
-        }
+
+        TASSERT(PDCregion_transfer_wait_all(transfer_request_all, request_size) >= 0,
+                "Call to PDCregion_transfer_wait_all succeeded",
+                "Call to PDCregion_transfer_wait_all failed");
+
         request_size = 0;
         for (i = 1; i < OBJ_NUM; i += 2) {
             transfer_request_all[request_size] = transfer_request[i];
             request_size++;
         }
-        ret = PDCregion_transfer_wait_all(transfer_request_all, request_size);
-        if (ret != SUCCEED) {
-            LOG_ERROR("Failed to region transfer wait");
-            ret_value = 1;
-        }
+
+        TASSERT(PDCregion_transfer_wait_all(transfer_request_all, request_size) >= 0,
+                "Call to PDCregion_transfer_wait_all succeeded",
+                "Call to PDCregion_transfer_wait_all failed");
+
         free(transfer_request_all);
     }
+
     for (i = 0; i < OBJ_NUM; ++i) {
-        ret = PDCregion_transfer_close(transfer_request[i]);
-        if (ret != SUCCEED) {
-            LOG_ERROR("Failed to region transfer close");
-            ret_value = 1;
-        }
+        TASSERT(PDCregion_transfer_close(transfer_request[i]) >= 0,
+                "Call to PDCregion_transfer_close succeeded", "Call to PDCregion_transfer_close failed");
     }
 
     // close object
-    for (i = 0; i < OBJ_NUM; ++i) {
-        if (PDCobj_close(obj[i]) < 0) {
-            LOG_ERROR("Failed to close object o1");
-            ret_value = 1;
-        }
-        else {
-            LOG_INFO("Successfully closed object o1");
-        }
-    }
+    for (i = 0; i < OBJ_NUM; ++i)
+        TASSERT(PDCobj_close(obj[i]) >= 0, "Call to PDCobj_close succeeded", "Call to PDCobj_close failed");
 
     // Check if data written previously has been correctly read.
     for (j = 0; j < OBJ_NUM; ++j) {
         for (i = 0; i < BUF_LEN; ++i) {
-            if (data_read[j][i] != i) {
-                LOG_ERROR("Wrong value %d!=%d\n", data_read[j][i], i);
-                ret_value = 1;
-                break;
-            }
+            if (data_read[j][i] != i)
+                TGOTO_ERROR(TFAIL, "Wrong value %d!=%d", data_read[j][i], i);
         }
     }
-    if (PDCregion_close(reg) < 0) {
-        LOG_ERROR("Failed to close local region");
-        ret_value = 1;
-    }
-    else {
-        LOG_INFO("successfully local region");
-    }
 
-    if (PDCregion_close(reg_global) < 0) {
-        LOG_ERROR("Failed to close global region");
-        ret_value = 1;
-    }
-    else {
-        LOG_INFO("successfully closed global region");
-    }
+    TASSERT(PDCregion_close(reg) >= 0, "Call to PDCregion_close succeeded", "Call to PDCregion_close failed");
+    TASSERT(PDCregion_close(reg_global) >= 0, "Call to PDCregion_close succeeded",
+            "Call to PDCregion_close failed");
 
     // close a container
-    if (PDCcont_close(cont) < 0) {
-        LOG_ERROR("Failed to close container c1");
-        ret_value = 1;
-    }
-    else {
-        LOG_INFO("Successfully closed container c1");
-    }
+    TASSERT(PDCcont_close(cont) >= 0, "Call to PDCcont_close succeeded", "Call to PDCcont_close failed");
     // close a object property
-    if (PDCprop_close(obj_prop) < 0) {
-        LOG_ERROR("Failed to close property");
-        ret_value = 1;
-    }
-    else {
-        LOG_INFO("Successfully closed object property");
-    }
+    TASSERT(PDCprop_close(obj_prop) >= 0, "Call to PDCprop_close succeeded", "Call to PDCprop_close failed");
     // close a container property
-    if (PDCprop_close(cont_prop) < 0) {
-        LOG_ERROR("Failed to close property");
-        ret_value = 1;
-    }
-    else {
-        LOG_INFO("Successfully closed container property");
-    }
+    TASSERT(PDCprop_close(cont_prop) >= 0, "Call to PDCprop_close succeeded", "Call to PDCprop_close failed");
+    // close pdc
+    TASSERT(PDCclose(pdc) >= 0, "Call to PDCclose succeeded", "Call to PDCclose failed");
+
     free(data[0]);
     free(data_read[0]);
     free(data);
     free(data_read);
     free(obj);
     free(transfer_request);
-    // close pdc
-    if (PDCclose(pdc) < 0) {
-        LOG_ERROR("Failed to close PDC");
-        ret_value = 1;
-    }
+
+done:
 #ifdef ENABLE_MPI
     MPI_Finalize();
 #endif

@@ -32,6 +32,7 @@
 #include <math.h>
 #include <inttypes.h>
 #include "pdc.h"
+#include "test_helper.h"
 
 #define NPARTICLES 8388608
 
@@ -55,11 +56,11 @@ main(int argc, char **argv)
     pdcid_t obj_xx, obj_yy, obj_zz, obj_pxx, obj_pyy, obj_pzz, obj_id11, obj_id22;
     pdcid_t region_x, region_y, region_z, region_px, region_py, region_pz, region_id1, region_id2;
     pdcid_t region_xx, region_yy, region_zz, region_pxx, region_pyy, region_pzz, region_id11, region_id22;
-    perr_t  ret;
+    int     ret_value = TSUCCEED;
 
-    float *   x, *y, *z;
-    float *   px, *py, *pz;
-    int *     id1, *id2;
+    float    *x, *y, *z;
+    float    *px, *py, *pz;
+    int      *id1, *id2;
     uint64_t  numparticles;
     int       ndim = 1;
     uint64_t *offset;
@@ -94,54 +95,27 @@ main(int argc, char **argv)
     id2 = (int *)malloc(numparticles * sizeof(int));
 
     // create a pdc
-    pdc_id = PDCinit("pdc");
-
+    TASSERT((pdc_id = PDCinit("pdc")) != 0, "Call to PDCinit succeeded", "Call to PDCinit failed");
     // open a container
-    cont_id = PDCcont_open("c1", pdc_id);
-    if (cont_id == 0)
-        LOG_ERROR("Failed to create container");
-
+    TASSERT((cont_id = PDCcont_open("c1", pdc_id)) > 0, "Call to PDCcont_open succeeded",
+            "Call to PDCcont_open failed");
     // open objects
-    obj_xx = PDCobj_open("obj-var-xx", pdc_id);
-    if (obj_xx == 0) {
-        LOG_ERROR("Error when open object %s\n", "obj-var-xx");
-        exit(-1);
-    }
-    obj_yy = PDCobj_open("obj-var-yy", pdc_id);
-    if (obj_yy == 0) {
-        LOG_ERROR("Error when open object %s\n", "obj-var-yy");
-        exit(-1);
-    }
-    obj_zz = PDCobj_open("obj-var-zz", pdc_id);
-    if (obj_zz == 0) {
-        LOG_ERROR("Error when open object %s\n", "obj-var-zz");
-        exit(-1);
-    }
-    obj_pxx = PDCobj_open("obj-var-pxx", pdc_id);
-    if (obj_pxx == 0) {
-        LOG_ERROR("Error when open object %s\n", "obj-var-pxx");
-        exit(-1);
-    }
-    obj_pyy = PDCobj_open("obj-var-pyy", pdc_id);
-    if (obj_pyy == 0) {
-        LOG_ERROR("Error when open object %s\n", "obj-var-pyy");
-        exit(-1);
-    }
-    obj_pzz = PDCobj_open("obj-var-pzz", pdc_id);
-    if (obj_pzz == 0) {
-        LOG_ERROR("Error when open object %s\n", "obj-var-pzz");
-        exit(-1);
-    }
-    obj_id11 = PDCobj_open("id11", pdc_id);
-    if (obj_id11 == 0) {
-        LOG_ERROR("Error when open object %s\n", "id11");
-        exit(-1);
-    }
-    obj_id22 = PDCobj_open("id22", pdc_id);
-    if (obj_id22 == 0) {
-        LOG_ERROR("Error when open object %s\n", "id22");
-        exit(-1);
-    }
+    TASSERT((obj_xx = PDCobj_open("obj-var-xx", pdc_id)) != 0, "Call to PDCobj_open succeeded",
+            "Call to PDCobj_open failed");
+    TASSERT((obj_yy = PDCobj_open("obj-var-yy", pdc_id)) != 0, "Call to PDCobj_open succeeded",
+            "Call to PDCobj_open failed");
+    TASSERT((obj_zz = PDCobj_open("obj-var-zz", pdc_id)) != 0, "Call to PDCobj_open succeeded",
+            "Call to PDCobj_open failed");
+    TASSERT((obj_pxx = PDCobj_open("obj-var-pxx", pdc_id)) != 0, "Call to PDCobj_open succeeded",
+            "Call to PDCobj_open failed");
+    TASSERT((obj_pyy = PDCobj_open("obj-var-pyy", pdc_id)) != 0, "Call to PDCobj_open succeeded",
+            "Call to PDCobj_open failed");
+    TASSERT((obj_pzz = PDCobj_open("obj-var-pyy", pdc_id)) != 0, "Call to PDCobj_open succeeded",
+            "Call to PDCobj_open failed");
+    TASSERT((obj_id11 = PDCobj_open("obj-var-pyy", pdc_id)) != 0, "Call to PDCobj_open succeeded",
+            "Call to PDCobj_open failed");
+    TASSERT((obj_id22 = PDCobj_open("id22", pdc_id)) != 0, "Call to PDCobj_open succeeded",
+            "Call to PDCobj_open failed");
 
     offset           = (uint64_t *)malloc(sizeof(uint64_t) * ndim);
     offset_remote    = (uint64_t *)malloc(sizeof(uint64_t) * ndim);
@@ -150,275 +124,170 @@ main(int argc, char **argv)
     offset_remote[0] = rank * numparticles;
     mysize[0]        = numparticles;
 
-    // create a region
-    region_x   = PDCregion_create(ndim, offset, mysize);
-    region_y   = PDCregion_create(ndim, offset, mysize);
-    region_z   = PDCregion_create(ndim, offset, mysize);
-    region_px  = PDCregion_create(ndim, offset, mysize);
-    region_py  = PDCregion_create(ndim, offset, mysize);
-    region_pz  = PDCregion_create(ndim, offset, mysize);
-    region_id1 = PDCregion_create(ndim, offset, mysize);
-    region_id2 = PDCregion_create(ndim, offset, mysize);
+    // create regions
+    TASSERT((region_x = PDCregion_create(ndim, offset, mysize)) != 0, "Call to PDCregion_create succeeded",
+            "Call to PDCregion_create failed");
+    TASSERT((region_y = PDCregion_create(ndim, offset, mysize)) != 0, "Call to PDCregion_create succeeded",
+            "Call to PDCregion_create failed");
+    TASSERT((region_z = PDCregion_create(ndim, offset, mysize)) != 0, "Call to PDCregion_create succeeded",
+            "Call to PDCregion_create failed");
+    TASSERT((region_px = PDCregion_create(ndim, offset, mysize)) != 0, "Call to PDCregion_create succeeded",
+            "Call to PDCregion_create failed");
+    TASSERT((region_py = PDCregion_create(ndim, offset, mysize)) != 0, "Call to PDCregion_create succeeded",
+            "Call to PDCregion_create failed");
+    TASSERT((region_pz = PDCregion_create(ndim, offset, mysize)) != 0, "Call to PDCregion_create succeeded",
+            "Call to PDCregion_create failed");
+    TASSERT((region_id1 = PDCregion_create(ndim, offset, mysize)) != 0, "Call to PDCregion_create succeeded",
+            "Call to PDCregion_create failed");
+    TASSERT((region_id2 = PDCregion_create(ndim, offset, mysize)) != 0, "Call to PDCregion_create succeeded",
+            "Call to PDCregion_create failed");
 
-    region_xx   = PDCregion_create(ndim, offset_remote, mysize);
-    region_yy   = PDCregion_create(ndim, offset_remote, mysize);
-    region_zz   = PDCregion_create(ndim, offset_remote, mysize);
-    region_pxx  = PDCregion_create(ndim, offset_remote, mysize);
-    region_pyy  = PDCregion_create(ndim, offset_remote, mysize);
-    region_pzz  = PDCregion_create(ndim, offset_remote, mysize);
-    region_id11 = PDCregion_create(ndim, offset_remote, mysize);
-    region_id22 = PDCregion_create(ndim, offset_remote, mysize);
+    TASSERT((region_xx = PDCregion_create(ndim, offset, mysize)) != 0, "Call to PDCregion_create succeeded",
+            "Call to PDCregion_create failed");
+    TASSERT((region_yy = PDCregion_create(ndim, offset, mysize)) != 0, "Call to PDCregion_create succeeded",
+            "Call to PDCregion_create failed");
+    TASSERT((region_zz = PDCregion_create(ndim, offset, mysize)) != 0, "Call to PDCregion_create succeeded",
+            "Call to PDCregion_create failed");
+    TASSERT((region_pxx = PDCregion_create(ndim, offset, mysize)) != 0, "Call to PDCregion_create succeeded",
+            "Call to PDCregion_create failed");
+    TASSERT((region_pyy = PDCregion_create(ndim, offset, mysize)) != 0, "Call to PDCregion_create succeeded",
+            "Call to PDCregion_create failed");
+    TASSERT((region_pzz = PDCregion_create(ndim, offset, mysize)) != 0, "Call to PDCregion_create succeeded",
+            "Call to PDCregion_create failed");
+    TASSERT((region_id11 = PDCregion_create(ndim, offset, mysize)) != 0, "Call to PDCregion_create succeeded",
+            "Call to PDCregion_create failed");
+    TASSERT((region_id22 = PDCregion_create(ndim, offset, mysize)) != 0, "Call to PDCregion_create succeeded",
+            "Call to PDCregion_create failed");
 
 #ifdef ENABLE_MPI
     MPI_Barrier(MPI_COMM_WORLD);
 #endif
 
-    transfer_request_x = PDCregion_transfer_create(&x[0], PDC_READ, obj_xx, region_x, region_xx);
-    if (transfer_request_x == 0) {
-        LOG_ERROR("Array x transfer request creation failed\n");
-        return 1;
-    }
+    TASSERT((transfer_request_x = PDCregion_transfer_create(&x[0], PDC_READ, obj_xx, region_x, region_xx)) !=
+                0,
+            "Call to PDCregion_transfer_create succeeded", "Call to PDCregion_transfer_create failed");
+    TASSERT((transfer_request_y = PDCregion_transfer_create(&y[0], PDC_READ, obj_yy, region_y, region_yy)) !=
+                0,
+            "Call to PDCregion_transfer_create succeeded", "Call to PDCregion_transfer_create failed");
+    TASSERT((transfer_request_z = PDCregion_transfer_create(&z[0], PDC_READ, obj_zz, region_z, region_zz)) !=
+                0,
+            "Call to PDCregion_transfer_create succeeded", "Call to PDCregion_transfer_create failed");
+    TASSERT((transfer_request_px =
+                 PDCregion_transfer_create(&px[0], PDC_READ, obj_pxx, region_px, region_pxx)) != 0,
+            "Call to PDCregion_transfer_create succeeded", "Call to PDCregion_transfer_create failed");
+    TASSERT((transfer_request_py =
+                 PDCregion_transfer_create(&py[0], PDC_READ, obj_pyy, region_py, region_pyy)) != 0,
+            "Call to PDCregion_transfer_create succeeded", "Call to PDCregion_transfer_create failed");
+    TASSERT((transfer_request_pz =
+                 PDCregion_transfer_create(&pz[0], PDC_READ, obj_pzz, region_pz, region_pzz)) != 0,
+            "Call to PDCregion_transfer_create succeeded", "Call to PDCregion_transfer_create failed");
+    TASSERT((transfer_request_id1 =
+                 PDCregion_transfer_create(&id1[0], PDC_READ, obj_id11, region_id1, region_id11)) != 0,
+            "Call to PDCregion_transfer_create succeeded", "Call to PDCregion_transfer_create failed");
+    TASSERT((transfer_request_id2 =
+                 PDCregion_transfer_create(&id2[0], PDC_READ, obj_id22, region_id2, region_id22)) != 0,
+            "Call to PDCregion_transfer_create succeeded", "Call to PDCregion_transfer_create failed");
 
-    transfer_request_y = PDCregion_transfer_create(&y[0], PDC_READ, obj_yy, region_y, region_yy);
-    if (transfer_request_y == 0) {
-        LOG_ERROR("Array y transfer request creation failed\n");
-        return 1;
-    }
-    transfer_request_z = PDCregion_transfer_create(&z[0], PDC_READ, obj_zz, region_z, region_zz);
-    if (transfer_request_z == 0) {
-        LOG_ERROR("Array z transfer request creation failed\n");
-        return 1;
-    }
-    transfer_request_px = PDCregion_transfer_create(&px[0], PDC_READ, obj_pxx, region_px, region_pxx);
-    if (transfer_request_px == 0) {
-        LOG_ERROR("Array px transfer request creation failed\n");
-        return 1;
-    }
-    transfer_request_py = PDCregion_transfer_create(&py[0], PDC_READ, obj_pyy, region_py, region_pyy);
-    if (transfer_request_py == 0) {
-        LOG_ERROR("Array py transfer request creation failed\n");
-        return 1;
-    }
-    transfer_request_pz = PDCregion_transfer_create(&pz[0], PDC_READ, obj_pzz, region_pz, region_pzz);
-    if (transfer_request_pz == 0) {
-        LOG_ERROR("Array pz transfer request creation failed\n");
-        return 1;
-    }
-    transfer_request_id1 = PDCregion_transfer_create(&id1[0], PDC_READ, obj_id11, region_id1, region_id11);
-    if (transfer_request_id1 == 0) {
-        LOG_ERROR("Array id1 transfer request creation failed\n");
-        return 1;
-    }
-    transfer_request_id2 = PDCregion_transfer_create(&id2[0], PDC_READ, obj_id22, region_id2, region_id22);
-    if (transfer_request_id2 == 0) {
-        LOG_ERROR("Array id2 transfer request creation failed\n");
-        return 1;
-    }
+    TASSERT(PDCregion_transfer_start(transfer_request_x) >= 0, "Call to PDCregion_transfer_close succeeded",
+            "Call to PDCregion_transfer_close failed");
+    TASSERT(PDCregion_transfer_start(transfer_request_y) >= 0, "Call to PDCregion_transfer_close succeeded",
+            "Call to PDCregion_transfer_close failed");
+    TASSERT(PDCregion_transfer_start(transfer_request_z) >= 0, "Call to PDCregion_transfer_close succeeded",
+            "Call to PDCregion_transfer_close failed");
+    TASSERT(PDCregion_transfer_start(transfer_request_px) >= 0, "Call to PDCregion_transfer_close succeeded",
+            "Call to PDCregion_transfer_close failed");
+    TASSERT(PDCregion_transfer_start(transfer_request_py) >= 0, "Call to PDCregion_transfer_close succeeded",
+            "Call to PDCregion_transfer_close failed");
+    TASSERT(PDCregion_transfer_start(transfer_request_pz) >= 0, "Call to PDCregion_transfer_close succeeded",
+            "Call to PDCregion_transfer_close failed");
+    TASSERT(PDCregion_transfer_start(transfer_request_id1) >= 0, "Call to PDCregion_transfer_close succeeded",
+            "Call to PDCregion_transfer_close failed");
+    TASSERT(PDCregion_transfer_start(transfer_request_id2) >= 0, "Call to PDCregion_transfer_close succeeded",
+            "Call to PDCregion_transfer_close failed");
 
-    ret = PDCregion_transfer_start(transfer_request_x);
-    if (ret != SUCCEED) {
-        LOG_ERROR("Failed to start transfer for region_xx\n");
-        return 1;
-    }
-    ret = PDCregion_transfer_start(transfer_request_y);
-    if (ret != SUCCEED) {
-        LOG_ERROR("Failed to start transfer for region_yy\n");
-        return 1;
-    }
-    ret = PDCregion_transfer_start(transfer_request_z);
-    if (ret != SUCCEED) {
-        LOG_ERROR("Failed to start transfer for region_zz\n");
-        return 1;
-    }
-    ret = PDCregion_transfer_start(transfer_request_px);
-    if (ret != SUCCEED) {
-        LOG_ERROR("Failed to start transfer for region_pxx\n");
-        return 1;
-    }
-    ret = PDCregion_transfer_start(transfer_request_py);
-    if (ret != SUCCEED) {
-        LOG_ERROR("Failed to start transfer for region_pyy\n");
-        return 1;
-    }
-    ret = PDCregion_transfer_start(transfer_request_pz);
-    if (ret != SUCCEED) {
-        LOG_ERROR("Failed to start transfer for region_pzz\n");
-        return 1;
-    }
-    ret = PDCregion_transfer_start(transfer_request_id1);
-    if (ret != SUCCEED) {
-        LOG_ERROR("Failed to start transfer for region_id11\n");
-        return 1;
-    }
-    ret = PDCregion_transfer_start(transfer_request_id2);
-    if (ret != SUCCEED) {
-        LOG_ERROR("Failed to start transfer for region_id22\n");
-        return 1;
-    }
+    TASSERT(PDCregion_transfer_wait(transfer_request_x) >= 0, "Call to PDCregion_transfer_close succeeded",
+            "Call to PDCregion_transfer_close failed");
+    TASSERT(PDCregion_transfer_wait(transfer_request_y) >= 0, "Call to PDCregion_transfer_close succeeded",
+            "Call to PDCregion_transfer_close failed");
+    TASSERT(PDCregion_transfer_wait(transfer_request_z) >= 0, "Call to PDCregion_transfer_close succeeded",
+            "Call to PDCregion_transfer_close failed");
+    TASSERT(PDCregion_transfer_wait(transfer_request_px) >= 0, "Call to PDCregion_transfer_close succeeded",
+            "Call to PDCregion_transfer_close failed");
+    TASSERT(PDCregion_transfer_wait(transfer_request_py) >= 0, "Call to PDCregion_transfer_close succeeded",
+            "Call to PDCregion_transfer_close failed");
+    TASSERT(PDCregion_transfer_wait(transfer_request_pz) >= 0, "Call to PDCregion_transfer_close succeeded",
+            "Call to PDCregion_transfer_close failed");
+    TASSERT(PDCregion_transfer_wait(transfer_request_id1) >= 0, "Call to PDCregion_transfer_close succeeded",
+            "Call to PDCregion_transfer_close failed");
+    TASSERT(PDCregion_transfer_wait(transfer_request_id2) >= 0, "Call to PDCregion_transfer_close succeeded",
+            "Call to PDCregion_transfer_close failed");
 
-    ret = PDCregion_transfer_wait(transfer_request_x);
-    if (ret != SUCCEED) {
-        LOG_ERROR("Failed to transfer wait for region_xx\n");
-        return 1;
-    }
-    ret = PDCregion_transfer_wait(transfer_request_y);
-    if (ret != SUCCEED) {
-        LOG_ERROR("Failed to transfer wait for region_yy\n");
-        return 1;
-    }
-    ret = PDCregion_transfer_wait(transfer_request_z);
-    if (ret != SUCCEED) {
-        LOG_ERROR("Failed to transfer wait for region_zz\n");
-        return 1;
-    }
-    ret = PDCregion_transfer_wait(transfer_request_px);
-    if (ret != SUCCEED) {
-        LOG_ERROR("Failed to transfer wait for region_pxx\n");
-        return 1;
-    }
-    ret = PDCregion_transfer_wait(transfer_request_py);
-    if (ret != SUCCEED) {
-        LOG_ERROR("Failed to transfer wait for region_pyy\n");
-        return 1;
-    }
-    ret = PDCregion_transfer_wait(transfer_request_pz);
-    if (ret != SUCCEED) {
-        LOG_ERROR("Failed to transfer wait for region_pzz\n");
-        return 1;
-    }
-    ret = PDCregion_transfer_wait(transfer_request_id1);
-    if (ret != SUCCEED) {
-        LOG_ERROR("Failed to transfer wait for region_id11\n");
-        return 1;
-    }
-    ret = PDCregion_transfer_wait(transfer_request_id2);
-    if (ret != SUCCEED) {
-        LOG_ERROR("Failed to transfer wait for region_id22\n");
-        return 1;
-    }
-
-    ret = PDCregion_transfer_close(transfer_request_x);
-    if (ret != SUCCEED) {
-        LOG_ERROR("region xx transfer close failed\n");
-        return 1;
-    }
-    ret = PDCregion_transfer_close(transfer_request_y);
-    if (ret != SUCCEED) {
-        LOG_ERROR("region yy transfer close failed\n");
-        return 1;
-    }
-    ret = PDCregion_transfer_close(transfer_request_z);
-    if (ret != SUCCEED) {
-        LOG_ERROR("region zz transfer close failed\n");
-        return 1;
-    }
-    ret = PDCregion_transfer_close(transfer_request_px);
-    if (ret != SUCCEED) {
-        LOG_ERROR("region pxx transfer close failed\n");
-        return 1;
-    }
-    ret = PDCregion_transfer_close(transfer_request_py);
-    if (ret != SUCCEED) {
-        LOG_ERROR("region pyy transfer close failed\n");
-        return 1;
-    }
-    ret = PDCregion_transfer_close(transfer_request_pz);
-    if (ret != SUCCEED) {
-        LOG_ERROR("region pzz transfer close failed\n");
-        return 1;
-    }
-    ret = PDCregion_transfer_close(transfer_request_id1);
-    if (ret != SUCCEED) {
-        LOG_ERROR("Region id11 transfer close failed\n");
-        return 1;
-    }
-    ret = PDCregion_transfer_close(transfer_request_id2);
-    if (ret != SUCCEED) {
-        LOG_ERROR("Region id22 transfer close failed\n");
-        return 1;
-    }
+    TASSERT(PDCregion_transfer_close(transfer_request_x) >= 0, "Call to PDCregion_transfer_close succeeded",
+            "Call to PDCregion_transfer_close failed");
+    TASSERT(PDCregion_transfer_close(transfer_request_y) >= 0, "Call to PDCregion_transfer_close succeeded",
+            "Call to PDCregion_transfer_close failed");
+    TASSERT(PDCregion_transfer_close(transfer_request_z) >= 0, "Call to PDCregion_transfer_close succeeded",
+            "Call to PDCregion_transfer_close failed");
+    TASSERT(PDCregion_transfer_close(transfer_request_px) >= 0, "Call to PDCregion_transfer_close succeeded",
+            "Call to PDCregion_transfer_close failed");
+    TASSERT(PDCregion_transfer_close(transfer_request_py) >= 0, "Call to PDCregion_transfer_close succeeded",
+            "Call to PDCregion_transfer_close failed");
+    TASSERT(PDCregion_transfer_close(transfer_request_pz) >= 0, "Call to PDCregion_transfer_close succeeded",
+            "Call to PDCregion_transfer_close failed");
+    TASSERT(PDCregion_transfer_close(transfer_request_id1) >= 0, "Call to PDCregion_transfer_close succeeded",
+            "Call to PDCregion_transfer_close failed");
+    TASSERT(PDCregion_transfer_close(transfer_request_id2) >= 0, "Call to PDCregion_transfer_close succeeded",
+            "Call to PDCregion_transfer_close failed");
 
     PDC_timing_report("read");
 
-    if (PDCobj_close(obj_xx) < 0)
-        LOG_ERROR("Failed to close obj_xx\n");
-
-    if (PDCobj_close(obj_yy) < 0)
-        LOG_ERROR("Failed to close object obj_yy\n");
-
-    if (PDCobj_close(obj_zz) < 0)
-        LOG_ERROR("Failed to close object obj_zz\n");
-
-    if (PDCobj_close(obj_pxx) < 0)
-        LOG_ERROR("Failed to close object obj_pxx\n");
-
-    if (PDCobj_close(obj_pyy) < 0)
-        LOG_ERROR("Failed to close object obj_pyy\n");
-
-    if (PDCobj_close(obj_pzz) < 0)
-        LOG_ERROR("Failed to close object obj_pzz\n");
-
-    if (PDCobj_close(obj_id11) < 0)
-        LOG_ERROR("Failed to close object obj_id11\n");
-
-    if (PDCobj_close(obj_id22) < 0)
-        LOG_ERROR("Failed to close object obj_id22\n");
-
-    if (PDCregion_close(region_x) < 0)
-        LOG_ERROR("Failed to close region region_x\n");
-
-    if (PDCregion_close(region_y) < 0)
-        LOG_ERROR("Failed to close region region_y\n");
-
-    if (PDCregion_close(region_z) < 0)
-        LOG_ERROR("Failed to close region region_z\n");
-
-    if (PDCregion_close(region_px) < 0)
-        LOG_ERROR("Failed to close region region_px\n");
-
-    if (PDCregion_close(region_py) < 0)
-        LOG_ERROR("Failed to close region region_py\n");
-
-    if (PDCobj_close(region_pz) < 0)
-        LOG_ERROR("Failed to close region region_pz\n");
-
-    if (PDCobj_close(region_id1) < 0)
-        LOG_ERROR("Failed to close region region_id1\n");
-
-    if (PDCobj_close(region_id2) < 0)
-        LOG_ERROR("Failed to close region region_id2\n");
-
-    if (PDCregion_close(region_xx) < 0)
-        LOG_ERROR("Failed to close region region_xx\n");
-
-    if (PDCregion_close(region_yy) < 0)
-        LOG_ERROR("Failed to close region region_yy\n");
-
-    if (PDCregion_close(region_zz) < 0)
-        LOG_ERROR("Failed to close region region_zz\n");
-
-    if (PDCregion_close(region_pxx) < 0)
-        LOG_ERROR("Failed to close region region_pxx\n");
-
-    if (PDCregion_close(region_pyy) < 0)
-        LOG_ERROR("Failed to close region region_pyy\n");
-
-    if (PDCregion_close(region_pzz) < 0)
-        LOG_ERROR("Failed to close region region_pzz\n");
-
-    if (PDCobj_close(region_id11) < 0)
-        LOG_ERROR("Failed to close region region_id11\n");
-
-    if (PDCobj_close(region_id22) < 0)
-        LOG_ERROR("Failed to close region region_id22\n");
-
+    TASSERT(PDCobj_close(obj_xx) >= 0, "Call to PDCobj_close succeeded", "Call to PDCobj_close failed");
+    TASSERT(PDCobj_close(obj_yy) >= 0, "Call to PDCobj_close succeeded", "Call to PDCobj_close failed");
+    TASSERT(PDCobj_close(obj_zz) >= 0, "Call to PDCobj_close succeeded", "Call to PDCobj_close failed");
+    TASSERT(PDCobj_close(obj_pxx) >= 0, "Call to PDCobj_close succeeded", "Call to PDCobj_close failed");
+    TASSERT(PDCobj_close(obj_pyy) >= 0, "Call to PDCobj_close succeeded", "Call to PDCobj_close failed");
+    TASSERT(PDCobj_close(obj_pzz) >= 0, "Call to PDCobj_close succeeded", "Call to PDCobj_close failed");
+    TASSERT(PDCobj_close(obj_id11) >= 0, "Call to PDCobj_close succeeded", "Call to PDCobj_close failed");
+    TASSERT(PDCobj_close(obj_id22) >= 0, "Call to PDCobj_close succeeded", "Call to PDCobj_close failed");
+    TASSERT(PDCregion_close(region_x) >= 0, "Call to PDCregion_close succeeded",
+            "Call to PDCregion_close failed");
+    TASSERT(PDCregion_close(region_y) >= 0, "Call to PDCregion_close succeeded",
+            "Call to PDCregion_close failed");
+    TASSERT(PDCregion_close(region_z) >= 0, "Call to PDCregion_close succeeded",
+            "Call to PDCregion_close failed");
+    TASSERT(PDCregion_close(region_px) >= 0, "Call to PDCregion_close succeeded",
+            "Call to PDCregion_close failed");
+    TASSERT(PDCregion_close(region_py) >= 0, "Call to PDCregion_close succeeded",
+            "Call to PDCregion_close failed");
+    TASSERT(PDCregion_close(region_pz) >= 0, "Call to PDCregion_close succeeded",
+            "Call to PDCregion_close failed");
+    TASSERT(PDCregion_close(region_id1) >= 0, "Call to PDCregion_close succeeded",
+            "Call to PDCregion_close failed");
+    TASSERT(PDCregion_close(region_id2) >= 0, "Call to PDCregion_close succeeded",
+            "Call to PDCregion_close failed");
+    TASSERT(PDCregion_close(region_xx) >= 0, "Call to PDCregion_close succeeded",
+            "Call to PDCregion_close failed");
+    TASSERT(PDCregion_close(region_yy) >= 0, "Call to PDCregion_close succeeded",
+            "Call to PDCregion_close failed");
+    TASSERT(PDCregion_close(region_zz) >= 0, "Call to PDCregion_close succeeded",
+            "Call to PDCregion_close failed");
+    TASSERT(PDCregion_close(region_pxx) >= 0, "Call to PDCregion_close succeeded",
+            "Call to PDCregion_close failed");
+    TASSERT(PDCregion_close(region_pyy) >= 0, "Call to PDCregion_close succeeded",
+            "Call to PDCregion_close failed");
+    TASSERT(PDCregion_close(region_pzz) >= 0, "Call to PDCregion_close succeeded",
+            "Call to PDCregion_close failed");
+    TASSERT(PDCregion_close(region_id11) >= 0, "Call to PDCregion_close succeeded",
+            "Call to PDCregion_close failed");
+    TASSERT(PDCregion_close(region_id22) >= 0, "Call to PDCregion_close succeeded",
+            "Call to PDCregion_close failed");
     // close a container
-    if (PDCcont_close(cont_id) < 0)
-        LOG_ERROR("Failed to close container c1\n");
+    TASSERT(PDCcont_close(cont_id) >= 0, "Call to PDCcont_close succeeded", "Call to PDCcont_close failed");
+    TASSERT(PDCclose(pdc_id) >= 0, "Call to PDCclose succeeded", "Call to PDCclose failed");
 
-    if (PDCclose(pdc_id) < 0)
-        LOG_ERROR("Failed to close PDC\n");
-
+    free(offset);
+    free(offset_remote);
+    free(mysize);
     free(x);
     free(y);
     free(z);
@@ -427,13 +296,11 @@ main(int argc, char **argv)
     free(pz);
     free(id1);
     free(id2);
-    free(offset);
-    free(offset_remote);
-    free(mysize);
 
+done:
 #ifdef ENABLE_MPI
     MPI_Finalize();
 #endif
 
-    return 0;
+    return ret_value;
 }
