@@ -6,6 +6,7 @@
 #include <sys/ioctl.h>
 #include "rbtree.h"
 #include "pdc_malloc.h"
+#include "pdc_private.h"
 #include "comparators.h"
 #include "pdc_logger.h"
 
@@ -52,49 +53,62 @@ struct _rbt_s {
 rbt_t *
 rbt_create_by_dtype(pdc_c_var_type_t dtype, rbt_free_value_callback_t free_value_cb)
 {
+    FUNC_ENTER(NULL);
+
     rbt_t *rbt = PDC_calloc(1, sizeof(rbt_t));
     // INIT_PERF_INFO_FIELDS(rbt, rbt_t);
     // rbt->time_for_rotate = 0;
     // mem_usage_by_all_rbtrees += sizeof(rbt_t);
 
     if (!rbt)
-        return NULL;
+        FUNC_LEAVE(NULL);
     rbt->dtype         = dtype;
     rbt->free_value_cb = free_value_cb;
     rbt->cmp_keys_cb   = LIBHL_CMP_CB(dtype);
-    return rbt;
+
+    FUNC_LEAVE(rbt);
 }
 
 rbt_t *
 rbt_create(libhl_cmp_callback_t cmp_keys_cb, rbt_free_value_callback_t free_value_cb)
 {
+    FUNC_ENTER(NULL);
+
     rbt_t *rbt = PDC_calloc(1, sizeof(rbt_t));
 
     if (!rbt)
-        return NULL;
+        FUNC_LEAVE(NULL);
     rbt->free_value_cb = free_value_cb;
     rbt->cmp_keys_cb   = cmp_keys_cb;
     rbt->dtype         = PDC_UNKNOWN; // if created via this function, we must set the dtype later.
-    return rbt;
+
+    FUNC_LEAVE(rbt);
 }
 
 void
 rbt_set_dtype(rbt_t *rbt, pdc_c_var_type_t dtype)
 {
+    FUNC_ENTER(NULL);
+
     rbt->dtype = dtype;
+
+    FUNC_LEAVE_VOID();
 }
 
 pdc_c_var_type_t
 rbt_get_dtype(rbt_t *rbt)
 {
-    return rbt->dtype;
+    FUNC_ENTER(NULL);
+    FUNC_LEAVE(rbt->dtype);
 }
 
 static inline void
 rbt_destroy_internal(rbt_node_t *node, rbt_free_value_callback_t free_value_cb)
 {
+    FUNC_ENTER(NULL);
+
     if (!node)
-        return;
+        FUNC_LEAVE_VOID();
 
     rbt_destroy_internal(node->left, free_value_cb);
     node->left = NULL;
@@ -112,16 +126,23 @@ rbt_destroy_internal(rbt_node_t *node, rbt_free_value_callback_t free_value_cb)
 
     if (node->key == NULL)
         node = (rbt_node_t *)PDC_free(node);
+
+    FUNC_LEAVE_VOID();
 }
 
 void
 rbt_destroy(rbt_t *rbt)
 {
+    FUNC_ENTER(NULL);
+
     if (rbt == NULL)
-        return;
+        FUNC_LEAVE_VOID();
+
     rbt_destroy_internal(rbt->root, rbt->free_value_cb);
     rbt->root = NULL;
     rbt       = (rbt_t *)PDC_free(rbt);
+
+    FUNC_LEAVE_VOID();
 }
 
 static int
@@ -129,12 +150,14 @@ rbt_range_walk_internal(rbt_t *rbt, rbt_node_t *node, void *begin_key, size_t bg
                         size_t edk_size, int sorted, rbt_walk_callback cb, void *priv, int beginInclusive,
                         int endInclusive)
 {
+    FUNC_ENTER(NULL);
+
     if (!node)
-        return 0;
+        FUNC_LEAVE(0);
 
     if (begin_key != NULL && end_key != NULL &&
         rbt->cmp_keys_cb(begin_key, bgk_size, end_key, edk_size) >= 0) {
-        return 0;
+        FUNC_LEAVE(0);
     }
 
     int rc   = 1;
@@ -144,7 +167,7 @@ rbt_range_walk_internal(rbt_t *rbt, rbt_node_t *node, void *begin_key, size_t bg
         int rrc = rbt_range_walk_internal(rbt, node->left, begin_key, bgk_size, end_key, edk_size, sorted, cb,
                                           priv, beginInclusive, endInclusive);
         if (rrc == 0)
-            return rc + 1;
+            FUNC_LEAVE(rc + 1);
         rc += rrc;
     }
 
@@ -197,23 +220,23 @@ rbt_range_walk_internal(rbt_t *rbt, rbt_node_t *node, void *begin_key, size_t bg
     switch (cbrc) {
         case RBT_WALK_DELETE_AND_STOP:
             rbt_remove(rbt, node->key, node->klen, NULL);
-            return 0;
+            FUNC_LEAVE(0);
         case RBT_WALK_DELETE_AND_CONTINUE: {
             if (node->left && node->right) {
                 rbt_remove(rbt, node->key, node->klen, NULL);
-                return rbt_range_walk_internal(rbt, node, begin_key, bgk_size, end_key, edk_size, sorted, cb,
-                                               priv, beginInclusive, endInclusive);
+                FUNC_LEAVE(rbt_range_walk_internal(rbt, node, begin_key, bgk_size, end_key, edk_size, sorted,
+                                                   cb, priv, beginInclusive, endInclusive));
             }
             else if (node->left || node->right) {
-                return rbt_range_walk_internal(rbt, node->left ? node->left : node->right, begin_key,
-                                               bgk_size, end_key, edk_size, sorted, cb, priv, beginInclusive,
-                                               endInclusive);
+                FUNC_LEAVE(rbt_range_walk_internal(rbt, node->left ? node->left : node->right, begin_key,
+                                                   bgk_size, end_key, edk_size, sorted, cb, priv,
+                                                   beginInclusive, endInclusive));
             }
             // this node was a leaf
-            return 1;
+            FUNC_LEAVE(1);
         }
         case RBT_WALK_STOP:
-            return 0;
+            FUNC_LEAVE(0);
         case RBT_WALK_CONTINUE:
             break;
         default:
@@ -225,7 +248,7 @@ rbt_range_walk_internal(rbt_t *rbt, rbt_node_t *node, void *begin_key, size_t bg
         int rrc = rbt_range_walk_internal(rbt, node->left, begin_key, bgk_size, end_key, edk_size, sorted, cb,
                                           priv, beginInclusive, endInclusive);
         if (rrc == 0)
-            return rc + 1;
+            FUNC_LEAVE(rc + 1);
         rc += rrc;
     }
 
@@ -233,17 +256,20 @@ rbt_range_walk_internal(rbt_t *rbt, rbt_node_t *node, void *begin_key, size_t bg
         int rrc = rbt_range_walk_internal(rbt, node->right, begin_key, bgk_size, end_key, edk_size, sorted,
                                           cb, priv, beginInclusive, endInclusive);
         if (rrc == 0)
-            return rc + 1;
+            FUNC_LEAVE(rc + 1);
         rc += rrc;
     }
-    return rc;
+
+    FUNC_LEAVE(rc);
 }
 
 static int
 rbt_walk_internal(rbt_t *rbt, rbt_node_t *node, int sorted, rbt_walk_callback cb, void *priv)
 {
+    FUNC_ENTER(NULL);
+
     if (!node)
-        return 0;
+        FUNC_LEAVE(0);
 
     int rc   = 1;
     int cbrc = 0;
@@ -251,7 +277,7 @@ rbt_walk_internal(rbt_t *rbt, rbt_node_t *node, int sorted, rbt_walk_callback cb
     if (sorted && node->left) {
         int rrc = rbt_walk_internal(rbt, node->left, sorted, cb, priv);
         if (rrc == 0)
-            return rc + 1;
+            FUNC_LEAVE(rc + 1);
         rc += rrc;
     }
 
@@ -259,20 +285,20 @@ rbt_walk_internal(rbt_t *rbt, rbt_node_t *node, int sorted, rbt_walk_callback cb
     switch (cbrc) {
         case RBT_WALK_DELETE_AND_STOP:
             rbt_remove(rbt, node->key, node->klen, NULL);
-            return 0;
+            FUNC_LEAVE(0);
         case RBT_WALK_DELETE_AND_CONTINUE: {
             if (node->left && node->right) {
                 rbt_remove(rbt, node->key, node->klen, NULL);
-                return rbt_walk_internal(rbt, node, sorted, cb, priv);
+                FUNC_LEAVE(rbt_walk_internal(rbt, node, sorted, cb, priv));
             }
             else if (node->left || node->right) {
-                return rbt_walk_internal(rbt, node->left ? node->left : node->right, sorted, cb, priv);
+                FUNC_LEAVE(rbt_walk_internal(rbt, node->left ? node->left : node->right, sorted, cb, priv));
             }
             // this node was a leaf
-            return 1;
+            FUNC_LEAVE(1);
         }
         case RBT_WALK_STOP:
-            return 0;
+            FUNC_LEAVE(0);
         case RBT_WALK_CONTINUE:
             break;
         default:
@@ -283,139 +309,164 @@ rbt_walk_internal(rbt_t *rbt, rbt_node_t *node, int sorted, rbt_walk_callback cb
     if (!sorted && node->left) {
         int rrc = rbt_walk_internal(rbt, node->left, sorted, cb, priv);
         if (rrc == 0)
-            return rc + 1;
+            FUNC_LEAVE(rc + 1);
         rc += rrc;
     }
 
     if (node->right) {
         int rrc = rbt_walk_internal(rbt, node->right, sorted, cb, priv);
         if (rrc == 0)
-            return rc + 1;
+            FUNC_LEAVE(rc + 1);
         rc += rrc;
     }
 
-    return rc;
+    FUNC_LEAVE(rc);
 }
 
 int
 rbt_walk(rbt_t *rbt, rbt_walk_callback cb, void *priv)
 {
+    FUNC_ENTER(NULL);
+
     int rst = 0;
     if (rbt->root)
         rst = rbt_walk_internal(rbt, rbt->root, 0, cb, priv);
 
     // rbt->num_of_comparisons += rst;
-    return rst;
+    FUNC_LEAVE(rst);
 }
 
 int
 rbt_walk_sorted(rbt_t *rbt, rbt_walk_callback cb, void *priv)
 {
+    FUNC_ENTER(NULL);
+
     int rst = 0;
     if (rbt->root)
         rst = rbt_walk_internal(rbt, rbt->root, 1, cb, priv);
 
     // rbt->num_of_comparisons += rst;
-    return rst;
+    FUNC_LEAVE(rst);
 }
 
 int
 rbt_range_walk(rbt_t *rbt, void *begin_key, size_t bgk_size, void *end_key, size_t edk_size,
                rbt_walk_callback cb, void *priv, int beginInclusive, int endInclusive)
 {
+    FUNC_ENTER(NULL);
+
     int rst = 0;
     if (rbt->root)
         rst = rbt_range_walk_internal(rbt, rbt->root, begin_key, bgk_size, end_key, edk_size, 0, cb, priv,
                                       beginInclusive, endInclusive);
 
     // rbt->num_of_comparisons += rst;
-    return rst;
+    FUNC_LEAVE(rst);
 }
 
 int
 rbt_range_walk_sorted(rbt_t *rbt, void *begin_key, size_t bgk_size, void *end_key, size_t edk_size,
                       rbt_walk_callback cb, void *priv, int beginInclusive, int endInclusive)
 {
+    FUNC_ENTER(NULL);
+
     int rst = 0;
     if (rbt->root)
         rst = rbt_range_walk_internal(rbt, rbt->root, begin_key, bgk_size, end_key, edk_size, 1, cb, priv,
                                       beginInclusive, endInclusive);
 
     // rbt->num_of_comparisons += rst;
-    return rst;
+    FUNC_LEAVE(rst);
 }
 
 int
 rbt_range_lt(rbt_t *rbt, void *end_key, size_t edk_size, rbt_walk_callback cb, void *priv, int end_inclusive)
 {
+    FUNC_ENTER(NULL);
+
     int rst = 0;
     if (rbt->root)
         rst = rbt_range_walk_internal(rbt, rbt->root, NULL, 0, end_key, edk_size, 0, cb, priv, 1,
                                       end_inclusive);
 
     // rbt->num_of_comparisons += rst;
-    return rst;
+    FUNC_LEAVE(rst);
 }
 
 int
 rbt_range_gt(rbt_t *rbt, void *begin_key, size_t bgk_size, rbt_walk_callback cb, void *priv,
              int begin_inclusive)
 {
+    FUNC_ENTER(NULL);
+
     int rst = 0;
     if (rbt->root)
         rst = rbt_range_walk_internal(rbt, rbt->root, begin_key, bgk_size, NULL, 0, 0, cb, priv,
                                       begin_inclusive, 1);
     // rbt->num_of_comparisons += rst;
-    return rst;
+    FUNC_LEAVE(rst);
 }
 
 int
 rbt_range_lt_sorted(rbt_t *rbt, void *end_key, size_t edk_size, rbt_walk_callback cb, void *priv,
                     int end_inclusive)
 {
+    FUNC_ENTER(NULL);
+
     int rst = 0;
     if (rbt->root)
         rst = rbt_range_walk_internal(rbt, rbt->root, NULL, 0, end_key, edk_size, 1, cb, priv, 1,
                                       end_inclusive);
     // rbt->num_of_comparisons += rst;
-    return rst;
+    FUNC_LEAVE(rst);
 }
 
 int
 rbt_range_gt_sorted(rbt_t *rbt, void *begin_key, size_t bgk_size, rbt_walk_callback cb, void *priv,
                     int begin_inclusive)
 {
+    FUNC_ENTER(NULL);
+
     int rst = 0;
     if (rbt->root)
         rst = rbt_range_walk_internal(rbt, rbt->root, begin_key, bgk_size, NULL, 0, 1, cb, priv,
                                       begin_inclusive, 1);
     // rbt->num_of_comparisons += rst;
-    return rst;
+    FUNC_LEAVE(rst);
 }
 
 static inline rbt_node_t *
 rbt_grandparent(rbt_node_t *node)
 {
+    FUNC_ENTER(NULL);
+
     if (node && node->parent)
-        return node->parent->parent;
-    return NULL;
+        FUNC_LEAVE(node->parent->parent);
+
+    FUNC_LEAVE(NULL);
 }
 
 static inline rbt_node_t *
 rbt_uncle(rbt_node_t *node)
 {
+    FUNC_ENTER(NULL);
+
     rbt_node_t *gp = rbt_grandparent(node);
     if (!gp)
-        return NULL;
+        FUNC_LEAVE(NULL);
     if (node->parent == gp->left)
-        return gp->right;
+        FUNC_LEAVE(gp->right);
     else
-        return gp->left;
+        FUNC_LEAVE(gp->left);
+
+    FUNC_LEAVE(NULL);
 }
 
 static inline int
 rbt_compare_keys(rbt_t *rbt, void *k1, size_t k1size, void *k2, size_t k2size)
 {
+    FUNC_ENTER(NULL);
+
     // stopwatch_t t_locate;
     // timer_start(&t_locate);
     int rc;
@@ -438,12 +489,14 @@ rbt_compare_keys(rbt_t *rbt, void *k1, size_t k1size, void *k2, size_t k2size)
     // timer_pause(&t_locate);
     // rbt->time_to_locate += timer_delta_ns(&t_locate);
     // rbt->num_of_comparisons++;
-    return rc;
+    FUNC_LEAVE(rc);
 }
 
 static int
 rbt_add_internal(rbt_t *rbt, rbt_node_t *cur_node, rbt_node_t *new_node)
 {
+    FUNC_ENTER(NULL);
+
     int rc = rbt_compare_keys(rbt, cur_node->key, cur_node->klen, new_node->key, new_node->klen);
 
     if (rc == 0) {
@@ -470,11 +523,11 @@ rbt_add_internal(rbt_t *rbt, rbt_node_t *cur_node, rbt_node_t *new_node)
 
         cur_node->key = (void *)PDC_free(cur_node->key);
         cur_node      = (rbt_node_t *)PDC_free(cur_node);
-        return 1;
+        FUNC_LEAVE(1);
     }
     else if (rc > 0) {
         if (cur_node->left) {
-            return rbt_add_internal(rbt, cur_node->left, new_node);
+            FUNC_LEAVE(rbt_add_internal(rbt, cur_node->left, new_node));
         }
         else {
             cur_node->left   = new_node;
@@ -483,19 +536,22 @@ rbt_add_internal(rbt_t *rbt, rbt_node_t *cur_node, rbt_node_t *new_node)
     }
     else {
         if (cur_node->right) {
-            return rbt_add_internal(rbt, cur_node->right, new_node);
+            FUNC_LEAVE(rbt_add_internal(rbt, cur_node->right, new_node));
         }
         else {
             cur_node->right  = new_node;
             new_node->parent = cur_node;
         }
     }
-    return 0;
+
+    FUNC_LEAVE(0);
 }
 
 static inline void
 rbt_rotate_right(rbt_t *rbt, rbt_node_t *node)
 {
+    FUNC_ENTER(NULL);
+
     rbt_node_t *p = node->left;
     node->left    = p ? p->right : NULL;
     if (p)
@@ -521,11 +577,15 @@ rbt_rotate_right(rbt_t *rbt, rbt_node_t *node)
     else {
         rbt->root = node;
     }
+
+    FUNC_LEAVE_VOID();
 }
 
 static inline void
 rbt_rotate_left(rbt_t *rbt, rbt_node_t *node)
 {
+    FUNC_ENTER(NULL);
+
     rbt_node_t *p = node->right;
     node->right   = p ? p->left : NULL;
     if (p)
@@ -551,11 +611,15 @@ rbt_rotate_left(rbt_t *rbt, rbt_node_t *node)
     else {
         rbt->root = node;
     }
+
+    FUNC_LEAVE_VOID();
 }
 
 int
 rbt_add(rbt_t *rbt, void *k, size_t klen, void *v)
 {
+    FUNC_ENTER(NULL);
+
     int rc = 0;
     // stopwatch_t t_expand;
     // timer_start(&t_expand);
@@ -563,14 +627,14 @@ rbt_add(rbt_t *rbt, void *k, size_t klen, void *v)
     rbt_node_t *node = PDC_calloc(1, sizeof(rbt_node_t));
     mem_usage_by_all_rbtrees += sizeof(rbt_node_t);
     if (!node)
-        return -1;
+        FUNC_LEAVE(-1);
 
     // rbt->num_of_reallocs++;
     node->key = PDC_malloc(klen);
     mem_usage_by_all_rbtrees += klen;
     if (!node->key) {
         node = (rbt_node_t *)PDC_free(node);
-        return -1;
+        FUNC_LEAVE(-1);
     }
     memcpy(node->key, k, klen);
     node->klen  = klen;
@@ -594,7 +658,7 @@ rbt_add(rbt_t *rbt, void *k, size_t klen, void *v)
                 // should be updated as well
                 rbt->root = node;
             }
-            return 1;
+            FUNC_LEAVE(1);
         }
         // rbt->num_of_comparisons++;
         if (!node->parent) {
@@ -604,7 +668,7 @@ rbt_add(rbt_t *rbt, void *k, size_t klen, void *v)
         }
         else if (IS_BLACK(node->parent)) {
             // case 2
-            return rc;
+            FUNC_LEAVE(rc);
         }
         else {
             // case 3
@@ -643,7 +707,7 @@ rbt_add(rbt_t *rbt, void *k, size_t klen, void *v)
                 }
                 else {
                     LOG_ERROR("Corrupted tree\n");
-                    return -1;
+                    FUNC_LEAVE(-1);
                 }
             }
         }
@@ -651,84 +715,97 @@ rbt_add(rbt_t *rbt, void *k, size_t klen, void *v)
     if (rc == 0) {
         rbt->size = rbt->size + 1;
     }
-    return rc;
+
+    FUNC_LEAVE(rc);
 }
 
 static rbt_node_t **
 rbt_find_internal(rbt_t *rbt, rbt_node_t **node, void *key, size_t klen)
 {
+    FUNC_ENTER(NULL);
+
     if (node == NULL || !(*node))
-        return NULL;
+        FUNC_LEAVE(NULL);
 
     if ((*node)->key == NULL) {
-        return NULL;
+        FUNC_LEAVE(NULL);
     }
 
     int rc = rbt_compare_keys(rbt, (*node)->key, (*node)->klen, key, klen);
 
     if (rc == 0) {
-        return node;
+        FUNC_LEAVE(node);
     }
     else if (rc > 0) {
-        return rbt_find_internal(rbt, &((*node)->left), key, klen);
+        FUNC_LEAVE(rbt_find_internal(rbt, &((*node)->left), key, klen));
     }
     else {
-        return rbt_find_internal(rbt, &((*node)->right), key, klen);
+        FUNC_LEAVE(rbt_find_internal(rbt, &((*node)->right), key, klen));
     }
 
-    return NULL;
+    FUNC_LEAVE(NULL);
 }
 
 int
 rbt_find(rbt_t *rbt, void *k, size_t klen, void **v)
 {
+    FUNC_ENTER(NULL);
+
     rbt_node_t **node = rbt_find_internal(rbt, &(rbt->root), k, klen);
     if (node == NULL || !(*node))
-        return -1;
+        FUNC_LEAVE(-1);
 
     *v = (*node)->value;
-    return 0;
+
+    FUNC_LEAVE(0);
 }
 
 static inline rbt_node_t *
 rbt_sibling(rbt_node_t *node)
 {
-    return (node == node->parent->left) ? node->parent->right : node->parent->left;
+    FUNC_ENTER(NULL);
+    FUNC_LEAVE((node == node->parent->left) ? node->parent->right : node->parent->left);
 }
 
 static inline rbt_node_t **
 rbt_find_next(rbt_node_t *node)
 {
+    FUNC_ENTER(NULL);
+
     if (!node->right)
-        return NULL;
+        FUNC_LEAVE(NULL);
 
     rbt_node_t **next = &(node->right);
 
     while ((*next)->left)
         next = &((*next)->left);
 
-    return next;
+    FUNC_LEAVE(next);
 }
 
 static inline rbt_node_t **
 rbt_find_prev(rbt_node_t *node)
 {
+    FUNC_ENTER(NULL);
+
     if (!node->left)
-        return NULL;
+        FUNC_LEAVE(NULL);
 
     rbt_node_t **prev = &(node->left);
 
     while ((*prev)->right)
         prev = &((*prev)->right);
 
-    return prev;
+    FUNC_LEAVE(prev);
 }
 
 static void
 rbt_paint_onremove(rbt_t *rbt, rbt_node_t *node)
 {
+    FUNC_ENTER(NULL);
+
     if (!node)
-        return;
+        FUNC_LEAVE_VOID();
 
     // delete case 1
     if (node->parent != NULL) {
@@ -791,11 +868,15 @@ rbt_paint_onremove(rbt_t *rbt, rbt_node_t *node)
             }
         }
     }
+
+    FUNC_LEAVE_VOID();
 }
 
 void
 rbt_free_node(rbt_t *rbt, rbt_node_t **node_ptr, void **node_v, void **rtn_v)
 {
+    FUNC_ENTER(NULL);
+
     (*node_ptr)->key = (void *)PDC_free((*node_ptr)->key);
     (*node_ptr)->key = NULL;
     if (rtn_v)
@@ -806,14 +887,18 @@ rbt_free_node(rbt_t *rbt, rbt_node_t **node_ptr, void **node_v, void **rtn_v)
     }
     *node_ptr = (rbt_node_t *)PDC_free(*node_ptr);
     *node_ptr = NULL;
+
+    FUNC_LEAVE_VOID();
 }
 
 int
 rbt_remove(rbt_t *rbt, void *k, size_t klen, void **v)
 {
+    FUNC_ENTER(NULL);
+
     rbt_node_t **node = rbt_find_internal(rbt, &(rbt->root), k, klen);
     if (node == NULL || !(*node))
-        return -1;
+        FUNC_LEAVE(-1);
 
     if ((*node)->left || (*node)->right) {
         // the node is not a leaf
@@ -830,7 +915,7 @@ rbt_remove(rbt_t *rbt, void *k, size_t klen, void **v)
             void *new_key = PDC_realloc((*node)->key, (*n)->klen);
             mem_usage_by_all_rbtrees += (*n)->klen;
             if (!new_key)
-                return -1;
+                FUNC_LEAVE(-1);
             (*node)->key = new_key;
             memcpy((*node)->key, (*n)->key, (*n)->klen);
             void *prev_value = (*node)->value;
@@ -862,7 +947,8 @@ rbt_remove(rbt_t *rbt, void *k, size_t klen, void **v)
                 rbt_free_node(rbt, n, &prev_value, v);
             }
             rbt->size = rbt->size - 1;
-            return 0;
+
+            FUNC_LEAVE(0);
         }
         else {
             // one child case
@@ -888,7 +974,8 @@ rbt_remove(rbt_t *rbt, void *k, size_t klen, void **v)
                 rbt_free_node(rbt, node, &((*node)->value), v);
             }
             rbt->size = rbt->size - 1;
-            return 0;
+
+            FUNC_LEAVE(0);
         }
     }
 
@@ -904,27 +991,32 @@ rbt_remove(rbt_t *rbt, void *k, size_t klen, void **v)
         rbt_free_node(rbt, node, &((*node)->value), v);
     }
     rbt->size = rbt->size - 1;
-    return 0;
+
+    FUNC_LEAVE(0);
 }
 
 uint64_t
 rbt_size(rbt_t *rbt)
 {
+    FUNC_ENTER(NULL);
+
     if (rbt == NULL) {
-        return 0;
+        FUNC_LEAVE(0);
     }
-    return rbt->size;
+    FUNC_LEAVE(rbt->size);
 }
 
 #ifdef DEBUG_RBTREE
 static int
 rbt_print_internal(rbt_node_t *node, int is_left, int offset, int depth, char s[20][255])
 {
+    FUNC_ENTER(NULL);
+
     char b[20];
     memset(b, 0, sizeof(b));
 
     if (!node)
-        return 0;
+        FUNC_LEAVE(0);
 
     sprintf(b, "(%d %C)", *((int *)node->value), node->color ? 'B' : 'R');
     int width = strlen(b);
@@ -974,12 +1066,14 @@ rbt_print_internal(rbt_node_t *node, int is_left, int offset, int depth, char s[
     }
 #endif
 
-    return left + width + right;
+    FUNC_LEAVE(left + width + right);
 }
 
 void
 rbt_print(rbt_t *rbt)
 {
+    FUNC_ENTER(NULL);
+
     int  i;
     char s[20][255];
     memset(s, 0, sizeof(s));

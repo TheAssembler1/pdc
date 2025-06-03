@@ -45,9 +45,9 @@ perr_t PDC_class__close(struct _pdc_class *p);
 static perr_t
 PDC_class_init()
 {
-    perr_t ret_value = SUCCEED;
-
     FUNC_ENTER(NULL);
+
+    perr_t ret_value = SUCCEED;
 
     /* Initialize the atom group for the container property IDs */
     if (PDC_register_type(PDC_CLASS, (PDC_free_t)PDC_class__close) < 0)
@@ -60,11 +60,11 @@ done:
 static pdcid_t
 PDC_class_create(const char *pdc_name)
 {
+    FUNC_ENTER(NULL);
+
     pdcid_t            ret_value = SUCCEED;
     pdcid_t            pdcid;
     struct _pdc_class *p = NULL;
-
-    FUNC_ENTER(NULL);
 
     p = (struct _pdc_class *)PDC_malloc(sizeof(struct _pdc_class));
     if (!p)
@@ -82,10 +82,10 @@ done:
 pdcid_t
 PDCinit(const char *pdc_name)
 {
+    FUNC_ENTER(NULL);
+
     pdcid_t ret_value = SUCCEED;
     pdcid_t pdcid;
-
-    FUNC_ENTER(NULL);
 
     if (NULL == (pdc_id_list_g = (struct pdc_id_list *)PDC_calloc(1, sizeof(struct pdc_id_list))))
         PGOTO_ERROR(0, "PDC global id list: memory allocation failed");
@@ -120,9 +120,10 @@ done:
 perr_t
 PDC_class__close(struct _pdc_class *p)
 {
+    FUNC_ENTER(NULL);
+
     perr_t ret_value = SUCCEED;
 
-    FUNC_ENTER(NULL);
 #ifdef PDC_TIMING
     PDC_timing_finalize();
 #endif
@@ -136,9 +137,9 @@ PDC_class__close(struct _pdc_class *p)
 perr_t
 PDC_class_close(pdcid_t pdc)
 {
-    perr_t ret_value = SUCCEED;
-
     FUNC_ENTER(NULL);
+
+    perr_t ret_value = SUCCEED;
 
     /* When the reference count reaches zero the resources are freed */
     if (PDC_dec_ref(pdc) < 0)
@@ -151,9 +152,9 @@ done:
 perr_t
 PDC_class_end()
 {
-    perr_t ret_value = SUCCEED;
-
     FUNC_ENTER(NULL);
+
+    perr_t ret_value = SUCCEED;
 
     if (PDC_destroy_type(PDC_CLASS) < 0)
         PGOTO_ERROR(FAIL, "Unable to destroy pdc class interface");
@@ -165,9 +166,9 @@ done:
 perr_t
 PDCclose(pdcid_t pdcid)
 {
-    perr_t ret_value = SUCCEED;
-
     FUNC_ENTER(NULL);
+
+    perr_t ret_value = SUCCEED;
 
 #ifdef ENABLE_APP_CLOSE_SERVER
     PDC_Client_close_all_server();

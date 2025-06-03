@@ -59,6 +59,7 @@
 #include "pdc_analysis_pkg.h"
 #include "pdc_analysis.h"
 #include "pdc_logger.h"
+#include "pdc_timing.h"
 
 #ifdef PDC_HAS_CRAY_DRC
 #include <rdmacred.h>
@@ -87,11 +88,11 @@ hg_thread_mutex_t insert_iterator_mutex_g = HG_THREAD_MUTEX_INITIALIZER;
 perr_t
 PDC_Server_instantiate_data_iterator(obj_data_iterator_in_t *in, obj_data_iterator_out_t *out)
 {
+    FUNC_ENTER(NULL);
+
     perr_t                     ret_value        = SUCCEED;
     data_server_region_t *     region_reference = NULL;
     struct _pdc_iterator_info *thisIter;
-
-    FUNC_ENTER(NULL);
 
 #ifdef ENABLE_MULTITHREAD
     hg_thread_mutex_lock(&insert_iterator_mutex_g);
@@ -152,6 +153,8 @@ PDC_Server_instantiate_data_iterator(obj_data_iterator_in_t *in, obj_data_iterat
 void *
 PDC_Server_get_region_data_ptr(pdcid_t object_id)
 {
+    FUNC_ENTER(NULL);
+
     data_server_region_t *region_reference = NULL;
     region_reference                       = PDC_Server_get_obj_region(object_id);
     if (region_reference) {
@@ -162,12 +165,15 @@ PDC_Server_get_region_data_ptr(pdcid_t object_id)
         else
             return region_reference->obj_data_ptr;
     }
-    return NULL;
+
+    FUNC_LEAVE(NULL);
 }
 
 void *
 PDC_Server_get_ftn_reference(char *ftn)
 {
+    FUNC_ENTER(NULL);
+
     static void *appHandle = NULL;
     void *       ftnHandle = NULL;
     if (appHandle == NULL) {
@@ -175,42 +181,49 @@ PDC_Server_get_ftn_reference(char *ftn)
         if ((appHandle = dlopen(0, RTLD_NOW)) == NULL) {
             char *this_error = dlerror();
             LOG_ERROR("dlopen failed: %s\n", this_error);
-            return NULL;
+            FUNC_LEAVE(NULL);
         }
     }
     ftnHandle = dlsym(appHandle, ftn);
-    return ftnHandle;
+
+    FUNC_LEAVE(ftnHandle);
 }
 
 size_t
 PDCobj_data_getSliceCount(pdcid_t iter)
 {
+    FUNC_ENTER(NULL);
+
     struct _pdc_iterator_info *thisIter = NULL;
     /* Special case to handle a NULL iterator */
     if (iter == 0)
-        return 0;
+        FUNC_LEAVE(0);
     /* FIXME: Should add another check to see that the input
      *        iter id is in the range of cached values...
      */
     if ((PDC_Block_iterator_cache != NULL) && (iter > 0)) {
         thisIter = &PDC_Block_iterator_cache[iter];
-        return thisIter->sliceCount;
+        FUNC_LEAVE(thisIter->sliceCount);
     }
-    return 0;
+
+    FUNC_LEAVE(0);
 }
 
 size_t
 PDCobj_data_getNextBlock(pdcid_t iter, void **nextBlock, size_t *dims)
 {
-    int                        ret_value = 0;
-    struct _pdc_iterator_info *thisIter  = NULL;
+    FUNC_ENTER(NULL);
+    int ret_value = SUCCEED;
+
+    struct _pdc_iterator_info *thisIter = NULL;
     /* Special case to handle a NULL iterator */
     if (iter == 0) {
         if (nextBlock != NULL)
             *nextBlock = NULL;
         if (dims != NULL)
             *dims = 0;
-        return 0;
+
+        FUNC_LEAVE(0);
     }
 
     if ((PDC_Block_iterator_cache != NULL) && (iter > 0)) {
@@ -221,7 +234,7 @@ PDCobj_data_getNextBlock(pdcid_t iter, void **nextBlock, size_t *dims)
                     thisIter->srcNext = PDC_malloc(thisIter->totalElements * thisIter->element_size);
                 if ((thisIter->srcStart = thisIter->srcNext) == NULL) {
                     LOG_ERROR("Unable to allocate iterator storage\n");
-                    return 0;
+                    FUNC_LEAVE(0);
                 }
                 thisIter->srcNext += thisIter->startOffset + thisIter->skipCount;
             }
@@ -239,7 +252,7 @@ PDCobj_data_getNextBlock(pdcid_t iter, void **nextBlock, size_t *dims)
                         *nextBlock = NULL;
                     thisIter->sliceNext = 0;
                     thisIter->srcNext   = NULL;
-                    PGOTO_DONE(0);
+                    PGOTO_DONE(ret_value);
                 }
                 if (nextBlock)
                     *nextBlock = thisIter->srcNext;
@@ -273,7 +286,7 @@ PDCobj_data_getNextBlock(pdcid_t iter, void **nextBlock, size_t *dims)
                 if (thisIter->ndim > 3)
                     dims[2] = thisIter->dims[3];
             }
-            return thisIter->elementsPerBlock;
+            FUNC_LEAVE(thisIter->elementsPerBlock);
         }
     }
 
@@ -283,15 +296,18 @@ done:
     if (nextBlock)
         *nextBlock = NULL;
 
-    return ret_value;
+    FUNC_LEAVE(ret_value);
 }
 
 int
 PDC_get_analysis_registry(struct _pdc_region_analysis_ftn_info ***registry)
 {
+    FUNC_ENTER(NULL);
+
     if (registry) {
         *registry = pdc_region_analysis_registry;
-        return hg_atomic_get32(&registered_analysis_ftn_count_g);
+        FUNC_LEAVE(hg_atomic_get32(&registered_analysis_ftn_count_g));
     }
-    return 0;
+
+    FUNC_LEAVE(0);
 }

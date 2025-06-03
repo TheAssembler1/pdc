@@ -67,17 +67,20 @@ perr_t
 PDC_Server_instantiate_data_iterator(obj_data_iterator_in_t *in   ATTRIBUTE(unused),
                                      obj_data_iterator_out_t *out ATTRIBUTE(unused))
 {
-    return SUCCEED;
+    FUNC_ENTER(NULL);
+    FUNC_LEAVE(SUCCEED);
 }
 void *
 PDC_Server_get_ftn_reference(char *ftn ATTRIBUTE(unused))
 {
-    return NULL;
+    FUNC_ENTER(NULL);
+    FUNC_LEAVE(NULL);
 }
 int
 PDC_get_analysis_registry(struct _pdc_region_analysis_ftn_info ***registry ATTRIBUTE(unused))
 {
-    return 0;
+    FUNC_ENTER(NULL);
+    FUNC_LEAVE(0);
 };
 #endif
 
@@ -85,10 +88,10 @@ PDC_get_analysis_registry(struct _pdc_region_analysis_ftn_info ***registry ATTRI
 static int
 pdc_analysis_registry_init_(size_t newSize)
 {
+    FUNC_ENTER(NULL);
+
     int                                    ret_value = 0;
     struct _pdc_region_analysis_ftn_info **new_registry;
-
-    FUNC_ENTER(NULL);
 
     if (pdc_region_analysis_registry == NULL) {
         new_registry = (struct _pdc_region_analysis_ftn_info **)PDC_calloc(sizeof(void *), newSize);
@@ -119,11 +122,11 @@ done:
 static int
 pdc_transform_registry_init_(size_t newSize)
 {
+    FUNC_ENTER(NULL);
+
     int                                     ret_value = 0;
     struct _pdc_region_transform_ftn_info **new_registry;
     size_t                                  copysize;
-
-    FUNC_ENTER(NULL);
 
     if (pdc_region_transform_registry == NULL) {
         new_registry = (struct _pdc_region_transform_ftn_info **)PDC_calloc(sizeof(void *), newSize);
@@ -154,10 +157,10 @@ done:
 int
 pdc_analysis_registry_finalize_()
 {
+    FUNC_ENTER(NULL);
+
     int               ret_value = 0;
     hg_atomic_int32_t i;
-
-    FUNC_ENTER(NULL);
 
     if ((pdc_region_analysis_registry != NULL) && (analysis_registry_size > 0)) {
         while (hg_atomic_get32(&i) > 0) {
@@ -178,10 +181,10 @@ pdc_analysis_registry_finalize_()
 int
 check_analysis(pdc_obj_transform_t op_type ATTRIBUTE(unused), struct pdc_region_info *dest_region)
 {
+    FUNC_ENTER(NULL);
+
     int ret_value = 0;
     int i, count;
-
-    FUNC_ENTER(NULL);
 
     if (analysis_registry_size > 0) {
         count = hg_atomic_get32(&registered_analysis_ftn_count_g);
@@ -200,12 +203,12 @@ done:
 int
 PDC_add_analysis_ptr_to_registry_(struct _pdc_region_analysis_ftn_info *ftn_infoPtr)
 {
+    FUNC_ENTER(NULL);
+
     int    ret_value             = 0;
     size_t initial_registry_size = 64;
     size_t i, currentCount;
     int    registry_index;
-
-    FUNC_ENTER(NULL);
 
     if (analysis_registry_size == 0) {
         if (pdc_analysis_registry_init_(initial_registry_size) == 0) {
@@ -241,13 +244,13 @@ done:
 int
 PDCiter_get_nextId(void)
 {
+    FUNC_ENTER(NULL);
+
     int                        ret_value              = 0;
     size_t                     nextId                 = 0;
     int *                      previous_i_cache_freed = 0;
     int                        next_free              = 0;
     struct _pdc_iterator_info *previous_state;
-
-    FUNC_ENTER(NULL);
 
     if (PDC_Block_iterator_cache == NULL) {
         PDC_Block_iterator_cache = (struct _pdc_iterator_info *)PDC_calloc(iterator_cache_entries,
@@ -297,10 +300,10 @@ done:
 int
 PDC_check_transform(pdc_obj_transform_t op_type, struct pdc_region_info *dest_region)
 {
+    FUNC_ENTER(NULL);
+
     int ret_value = 0;
     int i, count;
-
-    FUNC_ENTER(NULL);
 
     if (transform_registry_size > 0) {
         count = hg_atomic_get32(&registered_transform_ftn_count_g);
@@ -320,9 +323,9 @@ done:
 int
 PDC_get_transforms(struct _pdc_region_transform_ftn_info ***registry)
 {
-    int ret_value = 0;
-
     FUNC_ENTER(NULL);
+
+    int ret_value = 0;
 
     if (registry) {
         *registry = pdc_region_transform_registry;
@@ -336,12 +339,12 @@ done:
 int
 PDC_add_transform_ptr_to_registry_(struct _pdc_region_transform_ftn_info *ftn_infoPtr)
 {
+    FUNC_ENTER(NULL);
+
     int    ret_value             = 0;
     size_t initial_registry_size = 64;
     size_t i, currentCount;
     int    registry_index;
-
-    FUNC_ENTER(NULL);
 
     if (transform_registry_size == 0) {
         if (pdc_transform_registry_init_(initial_registry_size) == 0)
@@ -375,10 +378,10 @@ done:
 int
 PDC_update_transform_server_meta_index(int client_index, int meta_index)
 {
+    FUNC_ENTER(NULL);
+
     int                                    ret_value = 0;
     struct _pdc_region_transform_ftn_info *ftnPtr;
-
-    FUNC_ENTER(NULL);
 
     if (client_index < registered_transform_ftn_count_g) {
         ftnPtr             = pdc_region_transform_registry[client_index];
@@ -398,17 +401,16 @@ PDC_set_execution_locus(_pdc_loci_t locus_identifier)
 
     execution_locus = locus_identifier;
 
-    FUNC_LEAVE_VOID;
+    FUNC_LEAVE_VOID();
 }
 
 _pdc_loci_t
 PDC_get_execution_locus()
 {
-    _pdc_loci_t ret_value = 0;
-
     FUNC_ENTER(NULL);
 
-    ret_value = execution_locus;
+    _pdc_loci_t ret_value = 0;
+    ret_value             = execution_locus;
 
     FUNC_LEAVE(ret_value);
 }
@@ -416,12 +418,12 @@ PDC_get_execution_locus()
 int
 PDC_get_ftnPtr_(const char *ftn, const char *loadpath, void **ftnPtr)
 {
+    FUNC_ENTER(NULL);
+
     int          ret_value  = 0;
     static void *appHandle  = NULL;
     void *       ftnHandle  = NULL;
     char *       this_error = NULL;
-
-    FUNC_ENTER(NULL);
 
     if (appHandle == NULL) {
         if ((appHandle = dlopen(loadpath, RTLD_NOW)) == NULL) {
@@ -444,6 +446,8 @@ done:
 // analysis_ftn_cb(hg_handle_t handle)
 HG_TEST_RPC_CB(analysis_ftn, handle)
 {
+    FUNC_ENTER(NULL);
+
     hg_return_t                           ret_value = HG_SUCCESS;
     analysis_ftn_in_t                     in;
     analysis_ftn_out_t                    out;
@@ -536,11 +540,11 @@ done:
 // obj_data_iterator_cb(hg_handle_t handle)
 HG_TEST_RPC_CB(obj_data_iterator, handle)
 {
+    FUNC_ENTER(NULL);
+
     hg_return_t             ret_value = HG_SUCCESS;
     obj_data_iterator_in_t  in;
     obj_data_iterator_out_t out;
-
-    FUNC_ENTER(NULL);
 
     memset(&in, 0, sizeof(in));
     // Decode input
@@ -562,10 +566,9 @@ HG_TEST_THREAD_CB(analysis_ftn)
 hg_id_t
 PDC_analysis_ftn_register(hg_class_t *hg_class)
 {
-    hg_id_t ret_value;
-
     FUNC_ENTER(NULL);
 
+    hg_id_t ret_value;
     ret_value =
         MERCURY_REGISTER(hg_class, "analysis_ftn", analysis_ftn_in_t, analysis_ftn_out_t, analysis_ftn_cb);
 
@@ -575,10 +578,9 @@ PDC_analysis_ftn_register(hg_class_t *hg_class)
 hg_id_t
 PDC_obj_data_iterator_register(hg_class_t *hg_class)
 {
-    hg_id_t ret_value;
-
     FUNC_ENTER(NULL);
 
+    hg_id_t ret_value;
     ret_value = MERCURY_REGISTER(hg_class, "obj_data_iterator", obj_data_iterator_in_t,
                                  obj_data_iterator_out_t, obj_data_iterator_cb);
 
@@ -588,10 +590,9 @@ PDC_obj_data_iterator_register(hg_class_t *hg_class)
 void
 PDC_free_analysis_registry()
 {
-    int index;
-
     FUNC_ENTER(NULL);
 
+    int index;
     if (pdc_region_analysis_registry && (registered_analysis_ftn_count_g > 0)) {
         for (index = 0; index < registered_analysis_ftn_count_g; index++) {
             pdc_region_analysis_registry[index] =
@@ -601,16 +602,15 @@ PDC_free_analysis_registry()
             (struct _pdc_region_analysis_ftn_info **)PDC_free(pdc_region_analysis_registry);
     }
 
-    FUNC_LEAVE_VOID;
+    FUNC_LEAVE_VOID();
 }
 
 void
 PDC_free_transform_registry()
 {
-    int index;
-
     FUNC_ENTER(NULL);
 
+    int index;
     if (pdc_region_transform_registry && (registered_transform_ftn_count_g > 0)) {
         for (index = 0; index < registered_transform_ftn_count_g; index++) {
             pdc_region_transform_registry[index] =
@@ -620,17 +620,16 @@ PDC_free_transform_registry()
             (struct _pdc_region_transform_ftn_info **)PDC_free(pdc_region_transform_registry);
     }
 
-    FUNC_LEAVE_VOID;
+    FUNC_LEAVE_VOID();
 }
 
 void
 PDC_free_iterator_cache()
 {
-
     FUNC_ENTER(NULL);
 
     if (PDC_Block_iterator_cache != NULL)
         PDC_Block_iterator_cache = (struct _pdc_iterator_info *)PDC_free(PDC_Block_iterator_cache);
 
-    FUNC_LEAVE_VOID;
+    FUNC_LEAVE_VOID();
 }

@@ -1,8 +1,11 @@
 #include "qc_parser.h"
+#include "pdc_timing.h"
 
 int
 main()
 {
+    FUNC_ENTER(NULL);
+
     char *expression =
         "z=\"tsa\" AND t=234234 OR NOT (e=234 AND (a=123 OR b=\"abc\") AND ((NOT c=987) OR d=258))";
     Condition *root = (Condition *)malloc(sizeof(Condition));
@@ -10,4 +13,6 @@ main()
     root->end       = strlen(expression);
     root->level     = 0;
     splitCondition(expression, root);
+
+    FUNC_LEAVE(0);
 }

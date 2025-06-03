@@ -8,6 +8,7 @@
 // non-native version will be less than optimal.
 
 #include "pdc_murmur.h"
+#include "pdc_timing.h"
 
 #define FORCE_INLINE inline static
 
@@ -49,6 +50,8 @@ fmix64(uint64_t k)
 void
 MurmurHash3_x64_128(const void *key, const int len, const uint32_t seed, void *out)
 {
+    FUNC_ENTER(NULL);
+
     const uint8_t *data    = (const uint8_t *)key;
     const int      nblocks = len / 16;
 
@@ -184,6 +187,8 @@ MurmurHash3_x64_128(const void *key, const int len, const uint32_t seed, void *o
 
     ((uint64_t *)out)[0] = h1;
     ((uint64_t *)out)[1] = h2;
+
+    FUNC_LEAVE_VOID();
 }
 
 //-----------------------------------------------------------------------------

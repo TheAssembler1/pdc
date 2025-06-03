@@ -37,9 +37,9 @@ static perr_t PDC_cont_close(struct _pdc_cont_info *cp);
 perr_t
 PDC_cont_init()
 {
-    perr_t ret_value = SUCCEED;
-
     FUNC_ENTER(NULL);
+
+    perr_t ret_value = SUCCEED;
 
     /* Initialize the atom group for the container IDs */
     if (PDC_register_type(PDC_CONT, (PDC_free_t)PDC_cont_close) < 0)
@@ -52,13 +52,13 @@ done:
 pdcid_t
 PDCcont_create(const char *cont_name, pdcid_t cont_prop_id)
 {
+    FUNC_ENTER(NULL);
+
     pdcid_t                ret_value = 0;
     perr_t                 ret       = SUCCEED;
     struct _pdc_cont_info *p         = NULL;
     struct _pdc_cont_prop *cont_prop = NULL;
     struct _pdc_id_info *  id_info   = NULL;
-
-    FUNC_ENTER(NULL);
 
     p = (struct _pdc_cont_info *)PDC_malloc(sizeof(struct _pdc_cont_info));
     if (!p)
@@ -100,6 +100,8 @@ done:
 pdcid_t
 PDCcont_create_col(const char *cont_name, pdcid_t cont_prop_id)
 {
+    FUNC_ENTER(NULL);
+
     pdcid_t                ret_value = 0;
     perr_t                 ret       = SUCCEED;
     struct _pdc_cont_info *p         = NULL;
@@ -146,13 +148,13 @@ done:
 pdcid_t
 PDC_cont_create_local(pdcid_t pdc, const char *cont_name, uint64_t cont_meta_id)
 {
+    FUNC_ENTER(NULL);
+
     pdcid_t                ret_value = 0;
     struct _pdc_cont_info *p         = NULL;
     struct _pdc_cont_prop *cont_prop = NULL;
     struct _pdc_id_info *  id_info   = NULL;
     pdcid_t                cont_prop_id;
-
-    FUNC_ENTER(NULL);
 
     p = (struct _pdc_cont_info *)PDC_malloc(sizeof(struct _pdc_cont_info));
     if (!p)
@@ -193,10 +195,10 @@ done:
 perr_t
 PDC_cont_list_null()
 {
+    FUNC_ENTER(NULL);
+
     perr_t ret_value = SUCCEED;
     int    nelemts;
-
-    FUNC_ENTER(NULL);
 
     // list is not empty
     nelemts = PDC_id_list_null(PDC_CONT);
@@ -212,9 +214,9 @@ done:
 static perr_t
 PDC_cont_close(struct _pdc_cont_info *cp)
 {
-    perr_t ret_value = SUCCEED;
-
     FUNC_ENTER(NULL);
+
+    perr_t ret_value = SUCCEED;
 
     cp->cont_info_pub->name = (char *)PDC_free((void *)(cp->cont_info_pub->name));
     cp->cont_info_pub       = (struct pdc_cont_info *)(intptr_t)PDC_free(cp->cont_info_pub);
@@ -229,9 +231,9 @@ PDC_cont_close(struct _pdc_cont_info *cp)
 perr_t
 PDCcont_close(pdcid_t id)
 {
-    perr_t ret_value = SUCCEED;
-
     FUNC_ENTER(NULL);
+
+    perr_t ret_value = SUCCEED;
 
     /* When the reference count reaches zero the resources are freed */
     if (PDC_dec_ref(id) < 0)
@@ -244,9 +246,9 @@ done:
 perr_t
 PDC_cont_end()
 {
-    perr_t ret_value = SUCCEED;
-
     FUNC_ENTER(NULL);
+
+    perr_t ret_value = SUCCEED;
 
     if (PDC_destroy_type(PDC_CONT) < 0)
         PGOTO_ERROR(FAIL, "Unable to destroy container interface");
@@ -258,12 +260,12 @@ done:
 pdcid_t
 PDCcont_open(const char *cont_name, pdcid_t pdc)
 {
+    FUNC_ENTER(NULL);
+
     pdcid_t ret_value = 0;
     perr_t  ret;
     pdcid_t cont_id;
     pdcid_t cont_meta_id;
-
-    FUNC_ENTER(NULL);
 
     ret = PDC_Client_query_container_name(cont_name, &cont_meta_id);
     if (ret == FAIL)
@@ -281,12 +283,12 @@ done:
 pdcid_t
 PDCcont_open_col(const char *cont_name, pdcid_t pdc)
 {
+    FUNC_ENTER(NULL);
+
     pdcid_t ret_value = 0;
     perr_t  ret;
     pdcid_t cont_id;
     pdcid_t cont_meta_id;
-
-    FUNC_ENTER(NULL);
 
     ret = PDC_Client_query_container_name_col(cont_name, &cont_meta_id);
     if (ret == FAIL)
@@ -301,11 +303,11 @@ done:
 struct _pdc_cont_info *
 PDC_cont_get_info(pdcid_t cont_id)
 {
+    FUNC_ENTER(NULL);
+
     struct _pdc_cont_info *ret_value = NULL;
     struct _pdc_cont_info *info      = NULL;
     struct _pdc_id_info *  id_info   = NULL;
-
-    FUNC_ENTER(NULL);
 
     id_info = PDC_find_id(cont_id);
     if (id_info == NULL)
@@ -346,11 +348,11 @@ done:
 struct pdc_cont_info *
 PDCcont_get_info(const char *cont_name)
 {
+    FUNC_ENTER(NULL);
+
     struct pdc_cont_info * ret_value = NULL;
     struct _pdc_cont_info *tmp       = NULL;
     pdcid_t                cont_id;
-
-    FUNC_ENTER(NULL);
 
     cont_id = PDC_find_byname(PDC_CONT, cont_name);
 
@@ -369,11 +371,11 @@ done:
 cont_handle *
 PDCcont_iter_start()
 {
+    FUNC_ENTER(NULL);
+
     cont_handle *       ret_value = NULL;
     cont_handle *       conthl    = NULL;
     struct PDC_id_type *type_ptr;
-
-    FUNC_ENTER(NULL);
 
     type_ptr = (pdc_id_list_g->PDC_id_type_list_g)[PDC_CONT];
     if (type_ptr == NULL)
@@ -388,10 +390,9 @@ done:
 pbool_t
 PDCcont_iter_null(cont_handle *chandle)
 {
-    pbool_t ret_value = FALSE;
-
     FUNC_ENTER(NULL);
 
+    pbool_t ret_value = FALSE;
     if (chandle == NULL)
         ret_value = TRUE;
 
@@ -401,10 +402,10 @@ PDCcont_iter_null(cont_handle *chandle)
 cont_handle *
 PDCcont_iter_next(cont_handle *chandle)
 {
+    FUNC_ENTER(NULL);
+
     cont_handle *ret_value = NULL;
     cont_handle *next      = NULL;
-
-    FUNC_ENTER(NULL);
 
     if (chandle == NULL)
         PGOTO_ERROR(NULL, "No next container");
@@ -418,10 +419,10 @@ done:
 struct pdc_cont_info *
 PDCcont_iter_get_info(cont_handle *chandle)
 {
+    FUNC_ENTER(NULL);
+
     struct pdc_cont_info * ret_value = NULL;
     struct _pdc_cont_info *info      = NULL;
-
-    FUNC_ENTER(NULL);
 
     info = (struct _pdc_cont_info *)(chandle->obj_ptr);
     if (info == NULL)
@@ -440,10 +441,10 @@ done:
 perr_t
 PDCcont_persist(pdcid_t cont_id)
 {
+    FUNC_ENTER(NULL);
+
     perr_t               ret_value = SUCCEED;
     struct _pdc_id_info *info;
-
-    FUNC_ENTER(NULL);
 
     info = PDC_find_id(cont_id);
     if (info == NULL)
@@ -458,10 +459,10 @@ done:
 perr_t
 PDCprop_set_cont_lifetime(pdcid_t cont_prop, pdc_lifetime_t cont_lifetime)
 {
+    FUNC_ENTER(NULL);
+
     perr_t               ret_value = SUCCEED;
     struct _pdc_id_info *info;
-
-    FUNC_ENTER(NULL);
 
     info = PDC_find_id(cont_prop);
     if (info == NULL)

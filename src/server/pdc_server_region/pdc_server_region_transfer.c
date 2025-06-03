@@ -43,9 +43,10 @@ PDC_server_transfer_request_finalize()
 perr_t
 PDC_commit_request(uint64_t transfer_request_id)
 {
+    FUNC_ENTER(NULL);
+
     pdc_transfer_request_status *ptr;
     perr_t                       ret_value = SUCCEED;
-    FUNC_ENTER(NULL);
 
     if (transfer_request_status_list == NULL) {
         transfer_request_status_list =
@@ -79,13 +80,13 @@ PDC_commit_request(uint64_t transfer_request_id)
 perr_t
 PDC_finish_request(uint64_t transfer_request_id)
 {
+    FUNC_ENTER(NULL);
+
     pdc_transfer_request_status *   ptr, *tmp = NULL;
     perr_t                          ret_value = SUCCEED;
     transfer_request_wait_out_t     out;
     transfer_request_wait_all_out_t out_all;
     char                            cur_time[64];
-
-    FUNC_ENTER(NULL);
 
     ptr = transfer_request_status_list;
     while (ptr != NULL) {
@@ -148,9 +149,10 @@ PDC_finish_request(uint64_t transfer_request_id)
 pdc_transfer_status_t
 PDC_check_request(uint64_t transfer_request_id)
 {
+    FUNC_ENTER(NULL);
+
     pdc_transfer_request_status *ptr, *tmp = NULL;
     pdc_transfer_status_t        ret_value = PDC_TRANSFER_STATUS_NOT_FOUND;
-    FUNC_ENTER(NULL);
 
     ptr = transfer_request_status_list;
     while (ptr != NULL) {
@@ -198,9 +200,10 @@ PDC_check_request(uint64_t transfer_request_id)
 pdc_transfer_status_t
 PDC_try_finish_request(uint64_t transfer_request_id, hg_handle_t handle, int *handle_ref, int out_type)
 {
+    FUNC_ENTER(NULL);
+
     pdc_transfer_request_status *ptr;
     pdc_transfer_status_t        ret_value = PDC_TRANSFER_STATUS_NOT_FOUND;
-    FUNC_ENTER(NULL);
 
     ptr = transfer_request_status_list;
     while (ptr != NULL) {
@@ -228,9 +231,9 @@ PDC_try_finish_request(uint64_t transfer_request_id, hg_handle_t handle, int *ha
 pdcid_t
 PDC_transfer_request_id_register()
 {
-    pdcid_t ret_value;
-
     FUNC_ENTER(NULL);
+
+    pdcid_t ret_value;
 
     ret_value = transfer_request_id_g;
     transfer_request_id_g++;
@@ -258,6 +261,8 @@ perr_t
 PDC_Server_transfer_request_io(uint64_t obj_id, int obj_ndim, const uint64_t *obj_dims,
                                struct pdc_region_info *region_info, void *buf, size_t unit, int is_write)
 {
+    FUNC_ENTER(NULL);
+
     perr_t   ret_value = SUCCEED;
     int      fd;
     char *   data_path                = NULL;
@@ -266,10 +271,6 @@ PDC_Server_transfer_request_io(uint64_t obj_id, int obj_ndim, const uint64_t *ob
     ssize_t  io_size;
     uint64_t i, j;
     char     cur_time[64];
-
-    FUNC_ENTER(NULL);
-
-    /* PDC_get_time_str(cur_time); */
 
     if (io_by_region_g || obj_ndim == 0) {
         // PDC_Server_register_obj_region(obj_id);
@@ -368,18 +369,23 @@ done:
 int
 clean_write_bulk_data(transfer_request_all_data *request_data)
 {
+    FUNC_ENTER(NULL);
+
     request_data->obj_id        = (pdcid_t *)PDC_free(request_data->obj_id);
     request_data->obj_ndim      = (int *)PDC_free(request_data->obj_ndim);
     request_data->remote_ndim   = (int *)PDC_free(request_data->remote_ndim);
     request_data->remote_offset = (uint64_t **)PDC_free(request_data->remote_offset);
     request_data->unit          = (size_t *)PDC_free(request_data->unit);
     request_data->data_buf      = (char **)PDC_free(request_data->data_buf);
-    return 0;
+
+    FUNC_LEAVE(0);
 }
 
 int
 parse_bulk_data(void *buf, transfer_request_all_data *request_data, pdc_access_t access_type)
 {
+    FUNC_ENTER(NULL);
+
     char *   ptr = (char *)buf;
     int      i, j;
     uint64_t data_size;
@@ -435,5 +441,5 @@ parse_bulk_data(void *buf, transfer_request_all_data *request_data, pdc_access_t
         }
     }
 
-    return 0;
+    FUNC_LEAVE(0);
 }

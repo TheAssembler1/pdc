@@ -1,21 +1,20 @@
-//
-// Created by Wei Zhang on 7/10/17.
-//
 #include "query_utils.h"
 #include <inttypes.h>
 #include <stdint.h>
 #include "pdc_logger.h"
+#include "pdc_timing.h"
 #include "pdc_malloc.h"
 
 int
 _gen_affix_for_token(char *token_str, int affix_type, size_t affix_len, char **out_str)
 {
+    FUNC_ENTER(NULL);
 
     size_t token_len = strlen(token_str);
 
     if (affix_type == 0) {
         *out_str = strdup(token_str);
-        return token_len;
+        FUNC_LEAVE(token_len);
     }
 
     affix_len        = affix_len < token_len ? affix_len : token_len;
@@ -49,17 +48,19 @@ _gen_affix_for_token(char *token_str, int affix_type, size_t affix_len, char **o
     }
     else {
         LOG_ERROR("Invalid affix type %d\n", affix_type);
-        return 0;
+        FUNC_LEAVE(0);
     }
 
     *out_str = affix_str;
 
-    return strlen(*out_str);
+    FUNC_LEAVE(strlen(*out_str));
 }
 
 void
 gen_query_key_value(query_gen_input_t *input, query_gen_output_t *output)
 {
+    FUNC_ENTER(NULL);
+
     char * key_ptr       = NULL;
     size_t key_ptr_len   = 0;
     char * value_ptr     = NULL;
@@ -84,7 +85,7 @@ gen_query_key_value(query_gen_input_t *input, query_gen_output_t *output)
     key_ptr_len = _gen_affix_for_token(input->base_tag->name, input->key_query_type, affix_len, &key_ptr);
     if (key_ptr_len == 0) {
         LOG_ERROR("Failed to generate key query\n");
-        return;
+        FUNC_LEAVE_VOID();
     }
 
     // process value in base_tag
@@ -100,7 +101,7 @@ gen_query_key_value(query_gen_input_t *input, query_gen_output_t *output)
 
         if (value_ptr_len == 0) {
             LOG_ERROR("Failed to generate value query\n");
-            return;
+            FUNC_LEAVE_VOID();
         }
     }
     else {
@@ -115,7 +116,7 @@ gen_query_key_value(query_gen_input_t *input, query_gen_output_t *output)
         }
         else {
             LOG_ERROR("Invalid tag type\n");
-            return;
+            FUNC_LEAVE_VOID();
         }
         char *format_str = get_format_by_dtype(input->base_tag->type);
         if (input->value_query_type == 4) {
@@ -134,7 +135,7 @@ gen_query_key_value(query_gen_input_t *input, query_gen_output_t *output)
         }
         else {
             LOG_ERROR("Invalid value query type for integer\n");
-            return;
+            FUNC_LEAVE_VOID();
         }
     }
 
@@ -142,28 +143,37 @@ gen_query_key_value(query_gen_input_t *input, query_gen_output_t *output)
     output->key_query_len   = key_ptr_len;
     output->value_query     = value_ptr;
     output->value_query_len = value_ptr_len;
+
+    FUNC_LEAVE_VOID();
 }
 
 char *
 gen_query_str(query_gen_output_t *query_gen_output)
 {
+    FUNC_ENTER(NULL);
+
     char *final_query_str = (char *)PDC_calloc(
         query_gen_output->key_query_len + query_gen_output->value_query_len + 2, sizeof(char));
     strcat(final_query_str, query_gen_output->key_query);
     strcat(final_query_str, "=");
     strcat(final_query_str, query_gen_output->value_query);
-    return final_query_str;
+
+    FUNC_LEAVE(final_query_str);
 }
 
 void
 free_query_output(query_gen_output_t *output)
 {
+    FUNC_ENTER(NULL);
+
     if (output->key_query != NULL) {
         output->key_query = (char *)PDC_free(output->key_query);
     }
     if (output->value_query != NULL) {
         output->value_query = (char *)PDC_free(output->value_query);
     }
+
+    FUNC_LEAVE_VOID();
 }
 
 /**
@@ -180,14 +190,16 @@ free_query_output(query_gen_output_t *output)
 char *
 get_key(const char *kv_pair, char delim)
 {
+    FUNC_ENTER(NULL);
 
     char *ret = NULL;
     int   idx = indexOf(kv_pair, delim);
 
     if (idx < 0) {
-        return ret;
+        FUNC_LEAVE(ret);
     }
-    return subrstr(kv_pair, idx);
+
+    FUNC_LEAVE(subrstr(kv_pair, idx));
 }
 
 /**
@@ -203,15 +215,16 @@ get_key(const char *kv_pair, char delim)
 char *
 get_value(const char *kv_pair, char delim)
 {
+    FUNC_ENTER(NULL);
 
     char *ret = NULL;
     int   idx = indexOf(kv_pair, delim);
 
     if (idx < 0) {
-        return ret;
+        FUNC_LEAVE(ret);
     }
 
-    return substr(kv_pair, idx + 1);
+    FUNC_LEAVE(substr(kv_pair, idx + 1));
 }
 
 /**
@@ -225,6 +238,8 @@ get_value(const char *kv_pair, char delim)
 char *
 gen_tags(int obj_id)
 {
+    FUNC_ENTER(NULL);
+
     int   j;
     int   tag_num = obj_id % 20;
     char *ret     = "";
@@ -236,7 +251,8 @@ gen_tags(int obj_id)
         }
     }
     ret[strlen(ret) - 1] = '\0';
-    return ret;
+
+    FUNC_LEAVE(ret);
 }
 
 /**
@@ -247,6 +263,7 @@ gen_tags(int obj_id)
 void
 gen_tags_in_loop()
 {
+    FUNC_ENTER(NULL);
 
     int my_count = 1000;
     int i;
@@ -257,6 +274,8 @@ gen_tags_in_loop()
             ret = (char *)PDC_free(ret);
         }
     }
+
+    FUNC_LEAVE_VOID();
 }
 /**
  * returns 1 if the tag is found, otherwise, returns 0.
@@ -267,6 +286,8 @@ gen_tags_in_loop()
 int
 has_tag(const char *tagslist, const char *tagname)
 {
+    FUNC_ENTER(NULL);
+
     /*
     char *pattern = strdup(tagname);
     if (startsWith("*", pattern)) {
@@ -276,7 +297,7 @@ has_tag(const char *tagslist, const char *tagname)
         pattern[strlen(pattern)]='\0';
     }
      */
-    return has_tag_p(tagslist, tagname);
+    FUNC_LEAVE(has_tag_p(tagslist, tagname));
 }
 /**
  * Check if there is any tag in the tags list that matches the given pattern.
@@ -288,12 +309,15 @@ has_tag(const char *tagslist, const char *tagname)
 int
 has_tag_p(const char *tagslist, const char *pattern)
 {
-    return (k_v_matches_p(tagslist, pattern, NULL) != NULL);
+    FUNC_ENTER(NULL);
+    FUNC_LEAVE(k_v_matches_p(tagslist, pattern, NULL) != NULL);
 }
 
 char *
 k_v_matches_p(const char *tagslist, const char *key_pattern, const char *value_pattern)
 {
+    FUNC_ENTER(NULL);
+
     char *rst_kv     = NULL;
     char *_tags_list = NULL;
 
@@ -339,47 +363,60 @@ k_v_matches_p(const char *tagslist, const char *key_pattern, const char *value_p
         }
         tag_kv = strtok(NULL, TAG_DELIMITER);
     }
-    return rst_kv;
+
+    FUNC_LEAVE(rst_kv);
 }
 
 int
 is_value_match(const char *tagslist, const char *tagname, const char *val)
 {
-    return is_value_match_p(tagslist, tagname, val);
+    FUNC_ENTER(NULL);
+    FUNC_LEAVE(is_value_match_p(tagslist, tagname, val));
 }
+
 int
 is_value_match_p(const char *tagslist, const char *tagname, const char *pattern)
 {
-    return (k_v_matches_p(tagslist, tagname, pattern) != NULL);
+    FUNC_ENTER(NULL);
+    FUNC_LEAVE(k_v_matches_p(tagslist, tagname, pattern) != NULL);
 }
+
 int
 is_value_in_range(const char *tagslist, const char *tagname, int from, int to)
 {
+    FUNC_ENTER(NULL);
+
     const char *matched_kv = k_v_matches_p(tagslist, tagname, NULL);
     char *      value      = get_value(matched_kv, '=');
     int         v          = atoi(value);
-    return (v >= from && v <= to);
+
+    FUNC_LEAVE(v >= from && v <= to);
 }
 
 int
 is_string_query(char *value_query)
 {
-    return is_quoted_string(value_query);
+    FUNC_ENTER(NULL);
+    FUNC_LEAVE(is_quoted_string(value_query));
 }
 
 int
 is_affix_query(char *value_query)
 {
+    FUNC_ENTER(NULL);
+
     if (is_string_query(value_query) && contains(value_query, "*")) {
-        return 1;
+        FUNC_LEAVE(1);
     }
-    return 0;
+
+    FUNC_LEAVE(0);
 }
 
 int
 is_number_query(char *value_query)
 {
-    return !is_string_query(value_query);
+    FUNC_ENTER(NULL);
+    FUNC_LEAVE(!is_string_query(value_query));
 }
 
 int
@@ -387,6 +424,8 @@ parse_and_run_number_value_query(char *num_val_query, pdc_c_var_type_t num_type,
                                  num_query_action_collection_t *action_collection, void *cb_input,
                                  uint64_t *cb_out_len, void **cb_out)
 {
+    FUNC_ENTER(NULL);
+
     // allocate memory according to the val_idx_dtype for value 1 and value 2.
     void *val1;
     void *val2;
@@ -446,5 +485,6 @@ parse_and_run_number_value_query(char *num_val_query, pdc_c_var_type_t num_type,
 
         action_collection->exact_action(val1, NULL, NULL, 1, 1, num_type, cb_input, cb_out, cb_out_len);
     }
-    return 0;
+
+    FUNC_LEAVE(0);
 }

@@ -47,10 +47,9 @@ static perr_t pdc_transfer_request_close();
 perr_t
 PDC_region_init()
 {
-    perr_t ret_value = SUCCEED;
-
     FUNC_ENTER(NULL);
 
+    perr_t ret_value = SUCCEED;
     /* Initialize the atom group for the region IDs */
     if (PDC_register_type(PDC_REGION, (PDC_free_t)pdc_region_close) < 0)
         PGOTO_ERROR(FAIL, "Unable to initialize region interface");
@@ -62,10 +61,9 @@ done:
 perr_t
 PDC_transfer_request_init()
 {
-    perr_t ret_value = SUCCEED;
-
     FUNC_ENTER(NULL);
 
+    perr_t ret_value = SUCCEED;
     /* Initialize the atom group for the region IDs */
     if (PDC_register_type(PDC_TRANSFER_REQUEST, (PDC_free_t)pdc_transfer_request_close) < 0)
         PGOTO_ERROR(FAIL, "Unable to initialize region interface");
@@ -77,10 +75,10 @@ done:
 perr_t
 PDC_region_list_null()
 {
+    FUNC_ENTER(NULL);
+
     perr_t ret_value = SUCCEED;
     int    nelemts;
-
-    FUNC_ENTER(NULL);
 
     // list is not empty
     nelemts = PDC_id_list_null(PDC_REGION);
@@ -96,12 +94,13 @@ done:
 perr_t
 pdc_region_close(struct pdc_region_info *op)
 {
-    perr_t ret_value = SUCCEED;
-
     FUNC_ENTER(NULL);
+
+    perr_t ret_value = SUCCEED;
 
     op->size   = (uint64_t *)PDC_free(op->size);
     op->offset = (uint64_t *)PDC_free(op->offset);
+
     if (op->obj != NULL)
         op->obj = (struct _pdc_obj_info *)(intptr_t)PDC_free(op->obj);
     op = (struct pdc_region_info *)(intptr_t)PDC_free(op);
@@ -112,9 +111,9 @@ pdc_region_close(struct pdc_region_info *op)
 perr_t
 pdc_transfer_request_close()
 {
-    perr_t ret_value = SUCCEED;
-
     FUNC_ENTER(NULL);
+
+    perr_t ret_value = SUCCEED;
 
     FUNC_LEAVE(ret_value);
 }
@@ -122,9 +121,9 @@ pdc_transfer_request_close()
 perr_t
 PDCregion_close(pdcid_t region_id)
 {
-    perr_t ret_value = SUCCEED;
-
     FUNC_ENTER(NULL);
+
+    perr_t ret_value = SUCCEED;
 
     /* When the reference count reaches zero the resources are freed */
     if (PDC_dec_ref(region_id) < 0)
@@ -137,12 +136,12 @@ done:
 perr_t
 PDC_region_end()
 {
-    perr_t ret_value = SUCCEED;
-
     FUNC_ENTER(NULL);
 
+    perr_t ret_value = SUCCEED;
     if (PDC_destroy_type(PDC_REGION) < 0)
         PGOTO_ERROR(FAIL, "Failed to destroy region interface");
+
 done:
     FUNC_LEAVE(ret_value);
 }
@@ -150,12 +149,12 @@ done:
 pdcid_t
 PDCregion_create(psize_t ndims, uint64_t *offset, uint64_t *size)
 {
+    FUNC_ENTER(NULL);
+
     pdcid_t                 ret_value = 0;
     struct pdc_region_info *p         = NULL;
     pdcid_t                 new_id;
     size_t                  i = 0;
-
-    FUNC_ENTER(NULL);
 
     p = (struct pdc_region_info *)PDC_malloc(sizeof(struct pdc_region_info));
     if (!p)
@@ -182,6 +181,8 @@ perr_t
 PDCbuf_obj_map(void *buf, pdc_var_type_t local_type, pdcid_t local_reg, pdcid_t remote_obj,
                pdcid_t remote_reg)
 {
+    FUNC_ENTER(NULL);
+
     pdcid_t               ret_value = SUCCEED;
     size_t                i;
     struct _pdc_id_info * objinfo2;
@@ -191,8 +192,6 @@ PDCbuf_obj_map(void *buf, pdc_var_type_t local_type, pdcid_t local_reg, pdcid_t 
     pdc_var_type_t          remote_type;
     struct _pdc_id_info *   reginfo1, *reginfo2;
     struct pdc_region_info *reg1, *reg2;
-
-    FUNC_ENTER(NULL);
 
     reginfo1 = PDC_find_id(local_reg);
     reg1     = (struct pdc_region_info *)(reginfo1->obj_ptr);
@@ -234,11 +233,11 @@ done:
 struct pdc_region_info *
 PDCregion_get_info(pdcid_t reg_id)
 {
+    FUNC_ENTER(NULL);
+
     struct pdc_region_info *ret_value = NULL;
     struct pdc_region_info *info      = NULL;
     struct _pdc_id_info *   region;
-
-    FUNC_ENTER(NULL);
 
     region = PDC_find_id(reg_id);
     if (region == NULL)
@@ -254,13 +253,13 @@ done:
 perr_t
 PDCbuf_obj_unmap(pdcid_t remote_obj_id, pdcid_t remote_reg_id)
 {
+    FUNC_ENTER(NULL);
+
     perr_t                  ret_value = SUCCEED;
     struct _pdc_id_info *   info1;
     struct _pdc_obj_info *  object1;
     struct pdc_region_info *reginfo;
     pdc_var_type_t          data_type;
-
-    FUNC_ENTER(NULL);
 
     info1 = PDC_find_id(remote_obj_id);
     if (info1 == NULL)
@@ -288,14 +287,14 @@ done:
 perr_t
 PDCreg_obtain_lock(pdcid_t obj_id, pdcid_t reg_id, pdc_access_t access_type, pdc_lock_mode_t lock_mode)
 {
+    FUNC_ENTER(NULL);
+
     perr_t                  ret_value = SUCCEED;
     struct _pdc_obj_info *  object_info;
     struct pdc_region_info *region_info;
     pdc_var_type_t          data_type;
     pbool_t                 obtained;
     struct _pdc_id_info *   info1;
-
-    FUNC_ENTER(NULL);
 
     info1 = PDC_find_id(obj_id);
     if (info1 == NULL)
@@ -315,14 +314,14 @@ done:
 perr_t
 PDCreg_release_lock(pdcid_t obj_id, pdcid_t reg_id, pdc_access_t access_type)
 {
+    FUNC_ENTER(NULL);
+
     perr_t                  ret_value = SUCCEED;
     pbool_t                 released;
     struct _pdc_obj_info *  object_info;
     struct pdc_region_info *region_info;
     pdc_var_type_t          data_type;
     struct _pdc_id_info *   info1;
-
-    FUNC_ENTER(NULL);
 
     info1 = PDC_find_id(obj_id);
     if (info1 == NULL)

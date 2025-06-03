@@ -149,47 +149,6 @@ extern pbool_t err_occurred;
         PGOTO_DONE_VOID;                                                                                     \
     } while (0)
 
-/* Include a basic profiling interface */
-#ifdef ENABLE_PROFILING
-#include "pdc_stack_ops.h"
-
-#define FUNC_ENTER(X)                                                                                        \
-    do {                                                                                                     \
-        if (enableProfiling)                                                                                 \
-            push(__func__, (X));                                                                             \
-    } while (0)
-
-#define FUNC_LEAVE(ret_value)                                                                                \
-    do {                                                                                                     \
-        if (enableProfiling)                                                                                 \
-            pop();                                                                                           \
-        return (ret_value);                                                                                  \
-    } while (0)
-
-#define FUNC_LEAVE_VOID                                                                                      \
-    do {                                                                                                     \
-        if (enableProfiling)                                                                                 \
-            pop();                                                                                           \
-        return;                                                                                              \
-    } while (0)
-
-#else
-
-#define FUNC_ENTER(X)                                                                                        \
-    do {                                                                                                     \
-    } while (0)
-
-#define FUNC_LEAVE(ret_value)                                                                                \
-    do {                                                                                                     \
-        return (ret_value);                                                                                  \
-    } while (0)
-
-#define FUNC_LEAVE_VOID                                                                                      \
-    do {                                                                                                     \
-        return;                                                                                              \
-    } while (0)
-#endif
-
 #if defined(IS_PDC_SERVER) && defined(ENABLE_MULTITHREAD)
 
 // Macros for multi-thread callback, grabbed from Mercury/Testing/mercury_rpc_cb.c

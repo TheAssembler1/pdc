@@ -1,6 +1,7 @@
 #include "bulki_serde.h"
 #include "bulki_vle_util.h"
 #include "pdc_logger.h"
+#include "pdc_timing.h"
 #include "pdc_malloc.h"
 
 // clang-format off
@@ -48,20 +49,24 @@
 uint8_t
 serialize_type_class(pdc_c_var_type_t type, pdc_c_var_class_t class)
 {
+    FUNC_ENTER(NULL);
+
     // Ensure the type and class values fit within their bit allocations
     if (type >= PDC_TYPE_COUNT || class >= PDC_CLS_COUNT) {
-        return 0; // Handle invalid inputs, or use an appropriate error handling approach
+        FUNC_LEAVE(0); // Handle invalid inputs, or use an appropriate error handling approach
     }
 
     // Pack the type and class into a single byte
     uint8_t serialized = (type & 0x1F) | ((class & 0x01) << 5);
 
-    return serialized;
+    FUNC_LEAVE(serialized);
 }
 
 void *
 BULKI_Entity_serialize_to_buffer(BULKI_Entity *entity, void *buffer, size_t *offset)
 {
+    FUNC_ENTER(NULL);
+
     // serialize the size
     uint64_t size = (uint64_t)get_BULKI_Entity_size(entity);
     *offset += BULKI_vle_encode_uint(size, buffer + *offset);
@@ -106,14 +111,17 @@ BULKI_Entity_serialize_to_buffer(BULKI_Entity *entity, void *buffer, size_t *off
     }
     else {
         LOG_ERROR("unsupported class type %d\n", entity->pdc_class);
-        return NULL;
+        FUNC_LEAVE(NULL);
     }
-    return buffer;
+
+    FUNC_LEAVE(buffer);
 }
 
 void *
 BULKI_Entity_serialize(BULKI_Entity *entity, size_t *size)
 {
+    FUNC_ENTER(NULL);
+
     size_t estimated_size = get_BULKI_Entity_size(entity);
     void * buffer         = PDC_calloc(1, estimated_size);
     size_t offset         = 0;
@@ -125,12 +133,15 @@ BULKI_Entity_serialize(BULKI_Entity *entity, size_t *size)
         }
     }
     *size = offset;
-    return buffer;
+
+    FUNC_LEAVE(buffer);
 }
 
 void *
 BULKI_serialize_to_buffer(BULKI *bulki, void *buffer, size_t *offset)
 {
+    FUNC_ENTER(NULL);
+
     // serialize the total size
     *offset += BULKI_vle_encode_uint(bulki->totalSize, buffer + *offset);
 
@@ -161,12 +172,14 @@ BULKI_serialize_to_buffer(BULKI *bulki, void *buffer, size_t *offset)
     ofst = (uint64_t)(*offset);
     *offset += BULKI_vle_encode_uint(ofst, buffer + *offset);
 
-    return buffer;
+    FUNC_LEAVE(buffer);
 }
 
 void *
 BULKI_serialize(BULKI *data, size_t *size)
 {
+    FUNC_ENTER(NULL);
+
     size_t estimated_size = get_BULKI_size(data);
     void * buffer         = PDC_calloc(1, estimated_size);
     size_t offset         = 0;
@@ -178,27 +191,36 @@ BULKI_serialize(BULKI *data, size_t *size)
         }
     }
     *size = offset;
-    return buffer;
+
+    FUNC_LEAVE(buffer);
 }
 
 void
 BULKI_Entity_serialize_to_file(BULKI_Entity *entity, FILE *fp)
 {
+    FUNC_ENTER(NULL);
+
     size_t size;
     void * buffer = BULKI_Entity_serialize(entity, &size);
     fwrite(buffer, size, 1, fp);
     buffer = (void *)PDC_free(buffer);
     fclose(fp);
+
+    FUNC_LEAVE_VOID();
 }
 
 void
 BULKI_serialize_to_file(BULKI *bulki, FILE *fp)
 {
+    FUNC_ENTER(NULL);
+
     size_t size   = 0;
     void * buffer = BULKI_serialize(bulki, &size);
     fwrite(buffer, size, 1, fp);
     buffer = (void *)PDC_free(buffer);
     fclose(fp);
+
+    FUNC_LEAVE_VOID();
 }
 
 /********************** Deserialize ************************** */
@@ -206,14 +228,20 @@ BULKI_serialize_to_file(BULKI *bulki, FILE *fp)
 void
 deserialize_type_class(uint8_t byte, pdc_c_var_type_t *type, pdc_c_var_class_t *class)
 {
+    FUNC_ENTER(NULL);
+
     // Extract the type and class from the byte
     *type  = (pdc_c_var_type_t)(byte & 0x1F);
     *class = (pdc_c_var_class_t)((byte >> 5) & 0x01);
+
+    FUNC_LEAVE_VOID();
 }
 
 BULKI_Entity *
 BULKI_Entity_deserialize_from_buffer(void *buffer, size_t *offset)
 {
+    FUNC_ENTER(NULL);
+
     BULKI_Entity *entity = PDC_malloc(sizeof(BULKI_Entity));
     // deserialize the size
     size_t   bytes_read;
@@ -270,14 +298,17 @@ BULKI_Entity_deserialize_from_buffer(void *buffer, size_t *offset)
     }
     else {
         LOG_ERROR("unsupported class type %d\n", entity->pdc_class);
-        return NULL;
+        FUNC_LEAVE(NULL);
     }
-    return entity;
+
+    FUNC_LEAVE(entity);
 }
 
 BULKI *
 BULKI_deserialize_from_buffer(void *buffer, size_t *offset)
 {
+    FUNC_ENTER(NULL);
+
     BULKI *bulki = PDC_malloc(sizeof(BULKI));
     // deserialize the total size
     size_t   bytes_read;
@@ -314,7 +345,7 @@ BULKI_deserialize_from_buffer(void *buffer, size_t *offset)
         LOG_ERROR("Error1: data offset does not match the expected offset. Expected: %zu, Found: %zu, "
                   "bytes_read: %zu \n",
                   (size_t)dataOffset, *offset, bytes_read);
-        return NULL;
+        FUNC_LEAVE(NULL);
     }
     *offset += bytes_read;
 
@@ -336,32 +367,40 @@ BULKI_deserialize_from_buffer(void *buffer, size_t *offset)
         LOG_ERROR("Error2: data offset does not match the expected offset. Expected: %zu, Found: %zu, "
                   "bytes_read: %zu\n",
                   (size_t)dataOffset, *offset, bytes_read);
-        return NULL;
+        FUNC_LEAVE(NULL);
     }
     *offset += bytes_read;
 
     bulki->data = data;
 
-    return bulki;
+    FUNC_LEAVE(bulki);
 }
 
 BULKI_Entity *
 BULKI_Entity_deserialize(void *buffer)
 {
+    FUNC_ENTER(NULL);
+
     size_t offset = 0;
-    return BULKI_Entity_deserialize_from_buffer(buffer, &offset);
+
+    FUNC_LEAVE(BULKI_Entity_deserialize_from_buffer(buffer, &offset));
 }
 
 BULKI *
 BULKI_deserialize(void *buffer)
 {
+    FUNC_ENTER(NULL);
+
     size_t offset = 0;
-    return BULKI_deserialize_from_buffer(buffer, &offset);
+
+    FUNC_LEAVE(BULKI_deserialize_from_buffer(buffer, &offset));
 }
 
 BULKI_Entity *
 BULKI_Entity_deserialize_from_file(FILE *fp)
 {
+    FUNC_ENTER(NULL);
+
     fseek(fp, 0, SEEK_END);
     size_t fsize = ftell(fp);
     fseek(fp, 0, SEEK_SET); /* same as rewind(f); */
@@ -371,12 +410,15 @@ BULKI_Entity_deserialize_from_file(FILE *fp)
     fclose(fp);
     BULKI_Entity *rst = BULKI_Entity_deserialize(buffer);
     buffer            = (void *)PDC_free(buffer);
-    return rst;
+
+    FUNC_LEAVE(rst);
 }
 
 BULKI *
 BULKI_deserialize_from_file(FILE *fp)
 {
+    FUNC_ENTER(NULL);
+
     fseek(fp, 0, SEEK_END);
     size_t fsize = ftell(fp);
     fseek(fp, 0, SEEK_SET); /* same as rewind(f); */
@@ -386,5 +428,6 @@ BULKI_deserialize_from_file(FILE *fp)
     fclose(fp);
     BULKI *rst = BULKI_deserialize(buffer);
     buffer     = (void *)PDC_free(buffer);
-    return rst;
+
+    FUNC_LEAVE(rst);
 }
