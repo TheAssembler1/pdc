@@ -19,9 +19,13 @@ IDIOMS_t *idioms_g = NULL;
 void
 PDC_Server_metadata_index_init(uint32_t num_server, uint32_t server_id)
 {
+    FUNC_ENTER(NULL);
+
     midx_num_server_g = num_server;
     midx_server_id_g  = server_id;
     idioms_g          = IDIOMS_init(server_id, num_server);
+
+    FUNC_LEAVE_VOID();
 }
 
 /****************************/
@@ -31,9 +35,10 @@ PDC_Server_metadata_index_init(uint32_t num_server, uint32_t server_id)
 perr_t
 PDC_Server_dart_get_server_info(dart_get_server_info_in_t *in, dart_get_server_info_out_t *out)
 {
-    perr_t ret_value = SUCCEED;
     FUNC_ENTER(NULL);
-    uint32_t serverId = in->serverId;
+
+    perr_t   ret_value = SUCCEED;
+    uint32_t serverId  = in->serverId;
 
     out->indexed_word_count = idioms_g->index_record_count_g;
     out->request_count      = idioms_g->search_request_count_g;
@@ -45,6 +50,8 @@ perr_t
 PDC_Server_dart_perform_one_server(dart_perform_one_server_in_t *in, dart_perform_one_server_out_t *out,
                                    uint64_t *n_obj_ids_ptr, uint64_t **buf_ptrs)
 {
+    FUNC_ENTER(NULL);
+
     perr_t                 result     = SUCCEED;
     dart_op_type_t         op_type    = in->op_type;
     dart_hash_algo_t       hash_algo  = in->hash_algo;
@@ -108,7 +115,8 @@ PDC_Server_dart_perform_one_server(dart_perform_one_server_in_t *in, dart_perfor
             out->has_bulk = 1;
         }
     }
-    return result;
+
+    FUNC_LEAVE(result);
 }
 
 // ********************* Index Dump  *********************
@@ -116,9 +124,12 @@ PDC_Server_dart_perform_one_server(dart_perform_one_server_in_t *in, dart_perfor
 perr_t
 metadata_index_dump(char *checkpiont_dir, uint32_t serverID)
 {
+    FUNC_ENTER(NULL);
+
     perr_t ret_value = SUCCEED;
     ret_value        = idioms_metadata_index_dump(idioms_g, checkpiont_dir, serverID);
-    return ret_value;
+
+    FUNC_LEAVE(ret_value);
 }
 
 // ********************* Index Recover  *********************
@@ -126,7 +137,10 @@ metadata_index_dump(char *checkpiont_dir, uint32_t serverID)
 perr_t
 metadata_index_recover(char *checkpiont_dir, int num_server, uint32_t serverID)
 {
+    FUNC_ENTER(NULL);
+
     perr_t ret_value = SUCCEED;
     ret_value        = idioms_metadata_index_recover(idioms_g, checkpiont_dir, num_server, serverID);
-    return ret_value;
+
+    FUNC_LEAVE(ret_value);
 }

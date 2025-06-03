@@ -50,6 +50,8 @@ perr_t
 PDCobj_transform_register(char *func, pdcid_t obj_id, int current_state, int next_state,
                           pdc_obj_transform_t op_type, pdc_data_movement_t when)
 {
+    FUNC_ENTER(NULL);
+
     perr_t ret_value                               = SUCCEED;
     void * ftnHandle                               = NULL;
     size_t (*ftnPtr)()                             = NULL;
@@ -68,8 +70,6 @@ PDCobj_transform_register(char *func, pdcid_t obj_id, int current_state, int nex
     char *                                 loadpath          = NULL;
     int                                    local_regIndex;
     struct _pdc_id_info *                  id_info;
-
-    FUNC_ENTER(NULL);
 
     thisApp = PDC_get_argv0_();
     if (thisApp)
@@ -168,6 +168,8 @@ PDCbuf_map_transform_register(char *func, void *buf, pdcid_t src_region_id, pdci
                               pdcid_t dest_region_id, int current_state, int next_state,
                               pdc_data_movement_t when)
 {
+    FUNC_ENTER(NULL);
+
     perr_t ret_value                                   = SUCCEED; /* Return value */
     void * ftnHandle                                   = NULL;
     size_t (*ftnPtr)()                                 = NULL;
@@ -182,8 +184,6 @@ PDCbuf_map_transform_register(char *func, void *buf, pdcid_t src_region_id, pdci
     char *                                 userdefinedftn    = NULL;
     char *                                 loadpath          = NULL;
     int                                    local_regIndex;
-
-    FUNC_ENTER(NULL);
 
     thisApp = PDC_get_argv0_();
     if (thisApp)
@@ -279,19 +279,20 @@ PDCbuf_io_transform_register(char *func ATTRIBUTE(unused), void *buf ATTRIBUTE(u
                              pdcid_t src_region_id ATTRIBUTE(unused), int current_state ATTRIBUTE(unused),
                              int next_state ATTRIBUTE(unused), pdc_data_movement_t when ATTRIBUTE(unused))
 {
-    perr_t ret_value = FAIL; /* Return value (not implemented) */
     FUNC_ENTER(NULL);
+
+    perr_t ret_value = FAIL; /* Return value (not implemented) */
     LOG_ERROR("IO transforms are not currently supported!\n");
+
     FUNC_LEAVE(ret_value);
 }
 
 perr_t
 PDC_transform_end()
 {
-    perr_t ret_value = SUCCEED;
-
     FUNC_ENTER(NULL);
 
+    perr_t ret_value = SUCCEED;
     PDC_free_transform_registry();
 
     FUNC_LEAVE(ret_value);

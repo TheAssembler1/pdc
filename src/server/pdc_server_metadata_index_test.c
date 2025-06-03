@@ -5,10 +5,13 @@
 #include "idioms_local_index.h"
 #include "pdc_logger.h"
 #include "dart_core.h"
+#include "pdc_timing.h"
 
 void
 delete_kv_from_index(char *kv, uint64_t obj_id)
 {
+    FUNC_ENTER(NULL);
+
     char * key      = NULL;
     char * value    = NULL;
     int8_t kv_dtype = PDC_STRING;
@@ -69,11 +72,14 @@ delete_kv_from_index(char *kv, uint64_t obj_id)
     }
 
 #endif
+
+    FUNC_LEAVE_VOID();
 }
 
 void
 insert_kv_to_index(char *kv, uint64_t obj_id)
 {
+    FUNC_ENTER(NULL);
 
     char * key      = NULL;
     void * value    = NULL;
@@ -103,7 +109,7 @@ insert_kv_to_index(char *kv, uint64_t obj_id)
     }
     else {
         LOG_ERROR("Invalid Key Value Pair!\n");
-        return;
+        FUNC_LEAVE_VOID();
     }
 
     input.obj_ref_type = REF_PRIMARY_ID;
@@ -138,11 +144,15 @@ insert_kv_to_index(char *kv, uint64_t obj_id)
     }
 
 #endif
+
+    FUNC_LEAVE_VOID();
 }
 
 void
 query_result_from_kvtag(char *key_value_query, int8_t op_type)
 {
+    FUNC_ENTER(NULL);
+
     dart_perform_one_server_in_t *input =
         (dart_perform_one_server_in_t *)PDC_calloc(1, sizeof(dart_perform_one_server_in_t));
     dart_perform_one_server_out_t *output =
@@ -157,11 +167,14 @@ query_result_from_kvtag(char *key_value_query, int8_t op_type)
         LOG_JUST_PRINT("%llu, ", buf_ptr[i]);
     }
     LOG_JUST_PRINT("\n\n");
+
+    FUNC_LEAVE_VOID();
 }
 
 void
 test_PDC_Server_dart_perform_one_server()
 {
+    FUNC_ENTER(NULL);
 
     PDC_Server_metadata_index_init(1, 0);
 
@@ -288,22 +301,31 @@ test_PDC_Server_dart_perform_one_server()
     query_result_from_kvtag("0num=0", OP_EXACT_QUERY);
     query_result_from_kvtag("num01*=5~9", OP_RANGE_QUERY);
     query_result_from_kvtag("num01*=5|~|9", OP_RANGE_QUERY);
+
+    FUNC_LEAVE_VOID();
 }
+
 int
 init_default_logger()
 {
+    FUNC_ENTER(NULL);
+
     setLogFile(LOG_LEVEL_ERROR, "stderr");
     setLogFile(LOG_LEVEL_WARNING, "stdout");
     setLogFile(LOG_LEVEL_INFO, "stdout");
     setLogFile(LOG_LEVEL_DEBUG, "stdout");
     setLogLevel(LOG_LEVEL_DEBUG);
-    return 0;
+
+    FUNC_LEAVE(0);
 }
 
 int
 main()
 {
+    FUNC_ENTER(NULL);
+
     init_default_logger();
     test_PDC_Server_dart_perform_one_server();
-    return 0;
+
+    FUNC_LEAVE(0);
 }

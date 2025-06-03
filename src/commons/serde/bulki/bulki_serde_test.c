@@ -1,10 +1,13 @@
 #include "bulki_serde.h"
 #include "pdc_logger.h"
+#include "pdc_timing.h"
 #include "pdc_malloc.h"
 
 int
 test_base_type()
 {
+    FUNC_ENTER(NULL);
+
     // Initialize a serialized data structure
     BULKI *bulki = BULKI_init(2);
 
@@ -69,12 +72,14 @@ test_base_type()
 
     buffer = (void *)PDC_free(buffer);
 
-    return equal;
+    FUNC_LEAVE(equal);
 }
 
 int
 test_put_replace()
 {
+    FUNC_ENTER(NULL);
+
     // Initialize a serialized data structure
     BULKI *bulki = BULKI_init(2);
 
@@ -95,12 +100,15 @@ test_put_replace()
     dataEnt = BULKI_get(bulki, BULKI_ENTITY("key2", 1, PDC_STRING, PDC_CLS_ITEM));
     equal   = BULKI_Entity_equal(dataEnt, BULKI_ENTITY("value2", 1, PDC_STRING, PDC_CLS_ITEM));
     LOG_INFO("second value not changed after replace put: %d\n", equal);
-    return equal;
+
+    FUNC_LEAVE(equal);
 }
 
 int
 test_base_array_entitiy()
 {
+    FUNC_ENTER(NULL);
+
     // Initialize a serialized data structure
     BULKI *bulki = BULKI_init(2);
 
@@ -168,12 +176,14 @@ test_base_array_entitiy()
     BULKI_free(bulki, 1);
     buffer = (void *)PDC_free(buffer);
 
-    return equal;
+    FUNC_LEAVE(equal);
 }
 
 int
 test_embedded_entitiy()
 {
+    FUNC_ENTER(NULL);
+
     // Initialize a serialized data structure
     BULKI *bulki = BULKI_init(2);
 
@@ -220,12 +230,13 @@ test_embedded_entitiy()
     BULKI_free(bulki, 1);
     buffer = (void *)PDC_free(buffer);
 
-    return equal;
+    FUNC_LEAVE(equal);
 }
 
 int
 test_bulki_in_entitiy()
 {
+    FUNC_ENTER(NULL);
 
     // Initialize a serialized data structure
     BULKI *bulki = BULKI_init(1);
@@ -260,12 +271,14 @@ test_bulki_in_entitiy()
     equal = BULKI_Entity_equal(nestEntity, des_nestEntity);
     LOG_INFO("non-empty compound BULKI in BULKI Entity with array = %d \n", equal);
 
-    return equal;
+    FUNC_LEAVE(equal);
 }
 
 int
 bulki_small_json_serialization_test()
 {
+    FUNC_ENTER(NULL);
+
     // Initialize the BULKI structure
     BULKI *dataset = BULKI_init(10); // Assuming initial field count is 10
 
@@ -338,17 +351,20 @@ bulki_small_json_serialization_test()
     // Free the memory
     // BULKI_free(dataset, 1);
 
-    return 0;
+    FUNC_LEAVE(0);
 }
 
 int
 main(int argc, char *argv[])
 {
+    FUNC_ENTER(NULL);
+
     LOG_INFO("test_base_type RST = %d\n", test_base_type());
     LOG_INFO("test_put_replace RST = %d\n", test_put_replace());
     LOG_INFO("test_base_array_entitiy RST = %d\n", test_base_array_entitiy());
     LOG_INFO("test_embedded_entitiy RST = %d\n", test_embedded_entitiy());
     LOG_INFO("test_nested_entitiy RST = %d\n", test_bulki_in_entitiy());
     LOG_INFO("bulki_small_json_serialization_test RST = %d\n", bulki_small_json_serialization_test());
-    return 0;
+
+    FUNC_LEAVE(0);
 }

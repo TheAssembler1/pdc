@@ -6,6 +6,7 @@
 #include "query_utils.h"
 #include "timer_utils.h"
 #include "pdc_generic.h"
+#include "pdc_timing.h"
 #include "art.h"
 #include "pdc_set.h"
 #include "pdc_hash.h"
@@ -93,14 +94,20 @@ typedef struct {
 static void
 _init_dart_space_via_idioms(DART *dart, int num_server)
 {
+    FUNC_ENTER(NULL);
+
     dart_space_init(dart, num_server);
+
+    FUNC_LEAVE_VOID();
 }
 
 static void
 _encodeTypeToBitmap(uint8_t *bitmap, enum pdc_c_var_type_t type)
 {
+    FUNC_ENTER(NULL);
+
     if (bitmap == NULL) {
-        return;
+        FUNC_LEAVE_VOID();
     }
     if (type >= PDC_STRING) {                      // Non-numerical types
         *bitmap |= ((type - PDC_STRING + 1) << 4); // Shift by 4 to set in the higher 4 bits
@@ -108,21 +115,25 @@ _encodeTypeToBitmap(uint8_t *bitmap, enum pdc_c_var_type_t type)
     else {                        // Numerical types
         *bitmap |= (type & 0x0F); // Ensure only lower 4 bits are used for numerical types
     }
+
+    FUNC_LEAVE_VOID();
 }
 
 // Function to get numerical type from the bitmap
 static enum pdc_c_var_type_t
 _getNumericalTypeFromBitmap(uint8_t bitmap)
 {
-    return (enum pdc_c_var_type_t)(bitmap & 0x0F); // Extract lower 4 bits
+    FUNC_ENTER(NULL);
+    FUNC_LEAVE((enum pdc_c_var_type_t)(bitmap & 0x0F)); // Extract lower 4 bits
 }
 
 // Function to get string (non-numerical) type from the bitmap
 static enum pdc_c_var_type_t
 _getCompoundTypeFromBitmap(uint8_t bitmap)
 {
-    return (enum pdc_c_var_type_t)(((bitmap >> 4) & 0x0F) + PDC_STRING -
-                                   1); // Extract higher 4 bits and adjust index
+    FUNC_ENTER(NULL);
+    FUNC_LEAVE((enum pdc_c_var_type_t)(((bitmap >> 4) & 0x0F) + PDC_STRING -
+                                       1)); // Extract higher 4 bits and adjust index
 }
 
 /**

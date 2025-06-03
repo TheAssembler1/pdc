@@ -35,6 +35,8 @@
 int
 main(int argc, char *argv[])
 {
+    FUNC_ENTER(NULL);
+
     pdcid_t pdc;
 #ifdef ENABLE_MPI
     int    rank;
@@ -57,5 +59,6 @@ main(int argc, char *argv[])
     }
     MPI_Finalize();
 #endif
-    return 0;
+
+    FUNC_LEAVE(0);
 }

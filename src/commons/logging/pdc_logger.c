@@ -1,4 +1,5 @@
 #include "pdc_logger.h"
+#include "pdc_timing.h"
 #include <sys/stat.h>
 #include <sys/time.h>
 #include <time.h>
@@ -6,6 +7,7 @@
 void
 setLogFile(PDC_LogLevel level, const char *fileName)
 {
+    FUNC_ENTER(NULL);
 
     if (logFiles[level] && logFiles[level] != stdout && logFiles[level] != stderr) {
         fclose(logFiles[level]);
@@ -26,20 +28,28 @@ setLogFile(PDC_LogLevel level, const char *fileName)
     else {
         logFiles[level] = stdout;
     }
+
+    FUNC_LEAVE_VOID();
 }
 
 void
 setLogLevel(PDC_LogLevel level)
 {
+    FUNC_ENTER(NULL);
+
     logLevel = level;
+
+    FUNC_LEAVE_VOID();
 }
 
 void
 rotate_log_file(PDC_LogLevel level)
 {
+    FUNC_ENTER(NULL);
+
     if (logFiles[level]) {
         if (logFiles[level] == stdout || logFiles[level] == stderr) {
-            return; // for stdout and stderr, we don't rotate
+            FUNC_LEAVE_VOID(); // for stdout and stderr, we don't rotate
         }
         fclose(logFiles[level]);
         logFiles[level] = NULL;
@@ -56,11 +66,15 @@ rotate_log_file(PDC_LogLevel level)
     snprintf(newFilename, MAX_LOG_FILE_NAME_LENGTH, "%s_%s", logFilenames[level], timeStr);
     rename(logFilenames[level], newFilename);
     logFiles[level] = fopen(logFilenames[level], "a");
+
+    FUNC_LEAVE_VOID();
 }
 
 static FILE *
 get_cur_log_file(PDC_LogLevel level)
 {
+    FUNC_ENTER(NULL);
+
     // Rotate log file if it exceeds the maximum size, but this doesn't apply to stdout and stderr
     if (logFiles[level] != stdout && logFiles[level] != stderr) {
         struct stat st;
@@ -69,15 +83,18 @@ get_cur_log_file(PDC_LogLevel level)
             rotate_log_file(level);
         }
     }
-    return logFiles[level] ? logFiles[level] : stdout;
+
+    FUNC_LEAVE(logFiles[level] ? logFiles[level] : stdout);
 }
 
 void
 _log_message(PDC_LogLevel level, const char *file, const char *func, int line_number, const char *format,
              va_list args, bool just_print)
 {
+    FUNC_ENTER(NULL);
+
     if (level > logLevel) {
-        return;
+        FUNC_LEAVE_VOID();
     }
 
     FILE *logFile = get_cur_log_file(level);
@@ -132,15 +149,20 @@ _log_message(PDC_LogLevel level, const char *file, const char *func, int line_nu
     }
 
     fflush(logFile);
+
+    FUNC_LEAVE_VOID();
 }
 
 void
 log_message(bool just_print, PDC_LogLevel level, const char *file, const char *func, int line_number,
             const char *format, ...)
 {
+    FUNC_ENTER(NULL);
 
     va_list args;
     va_start(args, format);
     _log_message(level, file, func, line_number, format, args, just_print);
     va_end(args);
+
+    FUNC_LEAVE_VOID();
 }

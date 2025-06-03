@@ -1,3 +1,6 @@
+#ifndef PDC_SERVER_REGION_TRANSFER_H
+#define PDC_SERVER_REGION_TRANSFER_H
+
 #include "pdc_region.h"
 
 typedef struct transfer_request_all_data {
@@ -80,3 +83,5 @@ perr_t PDC_Server_transfer_request_io(uint64_t obj_id, int obj_ndim, const uint6
 int clean_write_bulk_data(transfer_request_all_data *request_data);
 
 int parse_bulk_data(void *buf, transfer_request_all_data *request_data, pdc_access_t access_type);
+
+#endif

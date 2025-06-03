@@ -22,6 +22,7 @@ CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 #include <string.h>
 #include "pdc_set.h"
 #include "pdc_malloc.h"
+#include "pdc_timing.h"
 
 /* malloc() / free() testing */
 
@@ -62,6 +63,8 @@ static const unsigned int set_num_primes = sizeof(set_primes) / sizeof(int);
 static int
 set_allocate_table(Set *set)
 {
+    FUNC_ENTER(NULL);
+
     /* Determine the table size based on the current prime index.
      * An attempt is made here to ensure sensible behavior if the
      * maximum prime is exceeded, but in practice other things are
@@ -78,12 +81,14 @@ set_allocate_table(Set *set)
 
     set->table = PDC_calloc(set->table_size, sizeof(SetEntry *));
 
-    return set->table != NULL;
+    FUNC_LEAVE(set->table != NULL);
 }
 
 static void
 set_free_entry(Set *set, SetEntry *entry)
 {
+    FUNC_ENTER(NULL);
+
     /* If there is a free function registered, call it to free the
      * data for this entry first */
 
@@ -94,11 +99,15 @@ set_free_entry(Set *set, SetEntry *entry)
     /* Free the entry structure */
 
     entry = (SetEntry *)PDC_free(entry);
+
+    FUNC_LEAVE_VOID();
 }
 
 Set *
 set_new(SetHashFunc hash_func, SetEqualFunc equal_func)
 {
+    FUNC_ENTER(NULL);
+
     Set *new_set;
 
     /* Allocate a new set and fill in the fields */
@@ -106,7 +115,7 @@ set_new(SetHashFunc hash_func, SetEqualFunc equal_func)
     new_set = (Set *)PDC_malloc(sizeof(Set));
 
     if (new_set == NULL) {
-        return NULL;
+        FUNC_LEAVE(NULL);
     }
 
     new_set->hash_func   = hash_func;
@@ -119,15 +128,17 @@ set_new(SetHashFunc hash_func, SetEqualFunc equal_func)
 
     if (!set_allocate_table(new_set)) {
         new_set = (Set *)PDC_free(new_set);
-        return NULL;
+        FUNC_LEAVE(NULL);
     }
 
-    return new_set;
+    FUNC_LEAVE(new_set);
 }
 
 void
 set_free(Set *set)
 {
+    FUNC_ENTER(NULL);
+
     SetEntry *   rover;
     SetEntry *   next;
     unsigned int i;
@@ -155,17 +166,25 @@ set_free(Set *set)
 
     /* Free the set structure */
     set = (Set *)PDC_free(set);
+
+    FUNC_LEAVE_VOID();
 }
 
 void
 set_register_free_function(Set *set, SetFreeFunc free_func)
 {
+    FUNC_ENTER(NULL);
+
     set->free_func = free_func;
+
+    FUNC_LEAVE_VOID();
 }
 
 static int
 set_enlarge(Set *set)
 {
+    FUNC_ENTER(NULL);
+
     SetEntry *   rover;
     SetEntry *   next;
     SetEntry **  old_table;
@@ -191,7 +210,7 @@ set_enlarge(Set *set)
         set->table_size  = old_table_size;
         set->prime_index = old_prime_index;
 
-        return 0;
+        FUNC_LEAVE(0);
     }
 
     /* Iterate through all entries in the old table and add them
@@ -223,12 +242,14 @@ set_enlarge(Set *set)
     old_table = (SetEntry **)PDC_free(old_table);
 
     /* Resized successfully */
-    return 1;
+    FUNC_LEAVE(1);
 }
 
 int
 set_insert(Set *set, SetValue data)
 {
+    FUNC_ENTER(NULL);
+
     SetEntry *   newentry;
     SetEntry *   rover;
     unsigned int index;
@@ -242,7 +263,7 @@ set_insert(Set *set, SetValue data)
          * in size */
 
         if (!set_enlarge(set)) {
-            return 0;
+            FUNC_LEAVE(0);
         }
     }
 
@@ -262,7 +283,7 @@ set_insert(Set *set, SetValue data)
 
             /* This data is already in the set */
 
-            return 0;
+            FUNC_LEAVE(0);
         }
 
         rover = rover->next;
@@ -275,7 +296,7 @@ set_insert(Set *set, SetValue data)
     newentry = (SetEntry *)PDC_malloc(sizeof(SetEntry));
 
     if (newentry == NULL) {
-        return 0;
+        FUNC_LEAVE(0);
     }
 
     newentry->data = data;
@@ -291,12 +312,14 @@ set_insert(Set *set, SetValue data)
 
     /* Added successfully */
 
-    return 1;
+    FUNC_LEAVE(1);
 }
 
 int
 set_remove(Set *set, SetValue data)
 {
+    FUNC_ENTER(NULL);
+
     SetEntry **  rover;
     SetEntry *   entry;
     unsigned int index;
@@ -328,7 +351,7 @@ set_remove(Set *set, SetValue data)
 
             set_free_entry(set, entry);
 
-            return 1;
+            FUNC_LEAVE(1);
         }
 
         /* Advance to the next entry */
@@ -338,12 +361,14 @@ set_remove(Set *set, SetValue data)
 
     /* Not found in set */
 
-    return 0;
+    FUNC_LEAVE(0);
 }
 
 int
 set_query(Set *set, SetValue data)
 {
+    FUNC_ENTER(NULL);
+
     SetEntry *   rover;
     unsigned int index;
 
@@ -360,7 +385,7 @@ set_query(Set *set, SetValue data)
 
             /* Found the entry */
 
-            return 1;
+            FUNC_LEAVE(1);
         }
 
         /* Advance to the next entry in the chain */
@@ -370,18 +395,21 @@ set_query(Set *set, SetValue data)
 
     /* Not found */
 
-    return 0;
+    FUNC_LEAVE(0);
 }
 
 unsigned int
 set_num_entries(Set *set)
 {
-    return set->entries;
+    FUNC_ENTER(NULL);
+    FUNC_LEAVE(set->entries);
 }
 
 SetValue *
 set_to_array(Set *set)
 {
+    FUNC_ENTER(NULL);
+
     SetValue *   array;
     int          array_counter;
     unsigned int i;
@@ -392,7 +420,7 @@ set_to_array(Set *set)
     array = PDC_malloc(sizeof(SetValue) * set->entries);
 
     if (array == NULL) {
-        return NULL;
+        FUNC_LEAVE(NULL);
     }
 
     array_counter = 0;
@@ -416,12 +444,14 @@ set_to_array(Set *set)
         }
     }
 
-    return array;
+    FUNC_LEAVE(array);
 }
 
 Set *
 set_union(Set *set1, Set *set2)
 {
+    FUNC_ENTER(NULL);
+
     SetIterator iterator;
     Set *       new_set;
     SetValue    value;
@@ -429,7 +459,7 @@ set_union(Set *set1, Set *set2)
     new_set = set_new(set1->hash_func, set1->equal_func);
 
     if (new_set == NULL) {
-        return NULL;
+        FUNC_LEAVE(NULL);
     }
 
     /* Add all values from the first set */
@@ -449,7 +479,7 @@ set_union(Set *set1, Set *set2)
             /* Failed to insert */
 
             set_free(new_set);
-            return NULL;
+            FUNC_LEAVE(NULL);
         }
     }
 
@@ -472,17 +502,19 @@ set_union(Set *set1, Set *set2)
                 /* Failed to insert */
 
                 set_free(new_set);
-                return NULL;
+                FUNC_LEAVE(NULL);
             }
         }
     }
 
-    return new_set;
+    FUNC_LEAVE(new_set);
 }
 
 Set *
 set_intersection(Set *set1, Set *set2)
 {
+    FUNC_ENTER(NULL);
+
     Set *       new_set;
     SetIterator iterator;
     SetValue    value;
@@ -490,7 +522,7 @@ set_intersection(Set *set1, Set *set2)
     new_set = set_new(set1->hash_func, set2->equal_func);
 
     if (new_set == NULL) {
-        return NULL;
+        FUNC_LEAVE(NULL);
     }
 
     /* Iterate over all values in set 1. */
@@ -514,17 +546,19 @@ set_intersection(Set *set1, Set *set2)
             if (!set_insert(new_set, value)) {
                 set_free(new_set);
 
-                return NULL;
+                FUNC_LEAVE(NULL);
             }
         }
     }
 
-    return new_set;
+    FUNC_LEAVE(new_set);
 }
 
 void
 set_iterate(Set *set, SetIterator *iter)
 {
+    FUNC_ENTER(NULL);
+
     unsigned int chain;
 
     iter->set        = set;
@@ -543,11 +577,15 @@ set_iterate(Set *set, SetIterator *iter)
     }
 
     iter->next_chain = chain;
+
+    FUNC_LEAVE_VOID();
 }
 
 SetValue
 set_iter_next(SetIterator *iterator)
 {
+    FUNC_ENTER(NULL);
+
     Set *        set;
     SetValue     result;
     SetEntry *   current_entry;
@@ -558,7 +596,7 @@ set_iter_next(SetIterator *iterator)
     /* No more entries? */
 
     if (iterator->next_entry == NULL) {
-        return SET_NULL;
+        FUNC_LEAVE(SET_NULL);
     }
 
     /* We have the result immediately */
@@ -605,11 +643,12 @@ set_iter_next(SetIterator *iterator)
         iterator->next_chain = chain;
     }
 
-    return result;
+    FUNC_LEAVE(result);
 }
 
 int
 set_iter_has_more(SetIterator *iterator)
 {
-    return iterator->next_entry != NULL;
+    FUNC_ENTER(NULL);
+    FUNC_LEAVE(iterator->next_entry != NULL);
 }
