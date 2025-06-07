@@ -192,9 +192,9 @@ void PDC_client_timing_init();
 void PDC_client_timing_finalize();
 void PDC_client_timing_report(const char *prefix);
 #else
-void PDC_server_timing_init();
-void PDC_server_timing_finalize();
-void PDC_server_timing_report(const char *prefix);
+void                  PDC_server_timing_init();
+void                  PDC_server_timing_finalize();
+void                  PDC_server_timing_report(const char *prefix);
 #endif
 
 /**
