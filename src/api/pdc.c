@@ -111,7 +111,7 @@ PDCinit(const char *pdc_name)
     if (PDC_Client_init() < 0)
         PGOTO_ERROR(0, "PDC client init error");
 #ifdef PDC_TIMING
-    PDC_timing_init();
+    PDC_client_timing_init();
 #endif
     ret_value = pdcid;
 
@@ -127,7 +127,7 @@ PDC_class__close(struct _pdc_class *p)
 
     FUNC_ENTER(NULL);
 #ifdef PDC_TIMING
-    PDC_timing_finalize();
+    PDC_client_timing_finalize();
 #endif
 
     p->name = (char *)PDC_free(p->name);
