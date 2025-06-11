@@ -26,6 +26,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "pdc.h"
+#include "test_helper.h"
 
 int
 main(int argc, char **argv)
@@ -33,9 +34,8 @@ main(int argc, char **argv)
     pdcid_t pdc, cont_prop, cont, obj_prop;
     pdcid_t obj1, obj2;
     int     rank = 0, size = 1, i, j, ret, target_rank;
-    int     ret_value = 0;
+    int     ret_value = TSUCCEED;
     char    cont_name[128], obj_name1[128], obj_name2[128];
-    // struct pdc_obj_info *obj1_info, *obj2_info;
 
     size_t   ndim;
     uint64_t dims[3];
@@ -102,9 +102,9 @@ main(int argc, char **argv)
     dims[1]      = rank * 3 + 16;
     dims[2]      = rank * 5 + 16;
     my_data_size = 1;
-    for (i = 0; i < (int)ndim; ++i) {
+
+    for (i = 0; i < (int)ndim; ++i)
         my_data_size *= dims[i];
-    }
 
     mydata = (char *)malloc(my_data_size * type_size);
 
@@ -116,167 +116,81 @@ main(int argc, char **argv)
     mysize[0] = my_data_size;
 
     // create a pdc
-    pdc = PDCinit("pdc");
-    LOG_INFO("create a new pdc\n");
-
+    TASSERT((pdc = PDCinit("pdc")) != 0, "Call to PDCinit succeeded", "Call to PDCinit failed");
     // create a container property
-    cont_prop = PDCprop_create(PDC_CONT_CREATE, pdc);
-    if (cont_prop > 0) {
-        LOG_INFO("Rank %d Create a container property\n", rank);
-    }
-    else {
-        LOG_ERROR("Rank %d fail to create container property!\n", rank);
-        ret_value = 1;
-    }
+    TASSERT((cont_prop = PDCprop_create(PDC_CONT_CREATE, pdc)) != 0, "Call to PDCprop_create succeeded",
+            "Call to PDCprop_create failed");
     // create a container
     sprintf(cont_name, "c");
-    cont = PDCcont_create_col(cont_name, cont_prop);
-    // cont = PDCcont_create(cont_name, cont_prop);
-    if (cont > 0) {
-        LOG_INFO("Rank %d Create a container %s\n", rank, cont_name);
-    }
-    else {
-        LOG_ERROR("Rank %d fail to create container!\n", rank);
-        ret_value = 1;
-    }
+    TASSERT((cont = PDCcont_create_col(cont_name, cont_prop)) != 0, "Call to PDCcont_create_col succeeded",
+            "Call to PDCcont_create_col failed");
     // create an object property
-    obj_prop = PDCprop_create(PDC_OBJ_CREATE, pdc);
-    if (obj_prop > 0) {
-        LOG_INFO("Rank %d Create an object property\n", rank);
-    }
-    else {
-        LOG_ERROR("Rank %d fail to create object property!\n", rank);
-        ret_value = 1;
-    }
+    TASSERT((obj_prop = PDCprop_create(PDC_OBJ_CREATE, pdc)) != 0, "Call to PDCprop_create succeeded",
+            "Call to PDCprop_create failed");
 
-    ret = PDCprop_set_obj_dims(obj_prop, ndim, dims);
-    if (ret != SUCCEED) {
-        LOG_ERROR("Failed to set obj time step");
-        ret_value = 1;
-    }
-    PDCprop_set_obj_type(obj_prop, var_type);
-    if (ret != SUCCEED) {
-        LOG_ERROR("Failed to set obj time step");
-        ret_value = 1;
-    }
+    TASSERT(PDCprop_set_obj_dims(obj_prop, ndim, dims) >= 0, "Call to PDCprop_set_obj_dims succeeded",
+            "Call to PDCprop_set_obj_dims failed");
+    TASSERT(PDCprop_set_obj_type(obj_prop, var_type) >= 0, "Call to PDCprop_set_obj_type succeeded",
+            "Call to PDCprop_set_obj_type failed");
 
     // create first object
     sprintf(obj_name1, "o1_%d", rank);
-    local_region  = PDCregion_create(1, offset, mysize);
-    global_region = PDCregion_create(ndim, offset, dims);
+    TASSERT((local_region = PDCregion_create(1, offset, mysize)) != 0, "Call to PDCregion_create succeeded",
+            "Call to PDCregion_create failed");
+    TASSERT((global_region = PDCregion_create(ndim, offset, dims)) != 0, "Call to PDCregion_create succeeded",
+            "Call to PDCregion_create failed");
 
-    obj1 = PDCobj_create(cont, obj_name1, obj_prop);
-    if (obj1 > 0) {
-        LOG_INFO("Rank %d Create an object %s\n", rank, obj_name1);
-    }
-    else {
-        LOG_ERROR("Rank %d fail to create object\n", rank);
-        ret_value = 1;
-    }
+    TASSERT((obj1 = PDCobj_create(cont, obj_name1, obj_prop)) != 0, "Call to PDCobj_create succeeded",
+            "Call to PDCobj_create failed");
+
     for (i = 0; i < (int)my_data_size; i++) {
-        for (j = 0; j < (int)type_size; ++j) {
+        for (j = 0; j < (int)type_size; ++j)
             mydata[i * type_size + j] = (char)(i * type_size + j + rank);
-        }
-    }
-    transfer_request = PDCregion_transfer_create(mydata, PDC_WRITE, obj1, local_region, global_region);
-    if (transfer_request == 0) {
-        LOG_ERROR("PDCregion_transfer_create failed");
-        ret_value = 1;
-    }
-    ret = PDCregion_transfer_start(transfer_request);
-    if (ret != SUCCEED) {
-        LOG_ERROR("Failed to region_transfer_start for region");
-        ret_value = 1;
     }
 
-    ret = PDCregion_transfer_wait(transfer_request);
-    if (ret != SUCCEED) {
-        LOG_ERROR("Failed to region_transfer_wait for region");
-        ret_value = 1;
-    }
-
-    ret = PDCregion_transfer_close(transfer_request);
-    if (ret != SUCCEED) {
-        LOG_ERROR("PDCregion_transfer_close failed");
-        ret_value = 1;
-    }
-
-    if (PDCregion_close(local_region) < 0) {
-        LOG_ERROR("Failed to close local region\n");
-        ret_value = 1;
-    }
-
-    if (PDCregion_close(global_region) < 0) {
-        LOG_ERROR("Failed to close global region\n");
-        ret_value = 1;
-    }
+    TASSERT((transfer_request =
+                 PDCregion_transfer_create(mydata, PDC_WRITE, obj1, local_region, global_region)) != 0,
+            "Call to PDCregion_transfer_create succeeded", "Call to PDCregion_transfer_create failed");
+    TASSERT(PDCregion_transfer_start(transfer_request) >= 0, "Call to PDCregion_transfer_start succeeded",
+            "Call to PDCregion_transfer_start failed");
+    TASSERT(PDCregion_transfer_wait(transfer_request) >= 0, "Call to PDCregion_transfer_wait succeeded",
+            "Call to PDCregion_transfer_wait failed");
+    TASSERT(PDCregion_transfer_close(transfer_request) >= 0, "Call to PDCregion_transfer_close succeeded",
+            "Call to PDCregion_transfer_close failed");
 
     // create second object
     sprintf(obj_name2, "o2_%d", rank);
     obj2 = PDCobj_create(cont, obj_name2, obj_prop);
 
-    local_region  = PDCregion_create(1, offset, mysize);
-    global_region = PDCregion_create(ndim, offset, dims);
-    if (obj2 > 0) {
-        LOG_INFO("Rank %d Create an object %s\n", rank, obj_name2);
-    }
-    else {
-        LOG_ERROR("Rank %d fail to create object!\n", rank);
-        ret_value = 1;
-    }
+    TASSERT((local_region = PDCregion_create(1, offset, mysize)) != 0, "Call to PDCregion_create succeeded",
+            "Call to PDCregion_create failed");
+    TASSERT((global_region = PDCregion_create(ndim, offset, dims)) != 0, "Call to PDCregion_create succeeded",
+            "Call to PDCregion_create failed");
+
     for (i = 0; i < (int)my_data_size; i++) {
-        for (j = 0; j < (int)type_size; ++j) {
+        for (j = 0; j < (int)type_size; ++j)
             mydata[i * type_size + j] = (char)(i * type_size + j + rank * 5 + 3);
-        }
-    }
-    transfer_request = PDCregion_transfer_create(mydata, PDC_WRITE, obj2, local_region, global_region);
-    if (transfer_request == 0) {
-        LOG_ERROR("PDCregion_transfer_create failed");
-        ret_value = 1;
-    }
-    ret = PDCregion_transfer_start(transfer_request);
-    if (ret != SUCCEED) {
-        LOG_ERROR("Failed to region_transfer_start for region");
-        ret_value = 1;
     }
 
-    ret = PDCregion_transfer_wait(transfer_request);
-    if (ret != SUCCEED) {
-        LOG_ERROR("Failed to region_transfer_wait for region");
-        ret_value = 1;
-    }
+    TASSERT((transfer_request =
+                 PDCregion_transfer_create(mydata, PDC_WRITE, obj2, local_region, global_region)) != 0,
+            "Call to PDCregion_transfer_create succeeded", "Call to PDCregion_transfer_create failed");
+    TASSERT(PDCregion_transfer_start(transfer_request) >= 0, "Call to PDCregion_transfer_start succeeded",
+            "Call to PDCregion_transfer_start failed");
+    TASSERT(PDCregion_transfer_wait(transfer_request) >= 0, "Call to PDCregion_transfer_wait succeeded",
+            "Call to PDCregion_transfer_wait failed");
+    TASSERT(PDCregion_transfer_close(transfer_request) >= 0, "Call to PDCregion_transfer_close succeeded",
+            "Call to PDCregion_transfer_close failed");
 
-    ret = PDCregion_transfer_close(transfer_request);
-    if (ret != SUCCEED) {
-        LOG_ERROR("PDCregion_transfer_close failed");
-        ret_value = 1;
-    }
-
-    if (PDCregion_close(local_region) < 0) {
-        LOG_ERROR("Failed to close local region\n");
-        ret_value = 1;
-    }
-
-    if (PDCregion_close(global_region) < 0) {
-        LOG_ERROR("Failed to close global region\n");
-        ret_value = 1;
-    }
+    TASSERT(PDCregion_close(local_region) >= 0, "Call to PDCregion_close succeeded",
+            "Call to PDCregion_close failed");
+    TASSERT(PDCregion_close(global_region) >= 0, "Call to PDCregion_close succeeded",
+            "Call to PDCregion_close failed");
 
     // close created objects
-    if (PDCobj_close(obj1) < 0) {
-        LOG_ERROR("Rank %d fail to close object o1_%d %d\n", rank, rank);
-        ret_value = 1;
-    }
-    else {
-        LOG_INFO("Rank %d Successfully closed object o1_%d\n", rank, rank);
-    }
-    if (PDCobj_close(obj2) < 0) {
-        LOG_ERROR("Rank %d fail to close object o2_%d\n", rank, rank);
-        ret_value = 1;
-    }
-    else {
-        LOG_INFO("Rank %d Successfully closed object o2_%d\n", rank, rank);
-    }
+    TASSERT(PDCobj_close(obj1) >= 0, "Call to PDCobj_close succeeded", "Call to PDCobj_close failed");
+    TASSERT(PDCobj_close(obj2) >= 0, "Call to PDCobj_close succeeded", "Call to PDCobj_close failed");
+
 // Wait for all processes to finish their object creation
 #ifdef ENABLE_MPI
     MPI_Barrier(MPI_COMM_WORLD);
@@ -284,23 +198,11 @@ main(int argc, char **argv)
     for (i = 1; i < size; ++i) {
         target_rank = (rank + i) % size;
         sprintf(obj_name1, "o1_%d", target_rank);
-        obj1 = PDCobj_open(obj_name1, pdc);
-        if (obj1 == 0) {
-            LOG_ERROR("Rank %d fail to open object %s\n", rank, obj_name1);
-            ret_value = 1;
-        }
-        else {
-            LOG_INFO("Rank %d Opened object %s\n", rank, obj_name1);
-        }
+        TASSERT((obj1 = PDCobj_open(obj_name1, pdc)) != 0, "Call to PDCobj_open succeeded",
+                "Call to PDCobj_open failed");
         sprintf(obj_name2, "o2_%d", target_rank);
-        obj2 = PDCobj_open(obj_name2, pdc);
-        if (obj2 == 0) {
-            LOG_ERROR("Rank %d fail to open object %s\n", rank, obj_name2);
-            ret_value = 1;
-        }
-        else {
-            LOG_INFO("Rank %d Open object %s\n", rank, obj_name2);
-        }
+        TASSERT((obj2 = PDCobj_open(obj_name2, pdc)) != 0, "Call to PDCobj_open succeeded",
+                "Call to PDCobj_open failed");
 
         dims[0]      = target_rank * 2 + 16;
         dims[1]      = target_rank * 3 + 16;
@@ -310,105 +212,55 @@ main(int argc, char **argv)
             my_data_size *= dims[j];
         }
 
-        mysize[0]     = my_data_size;
-        local_region  = PDCregion_create(1, offset, mysize);
-        global_region = PDCregion_create(ndim, offset, dims);
-        data_read     = (char *)malloc(my_data_size * type_size);
+        mysize[0] = my_data_size;
+        TASSERT((local_region = PDCregion_create(1, offset, mysize)) != 0,
+                "Call to PDCregion_create succeeded", "Call to PDCregion_create failed");
+        TASSERT((global_region = PDCregion_create(ndim, offset, dims)) != 0,
+                "Call to PDCregion_create succeeded", "Call to PDCregion_create failed");
+        data_read = (char *)malloc(my_data_size * type_size);
 
-        transfer_request = PDCregion_transfer_create(data_read, PDC_READ, obj2, local_region, global_region);
-        if (transfer_request == 0) {
-            LOG_ERROR("PDCregion_transfer_create for read obj2 failed\n");
-            ret_value = 1;
-        }
-
-        ret = PDCregion_transfer_start(transfer_request);
-        if (ret != SUCCEED) {
-            LOG_ERROR("Failed to region_transfer_start for region");
-            ret_value = 1;
-        }
-
-        ret = PDCregion_transfer_wait(transfer_request);
-        if (ret != SUCCEED) {
-            LOG_ERROR("Failed to region_transfer_wait for region");
-            ret_value = 1;
-        }
-
-        ret = PDCregion_transfer_close(transfer_request);
-        if (ret != SUCCEED) {
-            LOG_ERROR("PDCregion_transfer_close failed");
-            ret_value = 1;
-        }
+        TASSERT((transfer_request =
+                     PDCregion_transfer_create(data_read, PDC_READ, obj2, local_region, global_region)) != 0,
+                "Call to PDCregion_transfer_create succeeded", "Call to PDCregion_transfer_create failed");
+        TASSERT(PDCregion_transfer_start(transfer_request) >= 0, "Call to PDCregion_transfer_start succeeded",
+                "Call to PDCregion_transfer_start failed");
+        TASSERT(PDCregion_transfer_wait(transfer_request) >= 0, "Call to PDCregion_transfer_wait succeeded",
+                "Call to PDCregion_transfer_wait failed");
+        TASSERT(PDCregion_transfer_close(transfer_request) >= 0, "Call to PDCregion_transfer_close succeeded",
+                "Call to PDCregion_transfer_close failed");
 
         for (j = 0; j < (int)(my_data_size * type_size); ++j) {
             if (data_read[j] != (char)(j + target_rank * 5 + 3)) {
-                LOG_ERROR("rank %d, i = %d, j = %d, wrong value %d!=%d\n", rank, i, j, data_read[j],
-                          (char)(j + target_rank * 5 + 3));
-                ret_value = 1;
-                break;
+                TGOTO_ERROR(TFAIL, "Rank %d, i = %d, j = %d, wrong value %d!=%d", rank, i, j, data_read[j],
+                            (char)(j + target_rank * 5 + 3));
             }
         }
 
         free(data_read);
 
-        if (PDCregion_close(local_region) < 0) {
-            LOG_ERROR("Failed to close local region\n");
-            ret_value = 1;
-        }
+        TASSERT(PDCregion_close(local_region) >= 0, "Call to PDCregion_close succeeded",
+                "Call to PDCregion_close failed");
+        TASSERT(PDCregion_close(global_region) >= 0, "Call to PDCregion_close succeeded",
+                "Call to PDCregion_close failed");
 
-        if (PDCregion_close(global_region) < 0) {
-            LOG_ERROR("Failed to close global region\n");
-            ret_value = 1;
-        }
-
-        if (PDCobj_close(obj1) < 0) {
-            LOG_ERROR("Rank %d fail to close object %s\n", rank, obj_name1);
-            ret_value = 1;
-        }
-        else {
-            LOG_INFO("Rank %d Successfully closed object %s\n", rank, obj_name1);
-        }
-        if (PDCobj_close(obj2) < 0) {
-            LOG_ERROR("Rank %d fail to close object %s\n", rank, obj_name2);
-            ret_value = 1;
-        }
-        else {
-            LOG_INFO("Rank %d Successfully closed object %s\n", rank, obj_name2);
-        }
+        TASSERT(PDCobj_close(obj1) >= 0, "Call to PDCobj_close succeeded", "Call to PDCobj_close failed");
+        TASSERT(PDCobj_close(obj2) >= 0, "Call to PDCobj_close succeeded", "Call to PDCobj_close failed");
     }
 
     // close a container
-    if (PDCcont_close(cont) < 0) {
-        LOG_ERROR("Rank %d fail to close container\n", rank);
-        ret_value = 1;
-    }
-    else {
-        LOG_INFO("Rank %d Successfully closed container c\n", rank);
-    }
+    TASSERT(PDCcont_close(cont) >= 0, "Call to PDCcont_close succeeded", "Call to PDCcont_close failed");
     // close a object property
-    if (PDCprop_close(obj_prop) < 0) {
-        LOG_ERROR("Rank %d fail to close property\n", rank);
-        ret_value = 1;
-    }
-    else {
-        LOG_INFO("Rank %d Successfully closed object property\n", rank);
-    }
+    TASSERT(PDCprop_close(obj_prop) >= 0, "Call to PDCprop_close succeeded", "Call to PDCprop_close failed");
     // close a container property
-    if (PDCprop_close(cont_prop) < 0) {
-        LOG_ERROR("Rank %d fail to close property\n", rank);
-        ret_value = 1;
-    }
-    else {
-        LOG_INFO("Rank %d Successfully closed container property\n", rank);
-    }
+    TASSERT(PDCprop_close(cont_prop) >= 0, "Call to PDCprop_close succeeded", "Call to PDCprop_close failed");
     // close pdc
-    if (PDCclose(pdc) < 0) {
-        LOG_ERROR("Rank %d fail to close PDC\n", rank);
-        ret_value = 1;
-    }
+    TASSERT(PDCclose(pdc) >= 0, "Call to PDCclose succeeded", "Call to PDCclose failed");
 
     free(mydata);
     free(offset);
     free(mysize);
+
+done:
 #ifdef ENABLE_MPI
     MPI_Finalize();
 #endif

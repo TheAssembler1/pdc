@@ -36,7 +36,7 @@ main(int argc, char **argv)
     if (cont <= 0)
         LOG_ERROR("Failed to create container");
 
-    LOG_INFO("PROC[%d] FINISHED!\n", rank);
+    LOG_INFO("PROC[%d] FINISHED\n", rank);
 
     // close a container
     if (PDCcont_close(cont) < 0)

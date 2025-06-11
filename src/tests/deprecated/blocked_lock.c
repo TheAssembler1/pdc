@@ -103,8 +103,7 @@ main(int argc, char **argv)
     mysize[0]        = numparticles;
 
     // create a region
-    r1 = PDCregion_create(1, offset, mysize);
-    //    LOG_ERROR("First region id: %lld\n", r1);
+    r1  = PDCregion_create(1, offset, mysize);
     r2  = PDCregion_create(1, offset_remote, mysize);
     ret = PDCbuf_obj_map(&x[0], PDC_FLOAT, r1, obj2, r2);
     if (ret < 0) {
@@ -122,7 +121,6 @@ main(int argc, char **argv)
 
     for (int i = 0; i < numparticles; i++) {
         x[i] = uniform_random_number() * x_dim;
-        // fflush(stdout);
     }
 
     ret = PDCreg_release_lock(obj2, r2, WRITE);
@@ -131,20 +129,15 @@ main(int argc, char **argv)
 
     MPI_Barrier(MPI_COMM_WORLD);
     LOG_INFO("done with region release\n");
-    fflush(stdout);
 
-    if (rank == 0) {
+    if (rank == 0)
         LOG_INFO("request another lock\n");
-        fflush(stdout);
-    }
 
     ret = PDCreg_obtain_lock(obj2, r2, WRITE, BLOCK);
     if (ret != SUCCEED)
         LOG_ERROR("Failed to obtain lock for r2\n");
-    if (rank == 0) {
+    if (rank == 0)
         LOG_INFO("lock is granted\n");
-        fflush(stdout);
-    }
 
     ret = PDCbuf_obj_unmap(obj2, r2);
     if (ret != SUCCEED)

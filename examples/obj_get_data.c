@@ -63,7 +63,7 @@ main(int argc, char **argv)
     sprintf(cont_name, "c%d", rank);
     cont = PDCcont_create(cont_name, cont_prop);
     if (cont > 0) {
-        LOG_INFO("Rank %d Create a container %s\n", rank, cont_name);
+        LOG_INFO("Created a container %s\n", cont_name);
     }
     else {
         LOG_ERROR("Failed to create container");
@@ -74,7 +74,7 @@ main(int argc, char **argv)
     sprintf(obj_name1, "o1_%d", rank);
     obj1 = PDCobj_put_data(obj_name1, (void *)data, 16 * sizeof(double), cont);
     if (obj1 > 0) {
-        LOG_INFO("Rank %d Put data to %s\n", rank, obj_name1);
+        LOG_INFO("Put data to %s\n", obj_name1);
     }
     else {
         LOG_ERROR("Failed to put data into object");
@@ -85,7 +85,7 @@ main(int argc, char **argv)
     sprintf(obj_name2, "o2_%d", rank);
     obj2 = PDCobj_put_data(obj_name2, (void *)data, 128 * sizeof(double), cont);
     if (obj2 > 0) {
-        LOG_INFO("Rank %d Put data to %s\n", rank, obj_name2);
+        LOG_INFO("Put data to %s\n", rank, obj_name2);
     }
     else {
         LOG_ERROR("Failed to put data into object");

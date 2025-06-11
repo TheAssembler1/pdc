@@ -135,7 +135,7 @@ parseJSON(const char *jsonString, void *args)
     int num_objects = cJSON_GetArraySize(objects);
 
 #ifdef JMD_VERBOSE
-    println("Start to import %d objects...\n", num_objects);
+    LOG_JUST_PRINT("Start to import %d objects...\n", num_objects);
     timer_start(&total_timer);
 #endif
 
@@ -153,7 +153,7 @@ parseJSON(const char *jsonString, void *args)
         int object_creation_result =
             md_json_processor->process_object_base(name, type, full_path, md_json_args);
         if (object_creation_result != 0) {
-            println("Error: failed to create object %s\n", cJSON_GetStringValue(name));
+            LOG_ERROR("Error: failed to create object %s\n", cJSON_GetStringValue(name));
             continue;
         }
         int num_properties = parseProperties(properties, md_json_args);
@@ -161,13 +161,13 @@ parseJSON(const char *jsonString, void *args)
         md_json_args->total_prop_count += num_properties;
 #ifdef JMD_VERBOSE
         timer_pause(&obj_timer);
-        println("  Imported object %s with %d properties in %.4f ms.\n", cJSON_GetStringValue(name),
-                num_properties, timer_delta_ms(&obj_timer));
+        LOG_JUST_PRINT("  Imported object %s with %d properties in %.4f ms.\n", cJSON_GetStringValue(name),
+                       num_properties, timer_delta_ms(&obj_timer));
 #endif
     }
     md_json_args->total_obj_count += num_objects;
 #ifdef JMD_VERBOSE
-    println("Imported %d objects in %.4f ms.\n", num_objects, timer_delta_ms(&total_timer));
+    LOG_JUST_PRINT("Imported %d objects in %.4f ms.\n", num_objects, timer_delta_ms(&total_timer));
     md_json_processor->complete_one_json_file(md_json_args);
 #endif
 end:
@@ -259,10 +259,7 @@ main(int argc, char **argv)
 
     // check the current working directory
     char cwd[768];
-    if (getcwd(cwd, sizeof(cwd)) != NULL) {
-        // println("Current working dir: %s\n", cwd);
-    }
-    else {
+    if (getcwd(cwd, sizeof(cwd)) == NULL) {
         perror("getcwd() error");
         return 1;
     }
@@ -287,7 +284,7 @@ main(int argc, char **argv)
     MD_JSON_ARGS *md_json_args = (MD_JSON_ARGS *)malloc(sizeof(MD_JSON_ARGS));
     // we initialize PDC in the function below
     if (md_json_processor->init_processor(md_json_args) < 0) {
-        println("Error: failed to initialize the JSON processor.\n");
+        LOG_ERROR("Error: failed to initialize the JSON processor.\n");
         return EXIT_FAILURE;
     }
 
@@ -322,11 +319,10 @@ main(int argc, char **argv)
     num_files        = md_json_args->processed_file_count;
 #endif
 
-    if (rank == 0) {
-        println("Processed %d files, imported %" PRIu64 " objects and %" PRIu64
-                " attributes. Total duration: %.4f seconds.\n",
-                num_files, total_obj_count, total_prop_count, duration);
-    }
+    if (rank == 0)
+        LOG_JUST_PRINT("Processed %d files, imported %" PRIu64 " objects and %" PRIu64
+                       " attributes. Total duration: %.4f seconds.\n",
+                       num_files, total_obj_count, total_prop_count, duration);
 
     md_json_processor->finalize_processor(md_json_args);
 

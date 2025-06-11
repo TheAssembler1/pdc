@@ -130,11 +130,9 @@ main(int argc, char **argv)
     if (sleep_time < 0)
         sleep_time = 15;
 
-    if (rank == 0) {
+    if (rank == 0)
         LOG_INFO("Write %d variables, each %dMB per proc, %d timesteps, %.1f compute time\n", n_var,
                  size_per_proc_var_MB, n_ts, sleep_time);
-        fflush(stdout);
-    }
 
     // create a pdc
     pdc_id = PDCinit("pdc");
@@ -212,10 +210,8 @@ main(int argc, char **argv)
             true_sleep_time = sleep_time - gen_time;
         }
 
-        if (rank == 0) {
+        if (rank == 0)
             LOG_INFO("Compute for %.2f seconds\n", gen_time + true_sleep_time);
-        }
-        fflush(stdout);
 
         // Sleep to fake compute time
         PDC_msleep((unsigned long)(true_sleep_time * 1000));
@@ -225,10 +221,8 @@ main(int argc, char **argv)
         MPI_Barrier(MPI_COMM_WORLD);
 #endif
 
-        if (rank == 0) {
+        if (rank == 0)
             LOG_INFO("Compute done\n");
-            fflush(stdout);
-        }
 
         gettimeofday(&pdc_timer_start_1, 0);
         // Create obj and region one by one
@@ -271,10 +265,8 @@ main(int argc, char **argv)
         create_time = PDC_get_elapsed_time_double(&pdc_timer_start_1, &pdc_timer_end_1);
         create_time_total += create_time;
 
-        if (rank == 0) {
+        if (rank == 0)
             LOG_INFO("%d: start querying objects\n", rank);
-            fflush(stdout);
-        }
 
         for (i = 0; i < n_var; i++) {
             ret = PDC_Client_query_metadata_name_timestep_agg(obj_names[i], ts, &obj_metas[ts][i]);
@@ -291,10 +283,8 @@ main(int argc, char **argv)
 #ifdef ENABLE_MPI
         MPI_Barrier(MPI_COMM_WORLD);
 #endif
-        if (rank == 0) {
+        if (rank == 0)
             LOG_INFO("%d: querying done\n", rank);
-            fflush(stdout);
-        }
 
         // Wait for the previous request to finish
         if (ts > 0 && ts != n_ts - 1) {
@@ -304,7 +294,7 @@ main(int argc, char **argv)
             for (i = 0; i < n_var; i++) {
                 ret = PDC_Client_wait(&request[ts - 1][i], 30000, 100);
                 if (ret != SUCCEED) {
-                    LOG_ERROR("Error with PDC_Client_wait!\n");
+                    LOG_ERROR("Error with PDC_Client_wait\n");
                     goto done;
                 }
             }
@@ -318,7 +308,6 @@ main(int argc, char **argv)
 
         if (rank == 0)
             LOG_INFO("Timestep %d: start to write.\n", ts);
-        fflush(stdout);
 
         // Last ts is sync IO
         if (ts != n_ts - 1) {
@@ -332,7 +321,7 @@ main(int argc, char **argv)
                 request[ts][i].n_update = n_var;
                 ret = PDC_Client_iwrite(obj_metas[ts][i], &obj_regions[ts][i], &request[ts][i], mydata[i]);
                 if (ret != SUCCEED) {
-                    LOG_ERROR("Error with PDC_Client_iwrite!\n");
+                    LOG_ERROR("Error with PDC_Client_iwrite\n");
                     goto done;
                 }
             } // end of for
@@ -360,7 +349,7 @@ main(int argc, char **argv)
     for (i = 0; i < n_var; i++) {
         ret = PDC_Client_write(obj_metas[n_ts - 1][i], &obj_regions[n_ts - 1][i], mydata[i]);
         if (ret != SUCCEED) {
-            LOG_ERROR("Error with PDC_Client_iwrite!\n");
+            LOG_ERROR("Error with PDC_Client_iwrite\n");
             goto done;
         }
     } // end of for
@@ -385,7 +374,6 @@ main(int argc, char **argv)
                  "create %.2f, query %.2f, write %.2f, wait %.2f, compute %.2f\n",
                  n_ts, total_size, size, total_time, create_time_total, query_time_total, write_time_total,
                  wait_time_total, compute_total);
-        fflush(stdout);
     }
 
     // Free allocated space

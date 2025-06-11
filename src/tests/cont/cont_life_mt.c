@@ -26,6 +26,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "pdc.h"
+#include "test_helper.h"
 #include "mercury.h"
 #include "mercury_thread_pool.h"
 #include "mercury_atomic.h"
@@ -51,10 +52,10 @@ TestThread(void *ThreadArgs)
     if (create_prop > 0)
         LOG_INFO("[%d] Create a container property, id is %llx\n", args->ThreadRank, create_prop);
     else
-        LOG_ERROR("[%d] Fail to create container property!\n", args->ThreadRank);
+        LOG_ERROR("[%d] Fail to create container property\n", args->ThreadRank);
 
     // print default container lifetime (persistent)
-    struct PDC_cont_prop *prop = PDCcont_prop_get_info(create_prop);
+    struct _pdc_cont_prop *prop = PDCcont_prop_get_info(create_prop);
     if (prop->cont_life == PDC_PERSIST)
         LOG_INFO("[%d] container property (id: %lld) default lifetime is persistent\n", args->ThreadRank,
                  create_prop);
@@ -67,7 +68,7 @@ TestThread(void *ThreadArgs)
     if (cont > 0)
         LOG_INFO("[%d] Create a container, id is %lld\n", args->ThreadRank, cont);
     else
-        LOG_ERROR("[%d] Failed to create container!\n", args->ThreadRank);
+        LOG_ERROR("[%d] Failed to create container\n", args->ThreadRank);
 
     // set container lifetime to transient
     PDCprop_set_cont_lifetime(create_prop, PDC_TRANSIENT);
@@ -111,6 +112,7 @@ main(int argc, char **argv)
     int            status = 0;
     thread_args_t *args;
     int            rank = 0, size = 1;
+    int            ret_value = TSUCCEED;
 
 #ifdef ENABLE_MPI
     MPI_Init(&argc, &argv);
@@ -124,7 +126,7 @@ main(int argc, char **argv)
 
     // create a pdc
     pdcid_t create_prop;
-    pdcid_t pdc = PDC_init("pdc");
+    pdcid_t pdc = PDCinit("pdc");
     LOG_INFO("[MAIN] created a new pdc, pdc id is: %lld\n", pdc);
 
     /*Create nThreads threads in each process*/
@@ -141,7 +143,7 @@ main(int argc, char **argv)
     }
 
     // close pdc
-    if (PDC_close(pdc) < 0)
+    if (PDCclose(pdc) < 0)
         LOG_ERROR("Failed to close PDC\n");
     else
         LOG_INFO("PDC is closed\n");
@@ -154,7 +156,7 @@ main(int argc, char **argv)
         LOG_INFO("No errors reported\n");
     }
 
-#ifdef ENABLE_MPI
+#ifdef ENABLE_MPIz
     MPI_Finalize();
 #endif
     return 0;

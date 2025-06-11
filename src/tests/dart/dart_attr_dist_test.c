@@ -76,7 +76,6 @@ main(int argc, char *argv[])
     int rank = 0, size = 1;
 
 #ifdef ENABLE_MPI
-    fflush(stdout);
     MPI_Init(&argc, &argv);
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
     MPI_Comm_size(MPI_COMM_WORLD, &size);
@@ -214,7 +213,7 @@ main(int argc, char *argv[])
         int num_obj_per_attr = attr_2_obj_array[i];
         sprintf(key, "k%ld", i + 12345);
         sprintf(value, "v%ld", val);
-        println("attaching attribute #%d [%s:%s] to %d objects", i, key, value, num_obj_per_attr);
+        LOG_INFO("Attaching attribute #%d [%s:%s] to %d objects\n", i, key, value, num_obj_per_attr);
         for (j = 0; j < num_obj_per_attr; j++) {
             // each attribute is attached to a specific number of objects, and this is how we make up
             // different selectivity.
@@ -311,8 +310,8 @@ main(int argc, char *argv[])
             }
             timer_pause(&timer_obj);
             duration_obj_ms += timer_delta_ms(&timer_obj);
-            println("[Client_Side_Exact] Search '%s' for %d times and get %d results, obj time: %.4f ms\n",
-                    key, q_repeat_count, rest_count1, duration_obj_ms);
+            LOG_INFO("[Client_Side_Exact] Search '%s' for %d times and get %d results, obj time: %.4f ms\n",
+                     key, q_repeat_count, rest_count1, duration_obj_ms);
         }
     }
 
@@ -344,9 +343,9 @@ main(int argc, char *argv[])
             }
             timer_pause(&timer_dart);
             duration_dart_ms += timer_delta_ms(&timer_dart);
-            println("[Client_Side_Exact] Search '%s' for %d times and get %d results, dart "
-                    "time: %.4f ms\n",
-                    key, q_repeat_count, rest_count1, duration_dart_ms);
+            LOG_INFO("[Client_Side_Exact] Search '%s' for %d times and get %d results, dart "
+                     "time: %.4f ms\n",
+                     key, q_repeat_count, rest_count1, duration_dart_ms);
         }
     }
 

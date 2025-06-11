@@ -116,7 +116,6 @@ pdc_analysis_registry_init_(size_t newSize)
     }
 
 done:
-    fflush(stdout);
     FUNC_LEAVE(ret_value);
 }
 
@@ -152,7 +151,6 @@ pdc_transform_registry_init_(size_t newSize)
     }
 
 done:
-    fflush(stdout);
     FUNC_LEAVE(ret_value);
 }
 
@@ -199,7 +197,6 @@ check_analysis(pdc_obj_transform_t op_type ATTRIBUTE(unused), struct pdc_region_
     }
 
 done:
-    fflush(stdout);
     FUNC_LEAVE(ret_value);
 }
 
@@ -215,7 +212,7 @@ PDC_add_analysis_ptr_to_registry_(struct _pdc_region_analysis_ftn_info *ftn_info
 
     if (analysis_registry_size == 0) {
         if (pdc_analysis_registry_init_(initial_registry_size) == 0) {
-            perror("Unable to initialize analysis registry!");
+            perror("Unable to initialize analysis registry");
             PGOTO_DONE(-1);
         }
     }
@@ -241,7 +238,6 @@ PDC_add_analysis_ptr_to_registry_(struct _pdc_region_analysis_ftn_info *ftn_info
     ret_value = registry_index;
 
 done:
-    fflush(stdout);
     FUNC_LEAVE(ret_value);
 }
 
@@ -260,7 +256,7 @@ PDCiter_get_nextId(void)
         PDC_Block_iterator_cache = (struct _pdc_iterator_info *)PDC_calloc(iterator_cache_entries,
                                                                            sizeof(struct _pdc_iterator_info));
         if (PDC_Block_iterator_cache == NULL)
-            PGOTO_ERROR(-1, "calloc failed");
+            PGOTO_ERROR(FAIL, "calloc failed");
 
         i_cache_freed = (int *)PDC_calloc(iterator_cache_entries, sizeof(int));
         /* Index 0 is NOT-USED other than to indicate an empty iterator */
@@ -295,7 +291,6 @@ PDCiter_get_nextId(void)
     ret_value = nextId;
 
 done:
-    fflush(stdout);
     FUNC_LEAVE(ret_value);
 }
 
@@ -322,7 +317,6 @@ PDC_check_transform(pdc_obj_transform_t op_type, struct pdc_region_info *dest_re
     }
 
 done:
-    fflush(stdout);
     FUNC_LEAVE(ret_value);
 }
 
@@ -339,7 +333,6 @@ PDC_get_transforms(struct _pdc_region_transform_ftn_info ***registry)
     }
 
 done:
-    fflush(stdout);
     FUNC_LEAVE(ret_value);
 }
 
@@ -355,12 +348,12 @@ PDC_add_transform_ptr_to_registry_(struct _pdc_region_transform_ftn_info *ftn_in
 
     if (transform_registry_size == 0) {
         if (pdc_transform_registry_init_(initial_registry_size) == 0)
-            PGOTO_ERROR(-1, "Unable to initialize transform registry!");
+            PGOTO_ERROR(FAIL, "Unable to initialize transform registry");
     }
     currentCount = (size_t)hg_atomic_get32(&registered_transform_ftn_count_g);
     if (currentCount == transform_registry_size) {
         if (pdc_transform_registry_init_(transform_registry_size * 2) == 0)
-            PGOTO_ERROR(-1, "memory allocation failed");
+            PGOTO_ERROR(FAIL, "Memory allocation failed");
     }
     /* If the new function is already registered
      * simply return the OLD index.
@@ -379,7 +372,6 @@ PDC_add_transform_ptr_to_registry_(struct _pdc_region_transform_ftn_info *ftn_in
     ret_value = registry_index;
 
 done:
-    fflush(stdout);
     FUNC_LEAVE(ret_value);
 }
 
@@ -396,10 +388,9 @@ PDC_update_transform_server_meta_index(int client_index, int meta_index)
         ftnPtr->meta_index = meta_index;
     }
     else
-        PGOTO_ERROR(-1, "Bad client index(%d)", client_index);
+        PGOTO_ERROR(FAIL, "Bad client index(%d)", client_index);
 
 done:
-    fflush(stdout);
     FUNC_LEAVE(ret_value);
 }
 
@@ -437,19 +428,18 @@ PDC_get_ftnPtr_(const char *ftn, const char *loadpath, void **ftnPtr)
     if (appHandle == NULL) {
         if ((appHandle = dlopen(loadpath, RTLD_NOW)) == NULL) {
             this_error = dlerror();
-            PGOTO_ERROR(-1, "dlopen failed: %s", this_error);
+            PGOTO_ERROR(FAIL, "dlopen failed: %s", this_error);
         }
     }
     ftnHandle = dlsym(appHandle, ftn);
     if (ftnHandle == NULL)
-        PGOTO_ERROR(-1, "dlsym failed: %s", dlerror());
+        PGOTO_ERROR(FAIL, "dlsym failed: %s", dlerror());
 
     *ftnPtr = ftnHandle;
 
     ret_value = 0;
 
 done:
-    fflush(stdout);
     FUNC_LEAVE(ret_value);
 }
 
@@ -476,7 +466,7 @@ HG_TEST_RPC_CB(analysis_ftn, handle)
     HG_Get_input(handle, &in);
 
     if (PDC_get_ftnPtr_(in.ftn_name, in.loadpath, &ftnHandle) < 0)
-        PGOTO_ERROR(FAIL, "PDC_get_ftnPtr_ returned an error!");
+        PGOTO_ERROR(FAIL, "PDC_get_ftnPtr_ returned an error");
 
     if ((ftnPtr = ftnHandle) == NULL)
         PGOTO_ERROR(FAIL, "Transforms function lookup failed");
@@ -541,7 +531,6 @@ HG_TEST_RPC_CB(analysis_ftn, handle)
     }
 
 done:
-    fflush(stdout);
     HG_Free_input(handle, &in);
     HG_Destroy(handle);
 
@@ -560,7 +549,7 @@ HG_TEST_RPC_CB(obj_data_iterator, handle)
     memset(&in, 0, sizeof(in));
     // Decode input
     HG_Get_input(handle, &in);
-    // LOG_INFO("obj_data_iterator_cb entered!\n");
+    // LOG_INFO("obj_data_iterator_cb entered\n");
     ret_value = PDC_Server_instantiate_data_iterator(&in, &out);
 
     HG_Respond(handle, NULL, NULL, &out);

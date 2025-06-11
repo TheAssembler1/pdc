@@ -76,17 +76,17 @@ PDCobj_encode(pdcid_t obj_id, pdcid_t *meta_id)
 
     MPI_Comm_size(MPI_COMM_WORLD, &client_size);
     if (client_size < 2)
-        PGOTO_ERROR(ret_value, "Requires at least two processes.");
+        PGOTO_ERROR(ret_value, "Requires at least two processes");
 
     MPI_Comm_rank(MPI_COMM_WORLD, &client_rank);
 
     if (client_rank == 0) {
         objinfo = PDC_find_id(obj_id);
         if (objinfo == NULL)
-            PGOTO_ERROR(ret_value, "cannot locate object ID");
+            PGOTO_ERROR(ret_value, "Cannot locate object ID");
         obj = (struct _pdc_obj_info *)(objinfo->obj_ptr);
         if (obj->location == PDC_OBJ_LOCAL)
-            PGOTO_ERROR(FAIL, "trying to encode local object");
+            PGOTO_ERROR(FAIL, "Trying to encode local object");
         *meta_id = obj->obj_info_pub->meta_id;
     }
 
@@ -106,18 +106,17 @@ PDCobj_decode(pdcid_t obj_id, pdcid_t meta_id)
 
     MPI_Comm_size(MPI_COMM_WORLD, &client_size);
     if (client_size < 2)
-        PGOTO_ERROR(ret_value, "Requires at least two processes.");
+        PGOTO_ERROR(ret_value, "Requires at least two processes");
 
     MPI_Comm_rank(MPI_COMM_WORLD, &client_rank);
     if (client_rank != 0) {
         objinfo = PDC_find_id(obj_id);
         if (objinfo == NULL)
-            PGOTO_ERROR(ret_value, "cannot locate object ID");
+            PGOTO_ERROR(ret_value, "Cannot locate object ID");
         obj                        = (struct _pdc_obj_info *)(objinfo->obj_ptr);
         obj->obj_info_pub->meta_id = meta_id;
     }
 
 done:
-    fflush(stdout);
     FUNC_LEAVE(ret_value);
 }

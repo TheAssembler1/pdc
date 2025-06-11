@@ -52,10 +52,9 @@ PDC_region_init()
     perr_t ret_value = SUCCEED;
     /* Initialize the atom group for the region IDs */
     if (PDC_register_type(PDC_REGION, (PDC_free_t)pdc_region_close) < 0)
-        PGOTO_ERROR(FAIL, "unable to initialize region interface");
+        PGOTO_ERROR(FAIL, "Unable to initialize region interface");
 
 done:
-    fflush(stdout);
     FUNC_LEAVE(ret_value);
 }
 
@@ -67,10 +66,9 @@ PDC_transfer_request_init()
     perr_t ret_value = SUCCEED;
     /* Initialize the atom group for the region IDs */
     if (PDC_register_type(PDC_TRANSFER_REQUEST, (PDC_free_t)pdc_transfer_request_close) < 0)
-        PGOTO_ERROR(FAIL, "unable to initialize region interface");
+        PGOTO_ERROR(FAIL, "Unable to initialize region interface");
 
 done:
-    fflush(stdout);
     FUNC_LEAVE(ret_value);
 }
 
@@ -90,7 +88,6 @@ PDC_region_list_null()
     }
 
 done:
-    fflush(stdout);
     FUNC_LEAVE(ret_value);
 }
 
@@ -130,10 +127,9 @@ PDCregion_close(pdcid_t region_id)
 
     /* When the reference count reaches zero the resources are freed */
     if (PDC_dec_ref(region_id) < 0)
-        PGOTO_ERROR(FAIL, "object: problem of freeing id");
+        PGOTO_ERROR(FAIL, "Object: problem of freeing id");
 
 done:
-    fflush(stdout);
     FUNC_LEAVE(ret_value);
 }
 
@@ -144,34 +140,11 @@ PDC_region_end()
 
     perr_t ret_value = SUCCEED;
     if (PDC_destroy_type(PDC_REGION) < 0)
-        PGOTO_ERROR(FAIL, "unable to destroy region interface");
+        PGOTO_ERROR(FAIL, "Failed to destroy region interface");
 
 done:
-    fflush(stdout);
     FUNC_LEAVE(ret_value);
 }
-
-/*
-static pdc_transfer_status_t check_local_transfer_request(struct _pdc_obj_info *p, pdcid_t
-transfer_request_id) { pdc_transfer_status_t ret_value; struct pdc_local_transfer_request *temp;
-
-    FUNC_ENTER(NULL);
-
-    ret_value = PDC_TRANSFER_STATUS_NOT_FOUND;
-
-    temp = p->local_transfer_request_head;
-
-    while ( temp != NULL ) {
-        if (temp->local_id == transfer_request_id) {
-            ret_value = PDC_TRANSFER_STATUS_PENDING;
-        }
-        temp = temp->next;
-    }
-done:
-    fflush(stdout);
-    FUNC_LEAVE(ret_value);
-}
-*/
 
 pdcid_t
 PDCregion_create(psize_t ndims, uint64_t *offset, uint64_t *size)
@@ -201,7 +174,6 @@ PDCregion_create(psize_t ndims, uint64_t *offset, uint64_t *size)
     ret_value   = new_id;
 
 done:
-    fflush(stdout);
     FUNC_LEAVE(ret_value);
 }
 
@@ -227,7 +199,7 @@ PDCbuf_obj_map(void *buf, pdc_var_type_t local_type, pdcid_t local_reg, pdcid_t 
     objinfo2 = PDC_find_id(remote_obj);
     if (objinfo2 == NULL)
 
-        PGOTO_ERROR(FAIL, "cannot locate remote object ID");
+        PGOTO_ERROR(FAIL, "Cannot locate remote object ID");
     obj2           = (struct _pdc_obj_info *)(objinfo2->obj_ptr);
     remote_meta_id = obj2->obj_info_pub->meta_id;
     remote_type    = obj2->obj_pt->obj_prop_pub->type;
@@ -235,10 +207,10 @@ PDCbuf_obj_map(void *buf, pdc_var_type_t local_type, pdcid_t local_reg, pdcid_t 
     reginfo2 = PDC_find_id(remote_reg);
     reg2     = (struct pdc_region_info *)(reginfo2->obj_ptr);
     if (obj2->obj_pt->obj_prop_pub->ndim != reg2->ndim)
-        PGOTO_ERROR(FAIL, "remote object dimension and region dimension does not match");
+        PGOTO_ERROR(FAIL, "Remote object dimension and region dimension does not match");
     for (i = 0; i < reg2->ndim; i++)
         if ((obj2->obj_pt->obj_prop_pub->dims)[i] < (reg2->size)[i])
-            PGOTO_ERROR(FAIL, "remote object region size error");
+            PGOTO_ERROR(FAIL, "Remote object region size error");
 
     ret_value = PDC_Client_buf_map(local_reg, remote_meta_id, reg1->ndim, reg1->size, reg1->offset,
                                    local_type, buf, remote_type, reg1, reg2, obj2);
@@ -255,7 +227,6 @@ PDCbuf_obj_map(void *buf, pdc_var_type_t local_type, pdcid_t local_reg, pdcid_t 
     }
 
 done:
-    fflush(stdout);
     FUNC_LEAVE(ret_value);
 }
 
@@ -270,13 +241,12 @@ PDCregion_get_info(pdcid_t reg_id)
 
     region = PDC_find_id(reg_id);
     if (region == NULL)
-        PGOTO_ERROR(NULL, "cannot locate region");
+        PGOTO_ERROR(NULL, "Cannot locate region");
 
     info      = (struct pdc_region_info *)(region->obj_ptr);
     ret_value = info;
 
 done:
-    fflush(stdout);
     FUNC_LEAVE(ret_value);
 }
 
@@ -293,13 +263,13 @@ PDCbuf_obj_unmap(pdcid_t remote_obj_id, pdcid_t remote_reg_id)
 
     info1 = PDC_find_id(remote_obj_id);
     if (info1 == NULL)
-        PGOTO_ERROR(FAIL, "cannot locate object ID");
+        PGOTO_ERROR(FAIL, "Cannot locate object ID");
     object1   = (struct _pdc_obj_info *)(info1->obj_ptr);
     data_type = object1->obj_pt->obj_prop_pub->type;
 
     info1 = PDC_find_id(remote_reg_id);
     if (info1 == NULL)
-        PGOTO_ERROR(FAIL, "cannot locate region ID");
+        PGOTO_ERROR(FAIL, "Cannot locate region ID");
     reginfo = (struct pdc_region_info *)(info1->obj_ptr);
 
     ret_value =
@@ -311,7 +281,6 @@ PDCbuf_obj_unmap(pdcid_t remote_obj_id, pdcid_t remote_reg_id)
     }
 
 done:
-    fflush(stdout);
     FUNC_LEAVE(ret_value);
 }
 
@@ -329,7 +298,7 @@ PDCreg_obtain_lock(pdcid_t obj_id, pdcid_t reg_id, pdc_access_t access_type, pdc
 
     info1 = PDC_find_id(obj_id);
     if (info1 == NULL)
-        PGOTO_ERROR(FAIL, "cannot locate object ID");
+        PGOTO_ERROR(FAIL, "Cannot locate object ID");
     object_info = (struct _pdc_obj_info *)(info1->obj_ptr);
     // object_info = PDC_obj_get_info(obj_id);
     data_type   = object_info->obj_pt->obj_prop_pub->type;
@@ -356,7 +325,7 @@ PDCreg_release_lock(pdcid_t obj_id, pdcid_t reg_id, pdc_access_t access_type)
 
     info1 = PDC_find_id(obj_id);
     if (info1 == NULL)
-        PGOTO_ERROR(FAIL, "cannot locate object ID");
+        PGOTO_ERROR(FAIL, "Cannot locate object ID");
     object_info = (struct _pdc_obj_info *)(info1->obj_ptr);
     // object_info = PDC_obj_get_info(obj_id);
     data_type   = object_info->obj_pt->obj_prop_pub->type;

@@ -198,7 +198,7 @@ main(int argc, char **argv)
 
     ret = PDCreg_obtain_lock(obj1, reg_global, PDC_READ, PDC_BLOCK);
     if (ret != SUCCEED) {
-        priLOG_ERRORntf("PDCreg_obtain_lock failed\n");
+        LOG_ERROR("PDCreg_obtain_lock failed\n");
         ret_value = 1;
     }
 

@@ -123,7 +123,7 @@ iterator_init(pdcid_t objectId, pdcid_t reg_id, int blocks, struct _pdc_iterator
         iter->contigBlockSize = obj_elementsPerSlice * element_size;
     }
     else
-        PGOTO_ERROR(-1, "Error: object (%" PRIu64 ") has not been initalized correctly!", objectId);
+        PGOTO_ERROR(FAIL, "Error: Object (%" PRIu64 ") has not been initalized correctly", objectId);
 
     iter->element_size = element_size;
     iter->objectId     = objectId;
@@ -249,7 +249,6 @@ iterator_init(pdcid_t objectId, pdcid_t reg_id, int blocks, struct _pdc_iterator
     ret_value = 0;
 
 done:
-    fflush(stdout);
     FUNC_LEAVE(ret_value);
 }
 
@@ -273,7 +272,6 @@ PDCobj_data_block_iterator_create(pdcid_t obj_id, pdcid_t reg_id, int contig_blo
         PGOTO_ERROR(0, "Unable to register a new iterator");
 
 done:
-    fflush(stdout);
     FUNC_LEAVE(ret_value);
 }
 
@@ -338,7 +336,7 @@ PDC_get_argv0_()
         shellcmd = fopen(procpath, "r");
         if (shellcmd == NULL) {
             procpath = (char *)PDC_free(procpath);
-            PGOTO_ERROR(NULL, "fopen failed!");
+            PGOTO_ERROR(NULL, "fopen failed");
         }
         else {
             cmdLength = fread(fullPath, 1, sizeof(fullPath), shellcmd);
@@ -373,12 +371,11 @@ PDC_get_argv0_()
         }
     }
     if (_argv0 == NULL)
-        PGOTO_ERROR(NULL, "ERROR: Unable to resolve user application name!");
+        PGOTO_ERROR(NULL, "Unable to resolve user application name");
 
     ret_value = _argv0;
 
 done:
-    fflush(stdout);
     FUNC_LEAVE(ret_value);
 }
 
@@ -408,7 +405,6 @@ PDC_get_realpath(char *fname, char *app_path)
     ret_value = strdup(fullPath);
 
 done:
-    fflush(stdout);
     FUNC_LEAVE(ret_value);
 }
 
@@ -449,7 +445,7 @@ PDCobj_analysis_register(char *func, pdcid_t iterIn, pdcid_t iterOut)
     //
     loadpath = PDC_get_realpath(analyislibrary, applicationDir);
     if (PDC_get_ftnPtr_((const char *)userdefinedftn, (const char *)loadpath, &ftnHandle) < 0)
-        PGOTO_ERROR(FAIL, "PDC_get_ftnPtr_ returned an error!");
+        PGOTO_ERROR(FAIL, "PDC_get_ftnPtr_ returned an error");
 
     if ((ftnPtr = ftnHandle) == NULL)
         PGOTO_ERROR(FAIL, "Analysis function lookup failed");
@@ -494,7 +490,7 @@ PDCobj_analysis_register(char *func, pdcid_t iterIn, pdcid_t iterOut)
 
     // Add to our own list of analysis functions
     if (PDC_add_analysis_ptr_to_registry_(thisFtn) < 0)
-        PGOTO_ERROR(FAIL, "PDC unable to register analysis function!");
+        PGOTO_ERROR(FAIL, "PDC unable to register analysis function");
 
 done:
     if (applicationDir)
@@ -504,7 +500,6 @@ done:
     if (loadpath)
         loadpath = (char *)PDC_free(loadpath);
 
-    fflush(stdout);
     FUNC_LEAVE(ret_value);
 }
 
@@ -528,7 +523,6 @@ PDCobj_data_getSliceCount(pdcid_t iter)
     }
 
 done:
-    fflush(stdout);
     FUNC_LEAVE(ret_value);
 }
 
@@ -559,7 +553,7 @@ PDCobj_data_getNextBlock(pdcid_t iter, void **nextBlock, size_t *dims)
                 if ((thisIter->srcNext = PDC_Server_get_region_data_ptr(thisIter->objectId)) == NULL)
                     thisIter->srcNext = PDC_malloc(thisIter->totalElements * thisIter->element_size);
                 if ((thisIter->srcStart = thisIter->srcNext) == NULL)
-                    PGOTO_ERROR(0, "==PDC_ANALYSIS_SERVER: Unable to allocate iterator storage");
+                    PGOTO_ERROR(0, "Unable to allocate iterator storage");
 
                 thisIter->srcNext += thisIter->startOffset + thisIter->skipCount;
             }
@@ -628,7 +622,6 @@ PDCobj_data_getNextBlock(pdcid_t iter, void **nextBlock, size_t *dims)
     }
 
 done:
-    fflush(stdout);
     FUNC_LEAVE(ret_value);
 }
 

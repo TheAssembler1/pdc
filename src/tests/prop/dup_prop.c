@@ -26,13 +26,14 @@
 #include <stdlib.h>
 #include <string.h>
 #include "pdc.h"
+#include "test_helper.h"
 
 int
 main(int argc, char **argv)
 {
     pdcid_t pdc, create_prop1, create_prop2, dup_prop;
     int     rank = 0, size = 1;
-    int     ret_value = 0;
+    int     ret_value = TSUCCEED;
 
 #ifdef ENABLE_MPI
     MPI_Init(&argc, &argv);
@@ -41,50 +42,27 @@ main(int argc, char **argv)
 #endif
 
     // create a pdc
-    pdc = PDCinit("pdc");
+    TASSERT((pdc = PDCinit("pdc")) != 0, "Call to PDCinit succeeded", "Call to PDCinit failed");
 
     // create an object property
-    create_prop1 = PDCprop_create(PDC_OBJ_CREATE, pdc);
-    if (create_prop1 <= 0) {
-        LOG_ERROR("Failed to create");
-        ret_value = 1;
-    }
+    TASSERT((create_prop1 = PDCprop_create(PDC_OBJ_CREATE, pdc)) != 0, "Call to PDCprop_create succeeded",
+            "Call to PDCprop_create failed");
     // create another object property
-    create_prop2 = PDCprop_create(PDC_OBJ_CREATE, pdc);
-    if (create_prop2 <= 0) {
-        LOG_ERROR("Failed to create");
-        ret_value = 1;
-    }
+    TASSERT((create_prop2 = PDCprop_create(PDC_OBJ_CREATE, pdc)) != 0, "Call to PDCprop_create succeeded",
+            "Call to PDCprop_create failed");
 
-    dup_prop = PDCprop_obj_dup(create_prop2);
-    if (PDCprop_close(dup_prop) < 0) {
-        LOG_ERROR("Failed to close property");
-        ret_value = 1;
-    }
-    else {
-        LOG_INFO("Successfully closed first property\n");
-    }
+    TASSERT((dup_prop = PDCprop_obj_dup(create_prop2)) != 0, "Call to PDCprop_obj_dup succeeded",
+            "Call to PDCprop_obj_dup failed");
 
-    if (PDCprop_close(create_prop1) < 0) {
-        LOG_ERROR("Failed to close property");
-        ret_value = 1;
-    }
-    else {
-        LOG_INFO("Successfully closed first property\n");
-    }
+    TASSERT(PDCprop_close(create_prop1) >= 0, "Call to PDCprop_close succeeded",
+            "Call to PDCprop_close failed for first property");
+    TASSERT(PDCprop_close(create_prop2) >= 0, "Call to PDCprop_close succeeded",
+            "Call to PDCprop_close failed for second property");
 
-    if (PDCprop_close(create_prop2) < 0) {
-        LOG_ERROR("Failed to close property");
-        ret_value = 1;
-    }
-    else {
-        LOG_INFO("Successfully closed second property\n");
-    }
     // close a pdc
-    if (PDCclose(pdc) < 0) {
-        LOG_ERROR("Failed to close PDC\n");
-        ret_value = 1;
-    }
+    TASSERT(PDCclose(pdc) >= 0, "Call to PDCclose succeeded", "Call to PDCclose failed");
+
+done:
 #ifdef ENABLE_MPI
     MPI_Finalize();
 #endif

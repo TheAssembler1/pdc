@@ -169,7 +169,6 @@ main(int argc, char **argv)
                        ht_total_start.tv_usec;
     ht_total_sec = ht_total_elapsed / 1000000.0;
     LOG_INFO("Total map overhead          : %.5e\n", ht_total_sec);
-    fflush(stdout);
 
     gettimeofday(&ht_total_start, 0);
 

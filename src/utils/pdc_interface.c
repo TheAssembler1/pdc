@@ -64,7 +64,6 @@ PDC_find_id(pdcid_t idid)
     PDC_LIST_SEARCH(ret_value, &type_ptr->ids, entry, id, idid);
 
 done:
-    fflush(stdout);
     FUNC_LEAVE(ret_value);
 }
 
@@ -102,7 +101,6 @@ PDC_register_type(PDC_type_t type_id, PDC_free_t free_func)
     type_ptr->init_count++;
 
 done:
-    fflush(stdout);
     FUNC_LEAVE(ret_value);
 }
 
@@ -118,12 +116,12 @@ PDC_id_register(PDC_type_t type, void *object)
 
     /* Check arguments */
     if (type <= PDC_BADID || type >= PDC_next_type)
-        PGOTO_ERROR(ret_value, "invalid type number");
+        PGOTO_ERROR(ret_value, "Invalid type number");
     type_ptr = (pdc_id_list_g->PDC_id_type_list_g)[type];
     if (NULL == type_ptr || type_ptr->init_count <= 0)
-        PGOTO_ERROR(ret_value, "invalid type");
+        PGOTO_ERROR(ret_value, "Invalid type");
     if (NULL == (id_ptr = (struct _pdc_id_info *)PDC_malloc(sizeof(struct _pdc_id_info))))
-        PGOTO_ERROR(ret_value, "memory allocation failed");
+        PGOTO_ERROR(ret_value, "Memory allocation failed");
 
     /* Create the struct & it's ID */
     PDC_MUTEX_LOCK(type_ptr->ids);
@@ -145,7 +143,6 @@ PDC_id_register(PDC_type_t type, void *object)
     ret_value = new_id;
 
 done:
-    fflush(stdout);
     FUNC_LEAVE(ret_value);
 }
 
@@ -160,7 +157,7 @@ PDC_dec_ref(pdcid_t id)
 
     /* General lookup of the ID */
     if (NULL == (id_ptr = PDC_find_id(id)))
-        PGOTO_ERROR(FAIL, "can't locate ID");
+        PGOTO_ERROR(FAIL, "Cannot locate ID");
 
     ret_value = hg_atomic_decr32(&(id_ptr->count));
     if (ret_value == 0) {
@@ -169,7 +166,7 @@ PDC_dec_ref(pdcid_t id)
         if (!type_ptr->free_func || (type_ptr->free_func)((void *)id_ptr->obj_ptr) >= 0) {
             /* check if list is empty before remove */
             if (PDC_LIST_IS_EMPTY(&type_ptr->ids))
-                PGOTO_ERROR(FAIL, "can't remove ID node");
+                PGOTO_ERROR(FAIL, "Cannot remove ID node");
 
             PDC_MUTEX_LOCK(type_ptr->ids);
             /* Remove the node from the type */
@@ -185,7 +182,6 @@ PDC_dec_ref(pdcid_t id)
     }
 
 done:
-    fflush(stdout);
     FUNC_LEAVE(ret_value);
 }
 
@@ -199,7 +195,7 @@ PDC_find_byname(PDC_type_t type, const char *byname)
     struct PDC_id_type * type_ptr;
 
     if (type <= PDC_BADID || type >= PDC_next_type)
-        PGOTO_ERROR(0, "invalid type number");
+        PGOTO_ERROR(0, "Invalid type number");
 
     type_ptr = (pdc_id_list_g->PDC_id_type_list_g)[type];
 
@@ -209,7 +205,6 @@ PDC_find_byname(PDC_type_t type, const char *byname)
         ret_value = id_ptr->id;
 
 done:
-    fflush(stdout);
     FUNC_LEAVE(ret_value);
 }
 
@@ -223,13 +218,12 @@ PDC_inc_ref(pdcid_t id)
 
     /* General lookup of the ID */
     if (NULL == (id_ptr = PDC_find_id(id)))
-        PGOTO_ERROR(0, "can't locate ID");
+        PGOTO_ERROR(0, "Cannot locate ID");
 
     /* Set return value */
     ret_value = hg_atomic_incr32(&(id_ptr->count));
 
 done:
-    fflush(stdout);
     FUNC_LEAVE(ret_value);
 }
 
@@ -242,14 +236,17 @@ PDC_id_list_null(PDC_type_t type)
     struct PDC_id_type *type_ptr;
 
     if (type <= PDC_BADID || type >= PDC_next_type)
-        PGOTO_ERROR(FAIL, "invalid type number");
+        PGOTO_ERROR(FAIL, "Invalid type number");
+    if (pdc_id_list_g == NULL)
+        PGOTO_ERROR(FAIL, "pdc_id_list_g was NULL");
 
     type_ptr = (pdc_id_list_g->PDC_id_type_list_g)[type];
+    if (type_ptr == NULL)
+        PGOTO_ERROR(FAIL, "type_ptr was NULL");
     if (type_ptr->id_count != 0)
         ret_value = type_ptr->id_count;
 
 done:
-    fflush(stdout);
     FUNC_LEAVE(ret_value);
 }
 
@@ -288,12 +285,13 @@ PDC_destroy_type(PDC_type_t type)
     perr_t              ret_value = SUCCEED;
     struct PDC_id_type *type_ptr  = NULL;
 
+    if (pdc_id_list_g == NULL)
+        PGOTO_ERROR(FAIL, "pdc_id_list_g was NULL");
     type_ptr = (pdc_id_list_g->PDC_id_type_list_g)[type];
     if (type_ptr == NULL)
-        PGOTO_ERROR(FAIL, "type was not initialized correctly");
+        PGOTO_ERROR(FAIL, "Type was not initialized correctly");
     type_ptr = (struct PDC_id_type *)(intptr_t)PDC_free(type_ptr);
 
 done:
-    fflush(stdout);
     FUNC_LEAVE(ret_value);
 }

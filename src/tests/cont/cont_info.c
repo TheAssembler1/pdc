@@ -28,6 +28,7 @@
 #include <unistd.h>
 #include <getopt.h>
 #include "pdc.h"
+#include "test_helper.h"
 
 int
 main(int argc, char **argv)
@@ -35,6 +36,7 @@ main(int argc, char **argv)
     int                   rank = 0, size = 1;
     pdcid_t               pdc_id, cont_prop, cont_id, cont_id2;
     struct pdc_cont_info *cont_info;
+    int                   ret_value = TSUCCEED;
 
 #ifdef ENABLE_MPI
     MPI_Init(&argc, &argv);
@@ -43,52 +45,42 @@ main(int argc, char **argv)
 #endif
 
     // create a pdc
-    pdc_id = PDCinit("pdc");
-
+    TASSERT((pdc_id = PDCinit("pdc")) != 0, "Call to PDCinit succeeded", "Call to PDCinit failed");
     // create a container property
-    cont_prop = PDCprop_create(PDC_CONT_CREATE, pdc_id);
-    if (cont_prop <= 0)
-        LOG_ERROR("Failed to create container property");
-
+    TASSERT((cont_prop = PDCprop_create(PDC_CONT_CREATE, pdc_id)) != 0, "Call to PDCprop_create succeeded",
+            "Call to PDCprop_create failed");
     // create a container
-    cont_id = PDCcont_create_col("c1", cont_prop);
-    if (cont_id <= 0)
-        LOG_ERROR("Failed to create container");
+    TASSERT((cont_id = PDCcont_create("c1", cont_prop)) != 0, "Call to PDCcont_create succeeded",
+            "Call to PDCcont_create failed");
 
 #ifdef ENABLE_MPI
     MPI_Barrier(MPI_COMM_WORLD);
 #endif
 
-    cont_id2 = PDCcont_open("c1", pdc_id);
-    if (cont_id2 == 0)
-        LOG_ERROR("Failed to open container");
+    TASSERT((cont_id2 = PDCcont_open("c1", pdc_id)) > 0, "Call to PDCcont_open succeeded",
+            "Call to PDCcont_open failed");
+
 #ifdef ENABLE_MPI
     MPI_Barrier(MPI_COMM_WORLD);
 #endif
 
-    cont_info = PDCcont_get_info("c1");
-    if (strcmp(cont_info->name, "c1")) {
-        LOG_ERROR("container get info with wrong name\n");
-        return 1;
-    }
+    TASSERT((cont_info = PDCcont_get_info("c1")) != NULL, "Call to PDCcont_get_info succeeded",
+            "Call to PDCcont_get_info failed");
+    TASSERT(strcmp(cont_info->name, "c1") == 0, "Container c1 had correct name",
+            "Container c1 had incorrect name");
 
     // close a container
-    if (PDCcont_close(cont_id) < 0)
-        LOG_ERROR("Failed to close container cont_id1\n");
-
-    if (PDCcont_close(cont_id2) < 0)
-        LOG_ERROR("Failed to close container cont_id2\n");
-
+    TASSERT(PDCcont_close(cont_id) >= 0, "Call to PDCcont_close succeeded", "Call to PDCcont_close failed");
+    TASSERT(PDCcont_close(cont_id2) >= 0, "Call to PDCcont_close succeeded", "Call to PDCcont_close failed");
     // close a container property
-    if (PDCprop_close(cont_prop) < 0)
-        LOG_ERROR("Failed to close property");
+    TASSERT(PDCprop_close(cont_prop) >= 0, "Call to PDCprop_close succeeded", "Call to PDCprop_close failed");
+    // close pdc
+    TASSERT(PDCclose(pdc_id) >= 0, "Call to PDCclose succeeded", "Call to PDCclose failed");
 
-    if (PDCclose(pdc_id) < 0)
-        LOG_ERROR("Failed to close PDC\n");
-
+done:
 #ifdef ENABLE_MPI
     MPI_Finalize();
 #endif
 
-    return 0;
+    return ret_value;
 }

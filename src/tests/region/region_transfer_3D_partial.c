@@ -75,7 +75,7 @@ main(int argc, char **argv)
         LOG_INFO("Create a container property\n");
     }
     else {
-        LOG_ERROR("Failed to create container property");
+        LOG_ERROR("Failed to create container property\n");
         ret_value = 1;
     }
     // create a container
@@ -94,7 +94,7 @@ main(int argc, char **argv)
         LOG_INFO("Create an object property\n");
     }
     else {
-        LOG_ERROR("Failed to create object property");
+        LOG_ERROR("Failed to create object property\n");
         ret_value = 1;
     }
 
@@ -126,7 +126,7 @@ main(int argc, char **argv)
         LOG_INFO("Create an object o2\n");
     }
     else {
-        LOG_ERROR("Failed to create object");
+        LOG_ERROR("Failed to create object\n");
         ret_value = 1;
     }
 
@@ -188,7 +188,7 @@ main(int argc, char **argv)
 
     for (i = 0; i < BUF_LEN / 8; ++i) {
         if (data_read[i] != (BUF_LEN / 8 + i) * 4 + 3) {
-            LOG_ERROR("wrong value %d!=%d\n", data_read[i], (BUF_LEN / 8 + i) * 4 + 3);
+            LOG_ERROR("Wrong value %d!=%d\n", data_read[i], (BUF_LEN / 8 + i) * 4 + 3);
             ret_value = 1;
             break;
         }
@@ -243,7 +243,7 @@ main(int argc, char **argv)
     }
     // close a container property
     if (PDCprop_close(cont_prop) < 0) {
-        LOG_ERROR("Failed to close property");
+        LOG_ERROR("Failed to close property\n");
         ret_value = 1;
     }
     else {

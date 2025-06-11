@@ -163,7 +163,7 @@ test1d(char *obj_name)
     // Query the created object
     PDC_Client_query_metadata_name_timestep(obj_name, 0, &metadata);
     if (metadata == NULL) {
-        LOG_ERROR("Error getting metadata from server!\n");
+        LOG_ERROR("Error getting metadata from server\n");
         exit(-1);
     }
 
@@ -232,7 +232,7 @@ test1d(char *obj_name)
 
     is_correct = data_verify(ndim, data_start, read_region.size, read_data, data_offset_real, data);
     if (is_correct != 1)
-        LOG_ERROR("proc %d: verification failed!\n", rank);
+        LOG_ERROR("proc %d: verification failed\n", rank);
     is_all_correct = is_correct;
 
 #ifdef ENABLE_MPI
@@ -241,11 +241,11 @@ test1d(char *obj_name)
 #endif
 
     if (rank == 0) {
-        LOG_INFO("1D data verfication ...");
+        LOG_INFO("1D data verfication...");
         if (is_all_correct != size)
-            LOG_ERROR("FAILED!\n");
+            LOG_ERROR("FAILED\n");
         else
-            LOG_INFO("succeED!\n");
+            LOG_INFO("succeED\n");
     }
     free(data);
 
@@ -287,7 +287,7 @@ test2d(char *obj_name)
     // Query the created object
     PDC_Client_query_metadata_name_timestep(obj_name, 0, &metadata);
     if (metadata == NULL) {
-        LOG_ERROR("Error getting metadata from server!\n");
+        LOG_ERROR("Error getting metadata from server\n");
         exit(-1);
     }
 
@@ -410,7 +410,7 @@ test2d(char *obj_name)
 
     is_correct = data_verify(ndim, data_start, read_region.size, read_data_2d, data_offset_real, data_2d);
     if (is_correct != 1)
-        LOG_ERROR("proc %d: verification failed!\n", rank);
+        LOG_ERROR("proc %d: verification failed\n", rank);
     is_all_correct = is_correct;
 
 #ifdef ENABLE_MPI
@@ -419,11 +419,11 @@ test2d(char *obj_name)
 #endif
 
     if (rank == 0) {
-        LOG_INFO("2D data verfication ...");
+        LOG_INFO("2D data verfication...");
         if (is_all_correct != size)
-            LOG_ERROR("FAILED!\n");
+            LOG_ERROR("FAILED\n");
         else
-            LOG_INFO("succeED!\n");
+            LOG_INFO("succeED\n");
     }
 
     free(data);
@@ -484,7 +484,7 @@ test3d(char *obj_name)
     // Query the created object
     PDC_Client_query_metadata_name_timestep(obj_name, 0, &metadata);
     if (metadata == NULL) {
-        LOG_ERROR("Error getting metadata from server!\n");
+        LOG_ERROR("Error getting metadata from server\n");
         exit(-1);
     }
 
@@ -745,7 +745,7 @@ test3d(char *obj_name)
 
     is_correct = data_verify(ndim, data_start, read_region.size, read_data_3d, data_offset_real, data_3d);
     if (is_correct != 1)
-        LOG_ERROR("proc %d: verification failed!\n", rank);
+        LOG_ERROR("proc %d: verification failed\n", rank);
 
     is_all_correct = is_correct;
 
@@ -755,11 +755,11 @@ test3d(char *obj_name)
 #endif
 
     if (rank == 0) {
-        LOG_INFO("3D data verfication ...");
+        LOG_INFO("3D data verfication...");
         if (is_all_correct != size)
-            LOG_ERROR("FAILED!\n");
+            LOG_ERROR("FAILED\n");
         else
-            LOG_INFO("succeED!\n");
+            LOG_INFO("succeED\n");
     }
 
     free(data);

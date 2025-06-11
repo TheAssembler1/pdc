@@ -187,7 +187,7 @@ perr_t PDCregion_transfer_status(pdcid_t transfer_request_id, pdc_transfer_statu
 perr_t PDCregion_transfer_wait(pdcid_t transfer_request_id);
 
 /**
- * Block and wait for several region transfer request to finish
+ * Block and wait for several region transfer requests to finish
  *
  * \param transfer_request_id [IN]           ID of the region transfer request
  * \param size [IN]                          Number of requests in transfer_request_id

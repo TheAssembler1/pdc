@@ -166,7 +166,6 @@ hg_proc_send_shm_in_t(hg_proc_t proc, void *data)
         PGOTO_ERROR(ret_value, "Proc error");
 
 done:
-    fflush(stdout);
     FUNC_LEAVE(ret_value);
 }
 
@@ -238,48 +237,37 @@ PDC_get_var_type_size(pdc_var_type_t dtype)
      */
     switch (dtype) {
         case PDC_INT:
-            ret_value = sizeof(int);
-            goto done;
+            PGOTO_DONE(sizeof(int));
             break;
         case PDC_FLOAT:
-            ret_value = sizeof(float);
-            goto done;
+            PGOTO_DONE(sizeof(float));
             break;
         case PDC_DOUBLE:
-            ret_value = sizeof(double);
-            goto done;
+            PGOTO_DONE(sizeof(double));
             break;
         case PDC_CHAR:
-            ret_value = sizeof(char);
-            goto done;
+            PGOTO_DONE(sizeof(char));
             break;
         case PDC_INT16:
-            ret_value = sizeof(int16_t);
-            goto done;
+            PGOTO_DONE(sizeof(int16_t));
             break;
         case PDC_INT8:
-            ret_value = sizeof(int8_t);
-            goto done;
+            PGOTO_DONE(sizeof(int8_t));
             break;
         case PDC_UINT8:
-            ret_value = sizeof(uint8_t);
-            goto done;
+            PGOTO_DONE(sizeof(uint8_t));
             break;
         case PDC_UINT16:
-            ret_value = sizeof(uint16_t);
-            goto done;
+            PGOTO_DONE(sizeof(uint16_t));
             break;
         case PDC_INT64:
-            ret_value = sizeof(int64_t);
-            goto done;
+            PGOTO_DONE(sizeof(int64_t));
             break;
         case PDC_UINT64:
-            ret_value = sizeof(uint64_t);
-            goto done;
+            PGOTO_DONE(sizeof(uint64_t));
             break;
         case PDC_UINT:
-            ret_value = sizeof(uint);
-            goto done;
+            PGOTO_DONE(sizeof(uint));
             break;
         case PDC_UNKNOWN:
         default:
@@ -290,7 +278,6 @@ PDC_get_var_type_size(pdc_var_type_t dtype)
     }
 
 done:
-    fflush(stdout);
     FUNC_LEAVE(ret_value);
 }
 
@@ -418,7 +405,7 @@ PDC_print_metadata(pdc_metadata_t *a)
     region_list_t *elt;
 
     if (a == NULL)
-        PGOTO_ERROR_VOID("==Empty metadata structure");
+        PGOTO_ERROR_VOID("Empty metadata structure");
 
     LOG_JUST_PRINT("================================\n");
     LOG_JUST_PRINT("  data_type = [%d]\n", a->data_type);
@@ -434,14 +421,12 @@ PDC_print_metadata(pdc_metadata_t *a)
     LOG_JUST_PRINT("  dims = %" PRIu64 "", a->dims[0]);
     for (i = 1; i < a->ndim; i++)
         LOG_JUST_PRINT(", %" PRIu64 "", a->dims[i]);
-    // print regiono info
+
     DL_FOREACH(a->storage_region_list_head, elt)
     PDC_print_region_list(elt);
     LOG_JUST_PRINT("\n================================\n\n");
-    fflush(stdout);
 
 done:
-    fflush(stdout);
     FUNC_LEAVE_VOID();
 }
 
@@ -453,7 +438,7 @@ PDC_metadata_init(pdc_metadata_t *a)
     perr_t ret_value = SUCCEED;
 
     if (a == NULL)
-        PGOTO_ERROR(FAIL, "Unable to init NULL pdc_metadata_t\n");
+        PGOTO_ERROR(FAIL, "Unable to init NULL pdc_metadata_t");
 
     memset(a, 0, sizeof(pdc_metadata_t));
 
@@ -482,7 +467,6 @@ PDC_metadata_init(pdc_metadata_t *a)
     a->bloom                    = NULL;
 
 done:
-    fflush(stdout);
     FUNC_LEAVE(ret_value);
 }
 
@@ -514,7 +498,7 @@ PDC_is_same_region_shape(region_list_t *a, size_t extent_a, region_list_t *b, si
     size_t i         = 0;
 
     if (NULL == a || NULL == b)
-        PGOTO_ERROR(-1, "==Empty region_list_t structure");
+        PGOTO_ERROR(-1, "Empty region_list_t structure");
 
     if (a->ndim != b->ndim)
         PGOTO_DONE(-1);
@@ -527,7 +511,6 @@ PDC_is_same_region_shape(region_list_t *a, size_t extent_a, region_list_t *b, si
     }
 
 done:
-    fflush(stdout);
     FUNC_LEAVE(ret_value);
 }
 
@@ -542,7 +525,7 @@ PDC_is_same_region_list(region_list_t *a, region_list_t *b)
     size_t i         = 0;
 
     if (NULL == a || NULL == b)
-        PGOTO_ERROR(FAIL, "==Empty region_list_t structure");
+        PGOTO_ERROR(FAIL, "Empty region_list_t structure");
 
     if (a->ndim != b->ndim)
         PGOTO_DONE(-1);
@@ -555,7 +538,6 @@ PDC_is_same_region_list(region_list_t *a, region_list_t *b)
     }
 
 done:
-    fflush(stdout);
     FUNC_LEAVE(ret_value);
 }
 
@@ -567,11 +549,11 @@ PDC_print_storage_region_list(region_list_t *a)
     size_t i;
 
     if (a == NULL) {
-        PGOTO_ERROR_VOID("==Empty region_list_t structure");
+        PGOTO_ERROR_VOID("Empty region_list_t structure");
     }
 
     if (a->ndim > 4) {
-        PGOTO_ERROR_VOID("==Error with ndim %lu", a->ndim);
+        PGOTO_ERROR_VOID("Error with ndim %lu", a->ndim);
     }
 
     LOG_JUST_PRINT("================================\n");
@@ -588,10 +570,8 @@ PDC_print_storage_region_list(region_list_t *a)
     LOG_JUST_PRINT("  offset: %" PRIu64 "\n", a->offset);
 
     LOG_JUST_PRINT("================================\n\n");
-    fflush(stdout);
 
 done:
-    fflush(stdout);
     FUNC_LEAVE_VOID();
 }
 
@@ -603,12 +583,12 @@ PDC_print_region_list(region_list_t *a)
     size_t i;
 
     if (a == NULL)
-        PGOTO_ERROR_VOID("==Empty region_list_t structure");
+        PGOTO_ERROR_VOID("Empty region_list_t structure");
 
     LOG_JUST_PRINT("\n  == Region Info ==\n");
     LOG_JUST_PRINT("    ndim      = %lu\n", a->ndim);
     if (a->ndim > 4)
-        PGOTO_ERROR_VOID("Error with dim %lu\n", a->ndim);
+        PGOTO_ERROR_VOID("Error with dim %lu", a->ndim);
     for (i = 0; i < a->ndim; i++) {
         LOG_JUST_PRINT("    %5" PRIu64 "    %5" PRIu64 "\n", a->start[i], a->count[i]);
     }
@@ -625,7 +605,6 @@ PDC_print_region_list(region_list_t *a)
     LOG_JUST_PRINT("\n  =================\n");
 
 done:
-    fflush(stdout);
     FUNC_LEAVE_VOID();
 }
 
@@ -655,10 +634,10 @@ PDC_region_list_t_deep_cp(region_list_t *from, region_list_t *to)
     perr_t ret_value = SUCCEED;
 
     if (NULL == from || NULL == to)
-        PGOTO_ERROR(FAIL, "PDC_region_list_t_deep_cp(): NULL input!");
+        PGOTO_ERROR(FAIL, "NULL input");
 
     if (from->ndim > 4 || from->ndim <= 0)
-        PGOTO_ERROR(FAIL, "PDC_region_list_t_deep_cp(): ndim %zu ERROR!", from->ndim);
+        PGOTO_ERROR(FAIL, "ndim %zu error", from->ndim);
 
     memcpy(to, from, sizeof(region_list_t));
 
@@ -672,7 +651,6 @@ PDC_region_list_t_deep_cp(region_list_t *from, region_list_t *to)
     to->next = NULL;
 
 done:
-    fflush(stdout);
     FUNC_LEAVE(ret_value);
 }
 
@@ -694,7 +672,7 @@ PDC_region_transfer_t_to_list_t(region_info_transfer_t *transfer, region_list_t 
 
     perr_t ret_value = SUCCEED;
     if (NULL == region || NULL == transfer)
-        PGOTO_ERROR(FAIL, "PDC_region_transfer_t_to_list_t(): NULL input!");
+        PGOTO_ERROR(FAIL, "NULL input");
 
     region->ndim = transfer->ndim;
 
@@ -702,7 +680,6 @@ PDC_region_transfer_t_to_list_t(region_info_transfer_t *transfer, region_list_t 
     PDC_copy_region_desc(transfer->count, region->count, region->ndim, region->ndim);
 
 done:
-    fflush(stdout);
     FUNC_LEAVE(ret_value);
 }
 
@@ -715,11 +692,11 @@ PDC_region_info_to_list_t(struct pdc_region_info *region, region_list_t *list)
     size_t i;
 
     if (NULL == region || NULL == list)
-        PGOTO_ERROR(FAIL, "PDC_region_info_to_list_t(): NULL input!");
+        PGOTO_ERROR(FAIL, "NULL input");
 
     size_t ndim = region->ndim;
     if (ndim <= 0 || ndim >= 5)
-        PGOTO_ERROR(FAIL, "PDC_region_info_to_list_t() unsupported dim: %lu", ndim);
+        PGOTO_ERROR(FAIL, "Unsupported dim: %lu", ndim);
 
     list->ndim = ndim;
     for (i = 0; i < ndim; i++) {
@@ -728,7 +705,6 @@ PDC_region_info_to_list_t(struct pdc_region_info *region, region_list_t *list)
     }
 
 done:
-    fflush(stdout);
     FUNC_LEAVE(ret_value);
 }
 
@@ -741,10 +717,10 @@ PDC_region_info_t_to_transfer(struct pdc_region_info *region, region_info_transf
     size_t ndim      = region->ndim;
 
     if (NULL == region || NULL == transfer)
-        PGOTO_ERROR(FAIL, "PDC_region_info_t_to_transfer(): NULL input!");
+        PGOTO_ERROR(FAIL, "NULL input");
 
     if (ndim <= 0 || ndim >= 5)
-        PGOTO_ERROR(FAIL, "PDC_region_info_t_to_transfer() unsupported dim: %lu", ndim);
+        PGOTO_ERROR(FAIL, "Unsupported dim: %lu", ndim);
 
     transfer->ndim = ndim;
 
@@ -752,7 +728,6 @@ PDC_region_info_t_to_transfer(struct pdc_region_info *region, region_info_transf
     PDC_copy_region_desc(region->size, transfer->count, transfer->ndim, transfer->ndim);
 
 done:
-    fflush(stdout);
     FUNC_LEAVE(ret_value);
 }
 
@@ -765,18 +740,17 @@ PDC_region_info_t_to_transfer_unit(struct pdc_region_info *region, region_info_t
     perr_t ret_value = SUCCEED;
 
     if (NULL == region || NULL == transfer)
-        PGOTO_ERROR(FAIL, "PDC_region_info_t_to_transfer_unit(): NULL input!");
+        PGOTO_ERROR(FAIL, "NULL input");
 
     size_t ndim = region->ndim;
     if (ndim <= 0 || ndim >= 5)
-        PGOTO_ERROR(FAIL, "PDC_region_info_t_to_transfer() unsupported dim: %lu", ndim);
+        PGOTO_ERROR(FAIL, "Unsupported dim: %lu", ndim);
 
     transfer->ndim = ndim;
     PDC_copy_region_desc_elements_to_bytes(region->offset, transfer->start, unit, ndim);
     PDC_copy_region_desc_elements_to_bytes(region->size, transfer->count, unit, ndim);
 
 done:
-    fflush(stdout);
     FUNC_LEAVE(ret_value);
 }
 
@@ -790,7 +764,7 @@ PDC_region_transfer_t_to_region_info(region_info_transfer_t *transfer)
     struct pdc_region_info *region;
 
     if (NULL == transfer)
-        PGOTO_ERROR(NULL, "PDC_region_transfer_t_to_region_info(): NULL input!");
+        PGOTO_ERROR(NULL, "NULL input");
 
     region = (struct pdc_region_info *)PDC_calloc(1, sizeof(struct pdc_region_info));
     ndim = region->ndim = transfer->ndim;
@@ -803,7 +777,6 @@ PDC_region_transfer_t_to_region_info(region_info_transfer_t *transfer)
     ret_value = region;
 
 done:
-    fflush(stdout);
     FUNC_LEAVE(ret_value);
 }
 
@@ -815,14 +788,13 @@ PDC_region_list_t_to_transfer(region_list_t *region, region_info_transfer_t *tra
     perr_t ret_value = SUCCEED;
 
     if (NULL == region || NULL == transfer)
-        PGOTO_ERROR(FAIL, "PDC_region_list_t_to_transfer(): NULL input!");
+        PGOTO_ERROR(FAIL, "NULL input");
 
     transfer->ndim = region->ndim;
     PDC_copy_region_desc(region->start, transfer->start, transfer->ndim, transfer->ndim);
     PDC_copy_region_desc(region->count, transfer->count, transfer->ndim, transfer->ndim);
 
 done:
-    fflush(stdout);
     FUNC_LEAVE(ret_value);
 }
 
@@ -835,7 +807,7 @@ PDC_metadata_t_to_transfer_t(pdc_metadata_t *meta, pdc_metadata_transfer_t *tran
     perr_t ret_value = SUCCEED;
 
     if (NULL == meta || NULL == transfer)
-        PGOTO_ERROR(FAIL, "PDC_metadata_t_to_transfer_t(): NULL input!");
+        PGOTO_ERROR(FAIL, "NULL input");
 
     transfer->user_id          = meta->user_id;
     transfer->app_name         = meta->app_name;
@@ -865,7 +837,6 @@ PDC_metadata_t_to_transfer_t(pdc_metadata_t *meta, pdc_metadata_transfer_t *tran
     transfer->t_meta_index     = meta->current_state.meta_index;
 
 done:
-    fflush(stdout);
     FUNC_LEAVE(ret_value);
 }
 
@@ -877,7 +848,7 @@ PDC_transfer_t_to_metadata_t(pdc_metadata_transfer_t *transfer, pdc_metadata_t *
     perr_t ret_value = SUCCEED;
 
     if (NULL == meta || NULL == transfer)
-        PGOTO_ERROR(FAIL, "PDC_transfer_t_to_metadata_t(): NULL input!");
+        PGOTO_ERROR(FAIL, "NULL input");
 
     meta->user_id          = transfer->user_id;
     meta->data_type        = transfer->data_type;
@@ -913,7 +884,6 @@ PDC_transfer_t_to_metadata_t(pdc_metadata_transfer_t *transfer, pdc_metadata_t *
     }
 
 done:
-    fflush(stdout);
     FUNC_LEAVE(ret_value);
 }
 
@@ -1504,14 +1474,13 @@ HG_TEST_RPC_CB(gen_cont_id, handle)
     // Insert to hash table
     ret_value = PDC_Server_create_container(&in, &out);
     if (ret_value != SUCCEED)
-        PGOTO_ERROR(ret_value, "==PDC_SERVER: error with container object creation");
+        PGOTO_ERROR(ret_value, "Error with container object creation");
 
     HG_Respond(handle, NULL, NULL, &out);
     HG_Free_input(handle, &in);
     HG_Destroy(handle);
 
 done:
-    fflush(stdout);
     FUNC_LEAVE(ret_value);
 }
 
@@ -1681,7 +1650,7 @@ HG_TEST_RPC_CB(obj_reset_dims, handle)
 
     if (!try_reset_dims()) {
         out.ret = 0;
-        goto done;
+        PGOTO_DONE(ret_value);
     }
 
     // Get the metdata_t struct.
@@ -1771,7 +1740,7 @@ HG_TEST_RPC_CB(send_rpc, handle)
     hg_return_t    ret_value = HG_SUCCESS;
 
     HG_Get_input(handle, &in);
-    LOG_ERROR("==PDC_Server: received value from client %d\n", in.value);
+    LOG_ERROR("Received value from client %d\n", in.value);
 
     out.value = 1;
     HG_Respond(handle, NULL, NULL, &out);
@@ -1863,7 +1832,7 @@ HG_TEST_RPC_CB(metadata_add_kvtag, handle)
         PDC_Server_add_kvtag(&in, &out);
     }
     else {
-        LOG_INFO("==PDC_SERVER[]: received NOOP\n");
+        LOG_INFO("Received NOOP\n");
         out.ret = 1;
     }
 
@@ -1903,12 +1872,11 @@ HG_TEST_RPC_CB(notify_io_complete, handle)
         HG_Respond(handle, PDC_Client_work_done_cb, read_info, &out);
     }
     else {
-        LOG_ERROR("==PDC_CLIENT: notify_io_complete_cb() - error with io type!\n");
+        LOG_ERROR("Error with io type\n");
         HG_Respond(handle, NULL, NULL, &out);
     }
 
 done:
-    fflush(stdout);
     HG_Free_input(handle, &in);
     HG_Destroy(handle);
 
@@ -1971,13 +1939,13 @@ HG_TEST_RPC_CB(flush_obj_all, handle)
     HG_Get_input(handle, &in);
 
     if (in.tag != 44) {
-        PGOTO_ERROR(ret_value, "==PDC_SERVER[x]: Error with input tag");
+        PGOTO_ERROR(ret_value, "Error with input tag");
     }
 
     ret_value = HG_Free_input(handle, &in);
 
     if (ret_value != HG_SUCCESS)
-        PGOTO_ERROR(ret_value, "==PDC_SERVER[x]: Error with HG_Destroy");
+        PGOTO_ERROR(ret_value, "Error with HG_Destroy");
 
     out.ret = 1;
     HG_Respond(handle, NULL, NULL, &out);
@@ -1988,7 +1956,6 @@ HG_TEST_RPC_CB(flush_obj_all, handle)
 #endif
 
 done:
-    fflush(stdout);
     FUNC_LEAVE(ret_value);
 }
 
@@ -2010,7 +1977,7 @@ HG_TEST_RPC_CB(flush_obj, handle)
     ret_value = HG_Free_input(handle, &in);
 
     if (ret_value != HG_SUCCESS)
-        PGOTO_ERROR(ret_value, "==PDC_SERVER[x]: Error with HG_Destroy");
+        PGOTO_ERROR(ret_value, "Error with HG_Destroy");
 
     out.ret = 1;
     HG_Respond(handle, NULL, NULL, &out);
@@ -2023,7 +1990,6 @@ HG_TEST_RPC_CB(flush_obj, handle)
 #endif
 
 done:
-    fflush(stdout);
     FUNC_LEAVE(ret_value);
 }
 
@@ -2045,10 +2011,9 @@ HG_TEST_RPC_CB(close_server, handle)
     PDC_Server_set_close();
 
     if (ret_value != HG_SUCCESS)
-        PGOTO_ERROR(ret_value, "==PDC_SERVER[x]: Error with HG_Destroy");
+        PGOTO_ERROR(ret_value, "Error with HG_Destroy");
 
 done:
-    fflush(stdout);
     FUNC_LEAVE(ret_value);
 }
 
@@ -2096,7 +2061,6 @@ pdc_region_write_out_progress(void *arg)
     remote_reg_info         = (struct pdc_region_info *)PDC_free(remote_reg_info);
 
 done:
-    fflush(stdout);
     HG_Bulk_free(bulk_args->remote_bulk_handle);
     HG_Free_input(bulk_args->handle, &(bulk_args->in));
     HG_Destroy(bulk_args->handle);
@@ -2136,7 +2100,6 @@ obj_map_region_release_bulk_transfer_thread_cb(const struct hg_cb_info *hg_cb_in
     PDC_Server_release_lock_request(bulk_args->remote_obj_id, bulk_args->remote_reg_info);
 
 done:
-    fflush(stdout);
     bulk_args->remote_reg_info->offset = (uint64_t *)PDC_free(bulk_args->remote_reg_info->offset);
     bulk_args->remote_reg_info->size   = (uint64_t *)PDC_free(bulk_args->remote_reg_info->size);
     bulk_args->remote_reg_info         = (struct pdc_region_info *)PDC_free(bulk_args->remote_reg_info);
@@ -2174,8 +2137,7 @@ pdc_region_read_from_progress(void *arg)
     size = HG_Bulk_get_size(bulk_args->local_bulk_handle);
     if (size != HG_Bulk_get_size(bulk_args->remote_bulk_handle)) {
         error = 1;
-        PGOTO_ERROR(ret_value,
-                    "===PDC SERVER: pdc_region_read_from_progress local and remote bulk size does not match");
+        PGOTO_ERROR(ret_value, "pdc_region_read_from_progress local and remote bulk size does not match");
     }
 
     hg_ret = HG_Bulk_transfer(hg_info->context, obj_map_region_release_bulk_transfer_thread_cb, bulk_args,
@@ -2183,13 +2145,11 @@ pdc_region_read_from_progress(void *arg)
                               bulk_args->remote_bulk_handle, 0, size, HG_OP_ID_IGNORE);
     if (hg_ret != HG_SUCCESS) {
         error = 1;
-        PGOTO_ERROR(ret_value, "===PDC SERVER: pdc_region_read_from_progress push data failed");
+        PGOTO_ERROR(ret_value, "pdc_region_read_from_progress push data failed");
     }
 
 done:
-    fflush(stdout);
     if (error == 1) {
-        fflush(stdout);
         HG_Bulk_free(bulk_args->remote_bulk_handle);
         HG_Free_input(bulk_args->handle, &(bulk_args->in));
         HG_Destroy(bulk_args->handle);
@@ -2322,8 +2282,7 @@ transform_and_region_release_bulk_transfer_cb(const struct hg_cb_info *hg_cb_inf
                     registry[transform_id]->ftnPtr;
                 size_t result = this_transform(buf, bulk_args->in.data_type, ndim, dims, &data_buf,
                                                bulk_args->in.dest_type);
-                LOG_INFO("==PDC_SERVER: transform returned %ld\n", result);
-                puts("----------------");
+                LOG_INFO("Transform returned %ld\n", result);
 
                 if (use_transform_size == 0 && dims)
                     dims = (uint64_t *)PDC_free(dims);
@@ -2372,8 +2331,6 @@ transform_and_region_release_bulk_transfer_cb(const struct hg_cb_info *hg_cb_inf
 #endif
 
 done:
-    fflush(stdout);
-
 #ifndef ENABLE_MULTITHREAD
     if (remote_reg_info) {
         remote_reg_info->offset = (uint64_t *)PDC_free(remote_reg_info->offset);
@@ -2411,7 +2368,7 @@ analysis_and_region_release_bulk_transfer_cb(const struct hg_cb_info *hg_cb_info
 
     if (hg_cb_info->ret == HG_CANCELED) {
         out.ret = 0;
-        PGOTO_ERROR(HG_OTHER_ERROR, "HG_Bulk_transfer() was successfully canceled\n");
+        PGOTO_ERROR(HG_OTHER_ERROR, "HG_Bulk_transfer() was successfully canceled");
     }
     else if (hg_cb_info->ret != HG_SUCCESS) {
         out.ret = 0;
@@ -2457,7 +2414,7 @@ analysis_and_region_release_bulk_transfer_cb(const struct hg_cb_info *hg_cb_info
             int (*analysis_ftn)(pdcid_t iterIn, pdcid_t iterOut, struct _pdc_iterator_cbs_t * _cbs) =
                 registry[analysis_meta_index]->ftnPtr;
             int result = analysis_ftn(bulk_args->in.input_iter, bulk_args->in.output_iter, &iter_cbs);
-            LOG_INFO("==PDC_SERVER: Analysis returned %d\n", result);
+            LOG_INFO("Analysis returned %d\n", result);
         }
     }
 #ifdef ENABLE_MPI
@@ -2524,8 +2481,6 @@ analysis_and_region_release_bulk_transfer_cb(const struct hg_cb_info *hg_cb_info
 #endif
 
 done:
-    fflush(stdout);
-
 #ifndef ENABLE_MULTITHREAD
     remote_reg_info->offset = (uint64_t *)PDC_free(remote_reg_info->offset);
     remote_reg_info->size   = (uint64_t *)PDC_free(remote_reg_info->size);
@@ -2601,7 +2556,7 @@ buf_map_region_release_bulk_transfer_cb(const struct hg_cb_info *hg_cb_info)
 #else
     remote_reg_info = (struct pdc_region_info *)PDC_malloc(sizeof(struct pdc_region_info));
     if (remote_reg_info == NULL)
-        PGOTO_ERROR(HG_OTHER_ERROR, "remote_reg_info memory allocation failed\n");
+        PGOTO_ERROR(HG_OTHER_ERROR, "remote_reg_info memory allocation failed");
 
     remote_reg_info->ndim   = (bulk_args->remote_region_nounit).ndim;
     remote_reg_info->offset = (uint64_t *)PDC_malloc(remote_reg_info->ndim * sizeof(uint64_t));
@@ -2632,8 +2587,6 @@ buf_map_region_release_bulk_transfer_cb(const struct hg_cb_info *hg_cb_info)
 #endif
 
 done:
-    fflush(stdout);
-
 #ifndef ENABLE_MULTITHREAD
     remote_reg_info->offset = (uint64_t *)PDC_free(remote_reg_info->offset);
     remote_reg_info->size   = (uint64_t *)PDC_free(remote_reg_info->size);
@@ -2673,7 +2626,7 @@ obj_map_region_release_bulk_transfer_cb(const struct hg_cb_info *hg_cb_info)
 
     if (hg_cb_info->ret == HG_CANCELED) {
         out.ret = 0;
-        PGOTO_ERROR(HG_OTHER_ERROR, "HG_Bulk_transfer() was successfully canceled\n");
+        PGOTO_ERROR(HG_OTHER_ERROR, "HG_Bulk_transfer() was successfully canceled");
     }
     else if (hg_cb_info->ret != HG_SUCCESS) {
         out.ret = 0;
@@ -2691,7 +2644,6 @@ obj_map_region_release_bulk_transfer_cb(const struct hg_cb_info *hg_cb_info)
 #endif
 
 done:
-    fflush(stdout);
     bulk_args->remote_reg_info = (struct pdc_region_info *)PDC_free(bulk_args->remote_reg_info);
     HG_Free_input(bulk_args->handle, &(bulk_args->in));
     HG_Destroy(bulk_args->handle);
@@ -2799,11 +2751,11 @@ HG_TEST_RPC_CB(region_release, handle)
 
                 ret_value = PDC_Server_data_read_direct(elt->from_obj_id, server_region, data_buf);
                 if (ret_value != SUCCEED)
-                    PGOTO_ERROR(HG_OTHER_ERROR, "==PDC SERVER: PDC_Server_data_read_direct() failed");
+                    PGOTO_ERROR(HG_OTHER_ERROR, "PDC_Server_data_read_direct failed");
                 hg_ret = HG_Bulk_create(hg_info->hg_class, 1, &data_buf, &size, HG_BULK_READWRITE,
                                         &lock_local_bulk_handle);
                 if (hg_ret != HG_SUCCESS)
-                    PGOTO_ERROR(hg_ret, "==PDC SERVER ERROR: Could not create bulk data handle");
+                    PGOTO_ERROR(hg_ret, "Could not create bulk data handle");
 
                 lock_update_bulk_args = (struct region_lock_update_bulk_args *)PDC_malloc(
                     sizeof(struct region_lock_update_bulk_args));
@@ -2819,8 +2771,7 @@ HG_TEST_RPC_CB(region_release, handle)
                                           lock_update_bulk_args, HG_BULK_PUSH, elt->addr, elt->bulk_handle, 0,
                                           lock_local_bulk_handle, 0, size, HG_OP_ID_IGNORE);
                 if (hg_ret != HG_SUCCESS)
-                    PGOTO_ERROR(hg_ret, "==PDC SERVER ERROR: HG_TEST_RPC_CB(region_release, handle) could "
-                                        "not write bulk data");
+                    PGOTO_ERROR(hg_ret, "Could not write bulk data");
             }
 
             if (PDC_is_same_region_list(request_region, elt) == 1 && elt->reg_dirty_from_buf == 1 &&
@@ -2848,7 +2799,7 @@ HG_TEST_RPC_CB(region_release, handle)
                                            (hg_size_t *)data_size_to, HG_BULK_READWRITE, &remote_bulk_handle);
                         if (hg_ret != HG_SUCCESS) {
                             error = 1;
-                            PGOTO_ERROR(hg_ret, "==PDC SERVER: obj map Could not create bulk data handle");
+                            PGOTO_ERROR(hg_ret, "obj map Could not create bulk data handle");
                         }
                         data_ptrs_to = (void **)PDC_free(data_ptrs_to);
                         data_size_to = (size_t *)PDC_free(data_size_to);
@@ -2857,8 +2808,7 @@ HG_TEST_RPC_CB(region_release, handle)
                             (struct pdc_region_info *)PDC_malloc(sizeof(struct pdc_region_info));
                         if (remote_reg_info == NULL) {
                             error = 1;
-                            PGOTO_ERROR(HG_OTHER_ERROR, "==PDC SERVER:HG_TEST_RPC_CB(region_release, handle) "
-                                                        "remote_reg_info memory allocation failed");
+                            PGOTO_ERROR(HG_OTHER_ERROR, "remote_reg_info memory allocation failed");
                         }
 
                         obj_map_bulk_args = (struct buf_map_release_bulk_args *)PDC_malloc(
@@ -2916,9 +2866,8 @@ HG_TEST_RPC_CB(region_release, handle)
                         size2 = HG_Bulk_get_size(remote_bulk_handle);
                         if (size != size2) {
                             error = 1;
-                            LOG_INFO("==PDC_SERVER: local size %llu, remote %llu\n", size, size2);
-                            PGOTO_ERROR(HG_OTHER_ERROR, "===PDC SERVER: HG_TEST_RPC_CB(region_release, "
-                                                        "handle) local and remote bulk size does not match");
+                            LOG_INFO("Local size %llu, remote %llu\n", size, size2);
+                            PGOTO_ERROR(HG_OTHER_ERROR, "Local and remote bulk size does not match");
                         }
 
                         hg_ret = HG_Bulk_transfer(hg_info->context, obj_map_region_release_bulk_transfer_cb,
@@ -2927,8 +2876,7 @@ HG_TEST_RPC_CB(region_release, handle)
                                                   HG_OP_ID_IGNORE);
                         if (hg_ret != HG_SUCCESS) {
                             error = 1;
-                            PGOTO_ERROR(hg_ret, "===PDC SERVER: HG_TEST_RPC_CB(region_release, handle) obj "
-                                                "map Could not write bulk data");
+                            PGOTO_ERROR(hg_ret, "Map Could not write bulk data");
                         }
 #endif
                         break;
@@ -2987,7 +2935,7 @@ HG_TEST_RPC_CB(region_release, handle)
                                            (hg_size_t *)data_size_to, HG_BULK_READWRITE, &remote_bulk_handle);
                         if (hg_ret != HG_SUCCESS) {
                             error = 1;
-                            PGOTO_ERROR(hg_ret, "==PDC SERVER ERROR: Could not create bulk data handle");
+                            PGOTO_ERROR(hg_ret, "Could not create bulk data handle");
                         }
                         data_ptrs_to = (void **)PDC_free(data_ptrs_to);
                         data_size_to = (size_t *)PDC_free(data_size_to);
@@ -3021,9 +2969,7 @@ HG_TEST_RPC_CB(region_release, handle)
                         size2 = HG_Bulk_get_size(remote_bulk_handle);
                         if (size != size2) {
                             error = 1;
-                            LOG_INFO("==PDC_SERVER: local size %llu, remote %llu\n", size, size2);
-                            /* PGOTO_ERROR(HG_OTHER_ERROR, "===PDC SERVER: HG_TEST_RPC_CB(region_release,
-                             * handle) local and remote bulk size does not match"); */
+                            LOG_INFO("Local size %llu, remote %llu\n", size, size2);
                         }
                         hg_ret = HG_Bulk_transfer(hg_info->context, buf_map_region_release_bulk_transfer_cb,
                                                   buf_map_bulk_args, HG_BULK_PULL, eltt->local_addr,
@@ -3031,8 +2977,7 @@ HG_TEST_RPC_CB(region_release, handle)
                                                   HG_OP_ID_IGNORE);
                         if (hg_ret != HG_SUCCESS) {
                             error = 1;
-                            PGOTO_ERROR(hg_ret, "===PDC SERVER: HG_TEST_RPC_CB(region_release, handle) buf "
-                                                "map Could not read bulk data");
+                            PGOTO_ERROR(hg_ret, "buf map could not read bulk data");
                         }
                         break;
                     }
@@ -3131,8 +3076,7 @@ region_read_transform_release(region_transform_and_lock_in_t *in, hg_handle_t ha
         // check region is dirty or not, if dirty then transfer data
         if ((PDC_is_same_region_list(request_region, elt)) == 1 && (elt->reg_dirty_from_buf == 1) &&
             (hg_atomic_get32(&(elt->buf_map_refcount)) == 0)) {
-            PGOTO_ERROR(HG_OTHER_ERROR,
-                        "==PDC SERVER: release %" PRId64 " access_type==READ (dirty) NOT SUPPORTED YET!",
+            PGOTO_ERROR(HG_OTHER_ERROR, "Release %" PRId64 " access_type==READ (dirty) NOT SUPPORTED YET",
                         in->obj_id);
         }
         if ((PDC_is_same_region_list(request_region, elt) == 1) && (elt->reg_dirty_from_buf == 1) &&
@@ -3150,7 +3094,7 @@ region_read_transform_release(region_transform_and_lock_in_t *in, hg_handle_t ha
                     data_ptrs_to = (void **)PDC_malloc(sizeof(void *));
                     data_size_to = (size_t *)PDC_malloc(sizeof(size_t));
                     if ((data_ptrs_to == NULL) || (data_size_to == NULL)) {
-                        PGOTO_ERROR(HG_OTHER_ERROR, "==PDC SERVER: Memory allocation failed");
+                        PGOTO_ERROR(HG_OTHER_ERROR, "Memory allocation failed");
                     }
                     data_ptrs_to[0] = data_buf;
 
@@ -3167,7 +3111,7 @@ region_read_transform_release(region_transform_and_lock_in_t *in, hg_handle_t ha
                         HG_Bulk_create(hg_info->hg_class, remote_count, data_ptrs_to,
                                        (hg_size_t *)data_size_to, HG_BULK_READWRITE, &remote_bulk_handle);
                     if (hg_ret != HG_SUCCESS)
-                        PGOTO_ERROR(hg_ret, "==PDC SERVER: Could not create bulk data handle");
+                        PGOTO_ERROR(hg_ret, "Could not create bulk data handle");
 
                     data_ptrs_to = (void **)PDC_free(data_ptrs_to);
                     data_size_to = (size_t *)PDC_free(data_size_to);
@@ -3177,7 +3121,7 @@ region_read_transform_release(region_transform_and_lock_in_t *in, hg_handle_t ha
                         (struct buf_map_transform_and_release_bulk_args *)PDC_malloc(
                             sizeof(struct buf_map_transform_and_release_bulk_args));
                     if ((remote_reg_info == NULL) || (transform_release_bulk_args == NULL))
-                        PGOTO_ERROR(HG_OTHER_ERROR, "==PDC SERVER: Memory allocation failed");
+                        PGOTO_ERROR(HG_OTHER_ERROR, "Memory allocation failed");
 
                     transform_release_bulk_args->handle             = handle;
                     transform_release_bulk_args->data_buf           = data_buf;
@@ -3194,7 +3138,7 @@ region_read_transform_release(region_transform_and_lock_in_t *in, hg_handle_t ha
                     remote_reg_info->offset = (uint64_t *)PDC_malloc(sizeof(uint64_t));
                     remote_reg_info->size   = (uint64_t *)PDC_malloc(sizeof(uint64_t));
                     if ((remote_reg_info->offset == NULL) || (remote_reg_info->size == NULL))
-                        PGOTO_ERROR(HG_OTHER_ERROR, "==PDC SERVER: Memory allocation failed");
+                        PGOTO_ERROR(HG_OTHER_ERROR, "Memory allocation failed");
 
                     if (in->transform_state && (in->transform_data_size > 0)) {
                         remote_reg_info->ndim        = 1;
@@ -3226,15 +3170,14 @@ region_read_transform_release(region_transform_and_lock_in_t *in, hg_handle_t ha
                     else
                         size = HG_Bulk_get_size(eltt2->local_bulk_handle);
                     if (size != HG_Bulk_get_size(remote_bulk_handle))
-                        PGOTO_ERROR(HG_OTHER_ERROR,
-                                    "===PDC SERVER: local and remote bulk size does not match");
+                        PGOTO_ERROR(HG_OTHER_ERROR, "Local and remote bulk size does not match");
 
                     hg_ret = HG_Bulk_transfer(hg_info->context, obj_map_region_release_bulk_transfer_cb,
                                               transform_release_bulk_args, HG_BULK_PUSH, hg_info->addr,
                                               in->local_bulk_handle, 0, remote_bulk_handle, 0, size,
                                               HG_OP_ID_IGNORE);
                     if (hg_ret != HG_SUCCESS)
-                        PGOTO_ERROR(hg_ret, "===PDC SERVER: obj map Could not write bulk data");
+                        PGOTO_ERROR(hg_ret, "obj map could not write bulk data");
 #endif
                 }
             }
@@ -3315,7 +3258,7 @@ HG_TEST_RPC_CB(transform_region_release, handle)
                         data_ptrs_to = (void **)PDC_malloc(sizeof(void *));
                         data_size_to = (size_t *)PDC_malloc(sizeof(size_t));
                         if ((data_buf == NULL) || (data_ptrs_to == NULL) || (data_size_to == NULL))
-                            PGOTO_ERROR(HG_OTHER_ERROR, "==PDC SERVER: Memory allocation failed");
+                            PGOTO_ERROR(HG_OTHER_ERROR, "Memory allocation failed");
 
                         *data_ptrs_to = data_buf;
                         *data_size_to = in.transform_data_size;
@@ -3326,14 +3269,13 @@ HG_TEST_RPC_CB(transform_region_release, handle)
                                            (hg_size_t *)data_size_to, HG_BULK_READWRITE, &remote_bulk_handle);
                         if (hg_ret != HG_SUCCESS) {
                             error = 1;
-                            PGOTO_ERROR(hg_ret, "==PDC SERVER ERROR: Could not create bulk data handle");
+                            PGOTO_ERROR(hg_ret, "Could not create bulk data handle");
                         }
                         /* Args that get passed to the callback function */
                         buf_map_bulk_args = (struct buf_map_transform_and_release_bulk_args *)PDC_malloc(
                             sizeof(struct buf_map_transform_and_release_bulk_args));
                         if (buf_map_bulk_args == NULL) {
-                            PGOTO_ERROR(HG_OTHER_ERROR, "HG_TEST_RPC_CB(transform_region_release, handle): "
-                                                        "buf_map_bulk_args memory allocation failed");
+                            PGOTO_ERROR(HG_OTHER_ERROR, "buf_map_bulk_args memory allocation failed");
                         }
                         memset(buf_map_bulk_args, 0, sizeof(struct buf_map_transform_and_release_bulk_args));
                         buf_map_bulk_args->handle             = handle;
@@ -3366,8 +3308,7 @@ HG_TEST_RPC_CB(transform_region_release, handle)
                                              size, HG_OP_ID_IGNORE); /*  */
                         if (hg_ret != HG_SUCCESS) {
                             error = 1;
-                            PGOTO_ERROR(HG_OTHER_ERROR, "===PDC SERVER: HG_TEST_RPC_CB(region_release, "
-                                                        "handle) buf map Could not read bulk data");
+                            PGOTO_ERROR(HG_OTHER_ERROR, "buf map could not read bulk data");
                         }
                     }
                 }
@@ -3390,7 +3331,6 @@ HG_TEST_RPC_CB(transform_region_release, handle)
     }
 
 done:
-    fflush(stdout);
     if (error == 1) {
         out.ret = 0;
         HG_Respond(handle, NULL, NULL, &out);
@@ -3435,7 +3375,7 @@ HG_TEST_RPC_CB(region_transform_release, handle)
     hg_info = HG_Get_info(handle);
 
     if (in.access_type == PDC_READ)
-        PGOTO_ERROR(HG_OTHER_ERROR, "release %" PRId64 " access_type==READ NOT SUPPORTED YET!", in.obj_id);
+        PGOTO_ERROR(HG_OTHER_ERROR, "release %" PRId64 " access_type==READ NOT SUPPORTED YET", in.obj_id);
 
     // ************************************************************
     // write lock release with mapping case
@@ -3492,7 +3432,7 @@ HG_TEST_RPC_CB(region_transform_release, handle)
                                            (hg_size_t *)data_size_to, HG_BULK_READWRITE, &remote_bulk_handle);
                         if (hg_ret != HG_SUCCESS) {
                             error = 1;
-                            PGOTO_ERROR(FAIL, "==PDC SERVER ERROR: Could not create bulk data handle");
+                            PGOTO_ERROR(FAIL, "Could not create bulk data handle");
                         }
                         data_ptrs_to = (void **)PDC_free(data_ptrs_to);
                         data_size_to = (size_t *)PDC_free(data_size_to);
@@ -3500,8 +3440,7 @@ HG_TEST_RPC_CB(region_transform_release, handle)
                         buf_map_bulk_args = (struct buf_map_release_bulk_args *)PDC_malloc(
                             sizeof(struct buf_map_release_bulk_args));
                         if (buf_map_bulk_args == NULL) {
-                            PGOTO_ERROR(HG_OTHER_ERROR, "HG_TEST_RPC_CB(region_release, handle): "
-                                                        "buf_map_bulk_args memory allocation failed");
+                            PGOTO_ERROR(HG_OTHER_ERROR, "buf_map_bulk_args memory allocation failed");
                         }
                         memset(buf_map_bulk_args, 0, sizeof(struct buf_map_release_bulk_args));
                         buf_map_bulk_args->handle               = handle;
@@ -3529,8 +3468,7 @@ HG_TEST_RPC_CB(region_transform_release, handle)
                                                   HG_OP_ID_IGNORE);
                         if (hg_ret != HG_SUCCESS) {
                             error = 1;
-                            PGOTO_ERROR(hg_ret, "===PDC SERVER: HG_TEST_RPC_CB(region_release, handle) buf "
-                                                "map Could not read bulk data");
+                            PGOTO_ERROR(hg_ret, "buf map could not read bulk data");
                         }
                     }
                 }
@@ -3552,7 +3490,6 @@ HG_TEST_RPC_CB(region_transform_release, handle)
     }
 
 done:
-    fflush(stdout);
     if (error == 1) {
         out.ret = 0;
         HG_Respond(handle, NULL, NULL, &out);
@@ -3627,11 +3564,11 @@ HG_TEST_RPC_CB(region_analysis_release, handle)
                 (server_region->offset)[0] = in.lock_release.region.start[0];
                 ret_value = PDC_Server_data_read_direct(elt->from_obj_id, server_region, data_buf);
                 if (ret_value != SUCCEED)
-                    PGOTO_ERROR(HG_OTHER_ERROR, "==PDC SERVER: PDC_Server_data_read_direct() failed");
+                    PGOTO_ERROR(HG_OTHER_ERROR, "Error with PDC_Server_data_read_direct");
                 hg_ret = HG_Bulk_create(hg_info->hg_class, 1, &data_buf, &size, HG_BULK_READWRITE,
                                         &lock_local_bulk_handle);
                 if (hg_ret != HG_SUCCESS)
-                    PGOTO_ERROR(hg_ret, "==PDC SERVER ERROR: Could not create bulk data handle");
+                    PGOTO_ERROR(hg_ret, "Could not create bulk data handle");
 
                 lock_update_bulk_args = (struct region_lock_update_bulk_args *)PDC_malloc(
                     sizeof(struct region_lock_update_bulk_args));
@@ -3647,9 +3584,7 @@ HG_TEST_RPC_CB(region_analysis_release, handle)
                                           lock_update_bulk_args, HG_BULK_PUSH, elt->addr, elt->bulk_handle, 0,
                                           lock_local_bulk_handle, 0, size, HG_OP_ID_IGNORE);
                 if (hg_ret != HG_SUCCESS)
-                    PGOTO_ERROR(
-                        hg_ret,
-                        "==PDC SERVER ERROR: region_release_bulk_transfer_cb() could not write bulk data");
+                    PGOTO_ERROR(hg_ret, "Could not write bulk data");
             }
 
             if (PDC_is_same_region_list(request_region, elt) == 1 && elt->reg_dirty_from_buf == 1 &&
@@ -3678,7 +3613,7 @@ HG_TEST_RPC_CB(region_analysis_release, handle)
                                            (hg_size_t *)data_size_to, HG_BULK_READWRITE, &remote_bulk_handle);
                         if (hg_ret != HG_SUCCESS) {
                             error = 1;
-                            PGOTO_ERROR(hg_ret, "==PDC SERVER: obj map Could not create bulk data handle");
+                            PGOTO_ERROR(hg_ret, "obj map could not create bulk data handle");
                         }
                         data_ptrs_to = (void **)PDC_free(data_ptrs_to);
                         data_size_to = (size_t *)PDC_free(data_size_to);
@@ -3687,8 +3622,7 @@ HG_TEST_RPC_CB(region_analysis_release, handle)
                             (struct pdc_region_info *)PDC_malloc(sizeof(struct pdc_region_info));
                         if (remote_reg_info == NULL) {
                             error = 1;
-                            PGOTO_ERROR(HG_OTHER_ERROR, "==PDC SERVER:HG_TEST_RPC_CB(region_release, handle) "
-                                                        "remote_reg_info memory allocation failed");
+                            PGOTO_ERROR(HG_OTHER_ERROR, "remote_reg_info memory allocation failed");
                         }
 
                         obj_map_bulk_args = (struct buf_map_analysis_and_release_bulk_args *)PDC_malloc(
@@ -3738,9 +3672,7 @@ HG_TEST_RPC_CB(region_analysis_release, handle)
                         size = HG_Bulk_get_size(eltt2->local_bulk_handle);
                         if (size != HG_Bulk_get_size(remote_bulk_handle)) {
                             error = 1;
-                            PGOTO_ERROR(HG_OTHER_ERROR,
-                                        "===PDC SERVER: HG_TEST_RPC_CB(region_release, handle) local and "
-                                        "remote bulk size does not match\n");
+                            PGOTO_ERROR(HG_OTHER_ERROR, "remote bulk size does not match\n");
                         }
 
                         hg_ret = HG_Bulk_transfer(hg_info->context, obj_map_region_release_bulk_transfer_cb,
@@ -3749,8 +3681,7 @@ HG_TEST_RPC_CB(region_analysis_release, handle)
                                                   HG_OP_ID_IGNORE);
                         if (hg_ret != HG_SUCCESS) {
                             error = 1;
-                            PGOTO_ERROR(hg_ret, "===PDC SERVER: HG_TEST_RPC_CB(region_release, handle) obj "
-                                                "map Could not write bulk data");
+                            PGOTO_ERROR(hg_ret, "obj map could not write bulk data");
                         }
 #endif
                     }
@@ -3853,7 +3784,7 @@ HG_TEST_RPC_CB(region_analysis_release, handle)
                                            (hg_size_t *)data_size_to, HG_BULK_READWRITE, &remote_bulk_handle);
                         if (hg_ret != HG_SUCCESS) {
                             error = 1;
-                            PGOTO_ERROR(hg_ret, "==PDC SERVER ERROR: Could not create bulk data handle");
+                            PGOTO_ERROR(hg_ret, "=Could not create bulk data handle");
                         }
                         data_ptrs_to = (void **)PDC_free(data_ptrs_to);
                         data_size_to = (size_t *)PDC_free(data_size_to);
@@ -3861,8 +3792,7 @@ HG_TEST_RPC_CB(region_analysis_release, handle)
                         buf_map_bulk_args = (struct buf_map_analysis_and_release_bulk_args *)PDC_malloc(
                             sizeof(struct buf_map_analysis_and_release_bulk_args));
                         if (buf_map_bulk_args == NULL)
-                            PGOTO_ERROR(HG_OTHER_ERROR, "HG_TEST_RPC_CB(region_release, handle): "
-                                                        "buf_map_bulk_args memory allocation failed");
+                            PGOTO_ERROR(HG_OTHER_ERROR, "buf_map_bulk_args memory allocation failed");
 
                         // memset(buf_map_bulk_args, 0, sizeof(struct buf_map_release_bulk_args));
                         memset(buf_map_bulk_args, 0, sizeof(struct buf_map_analysis_and_release_bulk_args));
@@ -3882,8 +3812,7 @@ HG_TEST_RPC_CB(region_analysis_release, handle)
                         size = HG_Bulk_get_size(eltt->local_bulk_handle);
                         if (size != HG_Bulk_get_size(remote_bulk_handle)) {
                             error = 1;
-                            PGOTO_ERROR(HG_OTHER_ERROR, "===PDC SERVER: HG_TEST_RPC_CB(region_release, "
-                                                        "handle) local and remote bulk size does not match");
+                            PGOTO_ERROR(HG_OTHER_ERROR, "Local and remote bulk size does not match");
                         }
 
                         hg_ret = HG_Bulk_transfer(
@@ -3893,8 +3822,7 @@ HG_TEST_RPC_CB(region_analysis_release, handle)
 
                         if (hg_ret != HG_SUCCESS) {
                             error = 1;
-                            PGOTO_ERROR(hg_ret, "===PDC SERVER: HG_TEST_RPC_CB(region_release, handle) buf "
-                                                "map Could not read bulk data");
+                            PGOTO_ERROR(hg_ret, "buf map Could not read bulk data");
                         }
                     }
                 }
@@ -3917,7 +3845,6 @@ HG_TEST_RPC_CB(region_analysis_release, handle)
     }
 
 done:
-    fflush(stdout);
     if (error == 1) {
         out.ret = 0;
         HG_Respond(handle, NULL, NULL, &out);
@@ -3995,10 +3922,7 @@ HG_TEST_RPC_CB(buf_unmap, handle)
     ret = PDC_Data_Server_buf_unmap(info, &in);
     if (ret != SUCCEED) {
         out.ret = 0;
-        PGOTO_ERROR(
-            HG_OTHER_ERROR,
-            "===PDC_DATA_SERVER: HG_TEST_RPC_CB(buf_unmap, handle) - PDC_Data_Server_buf_unmap() failed");
-        fflush(stdout);
+        PGOTO_ERROR(HG_OTHER_ERROR, "Error with PDC_Data_Server_buf_unmap");
         HG_Respond(handle, NULL, NULL, &out);
         HG_Free_input(handle, &in);
         HG_Destroy(handle);
@@ -4009,12 +3933,9 @@ HG_TEST_RPC_CB(buf_unmap, handle)
     }
     ret = PDC_Meta_Server_buf_unmap(&in, &handle);
     if (ret != SUCCEED)
-        PGOTO_ERROR(
-            HG_OTHER_ERROR,
-            "===PDC_DATA_SERVER: HG_TEST_RPC_CB(buf_unmap, handle) - PDC_Meta_Server_buf_unmap() failed");
+        PGOTO_ERROR(HG_OTHER_ERROR, "Error with PDC_Meta_Server_buf_unmap");
 
 done:
-    fflush(stdout);
 #ifdef PDC_TIMING
     end = MPI_Wtime();
     pdc_server_timings->PDCbuf_obj_unmap_rpc += end - start;
@@ -4076,9 +3997,7 @@ HG_TEST_RPC_CB(buf_unmap_server, handle)
     target_obj = PDC_Server_get_obj_metadata(in.remote_obj_id);
     if (target_obj == NULL) {
         out.ret = 0;
-        PGOTO_ERROR(
-            HG_OTHER_ERROR,
-            "==PDC_SERVER: HG_TEST_RPC_CB(buf_unmap_server, handle) - requested object does not exist");
+        PGOTO_ERROR(HG_OTHER_ERROR, "Requested object does not exist");
     }
     out.ret = 1;
 #ifdef ENABLE_MULTITHREAD
@@ -4099,7 +4018,6 @@ HG_TEST_RPC_CB(buf_unmap_server, handle)
 #endif
 
 done:
-    fflush(stdout);
     HG_Respond(handle, NULL, NULL, &out);
     HG_Free_input(handle, &in);
     HG_Destroy(handle);
@@ -4126,10 +4044,7 @@ HG_TEST_RPC_CB(buf_map_server, handle)
     target_obj = PDC_Server_get_obj_metadata(in.remote_obj_id);
     if (target_obj == NULL) {
         out.ret = 0;
-        PGOTO_ERROR(HG_OTHER_ERROR,
-                    "==PDC_SERVER: HG_TEST_RPC_CB(buf_map_server, handle) - requested object (id=%" PRIu64
-                    ") does not exist\n",
-                    in.remote_obj_id);
+        PGOTO_ERROR(HG_OTHER_ERROR, "Requested object (id=%" PRIu64 ") does not exist", in.remote_obj_id);
     }
     request_region = (region_list_t *)PDC_malloc(sizeof(region_list_t));
     PDC_region_transfer_t_to_list_t(&in.remote_region_unit, request_region);
@@ -4163,7 +4078,6 @@ HG_TEST_RPC_CB(buf_map_server, handle)
     request_region = (region_list_t *)PDC_free(request_region);
 
 done:
-    fflush(stdout);
     HG_Respond(handle, NULL, NULL, &out);
     HG_Free_input(handle, &in);
     HG_Destroy(handle);
@@ -4203,7 +4117,7 @@ HG_TEST_RPC_CB(buf_map, handle)
 
     if (data_ptr == NULL) {
         out.ret = 0;
-        PGOTO_ERROR(HG_OTHER_ERROR, "===PDC Data Server: object memory allocation failed");
+        PGOTO_ERROR(HG_OTHER_ERROR, "Object memory allocation failed");
     }
 
     request_region = (region_list_t *)PDC_malloc(sizeof(region_list_t));
@@ -4224,7 +4138,7 @@ HG_TEST_RPC_CB(buf_map, handle)
         HG_Respond(handle, NULL, NULL, &out);
         ret = PDC_Meta_Server_buf_map(&in, new_buf_map_ptr, &handle);
         if (ret != SUCCEED)
-            PGOTO_ERROR(HG_OTHER_ERROR, "===PDC Data Server: PDC_Meta_Server_buf_map() failed");
+            PGOTO_ERROR(HG_OTHER_ERROR, "Error with PDC_Meta_Server_buf_map");
     }
 #ifdef PDC_TIMING
     end = MPI_Wtime();
@@ -4232,7 +4146,6 @@ HG_TEST_RPC_CB(buf_map, handle)
     pdc_timestamp_register(pdc_buf_obj_map_timestamps, start, end);
 #endif
 done:
-    fflush(stdout);
     FUNC_LEAVE(ret_value);
 }
 
@@ -4327,7 +4240,6 @@ HG_TEST_RPC_CB(query_partial, handle)
     ret_value = HG_Respond(handle, NULL, NULL, &out);
 
 done:
-    fflush(stdout);
     HG_Free_input(handle, &in);
     HG_Destroy(handle);
 
@@ -4383,7 +4295,6 @@ HG_TEST_RPC_CB(query_kvtag, handle)
     ret_value = HG_Respond(handle, NULL, NULL, &out);
 
 done:
-    fflush(stdout);
     HG_Free_input(handle, &in);
     HG_Destroy(handle);
 
@@ -4429,7 +4340,7 @@ update_storage_meta_bulk_cb(const struct hg_cb_info *hg_cb_info)
         // First elem is the obj id, following by cnt region infos
         obj_id_ptr = (uint64_t *)buf[0];
         if (*obj_id_ptr <= 0)
-            PGOTO_ERROR(HG_OTHER_ERROR, "==PDC_SERVER[ ]: error with bulk access, obj id invalid!");
+            PGOTO_ERROR(HG_OTHER_ERROR, "Error with bulk access, obj id invalid");
 
         if (PDC_Server_update_region_storage_meta_bulk_local((update_region_storage_meta_bulk_t **)buf,
                                                              cnt) == SUCCEED) {
@@ -4440,7 +4351,6 @@ update_storage_meta_bulk_cb(const struct hg_cb_info *hg_cb_info)
     } // end of else
 
 done:
-    fflush(stdout);
     HG_Bulk_free(local_bulk_handle);
     HG_Respond(bulk_args->handle, NULL, NULL, &out_struct);
     HG_Destroy(bulk_args->handle);
@@ -4485,7 +4395,7 @@ HG_TEST_RPC_CB(bulk_rpc, handle)
     bulk_args->nbytes = HG_Bulk_get_size(origin_bulk_handle);
     bulk_args->cnt    = cnt;
 
-    LOG_INFO("==PDC_SERVER: bulk_rpc_cb, nbytes %lu\n", bulk_args->nbytes);
+    LOG_INFO("bulk_rpc_cb, nbytes %lu\n", bulk_args->nbytes);
 
     /* Create a new block handle to read the data */
     HG_Bulk_create(hg_info->hg_class, 1, NULL, (hg_size_t *)&bulk_args->nbytes, HG_BULK_READWRITE,
@@ -4501,7 +4411,6 @@ HG_TEST_RPC_CB(bulk_rpc, handle)
     HG_Free_input(handle, &in_struct);
 
 done:
-    fflush(stdout);
     FUNC_LEAVE(ret_value);
 }
 
@@ -4545,10 +4454,9 @@ HG_TEST_RPC_CB(data_server_read, handle)
     HG_Free_input(handle, &in);
     ret_value = HG_Destroy(handle);
     if (ret_value != HG_SUCCESS)
-        PGOTO_ERROR(ret_value, "==PDC_SERVER: data_server_read_cb - Error with HG_Destroy");
+        PGOTO_ERROR(ret_value, "Error with HG_Destroy");
 
 done:
-    fflush(stdout);
     FUNC_LEAVE(ret_value);
 }
 
@@ -4590,10 +4498,9 @@ HG_TEST_RPC_CB(data_server_write, handle)
     HG_Free_input(handle, &in);
     ret_value = HG_Destroy(handle);
     if (ret_value != HG_SUCCESS)
-        PGOTO_ERROR(ret_value, "==PDC_SERVER: data_server_write_cb - Error with HG_Destroy");
+        PGOTO_ERROR(ret_value, "Error with HG_Destroy");
 
 done:
-    fflush(stdout);
     FUNC_LEAVE(ret_value);
 }
 
@@ -4683,8 +4590,7 @@ HG_TEST_RPC_CB(update_region_loc, handle)
     ret_value = PDC_Server_update_local_region_storage_loc(input_region, in.obj_id, in.type);
     if (ret_value != SUCCEED) {
         out.ret = -1;
-        PGOTO_ERROR(HG_OTHER_ERROR, "==PDC_SERVER: FAILED to update region location: obj_id=%" PRIu64 "",
-                    in.obj_id);
+        PGOTO_ERROR(HG_OTHER_ERROR, "Failed to update region location: obj_id=%" PRIu64 "", in.obj_id);
     }
 
     /* HG_Respond(handle, NULL, NULL, &out); */
@@ -4696,7 +4602,6 @@ HG_TEST_RPC_CB(update_region_loc, handle)
     input_region = (region_list_t *)PDC_free(input_region);
 
 done:
-    fflush(stdout);
     FUNC_LEAVE(ret_value);
 }
 
@@ -4718,7 +4623,7 @@ HG_TEST_RPC_CB(get_metadata_by_id, handle)
     if (target != NULL)
         PDC_metadata_t_to_transfer_t(target, &out.res_meta);
     else {
-        LOG_INFO("==PDC_SERVER: no matching metadata of obj_id=%" PRIu64 "\n", in.obj_id);
+        LOG_INFO("No matching metadata of obj_id=%" PRIu64 "\n", in.obj_id);
         out.res_meta.user_id       = -1;
         out.res_meta.obj_id        = 0;
         out.res_meta.cont_id       = 0;
@@ -4857,7 +4762,6 @@ PDC_find_in_path(char *workingDir, char *application)
     }
 
 done:
-    fflush(stdout);
     FUNC_LEAVE(ret_value);
 }
 
@@ -4893,17 +4797,17 @@ cont_add_del_objs_bulk_cb(const struct hg_cb_info *hg_cb_info)
             if (PDC_Server_container_add_objs(cnt, obj_ids, cont_id) == SUCCEED)
                 out_struct.ret = 1;
             else
-                PGOTO_ERROR(HG_OTHER_ERROR, "==PDC_SERVER[ ]: error updating objects to container");
+                PGOTO_ERROR(HG_OTHER_ERROR, "Error updating objects to container");
         }
         else if (op == DEL_OBJ) {
             if (PDC_Server_container_del_objs(cnt, obj_ids, cont_id) == SUCCEED)
                 out_struct.ret = 1;
             else
-                PGOTO_ERROR(HG_OTHER_ERROR, "==PDC_SERVER[ ]: error updating objects to container");
+                PGOTO_ERROR(HG_OTHER_ERROR, "Error updating objects to container");
         }
         else {
             out_struct.ret = 0;
-            PGOTO_ERROR(HG_OTHER_ERROR, "==PDC_SERVER[ ]: unsupported container operation type");
+            PGOTO_ERROR(HG_OTHER_ERROR, "Unsupported container operation type");
         }
     } // end of else
 
@@ -4913,7 +4817,6 @@ done:
     HG_Respond(bulk_args->handle, NULL, NULL, &out_struct);
     HG_Destroy(bulk_args->handle);
     bulk_args = (struct bulk_args_t *)PDC_free(bulk_args);
-    fflush(stdout);
 
     FUNC_LEAVE(ret_value);
 }
@@ -4968,7 +4871,6 @@ HG_TEST_RPC_CB(cont_add_del_objs_rpc, handle)
     HG_Free_input(handle, &in_struct);
 
 done:
-    fflush(stdout);
     FUNC_LEAVE(ret_value);
 }
 
@@ -5053,7 +4955,6 @@ query_read_obj_name_bulk_cb(const struct hg_cb_info *hg_cb_info)
         PGOTO_ERROR(ret, "Could not free HG bulk handle");
 
 done:
-    fflush(stdout);
     HG_Destroy(bulk_args->handle);
     bulk_args = (struct bulk_args_t *)PDC_free(bulk_args);
 
@@ -5107,7 +5008,6 @@ HG_TEST_RPC_CB(query_read_obj_name_rpc, handle)
     HG_Free_input(handle, &in_struct);
 
 done:
-    fflush(stdout);
     FUNC_LEAVE(ret_value);
 }
 
@@ -5153,13 +5053,12 @@ PDC_check_int_ret_cb(const struct hg_cb_info *callback_info)
 
     ret_value = HG_Get_output(handle, &output);
     if (ret_value != HG_SUCCESS)
-        PGOTO_ERROR(ret_value, "== Error with HG_Get_output");
+        PGOTO_ERROR(ret_value, "Error with HG_Get_output");
 
     if (output.ret != 1)
-        PGOTO_ERROR(ret_value, "== Return value [%d] is NOT expected", output.ret);
+        PGOTO_ERROR(ret_value, "Return value [%d] is NOT expected", output.ret);
 
 done:
-    fflush(stdout);
     HG_Free_output(handle, &output);
 
     FUNC_LEAVE(ret_value);
@@ -5237,7 +5136,6 @@ get_storage_meta_bulk_cb(const struct hg_cb_info *hg_cb_info)
         PGOTO_ERROR(ret_value, "Could not free HG bulk handle");
 
 done:
-    fflush(stdout);
     HG_Destroy(bulk_args->handle);
     bulk_args = (struct bulk_args_t *)PDC_free(bulk_args);
 
@@ -5290,7 +5188,6 @@ HG_TEST_RPC_CB(get_storage_meta_name_query_bulk_result_rpc, handle)
     HG_Free_input(handle, &in_struct);
 
 done:
-    fflush(stdout);
     FUNC_LEAVE(ret_value);
 }
 
@@ -5334,7 +5231,6 @@ notify_client_multi_io_complete_bulk_cb(const struct hg_cb_info *hg_cb_info)
         PGOTO_ERROR(ret_value, "Could not free HG bulk handle");
 
 done:
-    fflush(stdout);
     HG_Destroy(bulk_args->handle);
     bulk_args = (struct bulk_args_t *)PDC_free(bulk_args);
 
@@ -5378,7 +5274,6 @@ HG_TEST_RPC_CB(notify_client_multi_io_complete_rpc, handle)
         PGOTO_ERROR(ret_value, "Could not read bulk data");
 
 done:
-    fflush(stdout);
     HG_Free_input(handle, &in_struct);
 
     FUNC_LEAVE(ret_value);
@@ -5403,7 +5298,7 @@ PDC_add_task_to_list(pdc_task_list_t **target_list, perr_t (*cb)(), void *cb_arg
 #endif
 
     if (target_list == NULL)
-        PGOTO_ERROR(-1, "== NULL input!");
+        PGOTO_ERROR(FAIL, "NULL input");
 
     new_task          = (pdc_task_list_t *)PDC_calloc(1, sizeof(pdc_task_list_t));
     new_task->cb      = cb;
@@ -5424,7 +5319,6 @@ PDC_add_task_to_list(pdc_task_list_t **target_list, perr_t (*cb)(), void *cb_arg
     ret_value = new_task->task_id;
 
 done:
-    fflush(stdout);
     FUNC_LEAVE(ret_value);
 }
 
@@ -5445,7 +5339,7 @@ PDC_del_task_from_list(pdc_task_list_t **target_list, pdc_task_list_t *del,
 #endif
 
     if (target_list == NULL || del == NULL)
-        PGOTO_ERROR(FAIL, "== NULL input!");
+        PGOTO_ERROR(FAIL, "NULL input");
 
 #ifdef ENABLE_MULTITHREAD
     hg_thread_mutex_lock(mutex);
@@ -5460,7 +5354,6 @@ PDC_del_task_from_list(pdc_task_list_t **target_list, pdc_task_list_t *del,
     tmp = (pdc_task_list_t *)PDC_free(tmp);
 
 done:
-    fflush(stdout);
     FUNC_LEAVE(ret_value);
 }
 
@@ -5469,14 +5362,11 @@ PDC_is_valid_task_id(int id)
 {
     FUNC_ENTER(NULL);
 
-    int ret_value = 0;
+    int ret_value = SUCCEED;
     if (id < PDC_SERVER_TASK_INIT_VALUE || id > 10000)
-        PGOTO_ERROR(-1, "== id %d is invalid!", id);
-
-    ret_value = 1;
+        PGOTO_ERROR(FAIL, "id %d is invalid", id);
 
 done:
-    fflush(stdout);
     FUNC_LEAVE(ret_value);
 }
 
@@ -5497,7 +5387,7 @@ PDC_find_task_from_list(pdc_task_list_t **target_list, int id,
 #endif
 
     if (PDC_is_valid_task_id(id) != 1)
-        PGOTO_ERROR(NULL, "== NULL input!");
+        PGOTO_ERROR(NULL, "NULL input");
 
 #ifdef ENABLE_MULTITHREAD
     hg_thread_mutex_lock(mutex);
@@ -5515,7 +5405,6 @@ PDC_find_task_from_list(pdc_task_list_t **target_list, int id,
 #endif
 
 done:
-    fflush(stdout);
     FUNC_LEAVE(ret_value);
 }
 
@@ -5528,7 +5417,7 @@ PDC_del_task_from_list_id(pdc_task_list_t **target_list, int id, hg_thread_mutex
     pdc_task_list_t *tmp;
 
     if (target_list == NULL || PDC_is_valid_task_id(id) != 1)
-        PGOTO_ERROR(FAIL, "== NULL input!");
+        PGOTO_ERROR(FAIL, "NULL input");
 
 #ifdef ENABLE_MULTITHREAD
     hg_thread_mutex_lock(mutex);
@@ -5544,7 +5433,6 @@ PDC_del_task_from_list_id(pdc_task_list_t **target_list, int id, hg_thread_mutex
     tmp = (pdc_task_list_t *)PDC_free(tmp);
 
 done:
-    fflush(stdout);
     FUNC_LEAVE(ret_value);
 }
 
@@ -5553,14 +5441,11 @@ PDC_is_valid_obj_id(uint64_t id)
 {
     FUNC_ENTER(NULL);
 
-    int ret_value = 0;
+    int ret_value = SUCCEED;
     if (id < PDC_SERVER_ID_INTERVEL)
-        PGOTO_ERROR(-1, "== id %" PRIu64 " is invalid!", id);
-
-    ret_value = 1;
+        PGOTO_ERROR(FAIL, "id %" PRIu64 " is invalid", id);
 
 done:
-    fflush(stdout);
     FUNC_LEAVE(ret_value);
 }
 
@@ -5666,7 +5551,6 @@ query_read_obj_name_client_bulk_cb(const struct hg_cb_info *hg_cb_info)
         PGOTO_ERROR(ret_value, "Could not free HG bulk handle");
 
 done:
-    fflush(stdout);
     HG_Destroy(bulk_args->handle);
     bulk_args = (struct bulk_args_t *)PDC_free(bulk_args);
 
@@ -5718,7 +5602,6 @@ HG_TEST_RPC_CB(query_read_obj_name_client_rpc, handle)
     HG_Free_input(handle, &in_struct);
 
 done:
-    fflush(stdout);
     FUNC_LEAVE(ret_value);
 }
 
@@ -5741,7 +5624,7 @@ send_client_storage_meta_bulk_cb(const struct hg_cb_info *hg_cb_info)
         ret_value =
             HG_Bulk_access(local_bulk_handle, 0, bulk_args->nbytes, HG_BULK_READ_ONLY, 1, &buf, NULL, NULL);
         if (ret_value != HG_SUCCESS)
-            PGOTO_ERROR(ret_value, "==PDC_CLIENT[x]: Error with bulk access");
+            PGOTO_ERROR(ret_value, "Error with bulk access");
 
         buf_cp = PDC_malloc(bulk_args->nbytes);
         memcpy(buf_cp, buf, bulk_args->nbytes);
@@ -5758,7 +5641,6 @@ send_client_storage_meta_bulk_cb(const struct hg_cb_info *hg_cb_info)
     PDC_Client_recv_bulk_storage_meta(process_args);
 
 done:
-    fflush(stdout);
     /* Free bulk handle */
     HG_Bulk_free(local_bulk_handle);
     HG_Destroy(bulk_args->handle);
@@ -5822,7 +5704,6 @@ HG_TEST_RPC_CB(send_client_storage_meta_rpc, handle)
         PGOTO_ERROR(ret_value, "Could not respond");
 
 done:
-    fflush(stdout);
     FUNC_LEAVE(ret_value);
 }
 
@@ -5842,7 +5723,7 @@ server_recv_shm_bulk_cb(const struct hg_cb_info *hg_cb_info)
         ret_value =
             HG_Bulk_access(local_bulk_handle, 0, bulk_args->nbytes, HG_BULK_READ_ONLY, 1, &buf, NULL, NULL);
         if (ret_value != HG_SUCCESS)
-            PGOTO_ERROR(ret_value, "==PDC_CLIENT[x]: Error with bulk access");
+            PGOTO_ERROR(ret_value, "Error with bulk access");
 
         buf_cp = PDC_malloc(bulk_args->nbytes);
         memcpy(buf_cp, buf, bulk_args->nbytes);
@@ -5853,7 +5734,6 @@ server_recv_shm_bulk_cb(const struct hg_cb_info *hg_cb_info)
     } // end else
 
 done:
-    fflush(stdout);
     /* Free bulk handle */
     HG_Bulk_free(local_bulk_handle);
     HG_Destroy(bulk_args->handle);
@@ -5897,7 +5777,7 @@ HG_TEST_RPC_CB(send_shm_bulk_rpc, handle)
     bulk_args->nbytes  = HG_Bulk_get_size(origin_bulk_handle);
     bulk_args->cnt     = cnt;
 
-    LOG_ERROR("==PDC_SERVER: send_bulk_rpc_cb, nbytes %lu\n", bulk_args->nbytes);
+    LOG_ERROR("send_bulk_rpc_cb, nbytes %lu\n", bulk_args->nbytes);
 
     /* Create a new bulk handle to read the data */
     HG_Bulk_create(hg_info->hg_class, 1, NULL, (hg_size_t *)&bulk_args->nbytes, HG_BULK_READWRITE,
@@ -5919,7 +5799,6 @@ HG_TEST_RPC_CB(send_shm_bulk_rpc, handle)
         PGOTO_ERROR(ret_value, "Could not respond");
 
 done:
-    fflush(stdout);
     FUNC_LEAVE(ret_value);
 }
 
@@ -6074,7 +5953,7 @@ HG_TEST_RPC_CB(send_bulk_rpc, handle)
         func_ptr = &PDC_recv_query_metadata_bulk;
     }
     else
-        PGOTO_ERROR(HG_OTHER_ERROR, "== Invalid bulk op ID!");
+        PGOTO_ERROR(HG_OTHER_ERROR, "Invalid bulk op ID");
 
     if (in_struct.cnt > 0) {
         bulk_arg->nbytes = HG_Bulk_get_size(origin_bulk_handle);
@@ -6095,7 +5974,6 @@ HG_TEST_RPC_CB(send_bulk_rpc, handle)
     }
 
 done:
-    fflush(stdout);
     HG_Free_input(handle, &in_struct);
 
     FUNC_LEAVE(ret_value);
@@ -6132,8 +6010,8 @@ HG_TEST_RPC_CB(dart_perform_one_server, handle)
 {
     FUNC_ENTER(NULL);
 
-    hg_return_t                   ret    = HG_SUCCESS;
-    hg_return_t                   hg_ret = HG_SUCCESS;
+    hg_return_t                   ret_value = HG_SUCCESS;
+    hg_return_t                   hg_ret    = HG_SUCCESS;
     dart_perform_one_server_in_t  in;
     dart_perform_one_server_out_t out;
 
@@ -6164,8 +6042,7 @@ HG_TEST_RPC_CB(dart_perform_one_server, handle)
     if (*n_obj_ids_ptr == 0) {
         out.bulk_handle = HG_BULK_NULL;
         out.ret         = 0;
-        ret             = HG_Respond(handle, NULL, NULL, &out);
-        goto done;
+        PGOTO_DONE(HG_Respond(handle, NULL, NULL, &out));
     }
 
     n_buf        = 1;
@@ -6188,7 +6065,7 @@ HG_TEST_RPC_CB(dart_perform_one_server, handle)
     // TODO: To confirm how we can know the bulk data has been sent to client completely
 
     // Send bulk handle to client
-    ret = HG_Respond(handle, NULL, NULL, &out);
+    ret_value = HG_Respond(handle, NULL, NULL, &out);
 
 done:
     // Free input
@@ -6196,7 +6073,7 @@ done:
     // Free handle
     HG_Destroy(handle);
 
-    FUNC_LEAVE(ret);
+    FUNC_LEAVE(ret_value);
 }
 
 HG_TEST_THREAD_CB(server_lookup_client)
@@ -6439,10 +6316,10 @@ PDC_is_contiguous_region_overlap(region_list_t *a, region_list_t *b)
     uint64_t zmin1 = 0, zmin2 = 0, zmax1 = 0, zmax2 = 0;
 
     if (a == NULL || b == NULL)
-        PGOTO_ERROR(-1, "==PDC_SERVER: PDC_is_contiguous_region_overlap() - passed NULL value!");
+        PGOTO_ERROR(-1, "Passed NULL value");
 
     if (a->ndim != b->ndim || a->ndim <= 0 || b->ndim <= 0)
-        PGOTO_ERROR(-1, "==PDC_SERVER: PDC_is_contiguous_region_overlap() - dimension does not match");
+        PGOTO_ERROR(-1, "Dimension does not match");
 
     if (a->ndim >= 1) {
         xmin1 = a->start[0];
@@ -6472,7 +6349,6 @@ PDC_is_contiguous_region_overlap(region_list_t *a, region_list_t *b)
             is_overlap_3D(xmin1, xmax1, ymin1, ymax1, zmin1, zmax1, xmin2, xmax2, ymin2, ymax2, zmin2, zmax2);
 
 done:
-    fflush(stdout);
     FUNC_LEAVE(ret_value);
 }
 
@@ -6485,7 +6361,7 @@ PDC_is_contiguous_start_count_overlap(uint32_t ndim, uint64_t *a_start, uint64_t
     int ret_value = 1;
 
     if (ndim > DIM_MAX || NULL == a_start || NULL == a_count || NULL == b_start || NULL == b_count)
-        PGOTO_ERROR(-1, "PDC_is_contiguous_start_count_overlap: invalid input!");
+        PGOTO_ERROR(-1, "Invalid input");
 
     uint64_t xmin1 = 0, xmin2 = 0, xmax1 = 0, xmax2 = 0;
     uint64_t ymin1 = 0, ymin2 = 0, ymax1 = 0, ymax2 = 0;
@@ -6520,7 +6396,6 @@ PDC_is_contiguous_start_count_overlap(uint32_t ndim, uint64_t *a_start, uint64_t
             is_overlap_3D(xmin1, xmax1, ymin1, ymax1, zmin1, zmax1, xmin2, xmax2, ymin2, ymax2, zmin2, zmax2);
 
 done:
-    fflush(stdout);
     FUNC_LEAVE(ret_value);
 }
 
@@ -6538,11 +6413,11 @@ PDC_get_overlap_start_count(uint32_t ndim, uint64_t *start_a, uint64_t *count_a,
 
     if (NULL == start_a || NULL == count_a || NULL == start_b || NULL == count_b || NULL == overlap_start ||
         NULL == overlap_count)
-        PGOTO_ERROR(FAIL, "get_overlap NULL input!");
+        PGOTO_ERROR(FAIL, "get_overlap NULL input");
 
     // Check if they are truly overlapping regions
     if (PDC_is_contiguous_start_count_overlap(ndim, start_a, count_a, start_b, count_b) != 1) {
-        LOG_INFO("non-overlap regions!\n");
+        LOG_INFO("non-overlap regions\n");
         for (i = 0; i < ndim; i++) {
             LOG_INFO("\t\tdim%" PRIu64 " - start_a: %" PRIu64 " count_a: %" PRIu64 ", "
                      "\t\tstart_b:%" PRIu64 " count_b:%" PRIu64 "\n",
@@ -6576,7 +6451,7 @@ PDC_create_shm_segment_ind(uint64_t size, char *shm_addr, void **buf)
     int    shm_fd = -1;
 
     if (shm_addr == NULL)
-        PGOTO_ERROR(FAIL, "== Shared memory addr is NULL!");
+        PGOTO_ERROR(FAIL, "Shared memory addr is NULL");
 
     /* create the shared memory segment as if it was a file */
     retry = 0;
@@ -6590,21 +6465,20 @@ PDC_create_shm_segment_ind(uint64_t size, char *shm_addr, void **buf)
     }
 
     if (shm_fd == -1)
-        PGOTO_ERROR(FAIL, "== Shared memory create failed");
+        PGOTO_ERROR(FAIL, "Shared memory create failed");
 
     /* configure the size of the shared memory segment */
     if (ftruncate(shm_fd, size) != 0) {
-        PGOTO_ERROR(FAIL, "== Truncate memory failed");
+        PGOTO_ERROR(FAIL, "Truncate memory failed");
     }
 
     /* map the shared memory segment to the address space of the process */
     *buf = mmap(0, size, PROT_READ | PROT_WRITE, MAP_SHARED, shm_fd, 0);
     if (*buf == MAP_FAILED)
-        PGOTO_ERROR(FAIL, "== Shared memory mmap failed [%s]\n", shm_addr);
+        PGOTO_ERROR(FAIL, "Shared memory mmap failed [%s]", shm_addr);
     // close and shm_unlink?
 
 done:
-    fflush(stdout);
     FUNC_LEAVE(ret_value);
 }
 
@@ -6618,7 +6492,7 @@ PDC_create_shm_segment(region_list_t *region)
     int    retry;
 
     if (region->shm_addr[0] == 0)
-        PGOTO_ERROR(FAIL, "== Shared memory addr is NULL!");
+        PGOTO_ERROR(FAIL, "Shared memory addr is NULL");
 
     /* create the shared memory segment as if it was a file */
     retry = 0;
@@ -6630,7 +6504,7 @@ PDC_create_shm_segment(region_list_t *region)
     }
 
     if (region->shm_fd == -1)
-        PGOTO_ERROR(FAIL, "== Shared memory create failed");
+        PGOTO_ERROR(FAIL, "Shared memory create failed");
 
     // Calculate the actual size for reading the data if needed
     if (region->data_size == 0) {
@@ -6641,17 +6515,16 @@ PDC_create_shm_segment(region_list_t *region)
 
     /* configure the size of the shared memory segment */
     if (ftruncate(region->shm_fd, region->data_size) != 0) {
-        PGOTO_ERROR(FAIL, "== Truncate memory failed");
+        PGOTO_ERROR(FAIL, "Truncate memory failed");
     }
 
     /* map the shared memory segment to the address space of the process */
     region->buf = mmap(0, region->data_size, PROT_READ | PROT_WRITE, MAP_SHARED, region->shm_fd, 0);
     if (region->buf == MAP_FAILED)
-        PGOTO_ERROR(FAIL, "== Shared memory mmap failed");
+        PGOTO_ERROR(FAIL, "Shared memory mmap failed");
     // close and shm_unlink?
 
 done:
-    fflush(stdout);
     FUNC_LEAVE(ret_value);
 }
 
@@ -6872,7 +6745,6 @@ PDCquery_print(pdc_query_t *query)
     }
     LOG_JUST_PRINT("\n");
 
-    fflush(stdout);
     FUNC_LEAVE_VOID();
 }
 
@@ -6908,8 +6780,6 @@ PDC_serialize_query(pdc_query_t *query)
 
     ret_value = query_xfer;
 done:
-
-    fflush(stdout);
     FUNC_LEAVE(ret_value);
 }
 
@@ -6932,7 +6802,6 @@ PDC_deserialize_query(pdc_query_xfer_t *query_xfer)
     ret_value = new_root;
 
 done:
-    fflush(stdout);
     FUNC_LEAVE(ret_value);
 }
 
@@ -7017,9 +6886,8 @@ PDCselection_print(pdc_selection_t *sel)
 
     uint64_t i;
 
-    LOG_JUST_PRINT("== %" PRIu64 " hits, allocated %" PRIu64 " coordinates!\n", sel->nhits,
-                   sel->coords_alloc);
-    LOG_JUST_PRINT("== Coordinates:\n");
+    LOG_JUST_PRINT("%" PRIu64 " hits, allocated %" PRIu64 " coordinates\n", sel->nhits, sel->coords_alloc);
+    LOG_JUST_PRINT("Coordinates:\n");
 
     if (sel->nhits > 10) {
         for (i = 0; i < 10; i++)
@@ -7044,9 +6912,8 @@ PDCselection_print_all(pdc_selection_t *sel)
 
     uint64_t i;
 
-    LOG_JUST_PRINT("== %" PRIu64 " hits, allocated %" PRIu64 " coordinates!\n", sel->nhits,
-                   sel->coords_alloc);
-    LOG_JUST_PRINT("== Coordinates:\n");
+    LOG_JUST_PRINT("%" PRIu64 " hits, allocated %" PRIu64 " coordinates\n", sel->nhits, sel->coords_alloc);
+    LOG_JUST_PRINT("Coordinates:\n");
 
     for (i = 0; i < sel->nhits; i++)
         LOG_JUST_PRINT(" ,%" PRIu64 "", sel->coords[i]);

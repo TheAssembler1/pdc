@@ -36,7 +36,7 @@ main(void)
     // Query the created object
     PDC_Client_query_metadata_name_timestep("x", 0, &x_meta);
     if (x_meta == NULL || x_meta->obj_id == 0) {
-        LOG_ERROR("Error with x metadata!\n");
+        LOG_ERROR("Error with x metadata\n");
         goto done;
     }
     x_id = x_meta->obj_id;
@@ -45,7 +45,7 @@ main(void)
 
     PDC_Client_query_metadata_name_timestep("y", 0, &y_meta);
     if (y_meta == NULL || y_meta->obj_id == 0) {
-        LOG_ERROR("Error with y metadata!\n");
+        LOG_ERROR("Error with y metadata\n");
         goto done;
     }
     y_id = y_meta->obj_id;
@@ -54,7 +54,7 @@ main(void)
 
     PDC_Client_query_metadata_name_timestep("z", 0, &z_meta);
     if (z_meta == NULL || z_meta->obj_id == 0) {
-        LOG_ERROR("Error with z metadata!\n");
+        LOG_ERROR("Error with z metadata\n");
         goto done;
     }
     z_id = z_meta->obj_id;
@@ -63,7 +63,7 @@ main(void)
 
     PDC_Client_query_metadata_name_timestep("Energy", 0, &energy_meta);
     if (energy_meta == NULL || energy_meta->obj_id == 0) {
-        LOG_ERROR("Error with energy metadata!\n");
+        LOG_ERROR("Error with energy metadata\n");
         goto done;
     }
     energy_id = energy_meta->obj_id;
@@ -115,8 +115,6 @@ main(void)
         gettimeofday(&pdc_timer_end, 0);
         get_data_time = PDC_get_elapsed_time_double(&pdc_timer_start, &pdc_timer_end);
         LOG_INFO("Get data time: %.5e\n", get_data_time);
-
-        fflush(stdout);
     }
 
     PDCselection_free(&sel);

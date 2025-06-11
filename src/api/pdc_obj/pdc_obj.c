@@ -51,10 +51,9 @@ PDC_obj_init()
 
     /* Initialize the atom group for the object IDs */
     if (PDC_register_type(PDC_OBJ, (PDC_free_t)PDC_obj_close) < 0)
-        PGOTO_ERROR(FAIL, "unable to initialize object interface");
+        PGOTO_ERROR(FAIL, "Unable to initialize object interface");
 
 done:
-    fflush(stdout);
     FUNC_LEAVE(ret_value);
 }
 
@@ -62,10 +61,7 @@ pdcid_t
 PDCobj_create(pdcid_t cont_id, const char *obj_name, pdcid_t obj_prop_id)
 {
     FUNC_ENTER(NULL);
-
-    pdcid_t ret_value = 0;
-    ret_value         = PDC_obj_create(cont_id, obj_name, obj_prop_id, PDC_OBJ_GLOBAL);
-    FUNC_LEAVE(ret_value);
+    FUNC_LEAVE(PDC_obj_create(cont_id, obj_name, obj_prop_id, PDC_OBJ_GLOBAL));
 }
 
 /**
@@ -191,7 +187,7 @@ PDC_obj_create(pdcid_t cont_id, const char *obj_name, pdcid_t obj_prop_id, _pdc_
 
     p->obj_pt->pdc = (struct _pdc_class *)PDC_calloc(1, sizeof(struct _pdc_class));
     if (!p->obj_pt->pdc)
-        PGOTO_ERROR(0, "cannot allocate ret_value->pdc");
+        PGOTO_ERROR(0, "Cannot allocate ret_value->pdc");
     if (obj_prop->pdc->name)
         p->obj_pt->pdc->name = strdup(obj_prop->pdc->name);
     p->obj_pt->pdc->local_id = obj_prop->pdc->local_id;
@@ -199,11 +195,11 @@ PDC_obj_create(pdcid_t cont_id, const char *obj_name, pdcid_t obj_prop_id, _pdc_
     /* struct pdc_obj_prop field */
     p->obj_pt->obj_prop_pub = (struct pdc_obj_prop *)PDC_calloc(1, sizeof(struct pdc_obj_prop));
     if (!p->obj_pt->obj_prop_pub)
-        PGOTO_ERROR(0, "cannot allocate ret_value->obj_pt->obj_prop_pub");
+        PGOTO_ERROR(0, "Cannot allocate ret_value->obj_pt->obj_prop_pub");
     p->obj_pt->obj_prop_pub->ndim = obj_prop->obj_prop_pub->ndim;
     p->obj_pt->obj_prop_pub->dims = PDC_malloc(obj_prop->obj_prop_pub->ndim * sizeof(uint64_t));
     if (!p->obj_pt->obj_prop_pub->dims)
-        PGOTO_ERROR(0, "cannot allocate ret_value->dims");
+        PGOTO_ERROR(0, "Cannot allocate ret_value->dims");
     for (i = 0; i < obj_prop->obj_prop_pub->ndim; i++)
         p->obj_pt->obj_prop_pub->dims[i] = obj_prop->obj_prop_pub->dims[i];
     p->obj_pt->obj_prop_pub->type             = obj_prop->obj_prop_pub->type;
@@ -230,7 +226,7 @@ PDC_obj_create(pdcid_t cont_id, const char *obj_name, pdcid_t obj_prop_id, _pdc_
         ret = PDC_Client_send_name_recv_id(obj_name, p->cont->cont_info_pub->meta_id, obj_prop_id,
                                            &(p->obj_info_pub->meta_id), &data_server_id, &metadata_server_id);
         if (ret == FAIL)
-            PGOTO_ERROR(0, "Unable to create object on server!");
+            PGOTO_ERROR(0, "Unable to create object on server");
     }
 
     p->obj_info_pub->metadata_server_id = (pdcid_t)metadata_server_id;
@@ -246,14 +242,13 @@ PDC_obj_create(pdcid_t cont_id, const char *obj_name, pdcid_t obj_prop_id, _pdc_
     p->obj_info_pub->obj_pt->ndim = obj_prop->obj_prop_pub->ndim;
     p->obj_info_pub->obj_pt->dims = PDC_malloc(obj_prop->obj_prop_pub->ndim * sizeof(uint64_t));
     if (!p->obj_info_pub->obj_pt->dims)
-        PGOTO_ERROR(0, "failed to allocate obj pub property memory");
+        PGOTO_ERROR(0, "Failed to allocate obj pub property memory");
     for (i = 0; i < obj_prop->obj_prop_pub->ndim; i++)
         p->obj_info_pub->obj_pt->dims[i] = obj_prop->obj_prop_pub->dims[i];
 
     ret_value = p->obj_info_pub->local_id;
 
 done:
-    fflush(stdout);
     FUNC_LEAVE(ret_value);
 }
 
@@ -273,7 +268,6 @@ PDC_obj_list_null()
     }
 
 done:
-    fflush(stdout);
     FUNC_LEAVE(ret_value);
 }
 
@@ -339,7 +333,6 @@ PDCobj_flush_start(pdcid_t obj_id)
     perr_t ret_value = SUCCEED;
     PDC_Client_flush_obj(obj_id);
 
-    fflush(stdout);
     FUNC_LEAVE(ret_value);
 }
 
@@ -351,7 +344,6 @@ PDCobj_flush_all_start()
     perr_t ret_value = SUCCEED;
     PDC_Client_flush_obj_all();
 
-    fflush(stdout);
     FUNC_LEAVE(ret_value);
 }
 #else
@@ -359,22 +351,14 @@ perr_t
 PDCobj_flush_start(pdcid_t obj_id __attribute__((unused)))
 {
     FUNC_ENTER(NULL);
-
-    perr_t ret_value = SUCCEED;
-
-    fflush(stdout);
-    FUNC_LEAVE(ret_value);
+    FUNC_LEAVE(SUCCEED);
 }
 
 perr_t
 PDCobj_flush_all_start()
 {
     FUNC_ENTER(NULL);
-
-    perr_t ret_value = SUCCEED;
-    fflush(stdout);
-
-    FUNC_LEAVE(ret_value);
+    FUNC_LEAVE(SUCCEED);
 }
 #endif
 
@@ -386,10 +370,9 @@ PDCobj_close(pdcid_t obj_id)
     perr_t ret_value = SUCCEED;
     /* When the reference count reaches zero the resources are freed */
     if (PDC_dec_ref(obj_id) < 0)
-        PGOTO_ERROR(FAIL, "object: problem of freeing id");
+        PGOTO_ERROR(FAIL, "Object: problem of freeing ID");
 
 done:
-    fflush(stdout);
     FUNC_LEAVE(ret_value);
 }
 
@@ -400,10 +383,9 @@ PDC_obj_end()
 
     perr_t ret_value = SUCCEED;
     if (PDC_destroy_type(PDC_OBJ) < 0)
-        PGOTO_ERROR(FAIL, "unable to destroy object interface");
+        PGOTO_ERROR(FAIL, "Unable to destroy object interface");
 
 done:
-    fflush(stdout);
     FUNC_LEAVE(ret_value);
 }
 
@@ -435,9 +417,8 @@ PDCobj_open_common(const char *obj_name, pdcid_t pdc, int is_col)
     }
 
     if (is_opened) {
-        ret_value = info->local_id;
         PDC_inc_ref(info->local_id);
-        goto done;
+        PGOTO_DONE(info->local_id);
     }
 
     p = (struct _pdc_obj_info *)PDC_malloc(sizeof(struct _pdc_obj_info));
@@ -469,7 +450,7 @@ PDCobj_open_common(const char *obj_name, pdcid_t pdc, int is_col)
         PGOTO_ERROR(0, "PDC object prop memory allocation failed");
     p->obj_pt->pdc = (struct _pdc_class *)PDC_calloc(1, sizeof(struct _pdc_class));
     if (!p->obj_pt->pdc)
-        PGOTO_ERROR(0, "cannot allocate ret_value->pdc");
+        PGOTO_ERROR(0, "Cannot allocate ret_value->pdc");
 
     // contact metadata server
     if (is_col == 0)
@@ -478,7 +459,7 @@ PDCobj_open_common(const char *obj_name, pdcid_t pdc, int is_col)
         ret = PDC_Client_query_metadata_name_timestep_agg(obj_name, 0, &out, &metadata_server_id);
 
     if (ret == FAIL)
-        PGOTO_ERROR(0, "query object failed");
+        PGOTO_ERROR(0, "Query object failed");
 
     obj_prop = PDCprop_create(PDC_OBJ_CREATE, pdc);
     PDCprop_set_obj_dims(obj_prop, out->ndim, out->dims);
@@ -488,7 +469,7 @@ PDCobj_open_common(const char *obj_name, pdcid_t pdc, int is_col)
     p->obj_pt->obj_prop_pub->ndim   = out->ndim;
     p->obj_pt->obj_prop_pub->dims   = PDC_malloc(out->ndim * sizeof(uint64_t));
     if (!p->obj_pt->obj_prop_pub->dims)
-        PGOTO_ERROR(0, "cannot allocate ret_value->obj_prop_pub->dims");
+        PGOTO_ERROR(0, "Cannot allocate ret_value->obj_prop_pub->dims");
 
     for (i = 0; i < out->ndim; i++)
         p->obj_pt->obj_prop_pub->dims[i] = out->dims[i];
@@ -526,14 +507,13 @@ PDCobj_open_common(const char *obj_name, pdcid_t pdc, int is_col)
     memcpy(p->obj_info_pub->obj_pt, p->obj_pt->obj_prop_pub, sizeof(struct pdc_obj_prop));
     p->obj_info_pub->obj_pt->dims = PDC_malloc(p->obj_pt->obj_prop_pub->ndim * sizeof(uint64_t));
     if (!p->obj_info_pub->obj_pt->dims)
-        PGOTO_ERROR(0, "failed to allocate obj pub property memory");
+        PGOTO_ERROR(0, "Failed to allocate obj pub property memory");
     for (i = 0; i < p->obj_pt->obj_prop_pub->ndim; i++)
         p->obj_info_pub->obj_pt->dims[i] = p->obj_pt->obj_prop_pub->dims[i];
 
     ret_value = p->obj_info_pub->local_id;
 
 done:
-    fflush(stdout);
     FUNC_LEAVE(ret_value);
 }
 
@@ -570,7 +550,7 @@ PDCobj_iter_start(pdcid_t cont_id)
 
     type_ptr = (pdc_id_list_g->PDC_id_type_list_g)[PDC_OBJ];
     if (type_ptr == NULL)
-        PGOTO_ERROR(NULL, "object list is empty");
+        PGOTO_ERROR(NULL, "Object list is empty");
     objhl = (&type_ptr->ids)->head;
 
     while (objhl != NULL &&
@@ -581,7 +561,6 @@ PDCobj_iter_start(pdcid_t cont_id)
     ret_value = objhl;
 
 done:
-    fflush(stdout);
     FUNC_LEAVE(ret_value);
 }
 
@@ -606,7 +585,7 @@ PDCobj_iter_next(obj_handle *ohandle, pdcid_t cont_id)
     obj_handle *next      = NULL;
 
     if (ohandle == NULL)
-        PGOTO_ERROR(NULL, "no next object");
+        PGOTO_ERROR(NULL, "No next object");
     next = PDC_LIST_NEXT(ohandle, entry);
 
     while (next != NULL &&
@@ -617,7 +596,6 @@ PDCobj_iter_next(obj_handle *ohandle, pdcid_t cont_id)
     ret_value = next;
 
 done:
-    fflush(stdout);
     FUNC_LEAVE(ret_value);
 }
 
@@ -636,21 +614,20 @@ PDCobj_iter_get_info(obj_handle *ohandle)
 
     ret_value = (struct pdc_obj_info *)PDC_calloc(1, sizeof(struct pdc_obj_info));
     if (!ret_value)
-        PGOTO_ERROR(NULL, "failed to allocate memory");
+        PGOTO_ERROR(NULL, "Failed to allocate memory");
     memcpy(ret_value, info->obj_info_pub, sizeof(struct pdc_obj_info));
 
     ret_value->obj_pt = (struct pdc_obj_prop *)PDC_calloc(1, sizeof(struct pdc_obj_prop));
     if (!ret_value->obj_pt)
-        PGOTO_ERROR(NULL, "failed to allocate memory");
+        PGOTO_ERROR(NULL, "Failed to allocate memory");
     memcpy(ret_value->obj_pt, info->obj_info_pub->obj_pt, sizeof(struct pdc_obj_prop));
     ret_value->obj_pt->dims = PDC_malloc(ret_value->obj_pt->ndim * sizeof(uint64_t));
     if (!ret_value->obj_pt->dims)
-        PGOTO_ERROR(0, "failed to allocate obj pub property memory");
+        PGOTO_ERROR(0, "Failed to allocate obj pub property memory");
     for (i = 0; i < ret_value->obj_pt->ndim; i++)
         ret_value->obj_pt->dims[i] = info->obj_info_pub->obj_pt->dims[i];
 
 done:
-    fflush(stdout);
     FUNC_LEAVE(ret_value);
 }
 
@@ -664,11 +641,10 @@ PDCprop_set_obj_user_id(pdcid_t obj_prop, uint32_t user_id)
 
     info = PDC_find_id(obj_prop);
     if (info == NULL)
-        PGOTO_ERROR(FAIL, "cannot locate object property ID");
+        PGOTO_ERROR(FAIL, "Cannot locate object property ID");
     ((struct _pdc_obj_prop *)(info->obj_ptr))->user_id = user_id;
 
 done:
-    fflush(stdout);
     FUNC_LEAVE(ret_value);
 }
 
@@ -682,7 +658,7 @@ PDCprop_set_obj_app_name(pdcid_t obj_prop, char *app_name)
 
     info = PDC_find_id(obj_prop);
     if (info == NULL)
-        PGOTO_ERROR(FAIL, "cannot locate object property ID");
+        PGOTO_ERROR(FAIL, "Cannot locate object property ID");
     if (((struct _pdc_obj_prop *)(info->obj_ptr))->app_name != NULL) {
         ((struct _pdc_obj_prop *)(info->obj_ptr))->app_name =
             (char *)PDC_free(((struct _pdc_obj_prop *)(info->obj_ptr))->app_name);
@@ -690,7 +666,6 @@ PDCprop_set_obj_app_name(pdcid_t obj_prop, char *app_name)
     ((struct _pdc_obj_prop *)(info->obj_ptr))->app_name = strdup(app_name);
 
 done:
-    fflush(stdout);
     FUNC_LEAVE(ret_value);
 }
 
@@ -704,11 +679,10 @@ PDCprop_set_obj_time_step(pdcid_t obj_prop, uint32_t time_step)
 
     info = PDC_find_id(obj_prop);
     if (info == NULL)
-        PGOTO_ERROR(FAIL, "cannot locate object property ID");
+        PGOTO_ERROR(FAIL, "Cannot locate object property ID");
     ((struct _pdc_obj_prop *)(info->obj_ptr))->time_step = time_step;
 
 done:
-    fflush(stdout);
     FUNC_LEAVE(ret_value);
 }
 
@@ -722,7 +696,7 @@ PDCprop_set_obj_data_loc(pdcid_t obj_prop, char *loc)
 
     info = PDC_find_id(obj_prop);
     if (info == NULL)
-        PGOTO_ERROR(FAIL, "cannot locate object property ID");
+        PGOTO_ERROR(FAIL, "Cannot locate object property ID");
     if (((struct _pdc_obj_prop *)(info->obj_ptr))->data_loc != NULL) {
         ((struct _pdc_obj_prop *)(info->obj_ptr))->data_loc =
             (char *)PDC_free(((struct _pdc_obj_prop *)(info->obj_ptr))->data_loc);
@@ -730,7 +704,6 @@ PDCprop_set_obj_data_loc(pdcid_t obj_prop, char *loc)
     ((struct _pdc_obj_prop *)(info->obj_ptr))->data_loc = strdup(loc);
 
 done:
-    fflush(stdout);
     FUNC_LEAVE(ret_value);
 }
 
@@ -744,7 +717,7 @@ PDCprop_set_obj_tags(pdcid_t obj_prop, char *tags)
 
     info = PDC_find_id(obj_prop);
     if (info == NULL)
-        PGOTO_ERROR(FAIL, "cannot locate object property ID");
+        PGOTO_ERROR(FAIL, "Cannot locate object property ID");
     if (((struct _pdc_obj_prop *)(info->obj_ptr))->tags != NULL) {
         ((struct _pdc_obj_prop *)(info->obj_ptr))->tags =
             (char *)PDC_free(((struct _pdc_obj_prop *)(info->obj_ptr))->tags);
@@ -752,7 +725,6 @@ PDCprop_set_obj_tags(pdcid_t obj_prop, char *tags)
     ((struct _pdc_obj_prop *)(info->obj_ptr))->tags = strdup(tags);
 
 done:
-    fflush(stdout);
     FUNC_LEAVE(ret_value);
 }
 
@@ -781,7 +753,6 @@ PDCprop_set_obj_dims(pdcid_t obj_prop, PDC_int_t ndim, uint64_t *dims)
     memcpy(prop->obj_prop_pub->dims, dims, ndim * sizeof(uint64_t));
 
 done:
-    fflush(stdout);
     FUNC_LEAVE(ret_value);
 }
 
@@ -796,12 +767,11 @@ PDCprop_set_obj_type(pdcid_t obj_prop, pdc_var_type_t type)
 
     info = PDC_find_id(obj_prop);
     if (info == NULL)
-        PGOTO_ERROR(FAIL, "cannot locate object property ID");
+        PGOTO_ERROR(FAIL, "Cannot locate object property ID");
     prop                     = (struct _pdc_obj_prop *)(info->obj_ptr);
     prop->obj_prop_pub->type = type;
 
 done:
-    fflush(stdout);
     FUNC_LEAVE(ret_value);
 }
 
@@ -816,12 +786,11 @@ PDCprop_set_obj_transfer_region_type(pdcid_t obj_prop, pdc_region_partition_t re
 
     info = PDC_find_id(obj_prop);
     if (info == NULL)
-        PGOTO_ERROR(FAIL, "cannot locate object property ID");
+        PGOTO_ERROR(FAIL, "Cannot locate object property ID");
     prop                                 = (struct _pdc_obj_prop *)(info->obj_ptr);
     prop->obj_prop_pub->region_partition = region_partition;
 
 done:
-    fflush(stdout);
     FUNC_LEAVE(ret_value);
 }
 
@@ -836,12 +805,11 @@ PDCprop_set_obj_consistency_semantics(pdcid_t obj_prop, pdc_consistency_t consis
 
     info = PDC_find_id(obj_prop);
     if (info == NULL)
-        PGOTO_ERROR(FAIL, "cannot locate object property ID");
+        PGOTO_ERROR(FAIL, "Cannot locate object property ID");
     prop                            = (struct _pdc_obj_prop *)(info->obj_ptr);
     prop->obj_prop_pub->consistency = consistency;
 
 done:
-    fflush(stdout);
     FUNC_LEAVE(ret_value);
 }
 
@@ -856,12 +824,11 @@ PDCprop_set_obj_buf(pdcid_t obj_prop, void *buf)
 
     info = PDC_find_id(obj_prop);
     if (info == NULL)
-        PGOTO_ERROR(FAIL, "cannot locate object property ID");
+        PGOTO_ERROR(FAIL, "Cannot locate object property ID");
     prop      = (struct _pdc_obj_prop *)(info->obj_ptr);
     prop->buf = buf;
 
 done:
-    fflush(stdout);
     FUNC_LEAVE(ret_value);
 }
 
@@ -882,8 +849,7 @@ PDCobj_set_dims(pdcid_t obj_id, int ndim, uint64_t *dims)
     object = (struct _pdc_obj_info *)(info->obj_ptr);
     if (object->local_transfer_request_size) {
         // We do not allow setting obj dims while the region transfer requests are taking places.
-        ret_value = FAIL;
-        goto done;
+        PGOTO_ERROR(FAIL, "Attempt to set obj dims while a region transfer request was taking place");
     }
 
     if (ndim != (int)((pdc_metadata_t *)(object->metadata))->ndim) {
@@ -897,7 +863,7 @@ PDCobj_set_dims(pdcid_t obj_id, int ndim, uint64_t *dims)
 
     if (!reset) {
         // Server rejects reset object dims for some reasons, so we close this operation.
-        ret_value = FAIL;
+        PGOTO_DONE(FAIL);
     }
 
 done:
@@ -937,13 +903,12 @@ PDCobj_buf_retrieve(pdcid_t obj_id)
 
     info = PDC_find_id(obj_id);
     if (info == NULL)
-        PGOTO_ERROR(NULL, "cannot locate object ID");
+        PGOTO_ERROR(NULL, "Cannot locate object ID");
     object    = (struct _pdc_obj_info *)(info->obj_ptr);
     buffer    = &(object->obj_pt->buf);
     ret_value = buffer;
 
 done:
-    fflush(stdout);
     FUNC_LEAVE(ret_value);
 }
 
@@ -959,21 +924,21 @@ PDC_obj_get_info(pdcid_t obj_id)
 
     obj = PDC_find_id(obj_id);
     if (obj == NULL)
-        PGOTO_ERROR(NULL, "cannot locate object");
+        PGOTO_ERROR(NULL, "Cannot locate object");
 
     info      = (struct _pdc_obj_info *)(obj->obj_ptr);
     ret_value = (struct _pdc_obj_info *)PDC_calloc(1, sizeof(struct _pdc_obj_info));
     if (ret_value)
         memcpy(ret_value, info, sizeof(struct _pdc_obj_info));
     else
-        PGOTO_ERROR(NULL, "cannot allocate ret_value");
+        PGOTO_ERROR(NULL, "Cannot allocate ret_value");
 
     /* struct pdc_obj_info field */
     ret_value->obj_info_pub = (struct pdc_obj_info *)PDC_calloc(1, sizeof(struct pdc_obj_info));
     if (ret_value->obj_info_pub)
         memcpy(ret_value->obj_info_pub, info->obj_info_pub, sizeof(struct pdc_obj_info));
     else
-        PGOTO_ERROR(NULL, "cannot allocate ret_value");
+        PGOTO_ERROR(NULL, "Cannot allocate ret_value");
     if (info->obj_info_pub->name)
         ret_value->obj_info_pub->name = strdup(info->obj_info_pub->name);
     else
@@ -981,12 +946,12 @@ PDC_obj_get_info(pdcid_t obj_id)
 
     ret_value->obj_info_pub->obj_pt = (struct pdc_obj_prop *)PDC_calloc(1, sizeof(struct pdc_obj_prop));
     if (!ret_value->obj_info_pub->obj_pt)
-        PGOTO_ERROR(NULL, "failed to allocate memory");
+        PGOTO_ERROR(NULL, "Failed to allocate memory");
     memcpy(ret_value->obj_info_pub->obj_pt, info->obj_info_pub->obj_pt, sizeof(struct pdc_obj_prop));
     ret_value->obj_info_pub->obj_pt->dims =
         PDC_malloc(ret_value->obj_info_pub->obj_pt->ndim * sizeof(uint64_t));
     if (!ret_value->obj_info_pub->obj_pt->dims)
-        PGOTO_ERROR(0, "failed to allocate obj pub property memory");
+        PGOTO_ERROR(0, "Failed to allocate obj pub property memory");
     for (i = 0; i < ret_value->obj_info_pub->obj_pt->ndim; i++)
         ret_value->obj_info_pub->obj_pt->dims[i] = info->obj_info_pub->obj_pt->dims[i];
 
@@ -998,13 +963,13 @@ PDC_obj_get_info(pdcid_t obj_id)
     if (ret_value->cont)
         memcpy(ret_value->cont, info->cont, sizeof(struct _pdc_cont_info));
     else
-        PGOTO_ERROR(NULL, "cannot allocate ret_value->cont");
+        PGOTO_ERROR(NULL, "Cannot allocate ret_value->cont");
 
     ret_value->cont->cont_info_pub = (struct pdc_cont_info *)PDC_calloc(1, sizeof(struct pdc_cont_info));
     if (ret_value->cont->cont_info_pub)
         memcpy(ret_value->cont->cont_info_pub, info->cont->cont_info_pub, sizeof(struct pdc_cont_info));
     else
-        PGOTO_ERROR(NULL, "cannot allocate ret_value->cont->cont_info_pub");
+        PGOTO_ERROR(NULL, "Cannot allocate ret_value->cont->cont_info_pub");
     if (info->cont->cont_info_pub->name)
         ret_value->cont->cont_info_pub->name = strdup(info->cont->cont_info_pub->name);
     else
@@ -1014,7 +979,7 @@ PDC_obj_get_info(pdcid_t obj_id)
     if (ret_value->cont->cont_pt)
         memcpy(ret_value->cont->cont_pt, info->cont->cont_pt, sizeof(struct _pdc_cont_prop));
     else
-        PGOTO_ERROR(NULL, "cannot allocate ret_value->cont->cont_pt");
+        PGOTO_ERROR(NULL, "Cannot allocate ret_value->cont->cont_pt");
     ret_value->cont->cont_pt->pdc = (struct _pdc_class *)PDC_calloc(1, sizeof(struct _pdc_class));
     if (ret_value->cont->cont_pt->pdc) {
         ret_value->cont->cont_pt->pdc->local_id = info->cont->cont_pt->pdc->local_id;
@@ -1024,14 +989,14 @@ PDC_obj_get_info(pdcid_t obj_id)
             ret_value->cont->cont_pt->pdc->name = NULL;
     }
     else
-        PGOTO_ERROR(NULL, "cannot allocate ret_value->cont->cont_pt->pdc");
+        PGOTO_ERROR(NULL, "Cannot allocate ret_value->cont->cont_pt->pdc");
 
     // fill in struct _pdc_obj_prop field in ret_value->obj_pt
     ret_value->obj_pt = (struct _pdc_obj_prop *)PDC_calloc(1, sizeof(struct _pdc_obj_prop));
     if (ret_value->obj_pt)
         memcpy(ret_value->obj_pt, info->obj_pt, sizeof(struct _pdc_obj_prop));
     else
-        PGOTO_ERROR(NULL, "cannot allocate ret_value->obj_pt");
+        PGOTO_ERROR(NULL, "Cannot allocate ret_value->obj_pt");
     ret_value->obj_pt->pdc = (struct _pdc_class *)PDC_calloc(1, sizeof(struct _pdc_class));
     if (ret_value->obj_pt->pdc) {
         ret_value->obj_pt->pdc->local_id = info->obj_pt->pdc->local_id;
@@ -1041,7 +1006,7 @@ PDC_obj_get_info(pdcid_t obj_id)
             ret_value->obj_pt->pdc->name = NULL;
     }
     else
-        PGOTO_ERROR(NULL, "cannot allocate ret_value->obj_pt->pdc");
+        PGOTO_ERROR(NULL, "Cannot allocate ret_value->obj_pt->pdc");
 
     ret_value->obj_pt->obj_prop_pub = (struct pdc_obj_prop *)PDC_calloc(1, sizeof(struct pdc_obj_prop));
     if (ret_value->obj_pt->obj_prop_pub)
@@ -1057,7 +1022,7 @@ PDC_obj_get_info(pdcid_t obj_id)
         }
     }
     else
-        PGOTO_ERROR(NULL, "cannot allocate ret_value->obj_pt->dims");
+        PGOTO_ERROR(NULL, "Cannot allocate ret_value->obj_pt->dims");
     if (info->obj_pt->app_name)
         ret_value->obj_pt->app_name = strdup(info->obj_pt->app_name);
     else
@@ -1074,7 +1039,6 @@ PDC_obj_get_info(pdcid_t obj_id)
     ret_value->region_list_head = NULL;
 
 done:
-    fflush(stdout);
     FUNC_LEAVE(ret_value);
 }
 
@@ -1144,12 +1108,11 @@ PDCobj_get_info(pdcid_t obj_id)
 
     tmp = PDC_obj_get_info(obj_id);
     if (NULL == tmp)
-        PGOTO_ERROR(NULL, "failed to allocate memory");
+        PGOTO_ERROR(NULL, "Failed to allocate memory");
 
     ret_value = tmp->obj_info_pub;
 
 done:
-    fflush(stdout);
     FUNC_LEAVE(ret_value);
 }
 

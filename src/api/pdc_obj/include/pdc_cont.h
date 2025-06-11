@@ -158,7 +158,7 @@ pbool_t PDCcont_iter_null(cont_handle *chandle);
  * \param chandle [IN]          Pointer to cont_handle struct, returned by
  *                              PDCcont_iter_start(pdcid_t pdc_id)
  *
- * \return Pointer to cont_handle struct/NULL on failure
+ * \return Pointer to cont_handle struct/NULL on failure or no more containers
  */
 cont_handle *PDCcont_iter_next(cont_handle *chandle);
 

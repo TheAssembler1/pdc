@@ -46,7 +46,6 @@
 #include <mpi.h>
 
 #define PDC_MERGE_TRANSFER_MIN_COUNT 50
-/* #define TANG_DEBUG 1 */
 
 // pdc region transfer class. Contains essential information for performing non-blocking PDC client I/O
 // perations.
@@ -208,21 +207,21 @@ PDCregion_transfer_create(void *buf, pdc_access_t access_type, pdcid_t obj_id, p
     int                     j;
 
     if (buf == NULL)
-        PGOTO_ERROR(FAIL, "client buffer was NULL");
+        PGOTO_ERROR(FAIL, "Client buffer was NULL");
 
     reginfo1 = PDC_find_id(local_reg);
     if (reginfo1 == NULL)
-        PGOTO_ERROR(FAIL, "cannot locate local region ID");
+        PGOTO_ERROR(FAIL, "Cannot locate local region ID");
     reg1 = (struct pdc_region_info *)(reginfo1->obj_ptr);
 
     reginfo2 = PDC_find_id(remote_reg);
     if (reginfo2 == NULL)
-        PGOTO_ERROR(FAIL, "cannot locate remote region ID");
+        PGOTO_ERROR(FAIL, "Cannot locate remote region ID");
     reg2 = (struct pdc_region_info *)(reginfo2->obj_ptr);
 
     objinfo2 = PDC_find_id(obj_id);
     if (objinfo2 == NULL)
-        PGOTO_ERROR(FAIL, "cannot locate remote object ID");
+        PGOTO_ERROR(FAIL, "Cannot locate remote object ID");
 
     obj2 = (struct _pdc_obj_info *)(objinfo2->obj_ptr);
     // remote_meta_id = obj2->obj_info_pub->meta_id;
@@ -280,7 +279,6 @@ PDCregion_transfer_create(void *buf, pdc_access_t access_type, pdcid_t obj_id, p
     ret_value = PDC_id_register(PDC_TRANSFER_REQUEST, p);
 
 done:
-    fflush(stdout);
     FUNC_LEAVE(ret_value);
 }
 
@@ -294,9 +292,9 @@ PDCregion_transfer_close(pdcid_t transfer_request_id)
     perr_t                ret_value = SUCCEED;
 
     transferinfo = PDC_find_id(transfer_request_id);
-    if (transferinfo == NULL) {
-        goto done;
-    }
+    if (transferinfo == NULL)
+        PGOTO_DONE(ret_value);
+
     transfer_request = (pdc_transfer_request *)(transferinfo->obj_ptr);
     if (transfer_request->local_region_offset)
         transfer_request->local_region_offset = (uint64_t *)PDC_free(transfer_request->local_region_offset);
@@ -313,7 +311,6 @@ done:
     PDC_Client_transfer_pthread_cnt_add(-1);
     PDC_Client_transfer_pthread_terminate();
 
-    fflush(stdout);
     FUNC_LEAVE(ret_value);
 }
 
@@ -344,7 +341,7 @@ attach_local_transfer_request(struct _pdc_obj_info *p, pdcid_t transfer_request_
     }
     p->local_transfer_request_end->local_id = transfer_request_id;
     p->local_transfer_request_size++;
-    fflush(stdout);
+
     FUNC_LEAVE(ret_value);
 }
 
@@ -382,7 +379,6 @@ remove_local_transfer_request(struct _pdc_obj_info *p, pdcid_t transfer_request_
         temp     = temp->next;
     }
 
-    fflush(stdout);
     FUNC_LEAVE(ret_value);
 }
 
@@ -514,7 +510,6 @@ static_region_partition(char *buf, int ndim, uint64_t unit, pdc_access_t access_
         }
     }
 
-    fflush(stdout);
     FUNC_LEAVE(ret_value);
 }
 /*
@@ -565,7 +560,6 @@ pack_region_buffer(char *buf, uint64_t *obj_dims, size_t total_data_size, int lo
         ret_value = FAIL;
     }
 
-    fflush(stdout);
     FUNC_LEAVE(ret_value);
 }
 
@@ -586,7 +580,7 @@ set_obj_server_bufs(pdc_transfer_request *transfer_request)
         transfer_request->read_bulk_buf =
             (char **)PDC_malloc(sizeof(char *) * transfer_request->n_obj_servers);
     }
-    fflush(stdout);
+
     FUNC_LEAVE(ret_value);
 }
 
@@ -633,7 +627,7 @@ pack_region_metadata_query(pdc_transfer_request_start_all_pkg **transfer_request
     }
 
     *total_buf_size_ptr = total_buf_size;
-    fflush(stdout);
+
     FUNC_LEAVE(ret_value);
 }
 
@@ -733,7 +727,6 @@ unpack_region_metadata_query(char *buf, pdc_transfer_request_start_all_pkg **tra
     *transfer_request_end_ptr  = transfer_request_end;
     *size_ptr += size;
 
-    fflush(stdout);
     FUNC_LEAVE(ret_value);
 }
 
@@ -859,7 +852,6 @@ register_metadata(pdc_transfer_request_start_all_pkg **transfer_request_input, i
 
     transfer_requests = (pdc_transfer_request_start_all_pkg **)PDC_free(transfer_requests);
 
-    fflush(stdout);
     FUNC_LEAVE(ret_value);
 }
 
@@ -900,7 +892,7 @@ prepare_start_all_requests(pdcid_t *transfer_request_id, int size,
             continue;
         transfer_request = (pdc_transfer_request *)(transferinfo->obj_ptr);
         if (transfer_request->metadata_id != NULL) {
-            LOG_ERROR("==PDC_CLIENT[%d]: cannot start transfer request\n", pdc_client_mpi_rank_g);
+            LOG_ERROR("Cannot start transfer request\n");
             FUNC_LEAVE(FAIL);
         }
         if (transfer_request->consistency == PDC_CONSISTENCY_POSIX) {
@@ -927,8 +919,7 @@ prepare_start_all_requests(pdcid_t *transfer_request_id, int size,
                                     &(transfer_request->sub_offsets), &(transfer_request->output_offsets),
                                     &(transfer_request->output_sizes), &(transfer_request->output_buf));
             if (transfer_request->n_obj_servers == 0) {
-                LOG_ERROR("PDC_Client %d error with static region partition, no server is selected!\n",
-                          pdc_client_mpi_rank_g);
+                LOG_ERROR("Error with static region partition, no server is selected");
                 FUNC_LEAVE(FAIL);
             }
             for (j = 0; j < transfer_request->n_obj_servers; ++j) {
@@ -1184,7 +1175,7 @@ PDC_Client_pack_all_requests(int n_objs, pdc_transfer_request_start_all_pkg **tr
         }
     }
     *total_buf_size_ptr = total_buf_size;
-    fflush(stdout);
+
     FUNC_LEAVE(ret_value);
 }
 
@@ -1202,14 +1193,8 @@ PDC_Client_start_all_requests(pdc_transfer_request_start_all_pkg **transfer_requ
     size_t    bulk_buf_size;
     int *     bulk_buf_ref;
 
-#ifdef TANG_DEBUG
-    char cur_time[64];
-    PDC_get_time_str(cur_time);
-    LOG_DEBUG("%s PDC_CLIENT[%d] enter\n", cur_time, pdc_client_mpi_rank_g);
-#endif
-
     if (size == 0)
-        goto done;
+        PGOTO_DONE(ret_value);
 
     metadata_id   = (uint64_t *)PDC_malloc(sizeof(uint64_t) * size);
     read_bulk_buf = (char **)PDC_malloc(sizeof(char *) * size);
@@ -1271,7 +1256,6 @@ PDC_Client_start_all_requests(pdc_transfer_request_start_all_pkg **transfer_requ
     metadata_id   = (uint64_t *)PDC_free(metadata_id);
 
 done:
-    fflush(stdout);
     FUNC_LEAVE(ret_value);
 }
 
@@ -1297,12 +1281,12 @@ merge_transfer_request_ids(pdcid_t *transfer_request_id, int size, pdcid_t *merg
     for (i = 0; i < size; ++i) {
         transferinfo = PDC_find_id(transfer_request_id[i]);
         if (NULL == transferinfo) {
-            LOG_ERROR("==PDC_CLIENT[%d]: cannot find transfer request info\n", pdc_client_mpi_rank_g);
+            LOG_ERROR("Cannot find transfer request info\n");
             FUNC_LEAVE(FAIL);
         }
         all_transfer_request[i] = (pdc_transfer_request *)(transferinfo->obj_ptr);
         if (NULL == all_transfer_request[i]) {
-            LOG_ERROR("==PDC_CLIENT[%d]: transfer request is NULL\n", pdc_client_mpi_rank_g);
+            LOG_ERROR("Transfer request is NULL\n");
             FUNC_LEAVE(FAIL);
         }
 
@@ -1394,12 +1378,6 @@ PDCregion_transfer_start_all_common(pdcid_t *transfer_request_id, int size, int 
     pdc_transfer_request_start_all_pkg **write_transfer_requests = NULL, **read_transfer_requests = NULL;
     pdcid_t *                            posix_transfer_request_id, *merged_request_id;
 
-#ifdef TANG_DEBUG
-    char cur_time[64];
-    PDC_get_time_str(cur_time);
-    LOG_DEBUG("%s PDC_CLIENT[%d] enter\n", cur_time, pdc_client_mpi_rank_g);
-#endif
-
     // Merge the transfer_request_ids when they are operating on the same obj and have contiguous off, len
     if (size > PDC_MERGE_TRANSFER_MIN_COUNT) {
         merged_request_id = PDC_malloc(sizeof(pdcid_t));
@@ -1431,7 +1409,7 @@ PDCregion_transfer_start_all_common(pdcid_t *transfer_request_id, int size, int 
 
     // For POSIX consistency, we block here until the data is received by the server
     if (posix_size > 0) {
-        LOG_ERROR("==PDC_CLIENT[%d]: wait for posix requests\n", pdc_client_mpi_rank_g);
+        LOG_ERROR("Wait for posix requests\n");
         PDCregion_transfer_wait_all(posix_transfer_request_id, posix_size);
         posix_transfer_request_id = (pdcid_t *)PDC_free(posix_transfer_request_id);
     }
@@ -1488,15 +1466,13 @@ PDCregion_transfer_start_common(pdcid_t transfer_request_id,
 
     transferinfo = PDC_find_id(transfer_request_id);
     if (NULL == transferinfo)
-        goto done;
+        PGOTO_DONE(ret_value);
 
     transfer_request = (pdc_transfer_request *)(transferinfo->obj_ptr);
 
-    if (transfer_request->metadata_id != NULL) {
-        LOG_ERROR("PDC_Client %s attempt to start existing transfer request\n");
-        ret_value = FAIL;
-        goto done;
-    }
+    if (transfer_request->metadata_id != NULL)
+        PGOTO_ERROR(FAIL, "PDC_Client attempted to start existing transfer request");
+
     // Dynamic case is implemented within the the aggregated version. The main reason is that the target data
     // server may not be unique, so we may end up sending multiple requests to the same data server.
     // Aggregated method will take care of this type of operation.
@@ -1507,7 +1483,7 @@ PDCregion_transfer_start_common(pdcid_t transfer_request_id,
 #else
         PDCregion_transfer_start_all(&transfer_request_id, 1);
 #endif
-        goto done;
+        PGOTO_DONE(ret_value);
     }
 
     PDC_Client_transfer_pthread_cnt_add(1);
@@ -1533,8 +1509,7 @@ PDCregion_transfer_start_common(pdcid_t transfer_request_id,
             &(transfer_request->output_offsets), &(transfer_request->output_sizes),
             &(transfer_request->output_buf));
         if (transfer_request->n_obj_servers == 0) {
-            LOG_ERROR("PDC_Client %d: error with static region partition, no server is selected!\n",
-                      pdc_client_mpi_rank_g);
+            LOG_ERROR("Error with static region partition, no server is selected\n");
             return FAIL;
         }
         // The following memories will be freed in the wait function.
@@ -1580,7 +1555,6 @@ PDCregion_transfer_start_common(pdcid_t transfer_request_id,
     }
 
 done:
-    fflush(stdout);
     FUNC_LEAVE(ret_value);
 }
 
@@ -1649,7 +1623,6 @@ release_region_buffer(char *buf, uint64_t *obj_dims, int local_ndim, uint64_t *l
     if (read_bulk_buf)
         read_bulk_buf = (char **)PDC_free(read_bulk_buf);
 
-    fflush(stdout);
     FUNC_LEAVE(ret_value);
 }
 
@@ -1667,7 +1640,7 @@ PDCregion_transfer_status(pdcid_t transfer_request_id, pdc_transfer_status_t *co
     transferinfo = PDC_find_id(transfer_request_id);
     if (NULL == transferinfo) {
         *completed = PDC_TRANSFER_STATUS_COMPLETE;
-        goto done;
+        PGOTO_DONE(ret_value);
     }
 
     transfer_request = (pdc_transfer_request *)(transferinfo->obj_ptr);
@@ -1680,9 +1653,8 @@ PDCregion_transfer_status(pdcid_t transfer_request_id, pdc_transfer_status_t *co
             for (i = 0; i < transfer_request->n_obj_servers; ++i) {
                 ret_value = PDC_Client_transfer_request_status(transfer_request->metadata_id[i],
                                                                transfer_request->obj_servers[i], completed);
-                if (*completed != PDC_TRANSFER_STATUS_COMPLETE) {
-                    goto done;
-                }
+                if (*completed != PDC_TRANSFER_STATUS_COMPLETE)
+                    PGOTO_DONE(ret_value);
             }
             // If we reach here, then all transfers are finished.
             for (i = 0; i < transfer_request->n_obj_servers; ++i) {
@@ -1715,9 +1687,8 @@ PDCregion_transfer_status(pdcid_t transfer_request_id, pdc_transfer_status_t *co
         else if (transfer_request->region_partition == PDC_OBJ_STATIC) {
             ret_value = PDC_Client_transfer_request_status(transfer_request->metadata_id[0],
                                                            transfer_request->data_server_id, completed);
-            if (*completed != PDC_TRANSFER_STATUS_COMPLETE) {
-                goto done;
-            }
+            if (*completed != PDC_TRANSFER_STATUS_COMPLETE)
+                PGOTO_DONE(ret_value);
             if (transfer_request->access_type == PDC_READ) {
                 memcpy(transfer_request->new_buf, transfer_request->read_bulk_buf[0],
                        transfer_request->total_data_size);
@@ -1737,7 +1708,6 @@ PDCregion_transfer_status(pdcid_t transfer_request_id, pdc_transfer_status_t *co
         *completed = PDC_TRANSFER_STATUS_NOT_FOUND;
     }
 done:
-    fflush(stdout);
     FUNC_LEAVE(ret_value);
 }
 
@@ -1760,9 +1730,8 @@ PDCregion_transfer_wait_all(pdcid_t *transfer_request_id, int size)
 
     double t0, t1;
 
-    if (!size) {
-        goto done;
-    }
+    if (!size)
+        PGOTO_DONE(ret_value);
 
     transferinfo = (struct _pdc_id_info **)PDC_malloc(size * sizeof(struct _pdc_id_info *));
 
@@ -1791,9 +1760,9 @@ PDCregion_transfer_wait_all(pdcid_t *transfer_request_id, int size)
         if (1 == transfer_request->is_done)
             continue;
         if (!transfer_request->metadata_id) {
-            LOG_ERROR("PDCregion_transfer_wait_all [rank %d]: Attempt to wait for a transfer request "
+            LOG_ERROR("Attempt to wait for a transfer request "
                       "that has not been started. %d/%d\n",
-                      pdc_client_mpi_rank_g, i, size);
+                      i, size);
             continue;
         }
         total_requests += transfer_request->n_obj_servers;
@@ -1980,7 +1949,6 @@ PDCregion_transfer_wait_all(pdcid_t *transfer_request_id, int size)
     metadata_ids      = (uint64_t *)PDC_free(metadata_ids);
     transferinfo      = (struct _pdc_id_info **)PDC_free(transferinfo);
 done:
-    fflush(stdout);
     FUNC_LEAVE(ret_value);
 }
 
@@ -1997,7 +1965,7 @@ PDCregion_transfer_wait(pdcid_t transfer_request_id)
 
     transferinfo = PDC_find_id(transfer_request_id);
     if (NULL == transferinfo)
-        goto done;
+        PGOTO_DONE(ret_value);
 
     transfer_request = (pdc_transfer_request *)(transferinfo->obj_ptr);
     if (transfer_request->metadata_id != NULL) {
@@ -2005,7 +1973,7 @@ PDCregion_transfer_wait(pdcid_t transfer_request_id)
         if (transfer_request->region_partition == PDC_REGION_DYNAMIC ||
             transfer_request->region_partition == PDC_REGION_LOCAL) {
             PDCregion_transfer_wait_all(&transfer_request_id, 1);
-            goto done;
+            PGOTO_DONE(ret_value);
         }
 
         unit = transfer_request->unit;
@@ -2068,6 +2036,5 @@ PDCregion_transfer_wait(pdcid_t transfer_request_id)
     }
 
 done:
-    fflush(stdout);
     FUNC_LEAVE(ret_value);
 }

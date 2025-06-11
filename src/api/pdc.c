@@ -51,10 +51,9 @@ PDC_class_init()
 
     /* Initialize the atom group for the container property IDs */
     if (PDC_register_type(PDC_CLASS, (PDC_free_t)PDC_class__close) < 0)
-        PGOTO_ERROR(FAIL, "unable to initialize pdc class interface");
+        PGOTO_ERROR(FAIL, "Unable to initialize pdc class interface");
 
 done:
-    fflush(stdout);
     FUNC_LEAVE(ret_value);
 }
 
@@ -69,7 +68,7 @@ PDC_class_create(const char *pdc_name)
 
     p = (struct _pdc_class *)PDC_malloc(sizeof(struct _pdc_class));
     if (!p)
-        PGOTO_ERROR(FAIL, "PDC class property memory allocation failed\n");
+        PGOTO_ERROR(FAIL, "PDC class property memory allocation failed");
 
     p->name     = strdup(pdc_name);
     pdcid       = PDC_id_register(PDC_CLASS, p);
@@ -77,7 +76,6 @@ PDC_class_create(const char *pdc_name)
     ret_value   = pdcid;
 
 done:
-    fflush(stdout);
     FUNC_LEAVE(ret_value);
 }
 
@@ -116,7 +114,6 @@ PDCinit(const char *pdc_name)
     ret_value = pdcid;
 
 done:
-    fflush(stdout);
     FUNC_LEAVE(ret_value);
 }
 
@@ -149,7 +146,6 @@ PDC_class_close(pdcid_t pdc)
         PGOTO_ERROR(FAIL, "PDC: problem of freeing id");
 
 done:
-    fflush(stdout);
     FUNC_LEAVE(ret_value);
 }
 
@@ -161,10 +157,9 @@ PDC_class_end()
     perr_t ret_value = SUCCEED;
 
     if (PDC_destroy_type(PDC_CLASS) < 0)
-        PGOTO_ERROR(FAIL, "unable to destroy pdc class interface");
+        PGOTO_ERROR(FAIL, "Unable to destroy pdc class interface");
 
 done:
-    fflush(stdout);
     FUNC_LEAVE(ret_value);
 }
 
@@ -222,6 +217,5 @@ PDCclose(pdcid_t pdcid)
     PDC_Client_finalize();
 
 done:
-    fflush(stdout);
     FUNC_LEAVE(ret_value);
 }

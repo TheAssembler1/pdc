@@ -27,14 +27,14 @@ PDC_region_overlap_detect(int ndim, uint64_t *offset1, uint64_t *size1, uint64_t
 {
     FUNC_ENTER(NULL);
 
+    int ret_value = 0;
     int i;
     // First we check if two regions overlaps with each other. If any of the dimensions do not overlap, then
     // we are done.
     if (!check_overlap(ndim, offset1, size1, offset2, size2)) {
         *output_offset = NULL;
         *output_size   = NULL;
-        LOG_DEBUG("PDC_region_overlap_detect, overlap detect failed\n");
-        goto done;
+        PGOTO_DONE(ret_value);
     }
     // Overlapping exist.
     *output_offset = (uint64_t *)PDC_malloc(sizeof(uint64_t) * ndim * 2);
@@ -47,7 +47,7 @@ PDC_region_overlap_detect(int ndim, uint64_t *offset1, uint64_t *size1, uint64_t
     }
 
 done:
-    FUNC_LEAVE(0);
+    FUNC_LEAVE(ret_value);
 }
 
 /*

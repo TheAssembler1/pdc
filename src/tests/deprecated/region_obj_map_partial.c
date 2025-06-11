@@ -75,7 +75,7 @@ main(int argc, char **argv)
         LOG_INFO("Create a container property\n");
     }
     else {
-        LOG_ERROR("Failed to create container property");
+        LOG_ERROR("Failed to create container property\n");
         ret_value = 1;
     }
     // create a container
@@ -85,7 +85,7 @@ main(int argc, char **argv)
         LOG_INFO("Create a container c1\n");
     }
     else {
-        LOG_ERROR("Failed to create container");
+        LOG_ERROR("Failed to create container\n");
         ret_value = 1;
     }
     // create an object property
@@ -94,13 +94,13 @@ main(int argc, char **argv)
         LOG_INFO("Create an object property\n");
     }
     else {
-        LOG_ERROR("Failed to create object property");
+        LOG_ERROR("Failed to create object property\n");
         ret_value = 1;
     }
 
     ret = PDCprop_set_obj_type(obj_prop, PDC_INT);
     if (ret != SUCCEED) {
-        LOG_ERROR("Failed to set obj type");
+        LOG_ERROR("Failed to set obj type\n");
         ret_value = 1;
     }
     PDCprop_set_obj_buf(obj_prop, obj_data);
@@ -117,7 +117,7 @@ main(int argc, char **argv)
         LOG_INFO("Create an object o1\n");
     }
     else {
-        LOG_ERROR("Failed to create object");
+        LOG_ERROR("Failed to create object\n");
         ret_value = 1;
     }
     // create second object
@@ -127,7 +127,7 @@ main(int argc, char **argv)
         LOG_INFO("Create an object o2\n");
     }
     else {
-        LOG_ERROR("Failed to create object");
+        LOG_ERROR("Failed to create object\n");
         ret_value = 1;
     }
 
@@ -269,7 +269,7 @@ main(int argc, char **argv)
     }
     // close a container property
     if (PDCprop_close(cont_prop) < 0) {
-        LOG_ERROR("Failed to close property");
+        LOG_ERROR("Failed to close property\n");
         ret_value = 1;
     }
     else {

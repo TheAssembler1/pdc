@@ -43,14 +43,13 @@ PDC_prop_init()
 
     /* Initialize the atom group for the container property IDs */
     if (PDC_register_type(PDC_CONT_PROP, (PDC_free_t)pdc_prop_cont_close) < 0)
-        PGOTO_ERROR(FAIL, "unable to initialize container property interface");
+        PGOTO_ERROR(FAIL, "Unable to initialize container property interface");
 
     /* Initialize the atom group for the object property IDs */
     if (PDC_register_type(PDC_OBJ_PROP, (PDC_free_t)pdc_prop_obj_close) < 0)
-        PGOTO_ERROR(FAIL, "unable to initialize object property interface");
+        PGOTO_ERROR(FAIL, "Unable to initialize object property interface");
 
 done:
-    fflush(stdout);
     FUNC_LEAVE(ret_value);
 }
 
@@ -122,7 +121,6 @@ PDCprop_create(pdc_prop_type_t type, pdcid_t pdcid)
     }
 
 done:
-    fflush(stdout);
     FUNC_LEAVE(ret_value);
 }
 
@@ -140,7 +138,7 @@ PDCprop_obj_dup(pdcid_t prop_id)
 
     prop = PDC_find_id(prop_id);
     if (prop == NULL)
-        PGOTO_ERROR(0, "cannot locate object property");
+        PGOTO_ERROR(0, "Cannot locate object property");
     info = (struct _pdc_obj_prop *)(prop->obj_ptr);
 
     q = (struct _pdc_obj_prop *)PDC_calloc(1, sizeof(struct _pdc_obj_prop));
@@ -178,7 +176,6 @@ PDCprop_obj_dup(pdcid_t prop_id)
     ret_value = new_id;
 
 done:
-    fflush(stdout);
     FUNC_LEAVE(ret_value);
 }
 
@@ -198,7 +195,6 @@ PDC_prop_cont_list_null()
     }
 
 done:
-    fflush(stdout);
     FUNC_LEAVE(ret_value);
 }
 
@@ -217,7 +213,6 @@ PDC_prop_obj_list_null()
     }
 
 done:
-    fflush(stdout);
     FUNC_LEAVE(ret_value);
 }
 
@@ -266,10 +261,9 @@ PDCprop_close(pdcid_t id)
 
     /* When the reference count reaches zero the resources are freed */
     if (PDC_dec_ref(id) < 0)
-        PGOTO_ERROR(FAIL, "property: problem of freeing id");
+        PGOTO_ERROR(FAIL, "Property: problem of freeing id");
 
 done:
-    fflush(stdout);
     FUNC_LEAVE(ret_value);
 }
 
@@ -281,13 +275,12 @@ PDC_prop_end()
     perr_t ret_value = SUCCEED;
 
     if (PDC_destroy_type(PDC_CONT_PROP) < 0)
-        PGOTO_ERROR(FAIL, "unable to destroy container property interface");
+        PGOTO_ERROR(FAIL, "Unable to destroy container property interface");
 
     if (PDC_destroy_type(PDC_OBJ_PROP) < 0)
-        PGOTO_ERROR(FAIL, "unable to destroy object property interface");
+        PGOTO_ERROR(FAIL, "Unable to destroy object property interface");
 
 done:
-    fflush(stdout);
     FUNC_LEAVE(ret_value);
 }
 
@@ -302,7 +295,7 @@ PDCcont_prop_get_info(pdcid_t cont_prop)
 
     prop = PDC_find_id(cont_prop);
     if (prop == NULL)
-        PGOTO_ERROR(NULL, "cannot allocate container property");
+        PGOTO_ERROR(NULL, "Cannot allocate container property");
     info = (struct _pdc_cont_prop *)(prop->obj_ptr);
 
     ret_value = (struct _pdc_cont_prop *)PDC_calloc(1, sizeof(struct _pdc_cont_prop));
@@ -313,13 +306,12 @@ PDCcont_prop_get_info(pdcid_t cont_prop)
 
     ret_value->pdc = (struct _pdc_class *)PDC_calloc(1, sizeof(struct _pdc_class));
     if (!ret_value->pdc)
-        PGOTO_ERROR(NULL, "cannot allocate ret_value->pdc");
+        PGOTO_ERROR(NULL, "Cannot allocate ret_value->pdc");
     if (info->pdc->name)
         ret_value->pdc->name = strdup(info->pdc->name);
     ret_value->pdc->local_id = info->pdc->local_id;
 
 done:
-    fflush(stdout);
     FUNC_LEAVE(ret_value);
 }
 
@@ -335,7 +327,7 @@ PDCobj_prop_get_info(pdcid_t obj_prop)
 
     prop = PDC_find_id(obj_prop);
     if (prop == NULL)
-        PGOTO_ERROR(NULL, "cannot locate object property");
+        PGOTO_ERROR(NULL, "Cannot locate object property");
     info = (struct _pdc_obj_prop *)(prop->obj_ptr);
 
     ret_value = (struct pdc_obj_prop *)PDC_calloc(1, sizeof(struct pdc_obj_prop));
@@ -345,12 +337,11 @@ PDCobj_prop_get_info(pdcid_t obj_prop)
 
     ret_value->dims = PDC_malloc(info->obj_prop_pub->ndim * sizeof(uint64_t));
     if (ret_value->dims == NULL)
-        PGOTO_ERROR(NULL, "cannot allocate ret_value->dims");
+        PGOTO_ERROR(NULL, "Cannot allocate ret_value->dims");
     for (i = 0; i < info->obj_prop_pub->ndim; i++)
         ret_value->dims[i] = info->obj_prop_pub->dims[i];
 
 done:
-    fflush(stdout);
     FUNC_LEAVE(ret_value);
 }
 
@@ -366,7 +357,7 @@ PDC_obj_prop_get_info(pdcid_t obj_prop)
 
     prop = PDC_find_id(obj_prop);
     if (prop == NULL)
-        PGOTO_ERROR(NULL, "cannot locate object property");
+        PGOTO_ERROR(NULL, "Cannot locate object property");
     info = (struct _pdc_obj_prop *)(prop->obj_ptr);
 
     ret_value = (struct _pdc_obj_prop *)PDC_calloc(1, sizeof(struct _pdc_obj_prop));
@@ -385,7 +376,7 @@ PDC_obj_prop_get_info(pdcid_t obj_prop)
     /* struct _pdc_class field */
     ret_value->pdc = (struct _pdc_class *)PDC_calloc(1, sizeof(struct _pdc_class));
     if (ret_value->pdc == NULL)
-        PGOTO_ERROR(NULL, "cannot allocate ret_value->pdc");
+        PGOTO_ERROR(NULL, "Cannot allocate ret_value->pdc");
     if (info->pdc->name)
         ret_value->pdc->name = strdup(info->pdc->name);
     ret_value->pdc->local_id = info->pdc->local_id;
@@ -397,12 +388,11 @@ PDC_obj_prop_get_info(pdcid_t obj_prop)
     memcpy(ret_value->obj_prop_pub, info->obj_prop_pub, sizeof(struct pdc_obj_prop));
     ret_value->obj_prop_pub->dims = PDC_malloc(info->obj_prop_pub->ndim * sizeof(uint64_t));
     if (ret_value->obj_prop_pub->dims == NULL)
-        PGOTO_ERROR(NULL, "cannot allocate ret_value->obj_prop_pub->dims");
+        PGOTO_ERROR(NULL, "Cannot allocate ret_value->obj_prop_pub->dims");
     for (i = 0; i < info->obj_prop_pub->ndim; i++)
         ret_value->obj_prop_pub->dims[i] = info->obj_prop_pub->dims[i];
 
 done:
-    fflush(stdout);
     FUNC_LEAVE(ret_value);
 }
 

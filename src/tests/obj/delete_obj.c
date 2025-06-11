@@ -104,7 +104,6 @@ main(int argc, char **argv)
 
     if (rank == 0)
         LOG_INFO("Delete %d objects per MPI rank\n", count);
-    fflush(stdout);
 
     // create a pdc
     pdc = PDCinit("pdc");
@@ -131,10 +130,8 @@ main(int argc, char **argv)
         use_name = atoi(env_str);
     }
 
-    if (rank == 0) {
+    if (rank == 0)
         LOG_INFO("Using %s\n", name_mode[use_name + 1]);
-        fflush(stdout);
-    }
 
     srand(rank + 1);
 

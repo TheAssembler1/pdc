@@ -85,7 +85,6 @@ main(int argc, char **argv)
 
     if (rank == 0)
         LOG_INFO("Creating %d objects per MPI rank\n", count);
-    fflush(stdout);
 
     // create a pdc
     pdc = PDC_init("pdc");

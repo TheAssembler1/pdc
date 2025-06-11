@@ -63,21 +63,21 @@ main(int argc, char *argv[])
 
     file_id = H5Fopen(file_name, H5F_ACC_RDONLY, fapl);
     if (file_id < 0) {
-        LOG_ERROR("Error opening file [%s]!\n", file_name);
+        LOG_ERROR("Error opening file [%s]\n", file_name);
         goto done;
     }
 
     group_name = "Step#0";
     group_id   = H5Gopen(file_id, group_name, H5P_DEFAULT);
     if (group_id < 0) {
-        LOG_ERROR("Error opening group [%s]!\n", group_name);
+        LOG_ERROR("Error opening group [%s]\n", group_name);
         goto done;
     }
 
     for (i = 0; i < NVAR; i++) {
         dset_ids[i] = H5Dopen(group_id, dset_names[i], H5P_DEFAULT);
         if (dset_ids[i] < 0) {
-            LOG_ERROR("Error opening dataset [%s]!\n", dset_names[i]);
+            LOG_ERROR("Error opening dataset [%s]\n", dset_names[i]);
             goto done;
         }
     }
@@ -130,7 +130,7 @@ main(int argc, char *argv[])
         ret = PDC_Client_query_metadata_name_timestep(dset_names[i], 0, &obj_meta);
 #endif
         if (ret != SUCCEED || obj_meta == NULL || obj_meta->obj_id == 0) {
-            LOG_ERROR("Error with metadata!\n");
+            LOG_ERROR("Error with metadata\n");
             exit(-1);
         }
 
@@ -143,7 +143,7 @@ main(int argc, char *argv[])
             memspace = H5Screate_simple(1, &elem_count, NULL);
             H5Sselect_hyperslab(filespace, H5S_SELECT_SET, &elem_offset, NULL, &elem_count, NULL);
             if (elem_offset + elem_count > dims[0]) {
-                LOG_ERROR("%d ERROR - off %llu count %llu\n", my_rank, elem_offset, elem_count);
+                LOG_ERROR("%d error - off %llu count %llu\n", my_rank, elem_offset, elem_count);
             }
             hg_ret = H5Dread(dset_ids[i], H5T_NATIVE_FLOAT, memspace, filespace, H5P_DEFAULT, data);
             H5Sclose(memspace);
@@ -153,7 +153,7 @@ main(int argc, char *argv[])
 
             ret = PDC_Client_write(obj_meta, &obj_region, data);
             if (ret != SUCCEED) {
-                LOG_ERROR("Error with PDC_Client_write!\n");
+                LOG_ERROR("Error with PDC_Client_write\n");
                 exit(-1);
             }
 
@@ -169,7 +169,6 @@ main(int argc, char *argv[])
 
         if (my_rank == 0)
             LOG_INFO("\n\nFinished import object %s\n\n", dset_names[i]);
-        fflush(stdout);
     } // End for i
 
     H5Pclose(fapl);

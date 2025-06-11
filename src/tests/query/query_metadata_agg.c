@@ -58,8 +58,6 @@ main(int argc, const char *argv[])
 
     // Create a object with only rank 0
     if (rank == 0) {
-
-        /* fflush(stdout); */
         test_obj = PDCobj_create(cont, obj_name, obj_prop);
         if (test_obj <= 0) {
             LOG_ERROR("Error getting an object id of %s from server, exit...\n", "DataServerTestBin");
@@ -76,7 +74,7 @@ main(int argc, const char *argv[])
     pdc_metadata_t *metadata;
     PDC_Client_query_metadata_name_timestep_agg(obj_name, 0, &metadata);
     if (metadata == NULL || metadata->obj_id == 0) {
-        LOG_ERROR("Proc %d: Error with metadata!\n", rank);
+        LOG_ERROR("Proc %d: Error with metadata\n", rank);
         exit(-1);
     }
 

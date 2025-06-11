@@ -26,6 +26,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "pdc.h"
+#include "test_helper.h"
 
 int
 main(int argc, char **argv)
@@ -33,7 +34,7 @@ main(int argc, char **argv)
     pdcid_t pdc, create_prop, cont;
     // struct _pdc_cont_prop *prop;
     int rank = 0, size = 1;
-    int ret_value = 0;
+    int ret_value = TSUCCEED;
 
 #ifdef ENABLE_MPI
     MPI_Init(&argc, &argv);
@@ -41,62 +42,36 @@ main(int argc, char **argv)
     MPI_Comm_size(MPI_COMM_WORLD, &size);
 #endif
     // create a pdc
-    pdc = PDCinit("pdc");
-    LOG_INFO("create a new pdc\n");
+    TASSERT((pdc = PDCinit("pdc")) != 0, "Call to PDCinit succeeded", "Call to PDCinit failed");
 
     // create a container property
-    create_prop = PDCprop_create(PDC_CONT_CREATE, pdc);
-    if (create_prop > 0) {
-        LOG_INFO("Create a container property\n");
-    }
-    else {
-        LOG_ERROR("Failed to create container property");
-        ret_value = 1;
-    }
-    // print default container lifetime (persistent)
-    // prop = PDCcont_prop_get_info(create_prop);
-    PDCcont_prop_get_info(create_prop);
+    TASSERT((create_prop = PDCprop_create(PDC_CONT_CREATE, pdc)) != 0, "Call to PDCprop_create succeeded",
+            "Call to PDCprop_create failed");
+    TASSERT(PDCcont_prop_get_info(create_prop) != NULL, "Call to PDCcont_prop_get_info succeeded",
+            "Call to PDCcont_prop_get_info failed");
 
     // create a container
-    cont = PDCcont_create("c1", create_prop);
-    if (cont > 0) {
-        LOG_INFO("Create a container, c1\n");
-    }
-    else {
-        LOG_ERROR("Failed to create container");
-        ret_value = 1;
-    }
+    TASSERT((cont = PDCcont_create("c1", create_prop)) != 0, "Call to PDCcont_create succeeded",
+            "Call to PDCcont_create failed");
     // set container lifetime to transient
-    PDCprop_set_cont_lifetime(create_prop, PDC_TRANSIENT);
-    // prop = PDCcont_prop_get_info(create_prop);
-    PDCcont_prop_get_info(create_prop);
-
+    TASSERT(PDCprop_set_cont_lifetime(cont, PDC_TRANSIENT) >= 0,
+            "Call to PDCprop_set_cont_lifetime succeeded", "Call to PDCprop_set_cont_lifetime failed");
+    TASSERT(PDCcont_prop_get_info(create_prop) != NULL, "Call to PDCcont_prop_get_info succeeded",
+            "Call to PDCcont_prop_get_info failed");
     // set container lifetime to persistent
-    PDCcont_persist(cont);
-    // prop = PDCcont_prop_get_info(create_prop);
-    PDCcont_prop_get_info(create_prop);
-
+    TASSERT(PDCcont_persist(cont) >= 0, "Call to PDCcont_persist succeeded",
+            "Call to PDCcont_persist failed");
+    TASSERT(PDCcont_prop_get_info(create_prop) != NULL, "Call to PDCcont_prop_get_info succeeded",
+            "Call to PDCcont_prop_get_info failed");
     // close a container
-    if (PDCcont_close(cont) < 0) {
-        LOG_ERROR("Failed to close container c1\n");
-        ret_value = 1;
-    }
-    else {
-        LOG_INFO("Successfully closed container c1\n");
-    }
+    TASSERT(PDCcont_close(cont) >= 0, "Call to PDCcont_close succeeded", "Call to PDCcont_close failed");
     // close a container property
-    if (PDCprop_close(create_prop) < 0) {
-        LOG_ERROR("Failed to close property");
-        ret_value = 1;
-    }
-    else {
-        LOG_INFO("Successfully closed container property\n");
-    }
+    TASSERT(PDCprop_close(create_prop) >= 0, "Call to PDCprop_close succeeded",
+            "Call to PDCprop_close failed");
     // close pdc
-    if (PDCclose(pdc) < 0) {
-        LOG_ERROR("Failed to close PDC\n");
-        ret_value = 1;
-    }
+    TASSERT(PDCclose(pdc) >= 0, "Call to PDCclose succeeded", "Call to PDCclose failed");
+
+done:
 #ifdef ENABLE_MPI
     MPI_Finalize();
 #endif

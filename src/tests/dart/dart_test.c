@@ -26,14 +26,15 @@ const int INPUT_WIKI_KEYWORD  = 3;
 void
 print_usage()
 {
-    println("Usage: srun -n <client_num> ./dart_test <alphabet_size> <replication_factor> "
-            "<word_count> /path/to/txtfile <index_type>\n"
-            "alphabet_size: 26 for random string, 37 for uuid, 29 for dictionary, 129 for wiki keyword\n"
-            "replication_factor: 1-5\n"
-            "word_count: The number of words you would like to generate. For txt files, it doesn't matter.\n"
-            "txtfile: /path/to/txtfile, for random string and uuid, just provide random/uuid.\n"
-            "index_type: 1 for full hashing, 2 for initial hashing, 3 for DART\n"
-            "Example: srun -n 4 ./dart_test 0 26 2 2048 random 3\n");
+    LOG_JUST_PRINT(
+        "Usage: srun -n <client_num> ./dart_test <alphabet_size> <replication_factor> "
+        "<word_count> /path/to/txtfile <index_type>\n"
+        "alphabet_size: 26 for random string, 37 for uuid, 29 for dictionary, 129 for wiki keyword\n"
+        "replication_factor: 1-5\n"
+        "word_count: The number of words you would like to generate. For txt files, it doesn't matter.\n"
+        "txtfile: /path/to/txtfile, for random string and uuid, just provide random/uuid.\n"
+        "index_type: 1 for full hashing, 2 for initial hashing, 3 for DART\n"
+        "Example: srun -n 4 ./dart_test 0 26 2 2048 random 3\n");
 }
 
 char **
@@ -56,7 +57,7 @@ read_words_from_text(const char *fileName, int *word_count, int *total_word_coun
 
     FILE *file = fopen(fileName, "r"); /* should check the result */
     if (file == NULL) {
-        println("File not available\n");
+        LOG_ERROR("File not available\n");
         exit(4);
     }
     int    lines_allocated = 128;
@@ -118,10 +119,9 @@ main(int argc, char **argv)
 {
 
     int rank = 0, size = 1;
+    int ret_value = SUCCEED;
 
 #ifdef ENABLE_MPI
-    // println("MPI enabled!\n");
-    fflush(stdout);
     MPI_Init(&argc, &argv);
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
     MPI_Comm_size(MPI_COMM_WORLD, &size);
@@ -168,20 +168,18 @@ main(int argc, char **argv)
     else {
         input_word_list = read_words_from_text(dict_filename, &word_count, &total_word_count, rank);
         alphabet_size   = 29;
-        if (indexOfStr(dict_filename, "wiki") != -1) {
+        if (indexOfStr(dict_filename, "wiki") != -1)
             alphabet_size = 129;
-        }
     }
 
-    if (rank == 0) {
-        println("word_count = %d", word_count);
-    }
+    if (rank == 0)
+        LOG_INFO("word_count = %d\n", word_count);
 
     pdcid_t pdc = PDCinit("pdc");
 
     pdcid_t cont_prop = PDCprop_create(PDC_CONT_CREATE, pdc);
     if (cont_prop <= 0)
-        LOG_ERROR("Failed to create container property");
+        PGOTO_ERROR(FAIL, "Failed to create container property");
 
     pdcid_t cont = PDCcont_create("c1", cont_prop);
     if (cont <= 0)
@@ -237,9 +235,10 @@ main(int argc, char **argv)
                                                 (uint64_t)data);
             timer_pause(&detailed_timer);
             if (round == 1)
-                println("[Client_Side_Insert] Time to insert key %s for both prefix index and suffix index = "
-                        "%d microseconds",
-                        input_word_list[i], timer_delta_us(&detailed_timer));
+                LOG_INFO(
+                    "[Client_Side_Insert] Time to insert key %s for both prefix index and suffix index = "
+                    "%d microseconds\n",
+                    input_word_list[i], timer_delta_us(&detailed_timer));
         }
 
 #ifdef ENABLE_MPI
@@ -252,24 +251,7 @@ main(int argc, char **argv)
 
             insert_throughput = (double)((double)(total_word_count) / (double)timer_delta_ms(&timer));
             if (round == 1)
-                println("[Client_Side_Insert_Throughput] %.3f ops/ms", insert_throughput);
-
-            // int srv_cnt = 0;
-            // double sqrt_sum = 0;
-            // double sum = 0;
-
-            // for (srv_cnt = 0; srv_cnt < dart_g->num_server; srv_cnt++){
-            //     dart_server server_abstract = dart_retrieve_server_info_cb((uint32_t)srv_cnt);
-            //     int64_t num_indexed_word = server_abstract.indexed_word_count/2;
-            //     println("[DART Key Distribution] Server %d has %d words indexed", srv_cnt,
-            //     num_indexed_word); sum += (double)num_indexed_word; sqrt_sum +=
-            //     (double)((double)num_indexed_word * (double)num_indexed_word);
-            // }
-            // double mean = sum/(double)dart_g->num_server;
-            // double variance = sqrt_sum/dart_g->num_server - mean * mean;
-            // double stddev = sqrt(variance);
-            // println("[DART Key Distribution] STDDEV = %.3f for %d servers and %d keys in total.", stddev,
-            // dart_g->num_server, word_count * size);
+                LOG_INFO("[Client_Side_Insert_Throughput] %.3f ops/ms\n", insert_throughput);
         }
 
         // /* ===============  Exact Query testing ======================= */
@@ -296,9 +278,9 @@ main(int argc, char **argv)
             PDC_Client_search_obj_ref_through_dart(hash_algo, query_str, ref_type, &rest_count, &out);
             timer_pause(&detailed_timer);
             if (round == 1)
-                println("[Client_Side_Exact] Time to search '%s' and get %d results = %d microseconds for "
-                        "rank %d",
-                        query_str, rest_count, timer_delta_us(&detailed_timer), rank);
+                LOG_INFO("[Client_Side_Exact] Time to search '%s' and get %d results = %d microseconds for "
+                         "rank %d\n",
+                         query_str, rest_count, timer_delta_us(&detailed_timer), rank);
         }
 
 #ifdef ENABLE_MPI
@@ -310,7 +292,7 @@ main(int argc, char **argv)
         if (rank == 0) {
             query_throughput = (double)((double)(total_word_count) / (double)timer_delta_ms(&timer));
             if (round == 1)
-                println("[Client_Side_Exact_Throughput] %.3f ops/ms", query_throughput);
+                LOG_INFO("[Client_Side_Exact_Throughput] %.3f ops/ms\n", query_throughput);
 
             int srv_cnt = 0;
             for (srv_cnt = 0; srv_cnt < dart_g->num_server; srv_cnt++) {
@@ -318,8 +300,8 @@ main(int argc, char **argv)
                 server_abstract.id = srv_cnt;
                 dart_retrieve_server_info_cb(&server_abstract);
                 if (round == 1)
-                    println("[DART Load Balance 1] Server %d has query requests = %d", srv_cnt,
-                            server_abstract.request_count);
+                    LOG_INFO("[DART Load Balance 1] Server %d has query requests = %d\n", srv_cnt,
+                             server_abstract.request_count);
             }
         }
 
@@ -349,9 +331,9 @@ main(int argc, char **argv)
             PDC_Client_search_obj_ref_through_dart(hash_algo, query_str, ref_type, &rest_count, &out);
             timer_pause(&detailed_timer);
             if (round == 1)
-                println("[Client_Side_Prefix] Time to search '%s' and get %d results = %d microseconds for "
-                        "rank %d",
-                        query_str, rest_count, timer_delta_us(&detailed_timer), rank);
+                LOG_INFO("[Client_Side_Prefix] Time to search '%s' and get %d results = %d microseconds for "
+                         "rank %d\n",
+                         query_str, rest_count, timer_delta_us(&detailed_timer), rank);
         }
 
 #ifdef ENABLE_MPI
@@ -363,7 +345,7 @@ main(int argc, char **argv)
         if (rank == 0) {
             query_throughput = (double)((double)(total_word_count) / (double)timer_delta_ms(&timer));
             if (round == 1)
-                println("[Client_Side_Prefix_Throughput] %.3f ops/ms", query_throughput);
+                LOG_INFO("[Client_Side_Prefix_Throughput] %.3f ops/ms\n", query_throughput);
 
             int srv_cnt = 0;
             for (srv_cnt = 0; srv_cnt < dart_g->num_server; srv_cnt++) {
@@ -371,8 +353,8 @@ main(int argc, char **argv)
                 server_abstract.id = srv_cnt;
                 dart_retrieve_server_info_cb(&server_abstract);
                 if (round == 1)
-                    println("[DART Load Balance 2] Server %d has query requests = %d", srv_cnt,
-                            server_abstract.request_count);
+                    LOG_INFO("[DART Load Balance 2] Server %d has query requests = %d\n", srv_cnt,
+                             server_abstract.request_count);
             }
         }
 
@@ -402,9 +384,9 @@ main(int argc, char **argv)
             PDC_Client_search_obj_ref_through_dart(hash_algo, query_str, ref_type, &rest_count, &out);
             timer_pause(&detailed_timer);
             if (round == 1)
-                println("[Client_Side_Suffix] Time to search '%s' and get %d results = %d microseconds for "
-                        "rank %d",
-                        query_str, rest_count, timer_delta_us(&detailed_timer), rank);
+                LOG_INFO("[Client_Side_Suffix] Time to search '%s' and get %d results = %d microseconds for "
+                         "rank %d\n",
+                         query_str, rest_count, timer_delta_us(&detailed_timer), rank);
         }
 
 #ifdef ENABLE_MPI
@@ -416,7 +398,7 @@ main(int argc, char **argv)
         if (rank == 0) {
             query_throughput = (double)((double)(total_word_count) / (double)timer_delta_ms(&timer));
             if (round == 1)
-                println("[Client_Side_Suffix_Throughput] %.3f ops/ms", query_throughput);
+                LOG_INFO("[Client_Side_Suffix_Throughput] %.3f ops/ms\n", query_throughput);
 
             int srv_cnt = 0;
             for (srv_cnt = 0; srv_cnt < dart_g->num_server; srv_cnt++) {
@@ -424,8 +406,8 @@ main(int argc, char **argv)
                 server_abstract.id = srv_cnt;
                 dart_retrieve_server_info_cb(&server_abstract);
                 if (round == 1)
-                    println("[DART Load Balance 3] Server %d has query requests = %d", srv_cnt,
-                            server_abstract.request_count);
+                    LOG_INFO("[DART Load Balance 3] Server %d has query requests = %d\n", srv_cnt,
+                             server_abstract.request_count);
             }
         }
 
@@ -458,9 +440,9 @@ main(int argc, char **argv)
             PDC_Client_search_obj_ref_through_dart(hash_algo, query_str, ref_type, &rest_count, &out);
             timer_pause(&detailed_timer);
             if (round == 1)
-                println("[Client_Side_Infix] Time to search '%s' and get %d results = %d microseconds for "
-                        "rank %d",
-                        query_str, rest_count, timer_delta_us(&detailed_timer), rank);
+                LOG_INFO("[Client_Side_Infix] Time to search '%s' and get %d results = %d microseconds for "
+                         "rank %d\n",
+                         query_str, rest_count, timer_delta_us(&detailed_timer), rank);
         }
 
 #ifdef ENABLE_MPI
@@ -472,7 +454,7 @@ main(int argc, char **argv)
         if (rank == 0) {
             query_throughput = (double)((double)(total_word_count) / (double)timer_delta_ms(&timer));
             if (round == 1)
-                println("[Client_Side_Infix_Throughput] %.3f ops/ms", query_throughput);
+                LOG_INFO("[Client_Side_Infix_Throughput] %.3f ops/ms\n", query_throughput);
 
             int srv_cnt = 0;
             for (srv_cnt = 0; srv_cnt < dart_g->num_server; srv_cnt++) {
@@ -480,8 +462,8 @@ main(int argc, char **argv)
                 server_abstract.id = srv_cnt;
                 dart_retrieve_server_info_cb(&server_abstract);
                 if (round == 1)
-                    println("[DART Load Balance 4] Server %d has query requests = %d", srv_cnt,
-                            server_abstract.request_count);
+                    LOG_INFO("[DART Load Balance 4] Server %d has query requests = %d\n", srv_cnt,
+                             server_abstract.request_count);
             }
         }
 
@@ -499,8 +481,8 @@ main(int argc, char **argv)
                 dart_retrieve_server_info_cb(&server_abstract);
                 int64_t num_request = server_abstract.request_count;
                 if (round == 1)
-                    println("[DART Load Balance All] The total number of query requests on server %d = %d",
-                            srv_cnt, num_request);
+                    LOG_INFO("[DART Load Balance All] The total number of query requests on server %d = %d\n",
+                             srv_cnt, num_request);
                 sum += (double)num_request;
                 sqrt_sum += (double)((double)num_request * (double)num_request);
             }
@@ -508,14 +490,9 @@ main(int argc, char **argv)
             double variance = sqrt_sum / dart_g->num_server - mean * mean;
             double stddev   = sqrt(variance);
 
-            // double normalSum = (sum - (mean*(double)dart_g->num_server))/stddev;
-            // double normalSqrtSum = sqrt_sum-2*sum*mean+((sum*sum)/(double)dart_g->num_server);
-            // double normalMean = normalSum / (double)dart_g->num_server;
-            // double normalVariance = normalSqrtSum/dart_g->num_server - normalMean * normalMean;
-            // double normalStdDev = sqrt(normalVariance);
             if (round == 1)
-                println(
-                    "[DART DART Load Balance All] STDDEV = %.3f for %d servers and %.1f request in total.",
+                LOG_INFO(
+                    "[DART DART Load Balance All] STDDEV = %.3f for %d servers and %.1f request in total\n",
                     stddev, dart_g->num_server, sum);
 
             srv_cnt  = 0;
@@ -528,8 +505,8 @@ main(int argc, char **argv)
                 dart_retrieve_server_info_cb(&server_abstract);
                 int64_t num_indexed_word = server_abstract.indexed_word_count / 2;
                 if (round == 1)
-                    println("[DART Key Distribution] Server %d has %d words indexed", srv_cnt,
-                            num_indexed_word);
+                    LOG_INFO("[DART Key Distribution] Server %d has %d words indexed\n", srv_cnt,
+                             num_indexed_word);
                 sum += (double)num_indexed_word;
                 sqrt_sum += (double)((double)num_indexed_word * (double)num_indexed_word);
             }
@@ -537,15 +514,9 @@ main(int argc, char **argv)
             variance = sqrt_sum / dart_g->num_server - mean * mean;
             stddev   = sqrt(variance);
 
-            // normalSum = (sum - (mean*(double)dart_g->num_server))/stddev;
-            // normalSqrtSum = sqrt_sum-2*sum*mean+((sum*sum)/(double)dart_g->num_server);
-            // normalMean = normalSum / (double)dart_g->num_server;
-            // normalVariance = normalSqrtSum/dart_g->num_server - normalMean * normalMean;
-            // normalStdDev = sqrt(normalVariance);
-
             if (round == 1)
-                println("[DART Key Distribution] STDDEV = %.3f for %d servers and %d keys in total.", stddev,
-                        dart_g->num_server, word_count * size);
+                LOG_INFO("[DART Key Distribution] STDDEV = %.3f for %d servers and %d keys in total\n",
+                         stddev, dart_g->num_server, word_count * size);
         }
 
 /* =========================== Delete From Index ========================= */
@@ -562,9 +533,10 @@ main(int argc, char **argv)
                                                 (uint64_t)data);
             timer_pause(&detailed_timer);
             if (round == 1)
-                println("[Client_Side_Delete] Time to delete key %s for both prefix index and suffix index = "
-                        "%d microseconds",
-                        input_word_list[i], timer_delta_us(&detailed_timer));
+                LOG_INFO(
+                    "[Client_Side_Delete] Time to delete key %s for both prefix index and suffix index = "
+                    "%d microseconds\n",
+                    input_word_list[i], timer_delta_us(&detailed_timer));
         }
 
 #ifdef ENABLE_MPI
@@ -577,7 +549,7 @@ main(int argc, char **argv)
 
             delete_throughput = (double)((double)(total_word_count) / (double)timer_delta_ms(&timer));
             if (round == 1)
-                println("[Client_Side_Delete_Throughput] %.3f ops/ms", delete_throughput);
+                LOG_INFO("[Client_Side_Delete_Throughput] %.3f ops/ms\n", delete_throughput);
         }
 
     } // end round loop
@@ -593,9 +565,10 @@ main(int argc, char **argv)
     if (PDCclose(pdc) < 0)
         LOG_ERROR("Failed to close PDC\n");
 
+done:
 #ifdef ENABLE_MPI
     MPI_Finalize();
 #endif
 
-    return 0;
+    return ret_value;
 }

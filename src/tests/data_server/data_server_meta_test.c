@@ -13,7 +13,7 @@
 void
 print_usage()
 {
-    LOG_JUST_PRINT("Should run with more than 1 processes!\n");
+    LOG_JUST_PRINT("Should run with more than 1 processes\n");
 }
 
 int
@@ -98,7 +98,7 @@ main(int argc, char **argv)
     for (i = 0; i < NOBJ; i++) {
         PDC_Client_query_metadata_name_timestep(obj_names[i], 0, &metadata[i]);
         if (metadata[i]->obj_id == 0) {
-            LOG_ERROR("Error with metadata!\n");
+            LOG_ERROR("Error with metadata\n");
             goto done;
         }
 
@@ -107,8 +107,7 @@ main(int argc, char **argv)
         PDC_Client_write(metadata[i], &write_region, write_data);
     }
 
-    LOG_INFO("%d - Finished writing %d regions. \n", rank, NOBJ);
-    fflush(stdout);
+    LOG_INFO("%d - Finished writing %d regions\n", rank, NOBJ);
 
 #ifdef ENABLE_MPI
     MPI_Barrier(MPI_COMM_WORLD);
@@ -133,7 +132,6 @@ main(int argc, char **argv)
     for (i = 0; i < my_read_obj; i++) {
         LOG_INFO("Proc %d - [%s]: [%c] ... [%c], size %" PRId64 "\n", rank, obj_names[i],
                  ((char **)out_buf)[i][0], ((char **)out_buf)[i][out_buf_sizes[i] - 1], out_buf_sizes[i]);
-        fflush(stdout);
     }
 
 #ifdef ENABLE_MPI

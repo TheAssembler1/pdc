@@ -61,8 +61,7 @@ main(int argc, char **argv)
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
     MPI_Comm_size(MPI_COMM_WORLD, &size);
 #else
-    LOG_INFO("MPI NOT Enabled!\n");
-    fflush(stdout);
+    LOG_INFO("MPI NOT Enabled\n");
 #endif
 
     char *obj_names[] = {"x", "y", "z", "px", "py", "pz", "id1", "id2"};
@@ -181,7 +180,7 @@ main(int argc, char **argv)
         ret = PDC_Client_query_metadata_name_timestep(obj_names[i], 0, &obj_metas[i]);
 #endif
         if (ret != SUCCEED || obj_metas[i] == NULL || obj_metas[i]->obj_id == 0) {
-            LOG_ERROR("Error with metadata!\n");
+            LOG_ERROR("Error with metadata\n");
             exit(-1);
         }
     }
@@ -215,7 +214,7 @@ main(int argc, char **argv)
         request[i].n_update = write_var;
         ret                 = PDC_Client_iwrite(obj_metas[i], &obj_regions[i], &request[i], mydata[i]);
         if (ret != SUCCEED) {
-            LOG_ERROR("Error with PDC_Client_iwrite!\n");
+            LOG_ERROR("Error with PDC_Client_iwrite\n");
             goto done;
         }
 
@@ -232,7 +231,7 @@ main(int argc, char **argv)
     for (i = 0; i < write_var; i++) {
         ret = PDC_Client_wait(&request[i], 200000, 500);
         if (ret != SUCCEED) {
-            LOG_ERROR("Error with PDC_Client_wait!\n");
+            LOG_ERROR("Error with PDC_Client_wait\n");
             goto done;
         }
     }
@@ -251,7 +250,6 @@ main(int argc, char **argv)
         LOG_INFO("Write %f MB data with %d ranks\nTotal write time: %.2f\nSent %.2f, wait %.2f, Throughput "
                  "%.2f MB/s\n",
                  total_size, size, write_time, sent_time_total, wait_time_total, total_size / write_time);
-        fflush(stdout);
     }
 
 done:

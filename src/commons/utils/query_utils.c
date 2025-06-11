@@ -47,7 +47,7 @@ _gen_affix_for_token(char *token_str, int affix_type, size_t affix_len, char **o
         affix_str[affix_len + 2] = '\0';
     }
     else {
-        LOG_ERROR("Invalid affix type %d!\n", affix_type);
+        LOG_ERROR("Invalid affix type %d\n", affix_type);
         FUNC_LEAVE(0);
     }
 
@@ -84,7 +84,7 @@ gen_query_key_value(query_gen_input_t *input, query_gen_output_t *output)
     // "hello"
     key_ptr_len = _gen_affix_for_token(input->base_tag->name, input->key_query_type, affix_len, &key_ptr);
     if (key_ptr_len == 0) {
-        LOG_ERROR("Failed to generate key query!\n");
+        LOG_ERROR("Failed to generate key query\n");
         FUNC_LEAVE_VOID();
     }
 
@@ -100,7 +100,7 @@ gen_query_key_value(query_gen_input_t *input, query_gen_output_t *output)
         value_ptr[value_ptr_len + 2] = '\0';
 
         if (value_ptr_len == 0) {
-            LOG_ERROR("Failed to generate value query!\n");
+            LOG_ERROR("Failed to generate value query\n");
             FUNC_LEAVE_VOID();
         }
     }
@@ -115,7 +115,7 @@ gen_query_key_value(query_gen_input_t *input, query_gen_output_t *output)
             input->base_tag->type = PDC_DOUBLE;
         }
         else {
-            LOG_ERROR("Invalid tag type!\n");
+            LOG_ERROR("Invalid tag type\n");
             FUNC_LEAVE_VOID();
         }
         char *format_str = get_format_by_dtype(input->base_tag->type);
@@ -134,7 +134,7 @@ gen_query_key_value(query_gen_input_t *input, query_gen_output_t *output)
             snprintf(value_ptr, value_ptr_len + 1, fmt_str, input->range_lo, input->range_hi);
         }
         else {
-            LOG_ERROR("Invalid value query type for integer!\n");
+            LOG_ERROR("Invalid value query type for integer\n");
             FUNC_LEAVE_VOID();
         }
     }
@@ -270,7 +270,6 @@ gen_tags_in_loop()
     for (i = 0; i < my_count; i++) {
         int   tag_num = i % 20;
         char *ret     = gen_tags(tag_num);
-        println("helloworld, %s", ret);
         if (ret != NULL) {
             ret = (char *)PDC_free(ret);
         }
@@ -436,12 +435,6 @@ parse_and_run_number_value_query(char *num_val_query, pdc_c_var_type_t num_type,
         size_t klen1   = get_number_from_string(num_str, num_type, &val1);
 
         action_collection->exact_action(val1, NULL, NULL, 1, 1, num_type, cb_input, cb_out, cb_out_len);
-
-        // value_index_leaf_content_t *value_index_leaf = NULL;
-        // rbt_find(leafcnt->primary_rbt, val1, klen1, (void **)&value_index_leaf);
-        // if (value_index_leaf != NULL) {
-        //     collect_obj_ids(value_index_leaf, idx_record);
-        // }
     }
     else if (startsWith(num_val_query, "~")) { // LESS THAN
         int endInclusive = num_val_query[1] == '|';
@@ -451,8 +444,6 @@ parse_and_run_number_value_query(char *num_val_query, pdc_c_var_type_t num_type,
         size_t klen1    = get_number_from_string(numstr, num_type, &val1);
         action_collection->lt_action(NULL, NULL, val1, 0, endInclusive, num_type, cb_input, cb_out,
                                      cb_out_len);
-
-        // rbt_range_lt(leafcnt->primary_rbt, val1, klen1, value_rbt_callback, idx_record, endInclusive);
     }
     else if (endsWith(num_val_query, "~")) { // GEATER THAN
         int beginInclusive = num_val_query[strlen(num_val_query) - 2] == '|';
@@ -463,7 +454,6 @@ parse_and_run_number_value_query(char *num_val_query, pdc_c_var_type_t num_type,
 
         action_collection->gt_action(NULL, val1, NULL, beginInclusive, 0, num_type, cb_input, cb_out,
                                      cb_out_len);
-        // rbt_range_gt(leafcnt->primary_rbt, val1, klen1, value_rbt_callback, idx_record, beginInclusive);
     }
     else if (contains(num_val_query, "~")) { // BETWEEN
         int    num_tokens = 0;
@@ -471,7 +461,7 @@ parse_and_run_number_value_query(char *num_val_query, pdc_c_var_type_t num_type,
         // the string is not ended or started with '~', and if it contains '~', it is a in-between query.
         split_string(num_val_query, "~", &tokens, &num_tokens);
         if (num_tokens != 2) {
-            LOG_ERROR("ERROR: invalid range query: %s\n", num_val_query);
+            LOG_ERROR("Error invalid range query: %s\n", num_val_query);
             return -1;
         }
         char *lo_tok = tokens[0];
@@ -486,10 +476,6 @@ parse_and_run_number_value_query(char *num_val_query, pdc_c_var_type_t num_type,
 
         action_collection->between_action(NULL, val1, val2, beginInclusive, endInclusive, num_type, cb_input,
                                           cb_out, cb_out_len);
-        // int num_visited_node = rbt_range_walk(leafcnt->primary_rbt, val1, klen1, val2, klen2,
-        //                                       value_rbt_callback, idx_record, beginInclusive,
-        //                                       endInclusive);
-        // println("[value_number_query] num_visited_node: %d\n", num_visited_node);
     }
     else {
         // exact query by default

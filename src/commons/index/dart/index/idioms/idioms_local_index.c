@@ -543,7 +543,7 @@ collect_obj_ids(value_index_leaf_content_t *value_index_leaf, IDIOMS_md_idx_reco
         idx_record->num_obj_ids += num_obj_ids;
     }
     else {
-        LOG_ERROR("ERROR: offset %zu != num_obj_ids %d\n", offset, num_obj_ids);
+        LOG_ERROR("Error offset %zu != num_obj_ids %d\n", offset, num_obj_ids);
     }
 
     FUNC_LEAVE(0);
@@ -649,7 +649,7 @@ value_number_query(char *secondary_query, key_index_leaf_content_t *leafcnt,
         // the string is not ended or started with '~', and if it contains '~', it is a in-between query.
         split_string(secondary_query, "~", &tokens, &num_tokens);
         if (num_tokens != 2) {
-            LOG_ERROR("ERROR: invalid range query: %s\n", secondary_query);
+            LOG_ERROR("Error invalid range query: %s\n", secondary_query);
             FUNC_LEAVE(-1);
         }
         char *lo_tok = tokens[0];
@@ -666,7 +666,6 @@ value_number_query(char *secondary_query, key_index_leaf_content_t *leafcnt,
 
         int num_visited_node = rbt_range_walk(leafcnt->primary_rbt, val1, klen1, val2, klen2,
                                               value_rbt_callback, idx_record, beginInclusive, endInclusive);
-        // println("[value_number_query] num_visited_node: %d\n", num_visited_node);
     }
     else {
         // exact query by default
@@ -813,7 +812,7 @@ idioms_local_index_search(IDIOMS_t *idioms, IDIOMS_md_idx_record_t *idx_record)
     uint64_t    result_count = 0;
     stopwatch_t index_timer;
     if (idioms == NULL) {
-        println("[Server_Side_Query_%d] idioms is NULL.", idioms->server_id_g);
+        LOG_INFO("[Server_Side_Query_%d] idioms is NULL\n", idioms->server_id_g);
         FUNC_LEAVE(result_count);
     }
     if (idx_record == NULL) {
@@ -825,7 +824,7 @@ idioms_local_index_search(IDIOMS_t *idioms, IDIOMS_md_idx_record_t *idx_record)
 
     if (NULL == kdelim_ptr) {
         if (DART_SERVER_DEBUG) {
-            println("[Server_Side_Query_%d]query string '%s' is not valid.", idioms->server_id_g, query);
+            LOG_INFO("[Server_Side_Query_%d]query string '%s' is not valid\n", idioms->server_id_g, query);
         }
         FUNC_LEAVE(result_count);
     }
@@ -834,8 +833,8 @@ idioms_local_index_search(IDIOMS_t *idioms, IDIOMS_md_idx_record_t *idx_record)
     char *v_query = get_value(query, KV_DELIM);
 
     if (DART_SERVER_DEBUG) {
-        println("[Server_Side_Query_%d] k_query = '%s' | v_query = '%s' ", idioms->server_id_g, k_query,
-                v_query);
+        LOG_INFO("[Server_Side_Query_%d] k_query = '%s' | v_query = '%s'\n", idioms->server_id_g, k_query,
+                 v_query);
     }
 
     idx_record->key   = k_query;

@@ -69,7 +69,6 @@ PDC_commit_request(uint64_t transfer_request_id)
         transfer_request_status_list_end = ptr->next;
     }
 
-    fflush(stdout);
     FUNC_LEAVE(ret_value);
 }
 
@@ -138,7 +137,6 @@ PDC_finish_request(uint64_t transfer_request_id)
         ptr = ptr->next;
     }
 
-    fflush(stdout);
     FUNC_LEAVE(ret_value);
 }
 
@@ -191,7 +189,6 @@ PDC_check_request(uint64_t transfer_request_id)
         ptr = ptr->next;
     }
 
-    fflush(stdout);
     FUNC_LEAVE(ret_value);
 }
 
@@ -220,7 +217,6 @@ PDC_try_finish_request(uint64_t transfer_request_id, hg_handle_t handle, int *ha
         ptr = ptr->next;
     }
 
-    fflush(stdout);
     FUNC_LEAVE(ret_value);
 }
 
@@ -242,7 +238,6 @@ PDC_transfer_request_id_register()
     ret_value = transfer_request_id_g;
     transfer_request_id_g++;
 
-    fflush(stdout);
     FUNC_LEAVE(ret_value);
 }
 
@@ -285,13 +280,10 @@ PDC_Server_transfer_request_io(uint64_t obj_id, int obj_ndim, const uint64_t *ob
         else {
             PDC_Server_data_read_from(obj_id, region_info, buf, unit);
         }
-        // PDC_Server_unregister_obj_region(obj_id);
-        goto done;
+        PGOTO_DONE(ret_value);
     }
-    if (obj_ndim != (int)region_info->ndim) {
-        LOG_ERROR("Server I/O error: Obj dim does not match obj dim\n");
-        goto done;
-    }
+    if (obj_ndim != (int)region_info->ndim)
+        PGOTO_ERROR(FAIL, "Obj dim does not match obj dim\n");
 
     user_specified_data_path = getenv("PDC_DATA_LOC");
     if (user_specified_data_path != NULL) {
@@ -306,9 +298,6 @@ PDC_Server_transfer_request_io(uint64_t obj_id, int obj_ndim, const uint64_t *ob
     snprintf(storage_location, ADDR_MAX, "%.200s/pdc_data/%" PRIu64 "/server%d/s%04d.bin", data_path, obj_id,
              PDC_get_rank(), PDC_get_rank());
     PDC_mkdir(storage_location);
-
-    /* LOG_ERROR("Rank %d, write to offset %llu, size %llu\n", server_rank, region_info->offset[0],
-     * region_info->size[0]); */
 
     fd = open(storage_location, O_RDWR | O_CREAT, 0666);
     if (region_info->ndim == 1) {
@@ -374,9 +363,6 @@ PDC_Server_transfer_request_io(uint64_t obj_id, int obj_ndim, const uint64_t *ob
     close(fd);
 
 done:
-    /* PDC_get_time_str(cur_time); */
-
-    fflush(stdout);
     FUNC_LEAVE(ret_value);
 }
 

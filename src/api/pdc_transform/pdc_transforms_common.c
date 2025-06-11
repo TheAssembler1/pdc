@@ -86,7 +86,6 @@ HG_TEST_RPC_CB(transform_ftn, handle)
     }
 
 done:
-    fflush(stdout);
     HG_Respond(handle, NULL, NULL, &out);
     HG_Free_input(handle, &in);
     HG_Destroy(handle);

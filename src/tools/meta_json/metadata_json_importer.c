@@ -88,7 +88,7 @@ import_object_base(cJSON *name, cJSON *type, cJSON *full_path, MD_JSON_ARGS *md_
     pdc_importer_args_t *pdc_args = (pdc_importer_args_t *)md_json_args->processor_args;
 
     if (cJSON_GetStringValue(name) == NULL) {
-        LOG_ERROR("Object name is NULL!\n");
+        LOG_ERROR("Object name is NULL\n");
         return -1;
     }
     char       datetime_buff[15];
@@ -101,18 +101,18 @@ import_object_base(cJSON *name, cJSON *type, cJSON *full_path, MD_JSON_ARGS *md_
     sprintf(object_name, "%s_%d%s", cJSON_GetStringValue(name), md_json_args->mpi_rank, datetime_buff);
     pdc_args->obj_id = PDCobj_create(pdc_args->cont, object_name, pdc_args->obj_prop);
     if (pdc_args->obj_id <= 0) {
-        LOG_ERROR("Failed to create object!\n");
+        LOG_ERROR("Failed to create object\n");
         return -1;
     }
 
     if (PDCobj_put_tag(pdc_args->obj_id, "obj_full_path", (void *)cJSON_GetStringValue(full_path), PDC_STRING,
                        strlen(cJSON_GetStringValue(full_path)) + 1) != SUCCEED) {
-        LOG_ERROR("Failed to put tag!\n");
+        LOG_ERROR("Failed to put tag\n");
         return -1;
     }
     if (PDCobj_put_tag(pdc_args->obj_id, "obj_type", (void *)cJSON_GetStringValue(type), PDC_STRING,
                        strlen(cJSON_GetStringValue(type)) + 1) != SUCCEED) {
-        LOG_ERROR("Failed to put tag!\n");
+        LOG_ERROR("Failed to put tag\n");
         return -1;
     }
 
@@ -170,7 +170,7 @@ import_object_property(cJSON *name, cJSON *type, cJSON *cls, cJSON *value, MD_JS
 
     if (PDCobj_put_tag(pdc_args->obj_id, name->valuestring, (void *)&property_value, pdc_type,
                        property_value_size) != SUCCEED) {
-        LOG_ERROR("Failed to add tag!\n");
+        LOG_ERROR("Failed to add tag\n");
     }
 
 end:

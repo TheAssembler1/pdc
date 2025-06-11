@@ -208,10 +208,8 @@ main(int argc, char **argv)
     gettimeofday(&pdc_timer_end, 0);
     write_time = PDC_get_elapsed_time_double(&pdc_timer_start, &pdc_timer_end);
 
-    if (rank == 0) {
+    if (rank == 0)
         LOG_ERROR("Time to lock and release data with %d ranks: %.5e\n", size, write_time);
-        fflush(stdout);
-    }
 done:
     if (PDCobj_close(global_obj) < 0) {
         LOG_ERROR("Failed to close global obj\n");

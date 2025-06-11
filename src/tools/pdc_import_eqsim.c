@@ -67,7 +67,6 @@ main(int argc, char **argv)
     offset[2] = chunk_size[2] * start_y[rank];
     offset[3] = 0;
 
-    /* size[0] = chunk_size[0]; */
     size[0] = dims[0];
     size[1] = chunk_size[1];
     size[2] = chunk_size[2];
@@ -80,7 +79,6 @@ main(int argc, char **argv)
     local_offset[2] = 0;
     local_offset[3] = 0;
 
-    /* local_size[0] = chunk_size[0]; */
     local_size[0] = dims[0];
     local_size[1] = chunk_size[1];
     local_size[2] = chunk_size[2];
@@ -91,8 +89,8 @@ main(int argc, char **argv)
     data = (double *)malloc(sizeof(double) * local_size[0] * local_size[1] * local_size[2]);
 
     if (nproc <= 16)
-        LOG_INFO("Rank %d: offset %llu, %llu, %llu size %llu, %llu, %llu\n", rank, offset[0], offset[1],
-                 offset[2], size[0], size[1], size[2]);
+        LOG_INFO("Offset %llu, %llu, %llu size %llu, %llu, %llu\n", rank, offset[0], offset[1], offset[2],
+                 size[0], size[1], size[2]);
 
 #ifdef ENABLE_MPI
     t0 = MPI_Wtime();
@@ -126,7 +124,7 @@ main(int argc, char **argv)
     pdc_dims[0] = dims[0];
     pdc_dims[1] = max_start_x + chunk_size[1];
     pdc_dims[2] = max_start_y + chunk_size[2];
-    LOG_INFO("Rank %d: create obj dims %llu %llu %llu\n", rank, pdc_dims[0], pdc_dims[1], pdc_dims[2]);
+    LOG_INFO("Create obj dims %llu %llu %llu\n", rank, pdc_dims[0], pdc_dims[1], pdc_dims[2]);
 
     for (i = 0; i < 3; i++) {
         pdc_offset[i]       = (uint64_t)offset[i];
@@ -149,7 +147,6 @@ main(int argc, char **argv)
     PDCprop_set_obj_transfer_region_type(obj_prop, PDC_REGION_LOCAL);
 
     obj = PDCobj_create_mpi(cont, "run1", obj_prop, 0, MPI_COMM_WORLD);
-    /* obj = PDCobj_create(cont, "run1", obj_prop); */
     if (obj <= 0)
         LOG_ERROR("Failed to create object");
 
@@ -167,7 +164,7 @@ main(int argc, char **argv)
     value_size   = 4 * sizeof(double);
 
     if (PDCobj_put_tag(obj, tag_name, tag_value, PDC_DOUBLE, value_size) < 0)
-        LOG_ERROR("Rank %d fail to put tag!\n", rank);
+        LOG_ERROR("Failed to put tag\n", rank);
 
 #ifdef ENABLE_MPI
     MPI_Barrier(MPI_COMM_WORLD);

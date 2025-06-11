@@ -142,7 +142,7 @@ main(int argc, char **argv)
         ret = PDC_Client_query_metadata_name_timestep(obj_names[i], 0, &obj_metas[i]);
 #endif
         if (ret != SUCCEED || obj_metas[i] == NULL || obj_metas[i]->obj_id == 0) {
-            LOG_ERROR("Error with metadata!\n");
+            LOG_ERROR("Error with metadata\n");
             exit(-1);
         }
 
@@ -172,7 +172,7 @@ main(int argc, char **argv)
         request[i].n_update = 1;
         ret                 = PDC_Client_iread(obj_metas[i], &obj_regions[i], &request[i], mydata[i]);
         if (ret != SUCCEED) {
-            LOG_ERROR("Error with PDC_Client_iread!\n");
+            LOG_ERROR("Error with PDC_Client_iread\n");
             goto done;
         }
 
@@ -188,7 +188,7 @@ main(int argc, char **argv)
 
         ret = PDC_Client_wait(&request[i], 60000, 100);
         if (ret != SUCCEED) {
-            LOG_ERROR("Error with PDC_Client_wait!\n");
+            LOG_ERROR("Error with PDC_Client_wait\n");
             goto done;
         }
 
@@ -207,16 +207,12 @@ main(int argc, char **argv)
     gettimeofday(&pdc_timer_end, 0);
     read_time  = PDC_get_elapsed_time_double(&pdc_timer_start, &pdc_timer_end);
     total_size = NPARTICLES * selectivity * 4.0 * 8.0 * size / 1024.0 / 1024.0;
-    if (rank == 0) {
+    if (rank == 0)
         LOG_INFO("Read %.2f MB data with %d ranks\nTotal read time: %.2f\nSent %.2f, wait %.2f, Throughput "
                  "%.2f MB/s\n",
                  total_size, size, read_time, sent_time_total, wait_time_total, total_size / read_time);
-        fflush(stdout);
-    }
 
 done:
-    fflush(stdout);
-
     if (PDCcont_close(cont_id) < 0)
         LOG_ERROR("Failed to close container\n");
 

@@ -26,13 +26,14 @@
 #include <stdlib.h>
 #include <string.h>
 #include "pdc.h"
+#include "test_helper.h"
 
 int
 main(int argc, char **argv)
 {
     pdcid_t pdc;
     int     rank = 0, size = 1;
-    int     ret_value = 0;
+    int     ret_value = TSUCCEED;
 
     // create a pdc
 #ifdef ENABLE_MPI
@@ -41,14 +42,12 @@ main(int argc, char **argv)
     MPI_Comm_size(MPI_COMM_WORLD, &size);
 #endif
 
-    pdc = PDCinit("pdc");
-    LOG_INFO("generated new pdc\n");
-
+    // create pdc
+    TASSERT((pdc = PDCinit("pdc")) != 0, "Call to PDCinit succeeded", "Call to PDCinit failed");
     // close pdc
-    if (PDCclose(pdc) < 0) {
-        LOG_ERROR("Failed to close PDC\n");
-        ret_value = 1;
-    }
+    TASSERT(PDCclose(pdc) >= 0, "Call to PDCclose succeeded", "Call to PDCclose failed");
+
+done:
 #ifdef ENABLE_MPI
     MPI_Finalize();
 #endif

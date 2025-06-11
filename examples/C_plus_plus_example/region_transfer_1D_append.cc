@@ -27,17 +27,17 @@
 #include <string.h>
 #include "multidataset_plugin.h"
 
-#define DATA_SIZE 128
+#define DATA_SIZE  128
 #define ARRAY_SIZE 10
 
 int
 main(int argc, char **argv)
 {
-    int     rank = 0, size = 1;
-    int     ret_value = 0;
-    int     *data;
-    int     i;
-    char    data_name[1024];
+    int  rank = 0, size = 1;
+    int  ret_value = 0;
+    int *data;
+    int  i;
+    char data_name[1024];
 
     // create a pdc
 #ifdef ENABLE_MPI
@@ -52,21 +52,21 @@ main(int argc, char **argv)
 
     init_multidataset();
 
-    data = (int*) malloc(sizeof(int) * DATA_SIZE);
-    for ( i = 0; i < DATA_SIZE; ++i ) {
+    data = (int *)malloc(sizeof(int) * DATA_SIZE);
+    for (i = 0; i < DATA_SIZE; ++i) {
         data[i] = i;
     }
     sprintf(data_name, "data0_%d", rank);
 
-    LOG_INFO("rank %d C++ example for writing %d lists of arrays with size %d\n", rank, ARRAY_SIZE, DATA_SIZE);
-    for ( i = 0; i < ARRAY_SIZE; ++i ) {
+    LOG_INFO("C++ example for writing %d lists of arrays with size %d\n", rank, ARRAY_SIZE, DATA_SIZE);
+    for (i = 0; i < ARRAY_SIZE; ++i) {
         register_multidataset_request_append(data_name, 0, data, sizeof(int) * DATA_SIZE, H5T_NATIVE_CHAR);
     }
 
     sprintf(data_name, "data1_%d", rank);
 
-    LOG_INFO("rank %d C++ example for writing %d lists of arrays with size %d\n", rank, ARRAY_SIZE, DATA_SIZE);
-    for ( i = 0; i < ARRAY_SIZE; ++i ) {
+    LOG_INFO("C++ example for writing %d lists of arrays with size %d\n", rank, ARRAY_SIZE, DATA_SIZE);
+    for (i = 0; i < ARRAY_SIZE; ++i) {
         register_multidataset_request_append(data_name, 0, data, sizeof(int) * DATA_SIZE, H5T_NATIVE_CHAR);
     }
     flush_multidatasets();

@@ -132,7 +132,6 @@ transfer_request_metadata_query_init(int pdc_server_size_input, char *checkpoint
         }
     }
 
-    fflush(stdout);
     FUNC_LEAVE(ret_value);
 }
 
@@ -165,7 +164,6 @@ transfer_request_metadata_query_finalize()
 
     pthread_mutex_destroy(&metadata_query_mutex);
 
-    fflush(stdout);
     FUNC_LEAVE(ret_value);
 }
 
@@ -241,7 +239,6 @@ transfer_request_metadata_query_checkpoint(char **checkpoint, uint64_t *checkpoi
     }
     pthread_mutex_unlock(&metadata_query_mutex);
 
-    fflush(stdout);
     FUNC_LEAVE(ret_value);
 }
 
@@ -391,7 +388,7 @@ transfer_request_metadata_query_lookup_query_buf(uint64_t query_id, char **buf_p
                 metadata_query_buf_end = previous;
             }
             metadata_query = (pdc_metadata_query_buf *)PDC_free(metadata_query);
-            goto done;
+            PGOTO_DONE(ret_value);
         }
         i++;
         previous       = metadata_query;
@@ -399,8 +396,6 @@ transfer_request_metadata_query_lookup_query_buf(uint64_t query_id, char **buf_p
     }
     *buf_ptr = NULL;
 done:
-    /* pthread_mutex_unlock(&metadata_query_mutex); */
-    fflush(stdout);
     FUNC_LEAVE(ret_value);
 }
 
@@ -448,7 +443,6 @@ transfer_request_metadata_query_parse(int32_t n_objs, char *buf, uint8_t is_writ
     }
     query_id        = metadata_query_buf_create(region_metadata, n_objs, total_buf_size_ptr);
     region_metadata = (pdc_obj_region_metadata *)PDC_free(region_metadata);
-    fflush(stdout);
     FUNC_LEAVE(query_id);
 }
 
@@ -495,7 +489,6 @@ transfer_request_metadata_reg_append(pdc_region_metadata_pkg *regions, int ndim,
         regions->data_server_id = data_server_id;
     }
 
-    fflush(stdout);
     FUNC_LEAVE(ret_value);
 }
 
@@ -552,6 +545,5 @@ transfer_request_metadata_query_append(uint64_t obj_id, int ndim, uint64_t *reg_
     }
     transfer_request_metadata_reg_append(temp_region_metadata, ndim, reg_offset, reg_size, unit,
                                          data_server_id, region_partition);
-    fflush(stdout);
     FUNC_LEAVE(temp->regions_end->data_server_id);
 }

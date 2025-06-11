@@ -120,7 +120,7 @@ PDC_Server_instantiate_data_iterator(obj_data_iterator_in_t *in, obj_data_iterat
     thisIter->storage_order    = (_pdc_major_type_t)((in->storageinfo >> 8) & 0xFF);
     region_reference           = PDC_Server_get_obj_region(in->object_id);
     if (region_reference == NULL) {
-        LOG_ERROR("==PDC_ANALYSIS_SERVER: Unable to locate object region (id=%" PRIu64 ")\n", in->object_id);
+        LOG_ERROR("Unable to locate object region (id=%" PRIu64 ")\n", in->object_id);
         /* The most likely cause of this condition is that the client never
          * created an object mapping which would move the client data to the data-server.
          * We now have the option to either fail, or to create a new temporary region.
@@ -130,7 +130,7 @@ PDC_Server_instantiate_data_iterator(obj_data_iterator_in_t *in, obj_data_iterat
         out->server_region_id = -1;
     }
     else {
-        LOG_INFO("==PDC_ANALYSIS_SERVER: Found object region for id=%" PRIu64 "\n", in->object_id);
+        LOG_INFO("Found object region for id=%" PRIu64 "\n", in->object_id);
         out->server_region_id = in->object_id;
     }
 
@@ -181,7 +181,6 @@ PDC_Server_get_ftn_reference(char *ftn)
         if ((appHandle = dlopen(0, RTLD_NOW)) == NULL) {
             char *this_error = dlerror();
             LOG_ERROR("dlopen failed: %s\n", this_error);
-            fflush(stderr);
             FUNC_LEAVE(NULL);
         }
     }
@@ -214,6 +213,7 @@ size_t
 PDCobj_data_getNextBlock(pdcid_t iter, void **nextBlock, size_t *dims)
 {
     FUNC_ENTER(NULL);
+    int ret_value = SUCCEED;
 
     struct _pdc_iterator_info *thisIter = NULL;
     /* Special case to handle a NULL iterator */
@@ -233,7 +233,7 @@ PDCobj_data_getNextBlock(pdcid_t iter, void **nextBlock, size_t *dims)
                 if ((thisIter->srcNext = PDC_Server_get_region_data_ptr(thisIter->objectId)) == NULL)
                     thisIter->srcNext = PDC_malloc(thisIter->totalElements * thisIter->element_size);
                 if ((thisIter->srcStart = thisIter->srcNext) == NULL) {
-                    LOG_ERROR("==PDC_ANALYSIS_SERVER: Unable to allocate iterator storage\n");
+                    LOG_ERROR("Unable to allocate iterator storage\n");
                     FUNC_LEAVE(0);
                 }
                 thisIter->srcNext += thisIter->startOffset + thisIter->skipCount;
@@ -252,7 +252,7 @@ PDCobj_data_getNextBlock(pdcid_t iter, void **nextBlock, size_t *dims)
                         *nextBlock = NULL;
                     thisIter->sliceNext = 0;
                     thisIter->srcNext   = NULL;
-                    goto done;
+                    PGOTO_DONE(ret_value);
                 }
                 if (nextBlock)
                     *nextBlock = thisIter->srcNext;
@@ -296,7 +296,7 @@ done:
     if (nextBlock)
         *nextBlock = NULL;
 
-    FUNC_LEAVE(0);
+    FUNC_LEAVE(ret_value);
 }
 
 int

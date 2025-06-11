@@ -1,4 +1,5 @@
 #include "query_utils.h"
+#include "pdc_logger.h"
 #include "pdc_timing.h"
 #include "pdc_malloc.h"
 
@@ -7,10 +8,11 @@ print_query_output(query_gen_output_t *output)
 {
     FUNC_ENTER(NULL);
 
-    println("key query: %s, len: %lu", output->key_query, output->key_query_len);
-    println("value query: %s, len: %lu", output->value_query, output->value_query_len);
+    LOG_JUST_PRINT("key query: %s, len: %lu\n", output->key_query, output->key_query_len);
+    LOG_JUST_PRINT("value query: %s, len: %lu\n", output->value_query, output->value_query_len);
+
     char *final_query_str = gen_query_str(output);
-    println("final query: %s, len: %lu", final_query_str, strlen(final_query_str));
+    LOG_JUST_PRINT("final query: %s, len: %lu", final_query_str, strlen(final_query_str));
     final_query_str = (char *)PDC_free(final_query_str);
 
     FUNC_LEAVE_VOID();

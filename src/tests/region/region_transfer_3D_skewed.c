@@ -110,7 +110,7 @@ main(int argc, char **argv)
         LOG_INFO("Create an object o1\n");
     }
     else {
-        LOG_ERROR("Failed to create object");
+        LOG_ERROR("Failed to create object\n");
         ret_value = 1;
     }
     // create second object
@@ -120,7 +120,7 @@ main(int argc, char **argv)
         LOG_INFO("Create an object o2\n");
     }
     else {
-        LOG_ERROR("Failed to create object");
+        LOG_ERROR("Failed to create object\n");
         ret_value = 1;
     }
     //  Testing the first object
@@ -194,7 +194,7 @@ main(int argc, char **argv)
                 ((i % (offset_length[1] * offset_length[2])) / offset_length[2]) * dims[2] +
                 i % offset_length[2];
         if (data_read[value] != i) {
-            LOG_ERROR("wrong value %d!=%d, value = %d\n", data_read[value], i, (int)value);
+            LOG_ERROR("Wrong value %d!=%d, value = %d\n", data_read[value], i, (int)value);
             ret_value = 1;
             break;
         }
@@ -282,7 +282,7 @@ main(int argc, char **argv)
                 ((i % (offset_length[1] * offset_length[2])) / offset_length[2]) * dims[2] +
                 i % offset_length[2];
         if (data_read[i] != (int)value) {
-            LOG_ERROR("wrong value %d!=%d\n", data_read[i], (int)value);
+            LOG_ERROR("Wrong value %d!=%d\n", data_read[i], (int)value);
             ret_value = 1;
             break;
         }
@@ -328,7 +328,7 @@ main(int argc, char **argv)
     }
     // close a object property
     if (PDCprop_close(obj_prop) < 0) {
-        LOG_ERROR("Failed to close property");
+        LOG_ERROR("Failed to close property\n");
         ret_value = 1;
     }
     else {

@@ -51,7 +51,7 @@ TestThread(void *ThreadArgs)
     if (create_prop > 0)
         LOG_INFO("[%d] Create a container property, id is %llx\n", args->ThreadRank, create_prop);
     else
-        LOG_ERROR("[%d] Fail to create container property!\n", args->ThreadRank);
+        LOG_ERROR("[%d] Fail to create container property\n", args->ThreadRank);
 
     // create a container
     pdcid_t cont1 = PDCcont_create("c1", create_prop);

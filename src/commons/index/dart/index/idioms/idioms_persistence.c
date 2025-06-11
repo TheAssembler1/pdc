@@ -270,8 +270,8 @@ idioms_metadata_index_dump(IDIOMS_t *idioms, char *dir_path, uint32_t serverID)
     dump_attr_root_tree(idioms->art_key_suffix_tree_g, dir_path, "idioms_suffix", serverID);
 
     timer_pause(&timer);
-    println("[IDIOMS_Index_Dump_%d] Timer to dump index = %.4f microseconds\n", serverID,
-            timer_delta_us(&timer));
+    LOG_INFO("[IDIOMS_Index_Dump_%d] Timer to dump index = %.4f microseconds\n", serverID,
+             timer_delta_us(&timer));
 
     FUNC_LEAVE(ret_value);
 }
@@ -546,8 +546,8 @@ idioms_metadata_index_recover(IDIOMS_t *idioms, char *dir_path, int num_server, 
         }
     }
     timer_pause(&timer);
-    println("[IDIOMS_Index_Recover_%d] Timer to recover index = %.4f microseconds\n", serverID,
-            timer_delta_us(&timer));
+    LOG_JUST_PRINT("[IDIOMS_Index_Recover_%d] Timer to recover index = %.4f microseconds\n", serverID,
+                   timer_delta_us(&timer));
 
     FUNC_LEAVE(ret_value);
 }

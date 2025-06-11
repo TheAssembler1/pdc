@@ -175,11 +175,6 @@ transfer_request_all_bulk_transfer_write_cb(const struct hg_cb_info *info)
     int                                          i;
     char                                         cur_time[64];
 
-#ifdef TANG_DEBUG
-    PDC_get_time_str(cur_time);
-    LOG_DEBUG("%s ==PDC_SERVER[%d]: enter\n", cur_time, PDC_get_rank());
-#endif
-
     gettimeofday(&last_cache_activity_timeval_g, NULL);
 
 #ifdef PDC_TIMING
@@ -202,11 +197,6 @@ transfer_request_all_bulk_transfer_write_cb(const struct hg_cb_info *info)
         temp_ptrs[i] = PDC_Server_get_obj_region(request_data.obj_id[i]);
         PDC_Server_register_obj_region_by_pointer(temp_ptrs + i, request_data.obj_id[i], 1);
     }
-#endif
-
-#ifdef TANG_DEBUG
-    PDC_get_time_str(cur_time);
-    LOG_DEBUG("%s ==PDC_SERVER[%d]: before (cache) writing\n", cur_time, PDC_get_rank());
 #endif
 
     for (i = 0; i < request_data.n_objs; ++i) {
@@ -236,11 +226,6 @@ transfer_request_all_bulk_transfer_write_cb(const struct hg_cb_info *info)
         pthread_mutex_unlock(&transfer_request_status_mutex);
     }
 
-#ifdef TANG_DEBUG
-    PDC_get_time_str(cur_time);
-    LOG_DEBUG("%s ==PDC_SERVER[%d]: after (cache) writing\n", cur_time, PDC_get_rank());
-#endif
-
 #ifndef PDC_SERVER_CACHE
     for (i = 0; i < request_data.n_objs; ++i) {
         PDC_Server_unregister_obj_region_by_pointer(temp_ptrs[i], 1);
@@ -264,11 +249,6 @@ transfer_request_all_bulk_transfer_write_cb(const struct hg_cb_info *info)
     end = MPI_Wtime();
     pdc_server_timings->PDCreg_transfer_request_inner_write_all_bulk_rpc += end - start;
     pdc_timestamp_register(pdc_transfer_request_inner_write_all_bulk_timestamps, start, end);
-#endif
-
-#ifdef TANG_DEBUG
-    PDC_get_time_str(cur_time);
-    LOG_DEBUG("%s ==PDC_SERVER[%d]: leaving\n", cur_time, PDC_get_rank());
 #endif
 
     FUNC_LEAVE(ret);
@@ -342,12 +322,6 @@ transfer_request_bulk_transfer_write_cb(const struct hg_cb_info *info)
     hg_return_t                              ret             = HG_SUCCESS;
     struct pdc_region_info *                 remote_reg_info;
     uint64_t                                 obj_dims[3];
-
-#ifdef TANG_DEBUG
-    char cur_time[64];
-    PDC_get_time_str(cur_time);
-    LOG_DEBUG("%s ==PDC_SERVER[%d]: enter\n", cur_time, PDC_get_rank());
-#endif
 
     gettimeofday(&last_cache_activity_timeval_g, NULL);
 
@@ -454,7 +428,6 @@ HG_TEST_RPC_CB(transfer_request_status, handle)
     HG_Free_input(handle, &in);
     HG_Destroy(handle);
 
-    fflush(stdout);
     FUNC_LEAVE(ret_value);
 }
 
@@ -508,7 +481,6 @@ HG_TEST_RPC_CB(transfer_request_wait, handle)
     }
 #endif
 
-    fflush(stdout);
     FUNC_LEAVE(ret_value);
 }
 
@@ -547,7 +519,6 @@ HG_TEST_RPC_CB(transfer_request_wait_all, handle)
 
                          local_bulk_args->in.total_buf_size, HG_OP_ID_IGNORE);
 
-    fflush(stdout);
     FUNC_LEAVE(ret_value);
 }
 
@@ -570,11 +541,6 @@ HG_TEST_RPC_CB(transfer_request_all, handle)
 #endif
 
     HG_Get_input(handle, &in);
-
-#ifdef TANG_DEBUG
-    PDC_get_time_str(cur_time);
-    LOG_DEBUG("%s ==PDC_SERVER[%d]: enter process CLIENT[%d]\n", cur_time, PDC_get_rank(), in.client_id);
-#endif
 
     gettimeofday(&last_cache_activity_timeval_g, NULL);
 
@@ -613,20 +579,10 @@ HG_TEST_RPC_CB(transfer_request_all, handle)
                                    &(local_bulk_args->in.total_buf_size), HG_BULK_READWRITE,
                                    &(local_bulk_args->bulk_handle));
 
-#ifdef TANG_DEBUG
-        PDC_get_time_str(cur_time);
-        LOG_DEBUG("%s ==PDC_SERVER[x]: start bulk \n", cur_time);
-#endif
-
         ret_value =
             HG_Bulk_transfer(info->context, transfer_request_all_bulk_transfer_write_cb, local_bulk_args,
                              HG_BULK_PULL, info->addr, in.local_bulk_handle, 0, local_bulk_args->bulk_handle,
                              0, local_bulk_args->in.total_buf_size, HG_OP_ID_IGNORE);
-
-#ifdef TANG_DEBUG
-        PDC_get_time_str(cur_time);
-        LOG_DEBUG("%s ==PDC_SERVER[x]: done bulk\n", cur_time);
-#endif
     }
     else {
         // Read operation has to receive region metadata first. There will be another bulk transfer triggered
@@ -655,12 +611,6 @@ HG_TEST_RPC_CB(transfer_request_all, handle)
     }
 #endif
 
-#ifdef TANG_DEBUG
-    PDC_get_time_str(cur_time);
-    LOG_DEBUG("%s ==PDC_SERVER[%d]: leaving responded CLIENT[%d]\n", cur_time, PDC_get_rank(), in.client_id);
-#endif
-
-    fflush(stdout);
     FUNC_LEAVE(ret_value);
 }
 
@@ -720,8 +670,6 @@ HG_TEST_RPC_CB(transfer_request_metadata_query, handle)
 
     HG_Free_input(handle, &in);
 
-    fflush(stdout);
-
     FUNC_LEAVE(ret_value);
 }
 
@@ -780,8 +728,6 @@ HG_TEST_RPC_CB(transfer_request_metadata_query2, handle)
                                  local_bulk_args->bulk_handle, 0, in.total_buf_size, HG_OP_ID_IGNORE);
 
     HG_Free_input(handle, &in);
-
-    fflush(stdout);
 
     FUNC_LEAVE(ret_value);
 }
@@ -902,7 +848,6 @@ HG_TEST_RPC_CB(transfer_request, handle)
     }
 #endif
 
-    fflush(stdout);
     FUNC_LEAVE(ret_value);
 }
 

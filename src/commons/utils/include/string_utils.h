@@ -125,23 +125,6 @@ int equals(const char *str, const char *tok);
 char *dsprintf(const char *format, ...);
 
 /**
- * Print anything on stdout.
- * Always put a line feed after the string you want to print.
- *
- * @param format
- * @param ...
- */
-void println(const char *format, ...);
-
-/**
- * Print anything on stderr.
- * Always put a line feed after the string you want to print.
- *
- * @param format
- * @param ...
- */
-void stderr_println(const char *format, ...);
-/**
  * Only support expressions like:
  *
  * *ab
