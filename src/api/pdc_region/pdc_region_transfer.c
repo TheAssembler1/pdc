@@ -768,26 +768,27 @@ register_metadata(pdc_transfer_request_start_all_pkg **transfer_request_input, i
 
     // Each iteration finds the first transfer that has a target meta server different from the previous one
     // index is the first transfer index
-    int current_unique_idx = 0;
+    int  current_unique_idx     = 0;
     int *unique_server_xfer_idx = NULL;
-    int *unique_server_nboj = NULL;
+    int *unique_server_nboj     = NULL;
     if (size > 0) {
-        unique_server_xfer_idx = (int*)PDC_calloc(size, sizeof(int));
-        unique_server_nboj = (int*)PDC_calloc(size, sizeof(int));
+        unique_server_xfer_idx = (int *)PDC_calloc(size, sizeof(int));
+        unique_server_nboj     = (int *)PDC_calloc(size, sizeof(int));
     }
 
     // Iterate through the input array
     for (i = 0; i < size; ++i) {
         if (i == 0 || transfer_requests[i]->transfer_request->metadata_server_id !=
-		      transfer_requests[i-1]->transfer_request->metadata_server_id) {
-	    // Check if the current element is different from the previous one
-	    // or if it's the first element
+                          transfer_requests[i - 1]->transfer_request->metadata_server_id) {
+            // Check if the current element is different from the previous one
+            // or if it's the first element
             unique_server_xfer_idx[current_unique_idx] = i;
-            unique_server_nboj[current_unique_idx] = 1;
+            unique_server_nboj[current_unique_idx]     = 1;
 
             current_unique_idx++;
-        } else {
-            unique_server_nboj[current_unique_idx-1]++;
+        }
+        else {
+            unique_server_nboj[current_unique_idx - 1]++;
         }
     }
     int num_unique_server_ids = current_unique_idx;
@@ -795,34 +796,36 @@ register_metadata(pdc_transfer_request_start_all_pkg **transfer_request_input, i
     // Now we will try to distribute the metadata requests to different servers across clients
     for (i = 0; i < num_unique_server_ids; i++) {
         int current_index = (pdc_client_mpi_rank_g + i) % num_unique_server_ids;
-        index = unique_server_xfer_idx[current_index];
-	n_objs = unique_server_nboj[current_index];
+        index             = unique_server_xfer_idx[current_index];
+        n_objs            = unique_server_nboj[current_index];
 
-        /* LOG_DEBUG("Send to server %d, iter %d\n", transfer_requests[index]->transfer_request->metadata_server_id, i); */
+        /* LOG_DEBUG("Send to server %d, iter %d\n",
+         * transfer_requests[index]->transfer_request->metadata_server_id, i); */
 
-	pack_region_metadata_query(transfer_requests + index, n_objs, &buf, &total_buf_size);
-	PDC_Client_transfer_request_metadata_query(
-	    buf, total_buf_size, n_objs, transfer_requests[index]->transfer_request->metadata_server_id,
-	    is_write, &output_buf_size, &query_id);
-	buf = (char *)PDC_free(buf);
-	if (query_id) {
-	    output_buf = (char *)PDC_malloc(output_buf_size);
-	    PDC_Client_transfer_request_metadata_query2(
-		output_buf, output_buf_size, query_id,
-		transfer_requests[index]->transfer_request->metadata_server_id);
-	    unpack_region_metadata_query(output_buf, transfer_requests + index, &transfer_request_head,
-					 &transfer_request_end, &output_size);
-	    output_buf = (char *)PDC_free(output_buf);
+        pack_region_metadata_query(transfer_requests + index, n_objs, &buf, &total_buf_size);
+        PDC_Client_transfer_request_metadata_query(
+            buf, total_buf_size, n_objs, transfer_requests[index]->transfer_request->metadata_server_id,
+            is_write, &output_buf_size, &query_id);
+        buf = (char *)PDC_free(buf);
+        if (query_id) {
+            output_buf = (char *)PDC_malloc(output_buf_size);
+            PDC_Client_transfer_request_metadata_query2(
+                output_buf, output_buf_size, query_id,
+                transfer_requests[index]->transfer_request->metadata_server_id);
+            unpack_region_metadata_query(output_buf, transfer_requests + index, &transfer_request_head,
+                                         &transfer_request_end, &output_size);
+            output_buf = (char *)PDC_free(output_buf);
 
-	    if (transfer_request_front_head)
-		previous->next = transfer_request_head;
-	    else
-		transfer_request_front_head = transfer_request_head;
+            if (transfer_request_front_head)
+                previous->next = transfer_request_head;
+            else
+                transfer_request_front_head = transfer_request_head;
 
-	    previous = transfer_request_end;
-	}
+            previous = transfer_request_end;
+        }
 
-        /* LOG_DEBUG("Receive from server %d, iter %d\n", transfer_requests[index]->transfer_request->metadata_server_id, i); */
+        /* LOG_DEBUG("Receive from server %d, iter %d\n",
+         * transfer_requests[index]->transfer_request->metadata_server_id, i); */
     }
 
     if (unique_server_xfer_idx)
