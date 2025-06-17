@@ -774,17 +774,19 @@ PDC_Server_init(int port, hg_class_t **hg_class, hg_context_t **hg_context)
     total_mem_usage_g += (sizeof(char) + sizeof(char *));
 
     if ((hg_transport = getenv("HG_TRANSPORT")) == NULL) {
-        LOG_INFO("Environment variable HG_TRANSPORT was NOT set\n");
         hg_transport = default_hg_transport;
+        if (pdc_server_rank_g == 0)
+            LOG_INFO("Environment variable HG_TRANSPORT was NOT set, default to %s\n", hg_transport);
     }
     else
         LOG_INFO("Environment variable HG_TRANSPORT was set\n");
     if ((hostname = getenv("HG_HOST")) == NULL) {
-        LOG_INFO("Environment variable HG_HOST was NOT set\n");
         hostname = PDC_malloc(HOSTNAME_LEN);
         memset(hostname, 0, HOSTNAME_LEN);
         gethostname(hostname, HOSTNAME_LEN - 1);
         free_hostname = true;
+        if (pdc_server_rank_g == 0)
+            LOG_INFO("Environment variable HG_HOST was NOT set, default to %s\n", hostname);
     }
     else
         LOG_INFO("Environment variable HG_HOST was set\n");

@@ -153,9 +153,9 @@ main(int argc, char **argv)
 
 #ifdef ENABLE_MPI
         MPI_Barrier(MPI_COMM_WORLD);
-        PDC_get_time_str(cur_time);
+        /* PDC_get_time_str(cur_time); */
         if (rank == 0)
-            LOG_INFO("\n[%s] #Step  %d\n", cur_time, iter);
+            LOG_INFO("\n#Step  %d\n", iter);
         t0 = MPI_Wtime();
 #endif
         PDCprop_set_obj_time_step(obj_prop_float, iter);
@@ -207,9 +207,9 @@ main(int argc, char **argv)
 #ifdef ENABLE_MPI
         MPI_Barrier(MPI_COMM_WORLD);
         t1 = MPI_Wtime();
-        PDC_get_time_str(cur_time);
+        /* PDC_get_time_str(cur_time); */
         if (rank == 0)
-            LOG_INFO("[%s] Obj create time: %.5e\n", cur_time, t1 - t0);
+            LOG_INFO("Obj create time: %.5e\n", t1 - t0);
 #endif
 
         transfer_requests[0] =
@@ -264,9 +264,9 @@ main(int argc, char **argv)
 #ifdef ENABLE_MPI
         MPI_Barrier(MPI_COMM_WORLD);
         t0 = MPI_Wtime();
-        PDC_get_time_str(cur_time);
+        /* PDC_get_time_str(cur_time); */
         if (rank == 0)
-            LOG_ERROR("[%s] Transfer create time: %.5e\n", cur_time, t0 - t1);
+            LOG_INFO("Transfer create time: %.5e\n", t0 - t1);
 #endif
 
 #ifdef ENABLE_MPI
@@ -281,19 +281,19 @@ main(int argc, char **argv)
 #ifdef ENABLE_MPI
         MPI_Barrier(MPI_COMM_WORLD);
         t1 = MPI_Wtime();
-        PDC_get_time_str(cur_time);
+        /* PDC_get_time_str(cur_time); */
         if (rank == 0)
-            LOG_INFO("[%s] Transfer start time: %.5e\n", cur_time, t1 - t0);
+            LOG_INFO("Transfer start time: %.5e\n", t1 - t0);
 #endif
         // Emulate compute with sleep
         if (iter != steps - 1) {
-            PDC_get_time_str(cur_time);
+            /* PDC_get_time_str(cur_time); */
             if (rank == 0)
-                LOG_INFO("[%s] Sleep start: %llu.00\n", cur_time, sleeptime);
+                LOG_INFO("Sleep start: %llu.00\n", sleeptime);
             sleep(sleeptime);
-            PDC_get_time_str(cur_time);
+            /* PDC_get_time_str(cur_time); */
             if (rank == 0)
-                LOG_INFO("[%s] Sleep end: %llu.00\n", cur_time, sleeptime);
+                LOG_INFO("Sleep end: %llu.00\n", sleeptime);
         }
 
 #ifdef ENABLE_MPI
@@ -309,9 +309,9 @@ main(int argc, char **argv)
 #ifdef ENABLE_MPI
         MPI_Barrier(MPI_COMM_WORLD);
         t1 = MPI_Wtime();
-        PDC_get_time_str(cur_time);
+        /* PDC_get_time_str(cur_time); */
         if (rank == 0)
-            LOG_INFO("[%s] Transfer wait time: %.5e\n", cur_time, t1 - t0);
+            LOG_INFO("Transfer wait time: %.5e\n", t1 - t0);
 #endif
 
         for (int j = 0; j < 8; j++) {
@@ -324,9 +324,9 @@ main(int argc, char **argv)
 #ifdef ENABLE_MPI
         MPI_Barrier(MPI_COMM_WORLD);
         t0 = MPI_Wtime();
-        PDC_get_time_str(cur_time);
+        /* PDC_get_time_str(cur_time); */
         if (rank == 0)
-            LOG_INFO("[%s] Transfer close time: %.5e\n", cur_time, t0 - t1);
+            LOG_INFO("Transfer close time: %.5e\n", t0 - t1);
 #endif
 
         if (PDCobj_close(obj_xx) != SUCCEED) {
@@ -365,9 +365,9 @@ main(int argc, char **argv)
 #ifdef ENABLE_MPI
         MPI_Barrier(MPI_COMM_WORLD);
         t1 = MPI_Wtime();
-        PDC_get_time_str(cur_time);
+        /* PDC_get_time_str(cur_time); */
         if (rank == 0)
-            LOG_INFO("[%s] Obj close time: %.5e\n", cur_time, t1 - t0);
+            LOG_INFO("Obj close time: %.5e\n", t1 - t0);
 #endif
     } // End for steps
 
