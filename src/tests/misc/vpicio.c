@@ -285,22 +285,22 @@ main(int argc, char **argv)
         LOG_INFO("Transfer create time: %.5e\n", t0 - t1);
 #endif
 
-    TASSERT(PDCregion_transfer_start(transfer_request_x) >= 0, "Call to PDCregion_transfer_close succeeded",
-            "Call to PDCregion_transfer_close failed");
-    TASSERT(PDCregion_transfer_start(transfer_request_y) >= 0, "Call to PDCregion_transfer_close succeeded",
-            "Call to PDCregion_transfer_close failed");
-    TASSERT(PDCregion_transfer_start(transfer_request_z) >= 0, "Call to PDCregion_transfer_close succeeded",
-            "Call to PDCregion_transfer_close failed");
-    TASSERT(PDCregion_transfer_start(transfer_request_px) >= 0, "Call to PDCregion_transfer_close succeeded",
-            "Call to PDCregion_transfer_close failed");
-    TASSERT(PDCregion_transfer_start(transfer_request_py) >= 0, "Call to PDCregion_transfer_close succeeded",
-            "Call to PDCregion_transfer_close failed");
-    TASSERT(PDCregion_transfer_start(transfer_request_pz) >= 0, "Call to PDCregion_transfer_close succeeded",
-            "Call to PDCregion_transfer_close failed");
-    TASSERT(PDCregion_transfer_start(transfer_request_id1) >= 0, "Call to PDCregion_transfer_close succeeded",
-            "Call to PDCregion_transfer_close failed");
-    TASSERT(PDCregion_transfer_start(transfer_request_id2) >= 0, "Call to PDCregion_transfer_close succeeded",
-            "Call to PDCregion_transfer_close failed");
+    TASSERT(PDCregion_transfer_start(transfer_request_x) >= 0, "Call to PDCregion_transfer_start succeeded",
+            "Call to PDCregion_transfer_start failed");
+    TASSERT(PDCregion_transfer_start(transfer_request_y) >= 0, "Call to PDCregion_transfer_start succeeded",
+            "Call to PDCregion_transfer_start failed");
+    TASSERT(PDCregion_transfer_start(transfer_request_z) >= 0, "Call to PDCregion_transfer_start succeeded",
+            "Call to PDCregion_transfer_start failed");
+    TASSERT(PDCregion_transfer_start(transfer_request_px) >= 0, "Call to PDCregion_transfer_start succeeded",
+            "Call to PDCregion_transfer_start failed");
+    TASSERT(PDCregion_transfer_start(transfer_request_py) >= 0, "Call to PDCregion_transfer_start succeeded",
+            "Call to PDCregion_transfer_start failed");
+    TASSERT(PDCregion_transfer_start(transfer_request_pz) >= 0, "Call to PDCregion_transfer_start succeeded",
+            "Call to PDCregion_transfer_start failed");
+    TASSERT(PDCregion_transfer_start(transfer_request_id1) >= 0, "Call to PDCregion_transfer_start succeeded",
+            "Call to PDCregion_transfer_start failed");
+    TASSERT(PDCregion_transfer_start(transfer_request_id2) >= 0, "Call to PDCregion_transfer_start succeeded",
+            "Call to PDCregion_transfer_start failed");
 
 #ifdef ENABLE_MPI
     MPI_Barrier(MPI_COMM_WORLD);
