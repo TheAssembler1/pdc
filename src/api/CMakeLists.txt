@@ -10,14 +10,11 @@ set(LOCAL_INCLUDE_DIR
   ${PDC_SOURCE_DIR}/src/server/include
   ${PDC_SOURCE_DIR}/src/server/pdc_server_region
   ${PDC_SOURCE_DIR}/src/server/pdc_server_region/include
-  ${PDC_SOURCE_DIR}/src/server/pdc_server_analysis/include
   ${PDC_SOURCE_DIR}/src/server/dablooms
   ${PDC_SOURCE_DIR}/src/api/include
   ${PDC_SOURCE_DIR}/src/api/pdc_obj/include
   ${PDC_SOURCE_DIR}/src/api/pdc_region/include
   ${PDC_SOURCE_DIR}/src/api/pdc_query/include
-  ${PDC_SOURCE_DIR}/src/api/pdc_transform/include
-  ${PDC_SOURCE_DIR}/src/api/pdc_analysis/include
   ${PDC_SOURCE_DIR}/src/api/pdc_hist/include
   ${PDC_SOURCE_DIR}/src/api/profiling/include
   ${PDC_SOURCE_DIR}/src/utils/include
@@ -137,7 +134,6 @@ install(
 #-----------------------------------------------------------------------------
 set(PDC_HEADERS
   ${PDC_SOURCE_DIR}/src/api/include/pdc.h
-  ${PDC_SOURCE_DIR}/src/api/pdc_analysis/include/pdc_analysis.h
   ${PDC_SOURCE_DIR}/src/api/pdc_obj/include/pdc_cont.h
   ${PDC_SOURCE_DIR}/src/api/pdc_obj/include/pdc_mpi.h
   ${PDC_SOURCE_DIR}/src/api/pdc_obj/include/pdc_obj.h
@@ -148,7 +144,6 @@ set(PDC_HEADERS
   ${PDC_SOURCE_DIR}/src/api/pdc_obj/include/pdc_prop_pkg.h
   ${PDC_SOURCE_DIR}/src/api/pdc_query/include/pdc_query.h
   ${PDC_SOURCE_DIR}/src/api/pdc_region/include/pdc_region.h
-  ${PDC_SOURCE_DIR}/src/api/pdc_transform/include/pdc_transform.h
   ${PROJECT_BINARY_DIR}/pdc_config_sys.h
   ${PROJECT_BINARY_DIR}/pdc_config.h
   )

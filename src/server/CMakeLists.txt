@@ -40,8 +40,6 @@ include_directories(
   ${PDC_SOURCE_DIR}/src/api/pdc_obj/include
   ${PDC_SOURCE_DIR}/src/api/pdc_region/include
   ${PDC_SOURCE_DIR}/src/api/pdc_query/include
-  ${PDC_SOURCE_DIR}/src/api/pdc_transform/include
-  ${PDC_SOURCE_DIR}/src/api/pdc_analysis/include
   ${PDC_SOURCE_DIR}/src/api/profiling/include
   ${PDC_SOURCE_DIR}/src/api/pdc_hist/include
   ${PDC_SOURCE_DIR}/src/utils/include
