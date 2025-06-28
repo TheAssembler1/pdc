@@ -70,7 +70,6 @@ add_library(pdc_server_lib
                ${PDC_SOURCE_DIR}/src/server/pdc_server_region/pdc_server_region_transfer.c
                ${PDC_SOURCE_DIR}/src/server/pdc_server_region/pdc_server_region_transfer_metadata_query.c
                ${PDC_SOURCE_DIR}/src/utils/pdc_region_utils.c
-               ${PDC_SOURCE_DIR}/src/api/pdc_transform/pdc_transforms_common.c
                ${PDC_SOURCE_DIR}/src/api/pdc_hist/pdc_hist_pkg.c
 )
 if(PDC_ENABLE_FASTBIT)
