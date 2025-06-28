@@ -38,7 +38,6 @@
 #include "pdc_interface.h"
 #include "pdc_transforms_pkg.h"
 #include "pdc_client_connect.h"
-#include "pdc_analysis_pkg.h"
 #include <mpi.h>
 
 static perr_t pdc_region_close(struct pdc_region_info *op);
@@ -185,12 +184,12 @@ PDCbuf_obj_map(void *buf, pdc_var_type_t local_type, pdcid_t local_reg, pdcid_t 
 
     pdcid_t               ret_value = SUCCEED;
     size_t                i;
-    struct _pdc_id_info * objinfo2;
+    struct _pdc_id_info  *objinfo2;
     struct _pdc_obj_info *obj2;
     pdcid_t               remote_meta_id;
 
     pdc_var_type_t          remote_type;
-    struct _pdc_id_info *   reginfo1, *reginfo2;
+    struct _pdc_id_info    *reginfo1, *reginfo2;
     struct pdc_region_info *reg1, *reg2;
 
     reginfo1 = PDC_find_id(local_reg);
@@ -216,12 +215,6 @@ PDCbuf_obj_map(void *buf, pdc_var_type_t local_type, pdcid_t local_reg, pdcid_t 
                                    local_type, buf, remote_type, reg1, reg2, obj2);
 
     if (ret_value == SUCCEED) {
-        /*
-         * For analysis and/or transforms, we only identify the target region as being mapped.
-         * The lock/unlock protocol for writing will protect the target from being written by
-         * more than one source.
-         */
-        PDC_check_transform(PDC_DATA_MAP, reg2);
         PDC_inc_ref(remote_obj);
         PDC_inc_ref(remote_reg);
     }
@@ -237,7 +230,7 @@ PDCregion_get_info(pdcid_t reg_id)
 
     struct pdc_region_info *ret_value = NULL;
     struct pdc_region_info *info      = NULL;
-    struct _pdc_id_info *   region;
+    struct _pdc_id_info    *region;
 
     region = PDC_find_id(reg_id);
     if (region == NULL)
@@ -256,8 +249,8 @@ PDCbuf_obj_unmap(pdcid_t remote_obj_id, pdcid_t remote_reg_id)
     FUNC_ENTER(NULL);
 
     perr_t                  ret_value = SUCCEED;
-    struct _pdc_id_info *   info1;
-    struct _pdc_obj_info *  object1;
+    struct _pdc_id_info    *info1;
+    struct _pdc_obj_info   *object1;
     struct pdc_region_info *reginfo;
     pdc_var_type_t          data_type;
 
@@ -290,11 +283,11 @@ PDCreg_obtain_lock(pdcid_t obj_id, pdcid_t reg_id, pdc_access_t access_type, pdc
     FUNC_ENTER(NULL);
 
     perr_t                  ret_value = SUCCEED;
-    struct _pdc_obj_info *  object_info;
+    struct _pdc_obj_info   *object_info;
     struct pdc_region_info *region_info;
     pdc_var_type_t          data_type;
     pbool_t                 obtained;
-    struct _pdc_id_info *   info1;
+    struct _pdc_id_info    *info1;
 
     info1 = PDC_find_id(obj_id);
     if (info1 == NULL)
@@ -304,7 +297,7 @@ PDCreg_obtain_lock(pdcid_t obj_id, pdcid_t reg_id, pdc_access_t access_type, pdc
     data_type   = object_info->obj_pt->obj_prop_pub->type;
     region_info = PDCregion_get_info(reg_id);
     ret_value   = PDC_Client_region_lock(object_info->obj_info_pub->meta_id, object_info, region_info,
-                                       access_type, lock_mode, data_type, &obtained);
+                                         access_type, lock_mode, data_type, &obtained);
 
     // PDC_free_obj_info(object_info);
 done:
@@ -318,10 +311,10 @@ PDCreg_release_lock(pdcid_t obj_id, pdcid_t reg_id, pdc_access_t access_type)
 
     perr_t                  ret_value = SUCCEED;
     pbool_t                 released;
-    struct _pdc_obj_info *  object_info;
+    struct _pdc_obj_info   *object_info;
     struct pdc_region_info *region_info;
     pdc_var_type_t          data_type;
-    struct _pdc_id_info *   info1;
+    struct _pdc_id_info    *info1;
 
     info1 = PDC_find_id(obj_id);
     if (info1 == NULL)

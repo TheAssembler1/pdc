@@ -73,9 +73,6 @@ set(PDC_SRCS
   ${PDC_SOURCE_DIR}/src/api/pdc_obj/pdc_prop.c
   ${PDC_SOURCE_DIR}/src/api/pdc_obj/pdc_cont.c
   ${PDC_SOURCE_DIR}/src/api/pdc_obj/pdc_obj.c
-  ${PDC_SOURCE_DIR}/src/api/pdc_analysis/pdc_analysis_and_transforms_connect.c
-  ${PDC_SOURCE_DIR}/src/api/pdc_analysis/pdc_analysis_common.c
-  ${PDC_SOURCE_DIR}/src/api/pdc_analysis/pdc_analysis.c
   ${PDC_SOURCE_DIR}/src/api/pdc_hist/pdc_hist_pkg.c
   ${PDC_SOURCE_DIR}/src/api/pdc_obj/pdc_mpi.c
   ${PDC_SOURCE_DIR}/src/api/pdc_query/pdc_query.c
@@ -92,7 +89,6 @@ set(PDC_SRCS
   )
 
   set(PDC_COMMON_INCLUDE_DIRS ${PDC_COMMON_INCLUDE_DIRS})
-  # add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/profiling)
 
 #------------------------------------------------------------------------------
 # Libraries

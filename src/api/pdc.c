@@ -32,7 +32,6 @@
 #include "pdc_cont_pkg.h"
 #include "pdc_obj_pkg.h"
 #include "pdc_region_pkg.h"
-#include "pdc_analysis_pkg.h"
 #include "pdc_interface.h"
 #include "pdc_client_connect.h"
 
@@ -199,13 +198,6 @@ PDCclose(pdcid_t pdcid)
         PGOTO_ERROR(FAIL, "Failed to destroy object");
     if (PDC_region_end() < 0)
         PGOTO_ERROR(FAIL, "Failed to destroy region");
-
-    if (PDC_iterator_end() < 0)
-        PGOTO_ERROR(FAIL, "Failed to destroy iterator");
-    if (PDC_analysis_end() < 0)
-        PGOTO_ERROR(FAIL, "Failed to destroy analysis");
-    if (PDC_transform_end() < 0)
-        PGOTO_ERROR(FAIL, "Failed to destroy transform");
 
     PDC_class_close(pdcid);
 

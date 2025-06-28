@@ -65,13 +65,11 @@ add_library(pdc_server_lib
                pdc_client_server_common.c
                dablooms/pdc_dablooms.c
                dablooms/pdc_murmur.c
-               ${PDC_SOURCE_DIR}/src/server/pdc_server_analysis/pdc_server_analysis.c
                ${PDC_SOURCE_DIR}/src/server/pdc_server_region/pdc_server_data.c
                ${PDC_SOURCE_DIR}/src/server/pdc_server_region/pdc_server_region_cache.c
                ${PDC_SOURCE_DIR}/src/server/pdc_server_region/pdc_server_region_transfer.c
                ${PDC_SOURCE_DIR}/src/server/pdc_server_region/pdc_server_region_transfer_metadata_query.c
                ${PDC_SOURCE_DIR}/src/utils/pdc_region_utils.c
-               ${PDC_SOURCE_DIR}/src/api/pdc_analysis/pdc_analysis_common.c
                ${PDC_SOURCE_DIR}/src/api/pdc_transform/pdc_transforms_common.c
                ${PDC_SOURCE_DIR}/src/api/pdc_hist/pdc_hist_pkg.c
 )

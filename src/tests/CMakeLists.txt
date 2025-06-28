@@ -223,27 +223,6 @@ foreach(script ${SCRIPTS})
   )
 endforeach(script)
 
-
-# *******************************************
-# Create a transform library which contains:
-#  1. compression/depression functions
-#  2. datatype conversion
-# *******************************************
-OPTION(GEN_TRANSFORM_LIB "Create a transform library" OFF)
-if(GEN_TRANSFORM_LIB)
-  FIND_LIBRARY(BLOSC_LIBRARY blosc $ENV{HOME}/Sandbox/c-blosc/build/blosc)
-  set(PDC_TRANSFORMS_SRCS transforms/pdc_transforms_lib.c)
-  add_library(pdctransforms  ${PDC_TRANSFORMS_SRCS})
-  target_link_libraries(pdctransforms pdc ${BLOSC_LIBRARY})
-endif()
-
-# *******************************************
-# Create a transform library for testing
-# *******************************************
-set(PDC_ANALYSIS_SRCS analysis/pdc_analysis_lib.c)
-add_library(pdcanalysis ${PDC_ANALYSIS_SRCS})
-target_link_libraries(pdcanalysis pdc)
-
 add_test(NAME pdc_init          WORKING_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY} COMMAND run_test.sh ./pdc_init )
 add_test(NAME dup_prop          WORKING_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY} COMMAND run_test.sh ./dup_prop )
 add_test(NAME open_cont         WORKING_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY} COMMAND run_test.sh ./open_cont )
