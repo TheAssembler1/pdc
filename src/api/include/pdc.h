@@ -39,6 +39,7 @@
 #include "pdc_obj.h"
 #include "pdc_region.h"
 #include "pdc_query.h"
+#include "pdc_tf.h"
 
 int PDC_timing_report(const char *prefix);
 
