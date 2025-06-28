@@ -147,7 +147,6 @@ static hg_id_t metadata_get_kvtag_register_id_g;
 static hg_id_t region_lock_register_id_g;
 static hg_id_t region_release_register_id_g;
 
-static hg_id_t region_analysis_release_register_id_g;
 static hg_id_t data_server_read_register_id_g;
 static hg_id_t data_server_read_check_register_id_g;
 static hg_id_t data_server_write_check_register_id_g;

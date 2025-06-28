@@ -313,10 +313,7 @@ typedef struct data_server_region_t {
     // For region map
     region_map_t *region_map_head;
     // For region storage
-    region_list_t *region_storage_head;
-    // For non-mapped object analysis
-    // Used primarily as a local_temp
-    void                        *obj_data_ptr;
+    region_list_t               *region_storage_head;
     char                        *storage_location; // save the file location to enable reopening
     struct data_server_region_t *prev;
     struct data_server_region_t *next;
@@ -3742,49 +3739,6 @@ struct buf_map_release_bulk_args {
     hg_thread_cond_t        work_cond;
     int                     work_completed;
     region_lock_in_t        in;
-};
-
-//  The following two tructures are the same as: buf_map_release_bulk_args
-//  (above) with one modified field, i.e. the region_transform_and_lock_in_t
-//  and the region_analysis_and_lock_in_t rather than region_lock_in_t.
-//  This should allow the normal thread processing for IO operations
-//  to work correctly.  N.B. I moved the region_lock_in_t structure in
-//  the struct buf_map_release_bulk_args above, to be the last element.
-//  Thus, the size difference in the last element shouldn't matter
-//  to normal processing of things...
-
-struct buf_map_transform_and_release_bulk_args {
-    hg_handle_t             handle;
-    void                   *data_buf;
-    pdcid_t                 remote_obj_id; /* target of object id */
-    pdcid_t                 remote_reg_id; /* target of region id */
-    int32_t                 remote_client_id;
-    struct pdc_region_info *remote_reg_info;
-    region_info_transfer_t  remote_region;
-    hg_bulk_t               remote_bulk_handle;
-    hg_bulk_t               local_bulk_handle;
-    hg_addr_t               local_addr;
-    struct hg_thread_work   work;
-    hg_thread_mutex_t       work_mutex;
-    hg_thread_cond_t        work_cond;
-    int                     work_completed;
-};
-
-struct buf_map_analysis_and_release_bulk_args {
-    hg_handle_t             handle;
-    void                   *data_buf;
-    pdcid_t                 remote_obj_id; /* target of object id */
-    pdcid_t                 remote_reg_id; /* target of region id */
-    int32_t                 remote_client_id;
-    struct pdc_region_info *remote_reg_info;
-    region_info_transfer_t  remote_region;
-    hg_bulk_t               remote_bulk_handle;
-    hg_bulk_t               local_bulk_handle;
-    hg_addr_t               local_addr;
-    struct hg_thread_work   work;
-    hg_thread_mutex_t       work_mutex;
-    hg_thread_cond_t        work_cond;
-    int                     work_completed;
 };
 
 struct lock_bulk_args {
