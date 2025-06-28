@@ -37,14 +37,14 @@ struct _pdc_cont_prop {
 
 struct _pdc_obj_prop {
     struct pdc_obj_prop *obj_prop_pub;
-    struct _pdc_class   *pdc;
+    struct _pdc_class *  pdc;
     uint32_t             user_id;
-    char                *app_name;
+    char *               app_name;
     uint32_t             time_step;
-    char                *data_loc;
-    char                *tags;
-    void                *buf;
-    pdc_kvtag_t         *kvtag;
+    char *               data_loc;
+    char *               tags;
+    void *               buf;
+    pdc_kvtag_t *        kvtag;
 };
 
 /***************************************/
