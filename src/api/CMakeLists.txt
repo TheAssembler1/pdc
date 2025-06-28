@@ -17,6 +17,7 @@ set(LOCAL_INCLUDE_DIR
   ${PDC_SOURCE_DIR}/src/api/pdc_query/include
   ${PDC_SOURCE_DIR}/src/api/pdc_hist/include
   ${PDC_SOURCE_DIR}/src/api/profiling/include
+  ${PDC_SOURCE_DIR}/src/api/pdc_tf/include
   ${PDC_SOURCE_DIR}/src/utils/include
 )
 
@@ -75,15 +76,16 @@ set(PDC_SRCS
   ${PDC_SOURCE_DIR}/src/api/pdc_query/pdc_query.c
   ${PDC_SOURCE_DIR}/src/api/pdc_region/pdc_region.c
   ${PDC_SOURCE_DIR}/src/api/pdc_region/pdc_region_transfer.c
+  ${PDC_SOURCE_DIR}/src/api/pdc_tf/pdc_tf.c
   ${PDC_SOURCE_DIR}/src/server/pdc_client_server_common.c
   ${PDC_SOURCE_DIR}/src/server/pdc_server_region/pdc_server_region_transfer.c
   ${PDC_SOURCE_DIR}/src/server/pdc_server_region/pdc_server_region_cache.c
   ${PDC_SOURCE_DIR}/src/server/pdc_server_region/pdc_server_region_transfer_metadata_query.c
   ${PDC_SOURCE_DIR}/src/utils/pdc_interface.c
   ${PDC_SOURCE_DIR}/src/utils/pdc_region_utils.c
-  )
+)
 
-  set(PDC_COMMON_INCLUDE_DIRS ${PDC_COMMON_INCLUDE_DIRS})
+set(PDC_COMMON_INCLUDE_DIRS ${PDC_COMMON_INCLUDE_DIRS})
 
 #------------------------------------------------------------------------------
 # Libraries
@@ -144,6 +146,7 @@ set(PDC_HEADERS
   ${PDC_SOURCE_DIR}/src/api/pdc_obj/include/pdc_prop_pkg.h
   ${PDC_SOURCE_DIR}/src/api/pdc_query/include/pdc_query.h
   ${PDC_SOURCE_DIR}/src/api/pdc_region/include/pdc_region.h
+  ${PDC_SOURCE_DIR}/src/api/pdc_tf/include/pdc_tf.h
   ${PROJECT_BINARY_DIR}/pdc_config_sys.h
   ${PROJECT_BINARY_DIR}/pdc_config.h
   )
