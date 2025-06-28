@@ -18,6 +18,7 @@ set(LOCAL_INCLUDE_DIR
   ${PDC_SOURCE_DIR}/src/api/pdc_query/include
   ${PDC_SOURCE_DIR}/src/api/pdc_transform/include
   ${PDC_SOURCE_DIR}/src/api/pdc_analysis/include
+  ${PDC_SOURCE_DIR}/src/api/pdc_hist/include
   ${PDC_SOURCE_DIR}/src/api/profiling/include
   ${PDC_SOURCE_DIR}/src/utils/include
 )
@@ -75,7 +76,7 @@ set(PDC_SRCS
   ${PDC_SOURCE_DIR}/src/api/pdc_analysis/pdc_analysis_and_transforms_connect.c
   ${PDC_SOURCE_DIR}/src/api/pdc_analysis/pdc_analysis_common.c
   ${PDC_SOURCE_DIR}/src/api/pdc_analysis/pdc_analysis.c
-  ${PDC_SOURCE_DIR}/src/api/pdc_analysis/pdc_hist_pkg.c
+  ${PDC_SOURCE_DIR}/src/api/pdc_hist/pdc_hist_pkg.c
   ${PDC_SOURCE_DIR}/src/api/pdc_obj/pdc_mpi.c
   ${PDC_SOURCE_DIR}/src/api/pdc_query/pdc_query.c
   ${PDC_SOURCE_DIR}/src/api/pdc_region/pdc_region.c
