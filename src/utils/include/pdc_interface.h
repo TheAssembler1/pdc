@@ -55,8 +55,12 @@ typedef enum {
     PDC_CONT             = 4,  /* type ID for container                       */
     PDC_OBJ              = 5,  /* type ID for object                          */
     PDC_REGION           = 6,  /* type ID for region                          */
-    PDC_TRANSFER_REQUEST = 7,  /* type ID for region transfer                          */
-    PDC_NTYPES           = 8   /* number of library types, MUST BE LAST!      */
+    PDC_TRANSFER_REQUEST = 7,  /* type ID for region transfer                 */
+    // FIXME: NOAH DOCS
+    PDC_TF_STATE    = 8,
+    PDC_TF_FUNCTION = 9,
+    PDC_TF_DG       = 10,
+    PDC_NTYPES      = 11 /* number of library types, MUST BE LAST!      */
 } PDC_type_t;
 
 /***************************/
@@ -64,12 +68,11 @@ typedef enum {
 /***************************/
 /* ID type structure used */
 struct PDC_id_type {
-    PDC_free_t free_func; /* Free function for object's of this type    */
-    PDC_type_t type_id;   /* Class ID for the type                      */
-    //    const                     PDCID_class_t *cls;/* Pointer to ID class                        */
-    unsigned init_count;             /* # of times this type has been initialized  */
-    unsigned id_count;               /* Current number of IDs held                 */
-    pdcid_t  nextid;                 /* ID to use for the next atom                */
+    PDC_free_t free_func;            /* Free function for object's of this type    */
+    PDC_type_t type_id;              /* Class ID for the type                      */
+    unsigned   init_count;           /* Number of times this type has been initialized  */
+    unsigned   id_count;             /* Current number of IDs held                 */
+    pdcid_t    nextid;               /* ID to use for the next atom                */
     PDC_LIST_HEAD(_pdc_id_info) ids; /* Head of list of IDs                        */
 };
 

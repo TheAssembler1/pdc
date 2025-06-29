@@ -1,0 +1,9 @@
+#!/bin/bash
+
+rm -rf ./build/*
+
+pushd build
+cmake ../ -DCMAKE_BUILD_TYPE=debug -DENABLE_MULTITHREAD=OFF -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -DBUILD_MPI_TESTING=ON -DENABLE_MPI=ON -DBUILD_SHARED_LIBS=ON -DPDC_SERVER_CACHE=OFF -DBUILD_TESTING=ON -DPDC_ENABLE_MPI=ON -DCMAKE_C_COMPILER=mpicc 
+make -j$(nproc)
+cp compile_commands.json ..
+popd

@@ -1,12 +1,20 @@
 #include "pdc_tf.h"
 #include "pdc_timing.h"
+#include "pdc_interface.h"
 
-pdcid_t
-PDCtf_create_dg(char *dg_name)
+// FIXME: just a temp way of generating id's...
+static pdcid_t tf_cur_dg_id    = 1;
+static pdcid_t tf_cur_state_id = 1;
+static pdcid_t tf_cur_func_id  = 1;
+
+static
+
+    pdcid_t
+    PDCtf_create_dg(char *dg_name)
 {
     FUNC_ENTER(NULL);
 
-    pdcid_t dg_id = 0;
+    pdcid_t dg_id = tf_cur_dg_id++;
 
     FUNC_LEAVE(dg_id);
 }
@@ -24,7 +32,7 @@ PDCtf_create_state(char *state_name)
 {
     FUNC_ENTER(NULL);
 
-    pdcid_t state_id = 0;
+    pdcid_t state_id = tf_cur_state_id++;
 
     FUNC_LEAVE(state_id);
 }
@@ -35,7 +43,7 @@ PDCtf_create_func(char *path_colon_name, pdc_tf_dev_t dev, pdcid_t input_data_st
 {
     FUNC_ENTER(NULL);
 
-    pdcid_t func_id = 0;
+    pdcid_t func_id = tf_cur_func_id++;
 
     FUNC_LEAVE(func_id);
 }
@@ -93,5 +101,58 @@ PDCtf_attach_to_objs(pdcid_t dg_id, pdcid_t *obj_ids, int num_ids, pdcid_t clien
 
     perr_t ret_value = SUCCEED;
 
+    FUNC_LEAVE(ret_value);
+}
+
+static perr_t
+PDCtf_state_free(void *)
+{
+    FUNC_ENTER(NULL);
+
+    perr_t ret_value = SUCCEED;
+    LOG_INFO("PDCtf_state_free called\n");
+
+    FUNC_LEAVE(ret_value);
+}
+
+static perr_t
+PDCtf_function_free(void *)
+{
+    FUNC_ENTER(NULL);
+
+    perr_t ret_value = SUCCEED;
+    LOG_INFO("PDCtf_function_free called\n");
+
+    FUNC_LEAVE(ret_value);
+}
+
+static perr_t
+PDCtf_dg_free(void *)
+{
+    FUNC_ENTER(NULL);
+
+    perr_t ret_value = SUCCEED;
+    LOG_INFO("PDCtf_dg_free called\n");
+
+    FUNC_LEAVE(ret_value);
+}
+
+perr_t
+PDCtf_init()
+{
+    FUNC_ENTER(NULL);
+
+    LOG_INFO("PDCtf_init called\n");
+
+    perr_t ret_value = SUCCEED;
+
+    if (PDC_register_type(PDC_TF_STATE, (PDC_free_t)PDCtf_state_free) < 0)
+        PGOTO_ERROR(FAIL, "Failed to register PDC_TF_STATE type");
+    if (PDC_register_type(PDC_TF_FUNCTION, (PDC_free_t)PDCtf_function_free) < 0)
+        PGOTO_ERROR(FAIL, "Failed to register PDC_TF_FUNCTION type");
+    if (PDC_register_type(PDC_TF_DG, (PDC_free_t)PDCtf_dg_free) < 0)
+        PGOTO_ERROR(FAIL, "Failed to register PDC_TF_DG type");
+
+done:
     FUNC_LEAVE(ret_value);
 }

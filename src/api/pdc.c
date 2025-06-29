@@ -34,6 +34,7 @@
 #include "pdc_region_pkg.h"
 #include "pdc_interface.h"
 #include "pdc_client_connect.h"
+#include "pdc_tf.h"
 
 #include "pdc_timing.h"
 
@@ -103,6 +104,8 @@ PDCinit(const char *pdc_name)
         PGOTO_ERROR(0, "PDC region init error");
     if (PDC_transfer_request_init() < 0)
         PGOTO_ERROR(0, "PDC region transfer init error");
+    if (PDCtf_init() < 0)
+        PGOTO_ERROR(0, "PDC tf init error");
 
     // PDC Client Server connection init
     if (PDC_Client_init() < 0)
