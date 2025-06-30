@@ -7,10 +7,8 @@ static pdcid_t tf_cur_dg_id    = 1;
 static pdcid_t tf_cur_state_id = 1;
 static pdcid_t tf_cur_func_id  = 1;
 
-static
-
-    pdcid_t
-    PDCtf_create_dg(char *dg_name)
+pdcid_t
+PDCtf_create_dg(char *dg_name)
 {
     FUNC_ENTER(NULL);
 

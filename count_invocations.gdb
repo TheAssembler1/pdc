@@ -8,6 +8,8 @@ set $HG_Context_create_count = 0
 set $HG_Context_destroy_count = 0
 set $HG_Bulk_create_count = 0
 set $HG_Bulk_free_count = 0
+set $HG_Addr_lookup_count = 0
+set $HG_Addr_free_count = 0
 
 # Breakpoint for HG_Create
 break HG_Create
@@ -57,6 +59,22 @@ commands
   continue
 end
 
+# Breakpoint for HG_Addr_lookup
+break HG_Addr_lookup
+commands
+  silent
+  set $HG_Addr_lookup_count = $HG_Addr_lookup_count + 1
+  continue
+end
+
+# Breakpoint for HG_Addr_free
+break HG_Addr_free
+commands
+  silent
+  set $HG_Addr_free_count = $HG_Addr_free_count + 1
+  continue
+end
+
 # Start the program
 run
 
@@ -67,3 +85,7 @@ printf "HG_Context_create was called %d times\n", $HG_Context_create_count
 printf "HG_Context_destroy was called %d times\n", $HG_Context_destroy_count
 printf "HG_Bulk_create was called %d times\n", $HG_Bulk_create_count
 printf "HG_Bulk_free was called %d times\n", $HG_Bulk_free_count
+printf "HG_Addr_lookup was called %d times\n", $HG_Addr_lookup_count
+printf "HG_Addr_free was called %d times\n", $HG_Addr_free_count
+
+quit
