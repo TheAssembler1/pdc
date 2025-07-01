@@ -48,7 +48,7 @@ vertex_free(void *data)
     FUNC_ENTER(NULL);
 
     LOG_INFO("vertex_free called\n");
-    // data = PDC_free(data);
+    data = PDC_free(data);
 
     FUNC_LEAVE_VOID();
 }
@@ -105,20 +105,19 @@ PDCtf_add_func(pdcid_t dg_id, pdcid_t func_id)
 
     // vertices to be added
     pdc_dg_vertex_id_t v1, v2;
-    // initially set them to input and output states
-    v1 = funcs[func_id].input_data_state_id;
-    v2 = funcs[func_id].output_data_state_id;
 
     // first check that vertex does not exist from previous function insertion
-    // if (PDCdg_has_vertex_data(graphs[dg_id], is_vertex, &(funcs[func_id].input_data_state_id)) == false) {
-    LOG_INFO("Adding %s vertex to graph\n", states[funcs[func_id].input_data_state_id].state_name);
-    v1 = PDCdg_add_vertex(graphs[dg_id], states[funcs[func_id].input_data_state_id].state_id);
-    //}
+    if ((v1 = PDCdg_has_vertex_data(graphs[dg_id], is_vertex, &(funcs[func_id].input_data_state_id))) ==
+        PDC_DG_INVALID_VERTEX) {
+        LOG_INFO("Adding %s vertex to graph\n", states[funcs[func_id].input_data_state_id].state_name);
+        v1 = PDCdg_add_vertex(graphs[dg_id], states[funcs[func_id].input_data_state_id].state_id);
+    }
     // first check that vertex does not exist from previous function insertion
-    // if (PDCdg_has_vertex_data(graphs[dg_id], is_vertex, &(funcs[func_id].output_data_state_id)) == false) {
-    LOG_INFO("Adding %s vertex to graph\n", states[funcs[func_id].output_data_state_id].state_name);
-    v2 = PDCdg_add_vertex(graphs[dg_id], states[funcs[func_id].output_data_state_id].state_id);
-    //}
+    if ((v2 = PDCdg_has_vertex_data(graphs[dg_id], is_vertex, &(funcs[func_id].output_data_state_id))) ==
+        PDC_DG_INVALID_VERTEX) {
+        LOG_INFO("Adding %s vertex to graph\n", states[funcs[func_id].output_data_state_id].state_name);
+        v2 = PDCdg_add_vertex(graphs[dg_id], states[funcs[func_id].output_data_state_id].state_id);
+    }
 
     LOG_INFO("Adding %s function to graph\n", funcs[func_id].path_colon_name);
     PDCdg_add_edge(graphs[dg_id], v1, v2, funcs[func_id].func_id);

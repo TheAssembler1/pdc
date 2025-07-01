@@ -143,9 +143,9 @@ bool PDCdg_has_vertex(pdc_dg_t *dg, pdc_dg_vertex_id_t vertex_id);
  * \param is_data   [IN] Predicate function to evaluate the vertex data
  * \param input    [IN] Custom user data passed to predicate
  *
- * \return true if the vertex exists and the predicate returns true, false otherwise
+ * \return vetex_id if the vertex exists and the predicate returns true, PDC_DG_INVALID_VERTEX otherwise
  */
-bool PDCdg_has_vertex_data(pdc_dg_t *dg, bool (*is_data)(void *data, void *input), void *input);
+pdc_dg_vertex_id_t PDCdg_has_vertex_data(pdc_dg_t *dg, bool (*is_data)(void *data, void *input), void *input);
 
 /**
  * Check if the data associated with the given edge exists in graph
@@ -154,8 +154,8 @@ bool PDCdg_has_vertex_data(pdc_dg_t *dg, bool (*is_data)(void *data, void *input
  * \param is_data  [IN] Predicate function to evaluate the edge data
  * \param input    [IN] Custom user data passed to predicate
  *
- * \return true if the edge exists and the predicate returns true, false otherwise
+ * \return edge_id if the edge exists and the predicate returns true, PDC_DG_INVALID_EDGE otherwise
  */
-bool PDCdg_has_edge_data(pdc_dg_t *dg, bool (*is_data)(void *data, void *input), void *input);
+pdc_dg_edge_id_t PDCdg_has_edge_data(pdc_dg_t *dg, bool (*is_data)(void *data, void *input), void *input);
 
 #endif /* PDC_DG_H */

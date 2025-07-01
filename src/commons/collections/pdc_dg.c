@@ -169,7 +169,7 @@ PDCdg_has_vertex(pdc_dg_t *dg, pdc_dg_vertex_id_t vertex_id)
 {
     FUNC_ENTER(NULL);
 
-    LOG_INFO("PDCdg_add_edge was called\n");
+    LOG_INFO("PDCdg_has_vertex was called\n");
 
     if (dg == NULL) {
         LOG_WARNING("pdc_dg_has_vertex called with NULL dg\n");
@@ -184,40 +184,40 @@ PDCdg_has_vertex(pdc_dg_t *dg, pdc_dg_vertex_id_t vertex_id)
     FUNC_LEAVE(false);
 }
 
-bool
+pdc_dg_vertex_id_t
 PDCdg_has_vertex_data(pdc_dg_t *dg, bool (*is_data)(void *data, void *input), void *input)
 {
     FUNC_ENTER(NULL);
 
-    LOG_INFO("PDCdg_add_edge was called\n");
+    LOG_INFO("PDCdg_has_vertex_data was called\n");
 
     if (dg == NULL) {
         LOG_WARNING("pdc_dg_has_vertex called with NULL dg\n");
-        FUNC_LEAVE(false);
+        FUNC_LEAVE(PDC_DG_INVALID_VERTEX);
     }
 
     for (int i = 0; i < dg->vertex_count; i++) {
         if (is_data(dg->vertices[i]->data, input))
-            FUNC_LEAVE(true);
+            FUNC_LEAVE(dg->vertices[i]->vertex_id);
     }
 
-    FUNC_LEAVE(false);
+    FUNC_LEAVE(PDC_DG_INVALID_VERTEX);
 }
 
-bool
+pdc_dg_edge_id_t
 PDCdg_has_edge_data(pdc_dg_t *dg, bool (*is_data)(void *data, void *input), void *input)
 {
     FUNC_ENTER(NULL);
 
     if (dg == NULL) {
-        LOG_WARNING("pdc_dg_has_edge called with NULL dg\n");
-        FUNC_LEAVE(false);
+        LOG_WARNING("PDCdg_has_edge_data called with NULL dg\n");
+        FUNC_LEAVE(PDC_DG_INVALID_EDGE);
     }
 
     for (int i = 0; i < dg->edge_count; i++) {
         if (is_data(dg->edges[i]->data, input))
-            FUNC_LEAVE(true);
+            FUNC_LEAVE(dg->edges[i]->edge_id);
     }
 
-    FUNC_LEAVE(false);
+    FUNC_LEAVE(PDC_DG_INVALID_EDGE);
 }
