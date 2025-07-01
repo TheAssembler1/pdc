@@ -188,39 +188,39 @@ main(int argc, char **argv)
                  PDCregion_transfer_create(&id2[0], PDC_READ, obj_id22, region_id2, region_id22)) != 0,
             "Call to PDCregion_transfer_create succeeded", "Call to PDCregion_transfer_create failed");
 
-    TASSERT(PDCregion_transfer_start(transfer_request_x) >= 0, "Call to PDCregion_transfer_close succeeded",
-            "Call to PDCregion_transfer_close failed");
-    TASSERT(PDCregion_transfer_start(transfer_request_y) >= 0, "Call to PDCregion_transfer_close succeeded",
-            "Call to PDCregion_transfer_close failed");
-    TASSERT(PDCregion_transfer_start(transfer_request_z) >= 0, "Call to PDCregion_transfer_close succeeded",
-            "Call to PDCregion_transfer_close failed");
-    TASSERT(PDCregion_transfer_start(transfer_request_px) >= 0, "Call to PDCregion_transfer_close succeeded",
-            "Call to PDCregion_transfer_close failed");
-    TASSERT(PDCregion_transfer_start(transfer_request_py) >= 0, "Call to PDCregion_transfer_close succeeded",
-            "Call to PDCregion_transfer_close failed");
-    TASSERT(PDCregion_transfer_start(transfer_request_pz) >= 0, "Call to PDCregion_transfer_close succeeded",
-            "Call to PDCregion_transfer_close failed");
-    TASSERT(PDCregion_transfer_start(transfer_request_id1) >= 0, "Call to PDCregion_transfer_close succeeded",
-            "Call to PDCregion_transfer_close failed");
-    TASSERT(PDCregion_transfer_start(transfer_request_id2) >= 0, "Call to PDCregion_transfer_close succeeded",
-            "Call to PDCregion_transfer_close failed");
+    TASSERT(PDCregion_transfer_start(transfer_request_x) >= 0, "Call to PDCregion_transfer_start succeeded",
+            "Call to PDCregion_transfer_start failed");
+    TASSERT(PDCregion_transfer_start(transfer_request_y) >= 0, "Call to PDCregion_transfer_start succeeded",
+            "Call to PDCregion_transfer_start failed");
+    TASSERT(PDCregion_transfer_start(transfer_request_z) >= 0, "Call to PDCregion_transfer_start succeeded",
+            "Call to PDCregion_transfer_start failed");
+    TASSERT(PDCregion_transfer_start(transfer_request_px) >= 0, "Call to PDCregion_transfer_start succeeded",
+            "Call to PDCregion_transfer_start failed");
+    TASSERT(PDCregion_transfer_start(transfer_request_py) >= 0, "Call to PDCregion_transfer_start succeeded",
+            "Call to PDCregion_transfer_start failed");
+    TASSERT(PDCregion_transfer_start(transfer_request_pz) >= 0, "Call to PDCregion_transfer_start succeeded",
+            "Call to PDCregion_transfer_start failed");
+    TASSERT(PDCregion_transfer_start(transfer_request_id1) >= 0, "Call to PDCregion_transfer_start succeeded",
+            "Call to PDCregion_transfer_start failed");
+    TASSERT(PDCregion_transfer_start(transfer_request_id2) >= 0, "Call to PDCregion_transfer_start succeeded",
+            "Call to PDCregion_transfer_start failed");
 
-    TASSERT(PDCregion_transfer_wait(transfer_request_x) >= 0, "Call to PDCregion_transfer_close succeeded",
-            "Call to PDCregion_transfer_close failed");
-    TASSERT(PDCregion_transfer_wait(transfer_request_y) >= 0, "Call to PDCregion_transfer_close succeeded",
-            "Call to PDCregion_transfer_close failed");
-    TASSERT(PDCregion_transfer_wait(transfer_request_z) >= 0, "Call to PDCregion_transfer_close succeeded",
-            "Call to PDCregion_transfer_close failed");
-    TASSERT(PDCregion_transfer_wait(transfer_request_px) >= 0, "Call to PDCregion_transfer_close succeeded",
-            "Call to PDCregion_transfer_close failed");
-    TASSERT(PDCregion_transfer_wait(transfer_request_py) >= 0, "Call to PDCregion_transfer_close succeeded",
-            "Call to PDCregion_transfer_close failed");
-    TASSERT(PDCregion_transfer_wait(transfer_request_pz) >= 0, "Call to PDCregion_transfer_close succeeded",
-            "Call to PDCregion_transfer_close failed");
-    TASSERT(PDCregion_transfer_wait(transfer_request_id1) >= 0, "Call to PDCregion_transfer_close succeeded",
-            "Call to PDCregion_transfer_close failed");
-    TASSERT(PDCregion_transfer_wait(transfer_request_id2) >= 0, "Call to PDCregion_transfer_close succeeded",
-            "Call to PDCregion_transfer_close failed");
+    TASSERT(PDCregion_transfer_wait(transfer_request_x) >= 0, "Call to PDCregion_transfer_wait succeeded",
+            "Call to PDCregion_transfer_wait failed");
+    TASSERT(PDCregion_transfer_wait(transfer_request_y) >= 0, "Call to PDCregion_transfer_wait succeeded",
+            "Call to PDCregion_transfer_wait failed");
+    TASSERT(PDCregion_transfer_wait(transfer_request_z) >= 0, "Call to PDCregion_transfer_wait succeeded",
+            "Call to PDCregion_transfer_wait failed");
+    TASSERT(PDCregion_transfer_wait(transfer_request_px) >= 0, "Call to PDCregion_transfer_wait succeeded",
+            "Call to PDCregion_transfer_wait failed");
+    TASSERT(PDCregion_transfer_wait(transfer_request_py) >= 0, "Call to PDCregion_transfer_wait succeeded",
+            "Call to PDCregion_transfer_wait failed");
+    TASSERT(PDCregion_transfer_wait(transfer_request_pz) >= 0, "Call to PDCregion_transfer_wait succeeded",
+            "Call to PDCregion_transfer_wait failed");
+    TASSERT(PDCregion_transfer_wait(transfer_request_id1) >= 0, "Call to PDCregion_transfer_wait succeeded",
+            "Call to PDCregion_transfer_wait failed");
+    TASSERT(PDCregion_transfer_wait(transfer_request_id2) >= 0, "Call to PDCregion_transfer_wait succeeded",
+            "Call to PDCregion_transfer_wait failed");
 
     TASSERT(PDCregion_transfer_close(transfer_request_x) >= 0, "Call to PDCregion_transfer_close succeeded",
             "Call to PDCregion_transfer_close failed");
