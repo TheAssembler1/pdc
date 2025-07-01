@@ -63,4 +63,8 @@ perr_t PDCtf_attach_to_objs(pdcid_t dg_id, pdcid_t *obj_ids, int num_ids, pdcid_
 
 // register data states, transformations, and directed graphs as types
 perr_t PDCtf_init();
+
+// print graph in readable format
+void PDCtf_print_dg(pdcid_t dg_id);
+
 #endif /* PDC_TF_H */

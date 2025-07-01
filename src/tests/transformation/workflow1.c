@@ -47,6 +47,8 @@ workflow1(pdcid_t pdc, pdcid_t cont)
     PDCtf_add_func(dg_id, comp_func_id);
     PDCtf_add_func(dg_id, decomp_func_id);
 
+    PDCtf_print_dg(dg_id);
+
     TASSERT((obj_prop = PDCprop_create(PDC_OBJ_CREATE, pdc)) != 0, "obj_prop_create succeeded",
             "obj_prop_create failed");
     uint64_t dims[NUM_DIMS];

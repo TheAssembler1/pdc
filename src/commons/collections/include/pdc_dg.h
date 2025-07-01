@@ -55,6 +55,8 @@ typedef struct pdc_dg_edge_t {
  * \param vertex_capacity [IN] Maximum vertices allocated before resizing
  * \param edge_capacity   [IN] Maximum edges allocated before resizing
  * \param data            [IN] Pointer to user data associated with the graph
+ * \param edge_free       [IN] Function to free edge
+ * \param vertex_free     [IN] Function to free vertex
  */
 typedef struct pdc_dg_t {
     // Array of edges and vertices
@@ -70,16 +72,20 @@ typedef struct pdc_dg_t {
     uint32_t edge_capacity;
 
     void *data;
+    void (*edge_free)(void *data);
+    void (*vertex_free)(void *data);
 } pdc_dg_t;
 
 /**
  * Create a new directed graph.
  *
- * \param data [IN] User data pointer to associate with the graph
+ * \param data        [IN] User data pointer to associate with the graph
+ * \param edge_free   [IN] Function to free edge data
+ * \param vertex_Free [IN] Function to free vertex data
  *
  * \return Pointer to the newly created directed graph, or NULL on failure
  */
-pdc_dg_t *PDCdg_create(void *data);
+pdc_dg_t *PDCdg_create(void *data, void (*edge_free)(void *data), void (*vertex_free)(void *data));
 /**
  * Destroy a directed graph, freeing all associated memory.
  *
@@ -129,5 +135,27 @@ bool PDCdg_has_edge(pdc_dg_t *dg, pdc_dg_edge_id_t edge_id);
  * \return true if vertex exists, false otherwise
  */
 bool PDCdg_has_vertex(pdc_dg_t *dg, pdc_dg_vertex_id_t vertex_id);
+
+/**
+ * Check if the data associated with the given vertex exists in graph
+ *
+ * \param dg        [IN] Pointer to the directed graph
+ * \param is_data   [IN] Predicate function to evaluate the vertex data
+ * \param input    [IN] Custom user data passed to predicate
+ *
+ * \return true if the vertex exists and the predicate returns true, false otherwise
+ */
+bool PDCdg_has_vertex_data(pdc_dg_t *dg, bool (*is_data)(void *data, void *input), void *input);
+
+/**
+ * Check if the data associated with the given edge exists in graph
+ *
+ * \param dg       [IN] Pointer to the directed graph
+ * \param is_data  [IN] Predicate function to evaluate the edge data
+ * \param input    [IN] Custom user data passed to predicate
+ *
+ * \return true if the edge exists and the predicate returns true, false otherwise
+ */
+bool PDCdg_has_edge_data(pdc_dg_t *dg, bool (*is_data)(void *data, void *input), void *input);
 
 #endif /* PDC_DG_H */

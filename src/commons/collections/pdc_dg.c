@@ -8,6 +8,8 @@ resize_dg(pdc_dg_t *dg, uint32_t new_vertex_count, uint32_t new_edge_count)
 {
     FUNC_ENTER(NULL);
 
+    LOG_INFO("resize_dg was called\n");
+
     perr_t ret_value = SUCCEED;
 
     if (dg == NULL)
@@ -38,9 +40,20 @@ done:
 }
 
 pdc_dg_t *
-PDCdg_create(void *data)
+PDCdg_create(void *data, void (*edge_free)(void *data), void (*vertex_free)(void *data))
 {
     FUNC_ENTER(NULL);
+
+    LOG_INFO("PDCdg_create was called\n");
+
+    if (edge_free == NULL) {
+        LOG_ERROR("edge_free was NULL\n");
+        return NULL;
+    }
+    if (vertex_free == NULL) {
+        LOG_ERROR("vertex_free was NULL\n");
+        return NULL;
+    }
 
     pdc_dg_t *dg = (pdc_dg_t *)PDC_calloc(1, sizeof(pdc_dg_t));
 
@@ -53,6 +66,9 @@ PDCdg_create(void *data)
     dg->edge_count   = 0;
     dg->data         = data;
 
+    dg->edge_free   = edge_free;
+    dg->vertex_free = vertex_free;
+
     FUNC_LEAVE(dg);
 }
 
@@ -60,6 +76,9 @@ void
 PDCdg_destroy(pdc_dg_t *dg)
 {
     FUNC_ENTER(NULL);
+
+    LOG_INFO("PDCdg_destroy was called\n");
+    LOG_INFO("Destroying graph with %d vertices, %d edges\n", dg->vertex_count, dg->edge_count);
 
     if (dg == NULL) {
         LOG_ERROR("pdc_dg_destroy called with NULL dg\n");
@@ -69,7 +88,7 @@ PDCdg_destroy(pdc_dg_t *dg)
     if (dg->edges) {
         for (int i = 0; i < dg->edge_count; i++) {
             if (dg->edges[i] && dg->edges[i]->data)
-                dg->edges[i]->data = PDC_free(dg->edges[i]->data);
+                dg->edge_free(dg->edges[i]->data);
             if (dg->edges[i])
                 dg->edges[i] = PDC_free(dg->edges[i]);
         }
@@ -78,7 +97,7 @@ PDCdg_destroy(pdc_dg_t *dg)
     if (dg->vertices) {
         for (int i = 0; i < dg->vertex_count; i++) {
             if (dg->vertices[i] && dg->vertices[i]->data)
-                dg->vertices[i]->data = PDC_free(dg->vertices[i]->data);
+                dg->vertex_free(dg->vertices[i]->data);
             if (dg->vertices[i])
                 dg->vertices[i] = PDC_free(dg->vertices[i]);
         }
@@ -94,6 +113,8 @@ pdc_dg_vertex_id_t
 PDCdg_add_vertex(pdc_dg_t *dg, void *data)
 {
     FUNC_ENTER(NULL);
+
+    LOG_INFO("PDCdg_add_vertex was called\n");
 
     if (resize_dg(dg, dg->vertex_count + 1, dg->edge_count) != SUCCEED) {
         LOG_ERROR("Failed to resize dg\n");
@@ -114,6 +135,8 @@ pdc_dg_edge_id_t
 PDCdg_add_edge(pdc_dg_t *dg, pdc_dg_vertex_id_t from_vertex_id, pdc_dg_vertex_id_t to_vertex_id, void *data)
 {
     FUNC_ENTER(NULL);
+
+    LOG_INFO("PDCdg_add_edge was called\n");
 
     if (!PDCdg_has_vertex(dg, from_vertex_id)) {
         LOG_ERROR("from_vertex_id did not exist\n");
@@ -144,31 +167,57 @@ PDCdg_add_edge(pdc_dg_t *dg, pdc_dg_vertex_id_t from_vertex_id, pdc_dg_vertex_id
 bool
 PDCdg_has_vertex(pdc_dg_t *dg, pdc_dg_vertex_id_t vertex_id)
 {
+    FUNC_ENTER(NULL);
+
+    LOG_INFO("PDCdg_add_edge was called\n");
+
     if (dg == NULL) {
         LOG_WARNING("pdc_dg_has_vertex called with NULL dg\n");
-        return false;
+        FUNC_LEAVE(false);
     }
 
     for (int i = 0; i < dg->vertex_count; i++) {
         if (dg->vertices[i]->vertex_id == vertex_id)
-            return true;
+            FUNC_LEAVE(true);
     }
 
-    return false;
+    FUNC_LEAVE(false);
 }
 
 bool
-PDCdg_has_edge(pdc_dg_t *dg, pdc_dg_edge_id_t edge_id)
+PDCdg_has_vertex_data(pdc_dg_t *dg, bool (*is_data)(void *data, void *input), void *input)
 {
+    FUNC_ENTER(NULL);
+
+    LOG_INFO("PDCdg_add_edge was called\n");
+
+    if (dg == NULL) {
+        LOG_WARNING("pdc_dg_has_vertex called with NULL dg\n");
+        FUNC_LEAVE(false);
+    }
+
+    for (int i = 0; i < dg->vertex_count; i++) {
+        if (is_data(dg->vertices[i]->data, input))
+            FUNC_LEAVE(true);
+    }
+
+    FUNC_LEAVE(false);
+}
+
+bool
+PDCdg_has_edge_data(pdc_dg_t *dg, bool (*is_data)(void *data, void *input), void *input)
+{
+    FUNC_ENTER(NULL);
+
     if (dg == NULL) {
         LOG_WARNING("pdc_dg_has_edge called with NULL dg\n");
-        return false;
+        FUNC_LEAVE(false);
     }
 
     for (int i = 0; i < dg->edge_count; i++) {
-        if (dg->edges[i]->edge_id == edge_id)
-            return true;
+        if (is_data(dg->edges[i]->data, input))
+            FUNC_LEAVE(true);
     }
 
-    return false;
+    FUNC_LEAVE(false);
 }
