@@ -20,8 +20,12 @@ typedef enum {
 // creates a new directed graph and returns ID
 pdcid_t PDCtf_create_dg(char *dg_name);
 
-// attach transformation to DG
-void PDCtf_add_func(pdcid_t dg_id, pdcid_t func_id);
+/**
+ * creates a new function and returns ID
+ * the lib:func is the path to the library and function to execute
+ */
+perr_t PDCtf_add_func(pdcid_t dg_id, char *path_colon_name, pdc_tf_dev_t dev, pdcid_t input_data_state,
+                      pdcid_t output_data_state);
 
 /**
  * creates a new data state and returns ID
@@ -29,13 +33,6 @@ void PDCtf_add_func(pdcid_t dg_id, pdcid_t func_id);
  * to specify the source state and the destination state.
  */
 pdcid_t PDCtf_create_state(char *state_name);
-
-/**
- * creates a new function and returns ID
- * the lib:func is the path to the library and function to execute
- */
-pdcid_t PDCtf_create_func(char *path_colon_name, pdc_tf_dev_t dev, pdcid_t input_data_state,
-                          pdcid_t output_data_state);
 
 /**
  * specifies how the output of a transformation function should be handled
@@ -66,5 +63,8 @@ perr_t PDCtf_init();
 
 // print graph in readable format
 void PDCtf_print_dg(pdcid_t dg_id);
+
+// print execution path
+void PDCtf_print_exec_path(pdcid_t dg_id, pdcid_t client_state_id, pdcid_t server_state_id);
 
 #endif /* PDC_TF_H */

@@ -9,37 +9,34 @@
 #include "pdc_malloc.h"
 
 // FIXME: just a temp way of generating id's...
-static pdcid_t tf_cur_dg_id    = 1;
-static pdcid_t tf_cur_state_id = 1;
-static pdcid_t tf_cur_func_id  = 1;
+static pdcid_t tf_cur_graph_id = 100;
+static pdcid_t tf_cur_state_id = 100;
 
-// these types don't need to be exposed to the client
-typedef struct data_state {
-    pdcid_t *state_id;
-    char    *state_name;
-} data_state;
+typedef struct state {
+    pdcid_t id;
+    char   *name;
+} state;
 
 typedef struct func {
-    pdcid_t     *func_id;
-    char        *path_colon_name;
     pdc_tf_dev_t dev;
-    pdcid_t      input_data_state_id;
-    pdcid_t      output_data_state_id;
+    char        *path_colon_name;
 } func;
 
-pdc_dg_t  *graphs[100];
-func       funcs[100];
-data_state states[100];
+// index into these using pdcid_t
+// in reality the type system of PDC would give us the corresponding pointer
+pdc_dg_t *graphs[200];
+state    *states[200];
 
-static void
-dg_free(void *data)
+bool
+vertices_are_equal(void *v1, void *v2)
 {
-    FUNC_ENTER(NULL);
+    state *s1 = (state *)v1;
+    state *s2 = (state *)v2;
 
-    LOG_INFO("dg_free called\n");
-    data = PDC_free(data);
+    if (s1 == NULL || s2 == NULL)
+        return false;
 
-    FUNC_LEAVE_VOID();
+    return s1->id == s2->id;
 }
 
 static void
@@ -71,69 +68,34 @@ PDCtf_create_dg(char *dg_name)
 
     LOG_INFO("Creating directed graph\n");
 
-    pdcid_t *dg_id = (pdcid_t *)PDC_calloc(1, sizeof(pdcid_t));
-    *dg_id         = tf_cur_dg_id;
-    graphs[*dg_id] = PDCdg_create(dg_id, dg_free, edge_free, vertex_free);
+    pdcid_t dg_id = tf_cur_graph_id;
+    graphs[dg_id] = PDCdg_create(NULL, vertices_are_equal, NULL, edge_free, vertex_free);
 
-    tf_cur_dg_id++;
-    FUNC_LEAVE(*dg_id);
+    tf_cur_graph_id++;
+    FUNC_LEAVE(dg_id);
 }
 
-pdcid_t
-PDCtf_create_func(char *path_colon_name, pdc_tf_dev_t dev, pdcid_t input_data_state,
-                  pdcid_t output_data_state)
+perr_t
+PDCtf_add_func(pdcid_t dg_id, char *path_colon_name, pdc_tf_dev_t dev, pdcid_t input_data_state,
+               pdcid_t output_data_state)
 {
     FUNC_ENTER(NULL);
+
+    int ret_value = SUCCEED;
 
     LOG_INFO("Creating %s transformation\n", path_colon_name);
 
-    pdcid_t func_id = tf_cur_func_id;
+    func *f            = (func *)PDC_calloc(1, sizeof(func));
+    f->path_colon_name = path_colon_name;
+    f->dev             = dev;
 
-    funcs[func_id].func_id              = (pdcid_t *)PDC_calloc(1, sizeof(pdcid_t));
-    *funcs[func_id].func_id             = func_id;
-    funcs[func_id].path_colon_name      = path_colon_name;
-    funcs[func_id].dev                  = dev;
-    funcs[func_id].input_data_state_id  = input_data_state;
-    funcs[func_id].output_data_state_id = output_data_state;
-
-    tf_cur_func_id++;
-    FUNC_LEAVE(func_id);
-}
-
-bool
-is_vertex(void *data, void *input)
-{
-    pdcid_t *vertex_id = (pdcid_t *)data;
-    pdcid_t *cur_id    = (pdcid_t *)input;
-
-    return *vertex_id == *cur_id;
-}
-
-void
-PDCtf_add_func(pdcid_t dg_id, pdcid_t func_id)
-{
-    FUNC_ENTER(NULL);
-
-    // vertices to be added
-    pdc_dg_vertex_id_t v1, v2;
-
-    // first check that vertex does not exist from previous function insertion
-    if ((v1 = PDCdg_has_vertex_data(graphs[dg_id], is_vertex, &(funcs[func_id].input_data_state_id))) ==
-        PDC_DG_INVALID_VERTEX) {
-        LOG_INFO("Adding %s vertex to graph\n", states[funcs[func_id].input_data_state_id].state_name);
-        v1 = PDCdg_add_vertex(graphs[dg_id], states[funcs[func_id].input_data_state_id].state_id);
-    }
-    // first check that vertex does not exist from previous function insertion
-    if ((v2 = PDCdg_has_vertex_data(graphs[dg_id], is_vertex, &(funcs[func_id].output_data_state_id))) ==
-        PDC_DG_INVALID_VERTEX) {
-        LOG_INFO("Adding %s vertex to graph\n", states[funcs[func_id].output_data_state_id].state_name);
-        v2 = PDCdg_add_vertex(graphs[dg_id], states[funcs[func_id].output_data_state_id].state_id);
+    if (PDCdg_add_edge(graphs[dg_id], states[input_data_state], states[output_data_state], f) ==
+        PDC_DG_INVALID_EDGE) {
+        PGOTO_ERROR(FAIL, "Failed to add edge to dg");
     }
 
-    LOG_INFO("Adding %s function to graph\n", funcs[func_id].path_colon_name);
-    PDCdg_add_edge(graphs[dg_id], v1, v2, funcs[func_id].func_id);
-
-    FUNC_LEAVE_VOID();
+done:
+    FUNC_LEAVE(ret_value);
 }
 
 pdcid_t
@@ -143,11 +105,10 @@ PDCtf_create_state(char *state_name)
 
     LOG_INFO("Creating %s state\n", state_name);
 
-    pdcid_t state_id = tf_cur_state_id;
-
-    states[state_id].state_id   = (pdcid_t *)PDC_calloc(1, sizeof(pdcid_t));
-    *states[state_id].state_id  = state_id;
-    states[state_id].state_name = state_name;
+    pdcid_t state_id       = tf_cur_state_id;
+    states[state_id]       = (state *)PDC_calloc(1, sizeof(state));
+    states[state_id]->id   = state_id;
+    states[state_id]->name = state_name;
 
     tf_cur_state_id++;
     FUNC_LEAVE(state_id);
@@ -233,7 +194,7 @@ PDCtf_function_free(void *)
 }
 
 static perr_t
-PDCtf_dg_free(pdcid_t dg_id)
+PDCtf_dg_free(void *dg_id)
 {
     FUNC_ENTER(NULL);
 
@@ -254,8 +215,6 @@ PDCtf_init()
 
     if (PDC_register_type(PDC_TF_STATE, (PDC_free_t)PDCtf_state_free) < 0)
         PGOTO_ERROR(FAIL, "Failed to register PDC_TF_STATE type");
-    if (PDC_register_type(PDC_TF_FUNCTION, (PDC_free_t)PDCtf_function_free) < 0)
-        PGOTO_ERROR(FAIL, "Failed to register PDC_TF_FUNCTION type");
     if (PDC_register_type(PDC_TF_DG, (PDC_free_t)PDCtf_dg_free) < 0)
         PGOTO_ERROR(FAIL, "Failed to register PDC_TF_DG type");
 
@@ -313,18 +272,21 @@ PDCtf_print_dg(pdcid_t dg_id)
     for (int i = 0; i < dg->edge_count; i++) {
         pdc_dg_edge_t *edge = dg->edges[i];
 
-        pdc_dg_vertex_id_t input_vertex_id  = edge->from_vertex_id;
-        pdc_dg_vertex_id_t output_vertex_id = edge->to_vertex_id;
+        pdcid_t input_vertex_id  = edge->v1_id;
+        pdcid_t output_vertex_id = edge->v2_id;
 
-        pdcid_t input_state_id  = *(pdcid_t *)dg->vertices[input_vertex_id]->data;
-        pdcid_t output_state_id = *(pdcid_t *)dg->vertices[output_vertex_id]->data;
+        // Correctly cast vertex data to state*
+        state *input_state  = (state *)dg->vertices[input_vertex_id]->data;
+        state *output_state = (state *)dg->vertices[output_vertex_id]->data;
 
-        pdcid_t func_id = *(pdcid_t *)edge->data;
+        // Cast edge data to func*
+        func *edge_func = (func *)edge->data;
 
-        const char *color = (funcs[func_id].dev == PDC_TF_CPU_DEVICE) ? "blue" : "red";
-        LOG_JUST_PRINT("\t\"[%d] %s\" -> \"[%d] %s\" [label=\"[%d] %s\", color=%s];\n", input_state_id,
-                       states[input_state_id].state_name, output_state_id, states[output_state_id].state_name,
-                       func_id, funcs[func_id].path_colon_name, color);
+        const char *color = (edge_func->dev == PDC_TF_CPU_DEVICE) ? "blue" : "red";
+
+        LOG_JUST_PRINT("\t\"[%d] %s\" -> \"[%d] %s\" [label=\"%s\", color=%s];\n", input_state->id,
+                       input_state->name, output_state->id, output_state->name, edge_func->path_colon_name,
+                       color);
     }
 
     LOG_JUST_PRINT("}\n");
@@ -337,21 +299,29 @@ PDCtf_print_dg(pdcid_t dg_id)
         perror("dup2 restore");
     }
     close(stdout_fd);
+}
 
-    // FIXME: NOAH remove just for debugging
+// print execution path
+void
+PDCtf_print_exec_path(pdcid_t dg_id, pdcid_t client_state_id, pdcid_t server_state_id)
+{
+    void          *input_state  = states[client_state_id];
+    void          *output_state = states[server_state_id];
     pdc_dg_edge_t *edges_out;
     uint32_t       num_edges;
-    LOG_INFO("Calling dikstras's\n");
-    bool path_found = PDCdg_shortest_path(graphs[dg_id], 1, 3, &edges_out, &num_edges);
 
-    if (path_found) {
-        LOG_JUST_PRINT("PATH FOUND:\n");
-        for (int j = 0; j < num_edges; j++) {
-            LOG_JUST_PRINT("%d\n", edges_out[j]);
+    if (PDCdg_shortest_path(graphs[dg_id], input_state, output_state, &edges_out, &num_edges)) {
+        LOG_INFO("Path was found:\n");
+        for (uint32_t j = 0; j < num_edges; j++) {
+            pdc_dg_edge_t e = edges_out[j];
+
+            state *v1 = (state *)(graphs[dg_id]->vertices[e.v1_id]->data);
+            state *v2 = (state *)(graphs[dg_id]->vertices[e.v2_id]->data);
+
+            LOG_INFO("%d: %s(%s) = %s\n", j + 1, ((func *)(e.data))->path_colon_name, v1->name, v2->name);
         }
-        LOG_JUST_PRINT("\n");
     }
     else {
-        LOG_ERROR("PATH NOT FOUND\n");
+        LOG_INFO("No path found\n");
     }
 }

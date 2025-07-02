@@ -11,19 +11,20 @@
 #define PDC_DG_INVALID_VERTEX       -1
 
 /**
- * Directed graph vertex identifier type.
+ * Type for directed graph vertex identifiers.
  */
 typedef int pdc_dg_vertex_id_t;
+
 /**
- * Directed graph edge identifier type.
+ * Type for directed graph edge identifiers.
  */
 typedef int pdc_dg_edge_id_t;
 
 /**
- * Structure representing a vertex in the directed graph.
+ * Represents a vertex in the directed graph.
  *
- * \param vertex_id  [IN]     Unique identifier for the vertex
- * \param data       [IN]     Pointer to user data associated with the vertex
+ * \param vertex_id  Unique identifier for the vertex.
+ * \param data       Pointer to user-defined data associated with the vertex.
  */
 typedef struct pdc_dg_vertex_t {
     pdc_dg_vertex_id_t vertex_id;
@@ -31,152 +32,135 @@ typedef struct pdc_dg_vertex_t {
 } pdc_dg_vertex_t;
 
 /**
- * Structure representing an edge in the directed graph.
+ * Represents an edge in the directed graph.
  *
- * \param edge_id         [IN]   Unique identifier for the edge
- * \param from_vertex_id  [IN]   Vertex ID where the edge starts
- * \param to_vertex_id    [IN]   Vertex ID where the edge ends
- * \param data            [IN]   Pointer to user data associated with the edge
+ * \param edge_id  Unique identifier for the edge.
+ * \param v1_id    Source vertex ID.
+ * \param v2_id    Destination vertex ID.
+ * \param data     Pointer to user-defined data associated with the edge.
  */
 typedef struct pdc_dg_edge_t {
     pdc_dg_edge_id_t   edge_id;
-    pdc_dg_vertex_id_t from_vertex_id;
-    pdc_dg_vertex_id_t to_vertex_id;
+    pdc_dg_vertex_id_t v1_id;
+    pdc_dg_vertex_id_t v2_id;
     void              *data;
 } pdc_dg_edge_t;
 
 /**
- * Structure representing the directed graph.
+ * Represents a directed graph structure.
  *
- * \param edges            [IN] Array of pointers to edges in the graph
- * \param vertices         [IN] Array of pointers to vertices in the graph
- * \param edge_count       [IN] Number of edges currently in the graph
- * \param vertex_count     [IN] Number of vertices currently in the graph
- * \param vertex_capacity  [IN] Maximum vertices allocated before resizing
- * \param edge_capacity    [IN] Maximum edges allocated before resizing
- * \param data             [IN] Pointer to user data associated with the graph
- * \param edge_free        [IN] Function to free edge
- * \param vertex_free      [IN] Function to free vertex
+ * All vertex and edge memory is managed internally. When the graph is destroyed,
+ * the user-defined `vertex_data_free` and `edge_data_free` functions (if provided)
+ * are called once for each vertex and edge respectively. The `dg_data_free`
+ * function is called once for the graph-level data. All other memory is freed
+ * by the library.
+ *
+ * \param edges            Array of pointers to edges.
+ * \param vertices         Array of pointers to vertices.
+ * \param edge_count       Number of edges currently in the graph.
+ * \param vertex_count     Number of vertices currently in the graph.
+ * \param vertex_capacity  Maximum number of vertices before resizing.
+ * \param edge_capacity    Maximum number of edges before resizing.
+ * \param data             Pointer to user-defined graph-level data.
+ * \param vertices_are_equal Function to compare vertex data for equality.
+ * \param dg_data_free     Function to free graph-level user data.
+ * \param edge_data_free   Function to free edge-level user data.
+ * \param vertex_data_free Function to free vertex-level user data.
  */
 typedef struct pdc_dg_t {
-    // Array of edges and vertices
     pdc_dg_edge_t   **edges;
     pdc_dg_vertex_t **vertices;
 
-    // current number of edges and vertices
     uint32_t edge_count;
     uint32_t vertex_count;
 
-    // max number of vertices before realloc needed
     uint32_t vertex_capacity;
     uint32_t edge_capacity;
-    void    *data;
 
-    // how to free dg/vertex/edge data
+    void *data;
+
+    bool (*vertices_are_equal)(void *v1_data, void *v2_data);
     void (*dg_data_free)(void *data);
     void (*edge_data_free)(void *data);
     void (*vertex_data_free)(void *data);
 } pdc_dg_t;
 
 /**
- * Create a new directed graph. Passing NULl for the free functions
- * in cases where the user wants to handle the memory themselves
- * or the data is not a heap allocated pointer is valid.
+ * Create a new directed graph.
  *
- * \param data              [IN] User data pointer to associate with the graph
- * \param dg_data_free      [IN] Function to free dg data
- * \param edge_data_free    [IN] Function to free edge data
- * \param vertex_data_Free  [IN] Function to free vertex data
+ * Passing NULL for any of the free function pointers is allowed if the user
+ * intends to manage the memory manually. However, the vertices_are_equal
+ * function must be provided.
  *
- * \return Pointer to the newly created directed graph, or NULL on failure
+ * \param data               User data to associate with the graph.
+ * \param vertices_are_equal Function to compare two vertex data pointers.
+ * \param dg_data_free       Function to free graph-level data (or NULL).
+ * \param edge_data_free     Function to free edge-level data (or NULL).
+ * \param vertex_data_free   Function to free vertex-level data (or NULL).
+ *
+ * \return Pointer to the new graph on success, NULL on failure.
  */
-pdc_dg_t *PDCdg_create(void *data, void (*dg_data_free)(void *data), void (*edge_data_free)(void *data),
+pdc_dg_t *PDCdg_create(void *data, bool (*vertices_are_equal)(void *v1_data, void *v2_data),
+                       void (*dg_data_free)(void *data), void (*edge_data_free)(void *data),
                        void (*vertex_data_free)(void *data));
 
 /**
- * Destroy a directed graph, freeing all associated memory.
+ * Destroy a directed graph and free all associated memory.
  *
- * \param dg [IN] Pointer to the directed graph to destroy
+ *  This function will:
+ *  - Free all edge data using `edge_data_free`, if provided.
+ *  - Free all vertex data using `vertex_data_free`, if provided.
+ *  - Free the graph-level user data using `dg_data_free`, if provided.
+ *  - Deallocate all internal memory used by the graph.
+ *
+ * \param dg Pointer to the graph to destroy.
  */
 void PDCdg_destroy(pdc_dg_t *dg);
 
 /**
- * Add a vertex to the directed graph.
+ * Add a vertex to the graph.
  *
- * \param dg    [IN]  Pointer to the directed graph
- * \param data  [IN]  User data pointer to associate with the vertex
+ * \param dg    Pointer to the graph.
+ * \param data  User data to associate with the vertex.
  *
- * \return Vertex ID of the newly added vertex, or PDC_DG_INVALID_VERTEX on failure
+ * \return ID of the new vertex, or PDC_DG_INVALID_VERTEX on failure.
  */
 pdc_dg_vertex_id_t PDCdg_add_vertex(pdc_dg_t *dg, void *data);
 
 /**
- * Add an edge to the directed graph.
+ * Add a directed edge between two vertices.
  *
- * \param dg              [IN] Pointer to the directed graph
- * \param from_vertex_id  [IN] ID of the source vertex
- * \param to_vertex_id    [IN] ID of the destination vertex
- * \param data            [IN] User data pointer to associate with the edge
+ * \param dg        Pointer to the graph.
+ * \param v1_data   Data of the source vertex.
+ * \param v2_data   Data of the destination vertex.
+ * \param edge_data User data to associate with the edge.
  *
- * \return Edge ID of the newly added edge, or PDC_DG_INVALID_EDGE on failure
+ * \return ID of the new edge, or PDC_DG_INVALID_EDGE on failure.
  */
-pdc_dg_edge_id_t PDCdg_add_edge(pdc_dg_t *dg, pdc_dg_vertex_id_t from_vertex_id,
-                                pdc_dg_vertex_id_t to_vertex_id, void *data);
+pdc_dg_edge_id_t PDCdg_add_edge(pdc_dg_t *dg, void *v1_data, void *v2_data, void *edge_data);
 
 /**
- * Check if an edge with the given ID exists in the graph.
+ * Check whether a vertex with the given data exists in the graph.
  *
- * \param dg       [IN] Pointer to the directed graph
- * \param edge_id  [IN] Edge ID to check
+ * \param dg          Pointer to the graph.
+ * \param vertex_data Vertex data to check.
  *
- * \return true if edge exists, false otherwise
+ * \return ID of the vertex if it exists, or PDC_DG_INVALID_VERTEX.
  */
-bool PDCdg_has_edge(pdc_dg_t *dg, pdc_dg_edge_id_t edge_id);
+pdc_dg_vertex_id_t PDCdg_vertex_exists(pdc_dg_t *dg, void *vertex_data);
 
 /**
- * Check if a vertex with the given ID exists in the graph.
+ * Find the shortest path between two vertices.
  *
- * \param dg         [IN] Pointer to the directed graph
- * \param vertex_id  [IN] Vertex ID to check
+ * \param dg        Pointer to the graph.
+ * \param v1_data   Data for the source vertex.
+ * \param v2_data   Data for the destination vertex.
+ * \param edges_out Output array of edge pointers forming the path.
+ * \param num_edges Output number of edges in the path.
  *
- * \return true if vertex exists, false otherwise
+ * \return true if a path is found, false otherwise.
  */
-bool PDCdg_has_vertex(pdc_dg_t *dg, pdc_dg_vertex_id_t vertex_id);
-
-/**
- * Check if the data associated with the given vertex exists in graph
- *
- * \param dg       [IN] Pointer to the directed graph
- * \param is_data  [IN] Predicate function to evaluate the vertex data
- * \param input    [IN] Custom user data passed to predicate
- *
- * \return vetex_id if the vertex exists and the predicate returns true, PDC_DG_INVALID_VERTEX otherwise
- */
-pdc_dg_vertex_id_t PDCdg_has_vertex_data(pdc_dg_t *dg, bool (*is_data)(void *data, void *input), void *input);
-
-/**
- * Check if the data associated with the given edge exists in graph
- *
- * \param dg       [IN] Pointer to the directed graph
- * \param is_data  [IN] Predicate function to evaluate the edge data
- * \param input    [IN] Custom user data passed to predicate
- *
- * \return edge_id if the edge exists and the predicate returns true, PDC_DG_INVALID_EDGE otherwise
- */
-pdc_dg_edge_id_t PDCdg_has_edge_data(pdc_dg_t *dg, bool (*is_data)(void *data, void *input), void *input);
-
-/**
- * Find the shortest path between two vertices in the directed graph.
- *
- * @param[in]  dg              Pointer to the directed graph
- * @param[in]  from_vertex_id  ID of the starting vertex
- * @param[in]  to_vertex_id    ID of the destination vertex
- * @param[out] edges           Pointer to an array of edges representing the shortest path
- * @param[out] num_edges       Pointer to the number of edges in the resulting path
- *
- * @return true if a path is found, false otherwise
- */
-bool PDCdg_shortest_path(pdc_dg_t *dg, pdc_dg_vertex_id_t from_vertex_id, pdc_dg_vertex_id_t to_vertex_id,
-                         pdc_dg_edge_t **edges_out, uint32_t *num_edges);
+bool PDCdg_shortest_path(pdc_dg_t *dg, void *v1_data, void *v2_data, pdc_dg_edge_t **edges_out,
+                         uint32_t *num_edges);
 
 #endif /* PDC_DG_H */

@@ -40,26 +40,15 @@ workflow1(pdcid_t pdc, pdcid_t cont)
     pdcid_t compressed_id           = PDCtf_create_state("compressed_floats");
     pdcid_t decompressed_doubles_id = PDCtf_create_state("decompressed_doubles");
 
-    pdcid_t decomp_to_f32 =
-        PDCtf_create_func("lib:decomp_to_f", PDC_TF_CPU_DEVICE, decompressed_doubles_id, float_id);
-    pdcid_t f32_to_decomp =
-        PDCtf_create_func("lib:f_to_decomp", PDC_TF_CPU_DEVICE, float_id, decompressed_doubles_id);
-    pdcid_t comp_func_id = PDCtf_create_func("lib:compress_func", PDC_TF_CPU_DEVICE, float_id, compressed_id);
-    pdcid_t decomp_func_id =
-        PDCtf_create_func("lib:decompress_func", PDC_TF_CPU_DEVICE, compressed_id, float_id);
-    pdcid_t gpu_comp_func_id =
-        PDCtf_create_func("gpulib:compress_func", PDC_TF_GPU_DEVICE, float_id, compressed_id);
-    pdcid_t gpu_decomp_func_id =
-        PDCtf_create_func("gpulib:decompress_func", PDC_TF_GPU_DEVICE, compressed_id, float_id);
-
-    PDCtf_add_func(dg_id, comp_func_id);
-    PDCtf_add_func(dg_id, decomp_func_id);
-    PDCtf_add_func(dg_id, decomp_to_f32);
-    PDCtf_add_func(dg_id, f32_to_decomp);
-    PDCtf_add_func(dg_id, gpu_comp_func_id);
-    PDCtf_add_func(dg_id, gpu_decomp_func_id);
+    PDCtf_add_func(dg_id, "lib:decomp_to_f", PDC_TF_CPU_DEVICE, decompressed_doubles_id, float_id);
+    PDCtf_add_func(dg_id, "lib:f_to_decomp", PDC_TF_CPU_DEVICE, float_id, decompressed_doubles_id);
+    PDCtf_add_func(dg_id, "lib:compress_func", PDC_TF_CPU_DEVICE, float_id, compressed_id);
+    PDCtf_add_func(dg_id, "lib:decompress_func", PDC_TF_CPU_DEVICE, compressed_id, float_id);
+    PDCtf_add_func(dg_id, "gpulib:compress_func", PDC_TF_GPU_DEVICE, float_id, compressed_id);
+    PDCtf_add_func(dg_id, "gpulib:decompress_func", PDC_TF_GPU_DEVICE, compressed_id, float_id);
 
     PDCtf_print_dg(dg_id);
+    PDCtf_print_exec_path(dg_id, decompressed_doubles_id, compressed_id);
 
     TASSERT((obj_prop = PDCprop_create(PDC_OBJ_CREATE, pdc)) != 0, "obj_prop_create succeeded",
             "obj_prop_create failed");
