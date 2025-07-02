@@ -14,18 +14,18 @@ static pdcid_t tf_cur_state_id = 100;
 
 typedef struct state {
     pdcid_t id;
-    char   *name;
+    char *  name;
 } state;
 
 typedef struct func {
     pdc_tf_dev_t dev;
-    char        *path_colon_name;
+    char *       path_colon_name;
 } func;
 
 // index into these using pdcid_t
 // in reality the type system of PDC would give us the corresponding pointer
 pdc_dg_t *graphs[200];
-state    *states[200];
+state *   states[200];
 
 bool
 vertices_are_equal(void *v1, void *v2)
@@ -311,8 +311,8 @@ PDCtf_print_dg(pdcid_t dg_id)
 void
 PDCtf_print_exec_path(pdcid_t dg_id, pdcid_t client_state_id, pdcid_t server_state_id)
 {
-    void          *input_state  = states[client_state_id];
-    void          *output_state = states[server_state_id];
+    void *         input_state  = states[client_state_id];
+    void *         output_state = states[server_state_id];
     pdc_dg_edge_t *edges_out;
     uint32_t       num_edges;
 
