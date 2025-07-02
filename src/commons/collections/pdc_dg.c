@@ -40,20 +40,12 @@ done:
 }
 
 pdc_dg_t *
-PDCdg_create(void *data, void (*edge_free)(void *data), void (*vertex_free)(void *data))
+PDCdg_create(void *data, void (*dg_data_free)(void *data), void (*edge_data_free)(void *data),
+             void (*vertex_data_free)(void *data))
 {
     FUNC_ENTER(NULL);
 
     LOG_INFO("PDCdg_create was called\n");
-
-    if (edge_free == NULL) {
-        LOG_ERROR("edge_free was NULL\n");
-        return NULL;
-    }
-    if (vertex_free == NULL) {
-        LOG_ERROR("vertex_free was NULL\n");
-        return NULL;
-    }
 
     pdc_dg_t *dg = (pdc_dg_t *)PDC_calloc(1, sizeof(pdc_dg_t));
 
@@ -66,8 +58,9 @@ PDCdg_create(void *data, void (*edge_free)(void *data), void (*vertex_free)(void
     dg->edge_count   = 0;
     dg->data         = data;
 
-    dg->edge_free   = edge_free;
-    dg->vertex_free = vertex_free;
+    dg->dg_data_free     = dg_data_free;
+    dg->edge_data_free   = edge_data_free;
+    dg->vertex_data_free = vertex_data_free;
 
     FUNC_LEAVE(dg);
 }
@@ -78,31 +71,50 @@ PDCdg_destroy(pdc_dg_t *dg)
     FUNC_ENTER(NULL);
 
     LOG_INFO("PDCdg_destroy was called\n");
-    LOG_INFO("Destroying graph with %d vertices, %d edges\n", dg->vertex_count, dg->edge_count);
 
     if (dg == NULL) {
-        LOG_ERROR("pdc_dg_destroy called with NULL dg\n");
+        LOG_ERROR("dg was NULL\n");
         FUNC_LEAVE_VOID();
     }
 
+    LOG_INFO("Destroying graph with %d vertices, %d edges\n", dg->vertex_count, dg->edge_count);
+
+    // first check that there are edges
     if (dg->edges) {
         for (int i = 0; i < dg->edge_count; i++) {
-            if (dg->edges[i] && dg->edges[i]->data)
-                dg->edge_free(dg->edges[i]->data);
+            /**
+             * if user has defined a edge_data_free function
+             * call it on each edge's data
+             */
+            if (dg->edges[i] && dg->edges[i]->data && dg->edge_data_free)
+                dg->edge_data_free(dg->edges[i]->data);
+            // free the edge
             if (dg->edges[i])
                 dg->edges[i] = PDC_free(dg->edges[i]);
         }
         dg->edges = (pdc_dg_edge_t **)PDC_free(dg->edges);
     }
+    // first check that there are vertices
     if (dg->vertices) {
         for (int i = 0; i < dg->vertex_count; i++) {
-            if (dg->vertices[i] && dg->vertices[i]->data)
-                dg->vertex_free(dg->vertices[i]->data);
+            /**
+             * if user has defined a vertex_data_free function
+             * call it on each vertex's data
+             */
+            if (dg->vertices[i] && dg->vertices[i]->data && dg->vertex_data_free)
+                dg->vertex_data_free(dg->vertices[i]->data);
+            // free the vertex
             if (dg->vertices[i])
                 dg->vertices[i] = PDC_free(dg->vertices[i]);
         }
         dg->vertices = (pdc_dg_vertex_t **)PDC_free(dg->vertices);
     }
+
+    /**
+     * if user has defined a dg_data_free function
+     * call it on dg's data
+     */
+    dg->dg_data_free(dg->data);
 
     dg = (pdc_dg_t *)PDC_free(dg);
 
@@ -220,4 +232,98 @@ PDCdg_has_edge_data(pdc_dg_t *dg, bool (*is_data)(void *data, void *input), void
     }
 
     FUNC_LEAVE(PDC_DG_INVALID_EDGE);
+}
+
+bool
+PDCdg_shortest_path(pdc_dg_t *dg, pdc_dg_vertex_id_t from_vertex_id, pdc_dg_vertex_id_t to_vertex_id,
+                    pdc_dg_edge_t **edges_out, uint32_t *num_edges)
+{
+    FUNC_ENTER(NULL);
+
+    bool ret_value = false;
+    *edges_out     = NULL;
+    *num_edges     = 0;
+
+    if (dg == NULL)
+        PGOTO_ERROR(false, "dg was NULL");
+    if (!PDCdg_has_vertex(dg, from_vertex_id))
+        PGOTO_ERROR(false, "from_vertex_id: %d not found", from_vertex_id);
+    if (!PDCdg_has_vertex(dg, to_vertex_id))
+        PGOTO_ERROR(false, "to_vertex_id: %d not found", to_vertex_id);
+
+    uint32_t vertex_count = dg->vertex_count;
+
+    bool               *visited = (bool *)PDC_calloc(vertex_count, sizeof(bool));
+    pdc_dg_vertex_id_t *prev    = (pdc_dg_vertex_id_t *)PDC_malloc(vertex_count * sizeof(pdc_dg_vertex_id_t));
+    pdc_dg_vertex_id_t *path    = (pdc_dg_vertex_id_t *)PDC_malloc(vertex_count * sizeof(pdc_dg_vertex_id_t));
+    pdc_dg_vertex_id_t *queue   = (pdc_dg_vertex_id_t *)PDC_malloc(vertex_count * sizeof(pdc_dg_vertex_id_t));
+
+    for (uint32_t i = 0; i < vertex_count; i++)
+        prev[i] = PDC_DG_INVALID_VERTEX;
+
+    uint32_t front = 0, rear = 0;
+    visited[from_vertex_id] = true;
+    queue[rear++]           = from_vertex_id;
+
+    bool found = false;
+    while (front < rear) {
+        pdc_dg_vertex_id_t current = queue[front++];
+
+        if (current == to_vertex_id) {
+            found = true;
+            break;
+        }
+
+        for (uint32_t i = 0; i < dg->edge_count; i++) {
+            if (dg->edges[i]->from_vertex_id == current) {
+                pdc_dg_vertex_id_t neighbor = dg->edges[i]->to_vertex_id;
+                if (!visited[neighbor]) {
+                    visited[neighbor] = true;
+                    prev[neighbor]    = current;
+                    queue[rear++]     = neighbor;
+                }
+            }
+        }
+    }
+
+    if (!found) {
+        LOG_WARNING("No path found from vertex %d to %d\n", from_vertex_id, to_vertex_id);
+        goto done;
+    }
+
+    // Reconstruct path
+    uint32_t path_len = 0;
+    for (pdc_dg_vertex_id_t at = to_vertex_id; at != PDC_DG_INVALID_VERTEX; at = prev[at]) {
+        path[path_len++] = at;
+    }
+
+    // Allocate space for the edges (path_len - 1)
+    *edges_out = (pdc_dg_edge_t *)PDC_malloc((path_len - 1) * sizeof(pdc_dg_edge_t));
+    *num_edges = path_len - 1;
+
+    for (uint32_t i = path_len - 1; i > 0; i--) {
+        pdc_dg_vertex_id_t from = path[i];
+        pdc_dg_vertex_id_t to   = path[i - 1];
+
+        for (uint32_t j = 0; j < dg->edge_count; j++) {
+            if (dg->edges[j]->from_vertex_id == from && dg->edges[j]->to_vertex_id == to) {
+                memcpy(&(*edges_out)[path_len - 1 - i], dg->edges[j], sizeof(pdc_dg_edge_t));
+                break;
+            }
+        }
+    }
+
+    ret_value = true;
+
+done:
+    if (visited)
+        visited = PDC_free(visited);
+    if (prev)
+        prev = PDC_free(prev);
+    if (queue)
+        queue = PDC_free(queue);
+    if (path)
+        path = PDC_free(path);
+
+    FUNC_LEAVE(ret_value);
 }

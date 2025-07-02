@@ -32,6 +32,17 @@ func       funcs[100];
 data_state states[100];
 
 static void
+dg_free(void *data)
+{
+    FUNC_ENTER(NULL);
+
+    LOG_INFO("dg_free called\n");
+    data = PDC_free(data);
+
+    FUNC_LEAVE_VOID();
+}
+
+static void
 edge_free(void *data)
 {
     FUNC_ENTER(NULL);
@@ -60,12 +71,12 @@ PDCtf_create_dg(char *dg_name)
 
     LOG_INFO("Creating directed graph\n");
 
-    pdcid_t   dg_id = tf_cur_dg_id;
-    pdc_dg_t *dg    = PDCdg_create(&dg_id, edge_free, vertex_free);
-    graphs[dg_id]   = dg;
+    pdcid_t *dg_id = (pdcid_t *)PDC_calloc(1, sizeof(pdcid_t));
+    *dg_id         = tf_cur_dg_id;
+    graphs[*dg_id] = PDCdg_create(dg_id, dg_free, edge_free, vertex_free);
 
     tf_cur_dg_id++;
-    FUNC_LEAVE(dg_id);
+    FUNC_LEAVE(*dg_id);
 }
 
 pdcid_t
@@ -311,8 +322,9 @@ PDCtf_print_dg(pdcid_t dg_id)
         pdcid_t func_id = *(pdcid_t *)edge->data;
 
         const char *color = (funcs[func_id].dev == PDC_TF_CPU_DEVICE) ? "blue" : "red";
-        LOG_JUST_PRINT("\t%s -> %s [label=\"%s\", color=%s];\n", states[input_state_id].state_name,
-                       states[output_state_id].state_name, funcs[func_id].path_colon_name, color);
+        LOG_JUST_PRINT("\t\"[%d] %s\" -> \"[%d] %s\" [label=\"[%d] %s\", color=%s];\n", input_state_id,
+                       states[input_state_id].state_name, output_state_id, states[output_state_id].state_name,
+                       func_id, funcs[func_id].path_colon_name, color);
     }
 
     LOG_JUST_PRINT("}\n");
@@ -325,4 +337,21 @@ PDCtf_print_dg(pdcid_t dg_id)
         perror("dup2 restore");
     }
     close(stdout_fd);
+
+    // FIXME: NOAH remove just for debugging
+    pdc_dg_edge_t *edges_out;
+    uint32_t       num_edges;
+    LOG_INFO("Calling dikstras's\n");
+    bool path_found = PDCdg_shortest_path(graphs[dg_id], 1, 3, &edges_out, &num_edges);
+
+    if (path_found) {
+        LOG_JUST_PRINT("PATH FOUND:\n");
+        for (int j = 0; j < num_edges; j++) {
+            LOG_JUST_PRINT("%d\n", edges_out[j]);
+        }
+        LOG_JUST_PRINT("\n");
+    }
+    else {
+        LOG_ERROR("PATH NOT FOUND\n");
+    }
 }
