@@ -228,9 +228,13 @@ PDCdg_shortest_path(pdc_dg_t *dg, void *v1_data, void *v2_data, pdc_dg_edge_t **
 
     LOG_INFO("PDCdg_shortest_path was called\n");
 
-    bool ret_value = false;
-    *edges_out     = NULL;
-    *num_edges     = 0;
+    bool                ret_value = false;
+    bool               *visited   = NULL;
+    pdc_dg_vertex_id_t *prev      = NULL;
+    pdc_dg_vertex_id_t *queue     = NULL;
+    pdc_dg_vertex_id_t *path      = NULL;
+    *edges_out                    = NULL;
+    *num_edges                    = 0;
 
     if (dg == NULL)
         PGOTO_ERROR(false, "dg was NULL");
@@ -247,9 +251,9 @@ PDCdg_shortest_path(pdc_dg_t *dg, void *v1_data, void *v2_data, pdc_dg_edge_t **
     uint32_t vertex_count = dg->vertex_count;
 
     // Allocate BFS data structures
-    bool               *visited = (bool *)PDC_calloc(vertex_count, sizeof(bool));
-    pdc_dg_vertex_id_t *prev    = (pdc_dg_vertex_id_t *)PDC_malloc(vertex_count * sizeof(pdc_dg_vertex_id_t));
-    pdc_dg_vertex_id_t *queue   = (pdc_dg_vertex_id_t *)PDC_malloc(vertex_count * sizeof(pdc_dg_vertex_id_t));
+    visited = (bool *)PDC_calloc(vertex_count, sizeof(bool));
+    prev    = (pdc_dg_vertex_id_t *)PDC_malloc(vertex_count * sizeof(pdc_dg_vertex_id_t));
+    queue   = (pdc_dg_vertex_id_t *)PDC_malloc(vertex_count * sizeof(pdc_dg_vertex_id_t));
 
     if (!visited || !prev || !queue)
         PGOTO_ERROR(false, "Failed to allocate BFS structures");
@@ -297,7 +301,7 @@ PDCdg_shortest_path(pdc_dg_t *dg, void *v1_data, void *v2_data, pdc_dg_edge_t **
         PGOTO_ERROR(false, "Path is too short to contain any edges");
 
     // Recover path vertices
-    pdc_dg_vertex_id_t *path = (pdc_dg_vertex_id_t *)PDC_malloc(path_len * sizeof(pdc_dg_vertex_id_t));
+    path = (pdc_dg_vertex_id_t *)PDC_malloc(path_len * sizeof(pdc_dg_vertex_id_t));
     if (!path)
         PGOTO_ERROR(false, "Failed to allocate path array");
 

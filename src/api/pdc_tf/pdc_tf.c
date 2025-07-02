@@ -45,7 +45,10 @@ edge_free(void *data)
     FUNC_ENTER(NULL);
 
     LOG_INFO("edge_free called\n");
-    data = PDC_free(data);
+
+    func *f            = (func *)data;
+    f->path_colon_name = PDC_free(f->path_colon_name);
+    f                  = PDC_free(f);
 
     FUNC_LEAVE_VOID();
 }
@@ -56,7 +59,10 @@ vertex_free(void *data)
     FUNC_ENTER(NULL);
 
     LOG_INFO("vertex_free called\n");
-    data = PDC_free(data);
+
+    state *s = (state *)data;
+    s->name  = PDC_free(s->name);
+    s        = PDC_free(s);
 
     FUNC_LEAVE_VOID();
 }
@@ -86,7 +92,7 @@ PDCtf_add_func(pdcid_t dg_id, char *path_colon_name, pdc_tf_dev_t dev, pdcid_t i
     LOG_INFO("Creating %s transformation\n", path_colon_name);
 
     func *f            = (func *)PDC_calloc(1, sizeof(func));
-    f->path_colon_name = path_colon_name;
+    f->path_colon_name = strdup(path_colon_name);
     f->dev             = dev;
 
     if (PDCdg_add_edge(graphs[dg_id], states[input_data_state], states[output_data_state], f) ==
@@ -108,7 +114,7 @@ PDCtf_create_state(char *state_name)
     pdcid_t state_id       = tf_cur_state_id;
     states[state_id]       = (state *)PDC_calloc(1, sizeof(state));
     states[state_id]->id   = state_id;
-    states[state_id]->name = state_name;
+    states[state_id]->name = strdup(state_name);
 
     tf_cur_state_id++;
     FUNC_LEAVE(state_id);

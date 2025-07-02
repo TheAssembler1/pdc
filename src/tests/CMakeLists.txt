@@ -105,6 +105,7 @@ set(PROGRAMS
   region/region_transfer_set_dims_3D
   query/query_data
   misc/producer_waitall
+  transformation/workflow_sandbox
   #transformation/workflow1
   #transformation/workflow2
   transformation/workflow3
