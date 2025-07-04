@@ -38,6 +38,7 @@ include_directories(
   ${PDC_SOURCE_DIR}/src/api/include
   ${PDC_SOURCE_DIR}/src/api/pdc_obj/include
   ${PDC_SOURCE_DIR}/src/api/pdc_region/include
+  ${PDC_SOURCE_DIR}/src/api/pdc_tf/include
   ${PDC_SOURCE_DIR}/src/api/pdc_query/include
   ${PDC_SOURCE_DIR}/src/api/profiling/include
   ${PDC_SOURCE_DIR}/src/api/pdc_hist/include
@@ -60,6 +61,7 @@ add_library(pdc_server_lib
                pdc_server_metadata_index.c
                pdc_server_metadata.c
                pdc_client_server_common.c
+        pdc_tf_common.c
                dablooms/pdc_dablooms.c
                dablooms/pdc_murmur.c
                ${PDC_SOURCE_DIR}/src/server/pdc_server_region/pdc_server_data.c

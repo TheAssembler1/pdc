@@ -49,6 +49,8 @@
 
 #include "string_utils.h"
 #include "dart_core.h"
+#include "pdc_tf.h"
+#include "pdc_tf_common.h"
 #include "timer_utils.h"
 #include "query_utils.h"
 
@@ -3268,6 +3270,22 @@ PDC_Client_transfer_request(void *buf, pdcid_t obj_id, uint32_t data_server_id, 
 #endif
     if (!(access_type == PDC_WRITE || access_type == PDC_READ))
         PGOTO_ERROR(FAIL, "Invalid PDC type");
+
+    // check if we need to execute directed graph
+    // FIXME: we know this is the transfer for now
+    const struct _pdc_id_info * obj_id_info = PDC_find_id(obj_id);
+    if (obj_id_info == NULL)
+        PGOTO_ERROR(FAIL, "Failed to find object id");
+    const struct _pdc_obj_info* obj_info = obj_id_info->obj_ptr;
+
+    // id information for executing graph
+    const pdcid_t dg_id = obj_info->pdc_tf_obj->tf_regions_info[0].dg_id;
+    const pdcid_t current_state_id = obj_info->pdc_tf_obj->tf_regions_info[0].current_state_id;
+    // since we are on the client and we are doing a write the desired state is the server state id
+    const pdcid_t desired_state_id = obj_info->pdc_tf_obj->tf_regions_info[0].server_state_id;
+
+    if (PDCtf_exec_graph(dg_id, current_state_id, desired_state_id) != SUCCEED)
+        PGOTO_ERROR(FAIL, "Failed to PDCtf_exec_graph");
 
     LOG_DEBUG("rank = %d, data_server_id = %u\n", pdc_client_mpi_rank_g, data_server_id);
     in.access_type = access_type;

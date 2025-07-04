@@ -1,0 +1,4 @@
+# SERVER
+srun -N4 -n4 --ntasks-per-node=1 ./pdc_server.exe
+# CLIENT
+mpirun -np 128 --map-by ppr:32:node ./vpicio_mts 8388608 5 20

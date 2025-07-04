@@ -34,6 +34,8 @@
 #include "pdc_interface.h"
 #include "pdc_client_connect.h"
 #include "pdc_logger.h"
+#include "pdc_tf.h"
+
 #include <time.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -129,6 +131,8 @@ PDC_obj_create(pdcid_t cont_id, const char *obj_name, pdcid_t obj_prop_id, _pdc_
     p->metadata         = NULL;
     p->location         = location;
     p->region_list_head = NULL;
+    p->pdc_tf_obj = (struct pdc_tf_obj_t*)PDC_malloc(sizeof(struct pdc_tf_obj_t));
+    p->pdc_tf_obj->num_remote_regions = 0;
 
     if (cont_id == 0) {
         meta_id = 0;

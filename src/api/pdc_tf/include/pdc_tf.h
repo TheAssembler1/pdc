@@ -7,11 +7,29 @@
  *  2. Keep track of region history
  *  3. Create dynamic arrays for MAX_REGIONS
  *  4. When a graph is attached to region ensure no collisions with existing regions
+ *  5. On client side graph execution happens synchronously on region start
+ *  6. Check for existing structs to represent pdc_tf_remote_reg
+ *  7. Rename global region remote region... that could be confusing
+ *  8. Figure out of total data size of region is important for identifying during transfer
  */
 
 #include "pdc_public.h"
 
 #define MAX_REGIONS 10
+
+/**
+ * since the transfer request doesn't store the
+ * region id we have to identify the region
+ * by its dimensions using the following attributes
+ * there may be another struct already in the codebase
+ * we could copy here.
+ */
+typedef struct pdc_tf_remote_reg {
+    size_t       remote_region_ndim;
+    uint64_t *remote_region_offset;
+    uint64_t *remote_region_size;
+    uint64_t  total_data_size;
+} pdc_tf_remote_reg;
 
 /**
  * Keeps track of the state of a region as it
@@ -40,9 +58,9 @@ typedef struct pdc_tf_region_info {
  * tie the graph to that.
  */
 typedef struct pdc_tf_obj_t {
-    pdcid_t            regions[MAX_REGIONS];
+    pdc_tf_remote_reg remote_regions[MAX_REGIONS];
     pdc_tf_region_info tf_regions_info[MAX_REGIONS];
-    uint32_t           num_regions;
+    uint32_t           num_remote_regions;
 } pdc_obj_tf_t;
 
 /**

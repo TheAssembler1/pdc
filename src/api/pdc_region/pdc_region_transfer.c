@@ -41,6 +41,7 @@
 #include "pdc_interface.h"
 #include "pdc_client_connect.h"
 #include "pdc_logger.h"
+#include "pdc_tf_common.h"
 #include <mpi.h>
 
 #define PDC_MERGE_TRANSFER_MIN_COUNT 50
@@ -1470,7 +1471,7 @@ PDCregion_transfer_start_common(pdcid_t transfer_request_id,
     if (transfer_request->metadata_id != NULL)
         PGOTO_ERROR(FAIL, "PDC_Client attempted to start existing transfer request");
 
-    // Dynamic case is implemented within the the aggregated version. The main reason is that the target data
+    // Dynamic case is implemented within the aggregated version. The main reason is that the target data
     // server may not be unique, so we may end up sending multiple requests to the same data server.
     // Aggregated method will take care of this type of operation.
     if (transfer_request->region_partition == PDC_REGION_DYNAMIC ||

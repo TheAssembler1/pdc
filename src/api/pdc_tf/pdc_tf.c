@@ -5,8 +5,10 @@
 #include "pdc_tf.h"
 #include "pdc_timing.h"
 #include "pdc_interface.h"
+#include "pdc_obj_pkg.h"
 #include "pdc_dg.h"
 #include "pdc_malloc.h"
+#include "pdc_region.h"
 
 // FIXME: just a temp way of generating id's...
 static pdcid_t tf_cur_graph_id = 100;
@@ -144,13 +146,44 @@ PDCtf_close_dg(pdcid_t dg_id)
 
 // region transfer to/from the specified obj_id, global_reg_id follow DG
 perr_t
-PDCtf_attach_to_region(pdcid_t dg_id, pdcid_t obj_id, pdcid_t global_reg_id, pdcid_t client_state_id,
+PDCtf_attach_to_region(pdcid_t dg_id, pdcid_t obj_id, pdcid_t remote_reg_id, pdcid_t client_state_id,
                        pdcid_t server_state_id)
 {
     FUNC_ENTER(NULL);
 
+    LOG_INFO("PDCtf_attach_to_region was called\n");
+
     perr_t ret_value = SUCCEED;
 
+    // first locate object
+    const struct _pdc_id_info* obj_id_info = PDC_find_id(obj_id);
+    if (obj_id_info == NULL)
+        PGOTO_ERROR(FAIL, "Failed to find object using pdcid");
+    const struct _pdc_obj_info* obj_info = obj_id_info->obj_ptr;
+
+    // pull out pdc obj transform information
+    struct pdc_tf_obj_t * pdc_tf_obj = obj_info->pdc_tf_obj;
+    const uint32_t cur_remote_region = pdc_tf_obj->num_remote_regions;
+
+    // add remote region information
+    struct _pdc_id_info * region_id_info = PDC_find_id(remote_reg_id);
+    if (region_id_info == NULL)
+        PGOTO_ERROR(FAIL, "Cannot locate remote region ID");
+    struct pdc_region_info * region_info = region_id_info->obj_ptr;
+    pdc_tf_obj->remote_regions[cur_remote_region].remote_region_ndim = region_info->ndim;
+    pdc_tf_obj->remote_regions[cur_remote_region].remote_region_offset = region_info->offset;
+    pdc_tf_obj->remote_regions[cur_remote_region].remote_region_size = region_info->size;
+
+    // since this in on the client side the current state is the client_state_id
+    pdc_tf_obj->tf_regions_info[cur_remote_region].current_state_id = client_state_id;
+    pdc_tf_obj->tf_regions_info[cur_remote_region].client_state_id = client_state_id;
+    pdc_tf_obj->tf_regions_info[cur_remote_region].server_state_id = server_state_id;
+    // finally attach the graph to the region
+    pdc_tf_obj->tf_regions_info[cur_remote_region].dg_id = dg_id;
+
+    // increase the current region
+    pdc_tf_obj->num_remote_regions++;
+done:
     FUNC_LEAVE(ret_value);
 }
 
