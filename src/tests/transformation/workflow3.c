@@ -48,7 +48,6 @@ workflow1(pdcid_t pdc, pdcid_t cont)
     PDCtf_add_func(dg_id, "gpulib:decompress_func", PDC_TF_GPU_DEVICE, compressed_id, float_id);
 
     PDCtf_print_dg(dg_id);
-    PDCtf_print_exec_path(dg_id, decompressed_doubles_id, compressed_id);
 
     TASSERT((obj_prop = PDCprop_create(PDC_OBJ_CREATE, pdc)) != 0, "obj_prop_create succeeded",
             "obj_prop_create failed");

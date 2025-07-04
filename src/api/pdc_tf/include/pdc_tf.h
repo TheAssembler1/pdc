@@ -11,9 +11,11 @@
  *  6. Check for existing structs to represent pdc_tf_remote_reg
  *  7. Rename global region remote region... that could be confusing
  *  8. Figure out of total data size of region is important for identifying during transfer
+ *  9. Remove state and func structs also remove the extern
  */
 
 #include "pdc_public.h"
+#include "pdc_dg.h"
 
 #define MAX_REGIONS 10
 

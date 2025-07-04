@@ -3245,7 +3245,7 @@ done:
 }
 
 perr_t
-PDC_Client_transfer_request(void *buf, pdcid_t obj_id, uint32_t data_server_id, int obj_ndim,
+PDC_Client_transfer_request(pdcid_t local_obj_id, void *buf, pdcid_t obj_id, uint32_t data_server_id, int obj_ndim,
                             uint64_t *obj_dims, int remote_ndim, uint64_t *remote_offset,
                             uint64_t *remote_size, size_t unit, pdc_access_t access_type,
                             pdcid_t *metadata_id)
@@ -3273,7 +3273,7 @@ PDC_Client_transfer_request(void *buf, pdcid_t obj_id, uint32_t data_server_id, 
 
     // check if we need to execute directed graph
     // FIXME: we know this is the transfer for now
-    const struct _pdc_id_info * obj_id_info = PDC_find_id(obj_id);
+    const struct _pdc_id_info * obj_id_info = PDC_find_id(local_obj_id);
     if (obj_id_info == NULL)
         PGOTO_ERROR(FAIL, "Failed to find object id");
     const struct _pdc_obj_info* obj_info = obj_id_info->obj_ptr;

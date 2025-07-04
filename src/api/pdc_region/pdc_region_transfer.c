@@ -1522,6 +1522,7 @@ PDCregion_transfer_start_common(pdcid_t transfer_request_id,
                 transfer_request->read_bulk_buf[i] = transfer_request->output_buf[i];
             }
             ret_value = PDC_Client_transfer_request(
+				transfer_request->local_obj_id,
                 transfer_request->output_buf[i], transfer_request->obj_id, transfer_request->obj_servers[i],
                 transfer_request->obj_ndim, transfer_request->obj_dims, transfer_request->remote_region_ndim,
                 transfer_request->output_offsets[i], transfer_request->output_sizes[i], unit,
@@ -1541,6 +1542,7 @@ PDCregion_transfer_start_common(pdcid_t transfer_request_id,
         // Submit transfer request to server by designating data server ID, remote region info, and contiguous
         // memory buffer for copy.
         ret_value = PDC_Client_transfer_request(
+			transfer_request->local_obj_id,
             transfer_request->new_buf, transfer_request->obj_id, transfer_request->data_server_id,
             transfer_request->obj_ndim, transfer_request->obj_dims, transfer_request->remote_region_ndim,
             transfer_request->remote_region_offset, transfer_request->remote_region_size, unit,

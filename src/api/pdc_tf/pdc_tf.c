@@ -9,25 +9,11 @@
 #include "pdc_dg.h"
 #include "pdc_malloc.h"
 #include "pdc_region.h"
+#include "pdc_tf_common.h"
 
 // FIXME: just a temp way of generating id's...
 static pdcid_t tf_cur_graph_id = 100;
 static pdcid_t tf_cur_state_id = 100;
-
-typedef struct state {
-    pdcid_t id;
-    char *  name;
-} state;
-
-typedef struct func {
-    pdc_tf_dev_t dev;
-    char *       path_colon_name;
-} func;
-
-// index into these using pdcid_t
-// in reality the type system of PDC would give us the corresponding pointer
-pdc_dg_t *graphs[200];
-state *   states[200];
 
 bool
 vertices_are_equal(void *v1, void *v2)
@@ -96,6 +82,7 @@ PDCtf_add_func(pdcid_t dg_id, char *path_colon_name, pdc_tf_dev_t dev, pdcid_t i
     func *f            = (func *)PDC_calloc(1, sizeof(func));
     f->path_colon_name = strdup(path_colon_name);
     f->dev             = dev;
+    f->c_func = c_func_dummy;
 
     if (PDCdg_add_edge(graphs[dg_id], states[input_data_state], states[output_data_state], f) ==
         PDC_DG_INVALID_EDGE) {
