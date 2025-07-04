@@ -5,20 +5,23 @@
 pdc_dg_t *graphs[200];
 state *   states[200];
 
-bool c_func_dummy(void* input, void** output) {
+bool
+c_func_dummy(void *input, void **output)
+{
     LOG_INFO("c_func_dummy was called\n");
 
     return true;
 }
 
-perr_t PDCtf_exec_graph(pdcid_t dg_id, pdcid_t current_state_id, pdcid_t desired_state_id)
+perr_t
+PDCtf_exec_graph(pdcid_t dg_id, pdcid_t current_state_id, pdcid_t desired_state_id)
 {
     FUNC_ENTER(NULL);
 
     int ret_value = SUCCEED;
 
     LOG_INFO("PDCtf_exec_graph was called\n");
-    pdc_dg_t* dg = graphs[dg_id];
+    pdc_dg_t *dg = graphs[dg_id];
 
     void *         input_state  = states[current_state_id];
     void *         output_state = states[desired_state_id];
@@ -32,12 +35,13 @@ perr_t PDCtf_exec_graph(pdcid_t dg_id, pdcid_t current_state_id, pdcid_t desired
 
             state *v1 = (state *)(graphs[dg_id]->vertices[e.v1_id]->data);
             state *v2 = (state *)(graphs[dg_id]->vertices[e.v2_id]->data);
-            func* f = (func*)(e.data);
+            func * f  = (func *)(e.data);
 
-            if(f->c_func(NULL, NULL) == false)
+            if (f->c_func(NULL, NULL) == false)
                 PGOTO_ERROR(FAIL, "Error when running transformation, %s", f->path_colon_name);
             else
-                LOG_INFO("Transformation %s(%s) = %s ran successfully\n", f->path_colon_name, v1->name, v2->name);
+                LOG_INFO("Transformation %s(%s) = %s ran successfully\n", f->path_colon_name, v1->name,
+                         v2->name);
         }
     }
     else {

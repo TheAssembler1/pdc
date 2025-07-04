@@ -27,7 +27,7 @@
  * we could copy here.
  */
 typedef struct pdc_tf_remote_reg {
-    size_t       remote_region_ndim;
+    size_t    remote_region_ndim;
     uint64_t *remote_region_offset;
     uint64_t *remote_region_size;
     uint64_t  total_data_size;
@@ -60,7 +60,7 @@ typedef struct pdc_tf_region_info {
  * tie the graph to that.
  */
 typedef struct pdc_tf_obj_t {
-    pdc_tf_remote_reg remote_regions[MAX_REGIONS];
+    pdc_tf_remote_reg  remote_regions[MAX_REGIONS];
     pdc_tf_region_info tf_regions_info[MAX_REGIONS];
     uint32_t           num_remote_regions;
 } pdc_obj_tf_t;
