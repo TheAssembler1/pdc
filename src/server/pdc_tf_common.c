@@ -34,8 +34,10 @@ perr_t PDCtf_exec_graph(pdcid_t dg_id, pdcid_t current_state_id, pdcid_t desired
             state *v2 = (state *)(graphs[dg_id]->vertices[e.v2_id]->data);
             func* f = (func*)(e.data);
 
-            LOG_INFO("running %d: %s(%s) = %s\n", j + 1, ((func *)(e.data))->path_colon_name, v1->name, v2->name);
-            f->c_func(NULL, NULL);
+            if(f->c_func(NULL, NULL) == false)
+                PGOTO_ERROR(FAIL, "Error when running transformation, %s", f->path_colon_name);
+            else
+                LOG_INFO("Transformation %s(%s) = %s ran successfully\n", f->path_colon_name, v1->name, v2->name);
         }
     }
     else {
