@@ -1,7 +1,49 @@
 #ifndef PDC_TF_H
 #define PDC_TF_H
 
+/**
+ * List of FIXME:'s
+ *  1. Use actual pdcid_t instead of ad hoc generating them
+ *  2. Keep track of region history
+ *  3. Create dynamic arrays for MAX_REGIONS
+ *  4. When a graph is attached to region ensure no collisions with existing regions
+ */
+
 #include "pdc_public.h"
+
+#define MAX_REGIONS 10
+
+/**
+ * Keeps track of the state of a region as it
+ * progresses to the server_state_id or
+ * the client_state_id
+ */
+typedef struct pdc_tf_region_info {
+    pdcid_t dg_id;
+    pdcid_t current_state_id;
+    pdcid_t client_state_id;
+    pdcid_t server_state_id;
+} pdc_tf_region_info;
+
+/**
+ * Used as a  field in _pdc_obj_info see pdc_obj_pkh.h
+ * When a user attaches a graph to an object(s)/region
+ * it is appended the array of regions here.
+ *
+ * Each appended region has an associated tf_region_info
+ * in the tf_regions_info array. This has information
+ * such as the current state of the region and the associated
+ * graph.
+ *
+ * If the graph is attached to an object we simply
+ * create a region that spans the entire object and
+ * tie the graph to that.
+ */
+typedef struct pdc_tf_obj_t {
+    pdcid_t            regions[MAX_REGIONS];
+    pdc_tf_region_info tf_regions_info[MAX_REGIONS];
+    uint32_t           num_regions;
+} pdc_obj_tf_t;
 
 /**
  * what device the function can run on
@@ -24,8 +66,8 @@ pdcid_t PDCtf_create_dg(char *dg_name);
  * creates a new function and returns ID
  * the lib:func is the path to the library and function to execute
  */
-perr_t PDCtf_add_func(pdcid_t dg_id, char *path_colon_name, pdc_tf_dev_t dev, pdcid_t input_data_state,
-                      pdcid_t output_data_state);
+perr_t PDCtf_add_func(pdcid_t dg_id, char *path_colon_name, pdc_tf_dev_t dev, pdcid_t input_state_id,
+                      pdcid_t output_state_id);
 
 /**
  * creates a new data state and returns ID
