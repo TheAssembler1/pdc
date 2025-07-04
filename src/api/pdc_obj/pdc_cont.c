@@ -58,7 +58,7 @@ PDCcont_create(const char *cont_name, pdcid_t cont_prop_id)
     perr_t                 ret       = SUCCEED;
     struct _pdc_cont_info *p         = NULL;
     struct _pdc_cont_prop *cont_prop = NULL;
-    struct _pdc_id_info   *id_info   = NULL;
+    struct _pdc_id_info *  id_info   = NULL;
 
     p = (struct _pdc_cont_info *)PDC_malloc(sizeof(struct _pdc_cont_info));
     if (!p)
@@ -108,7 +108,7 @@ PDCcont_create_col(const char *cont_name, pdcid_t cont_prop_id)
     perr_t                 ret       = SUCCEED;
     struct _pdc_cont_info *p         = NULL;
     struct _pdc_cont_prop *cont_prop = NULL;
-    struct _pdc_id_info   *id_info   = NULL;
+    struct _pdc_id_info *  id_info   = NULL;
 
     FUNC_ENTER(NULL);
 
@@ -155,7 +155,7 @@ PDC_cont_create_local(pdcid_t pdc, const char *cont_name, uint64_t cont_meta_id)
     pdcid_t                ret_value = 0;
     struct _pdc_cont_info *p         = NULL;
     struct _pdc_cont_prop *cont_prop = NULL;
-    struct _pdc_id_info   *id_info   = NULL;
+    struct _pdc_id_info *  id_info   = NULL;
     pdcid_t                cont_prop_id;
 
     p = (struct _pdc_cont_info *)PDC_malloc(sizeof(struct _pdc_cont_info));
@@ -309,7 +309,7 @@ PDC_cont_get_info(pdcid_t cont_id)
 
     struct _pdc_cont_info *ret_value = NULL;
     struct _pdc_cont_info *info      = NULL;
-    struct _pdc_id_info   *id_info   = NULL;
+    struct _pdc_id_info *  id_info   = NULL;
 
     id_info = PDC_find_id(cont_id);
     if (id_info == NULL)
@@ -352,7 +352,7 @@ PDCcont_get_info(const char *cont_name)
 {
     FUNC_ENTER(NULL);
 
-    struct pdc_cont_info  *ret_value = NULL;
+    struct pdc_cont_info * ret_value = NULL;
     struct _pdc_cont_info *tmp       = NULL;
     pdcid_t                cont_id;
 
@@ -375,8 +375,8 @@ PDCcont_iter_start()
 {
     FUNC_ENTER(NULL);
 
-    cont_handle        *ret_value = NULL;
-    cont_handle        *conthl    = NULL;
+    cont_handle *       ret_value = NULL;
+    cont_handle *       conthl    = NULL;
     struct PDC_id_type *type_ptr;
 
     type_ptr = (pdc_id_list_g->PDC_id_type_list_g)[PDC_CONT];
@@ -423,7 +423,7 @@ PDCcont_iter_get_info(cont_handle *chandle)
 {
     FUNC_ENTER(NULL);
 
-    struct pdc_cont_info  *ret_value = NULL;
+    struct pdc_cont_info * ret_value = NULL;
     struct _pdc_cont_info *info      = NULL;
 
     info = (struct _pdc_cont_info *)(chandle->obj_ptr);
