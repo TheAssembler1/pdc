@@ -47,8 +47,6 @@
 
 #define PDC_MERGE_TRANSFER_MIN_COUNT 50
 
-#define MAX_BULK_HANDLES 10
-
 /**
  * PDC region transfer class. Contains essential information for performing non-blocking PDC client I/O
  * operations
