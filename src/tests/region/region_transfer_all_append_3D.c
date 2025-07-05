@@ -320,7 +320,7 @@ main(int argc, char **argv)
         TASSERT((obj[i] = PDCobj_open(obj_name, pdc)) != 0, "Call to PDCobj_open succeeded",
                 "Call to PDCobj_open failed");
     }
-   
+
     TASSERT(PDCregion_close(reg) >= 0, "Call to PDCregion_close succeeded", "Call to PDCregion_close failed");
 
     offset[0]        = 0;
