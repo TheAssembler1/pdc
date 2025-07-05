@@ -386,7 +386,6 @@ PDCregion_transfer_close(pdcid_t transfer_request_id)
         PGOTO_DONE(ret_value);
 
     transfer_request = (pdc_transfer_request *)(transferinfo->obj_ptr);
-    LOG_INFO("Freeing %d bulk handles\n", transfer_request->num_bulk_handles);
     for (int i = 0; i < transfer_request->num_bulk_handles; i++) {
         if (transfer_request->bulk_handles[i] == HG_BULK_NULL)
             LOG_WARNING("Bulk handle added to transfer request was NULL\n");
@@ -397,7 +396,8 @@ PDCregion_transfer_close(pdcid_t transfer_request_id)
             transfer_request->bulk_handles[i] = HG_BULK_NULL;
         }
     }
-
+    if (transfer_request->bulk_handles)
+        transfer_request->bulk_handles = PDC_free(transfer_request->bulk_handles);
     if (transfer_request->local_region_offset)
         transfer_request->local_region_offset = (uint64_t *)PDC_free(transfer_request->local_region_offset);
     if (transfer_request->metadata_id)
