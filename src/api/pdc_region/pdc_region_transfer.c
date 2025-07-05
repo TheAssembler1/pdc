@@ -49,8 +49,10 @@
 
 #define MAX_BULK_HANDLES 10
 
-// pdc region transfer class. Contains essential information for performing non-blocking PDC client I/O
-// perations.
+/**
+ * PDC region transfer class. Contains essential information for performing non-blocking PDC client I/O
+ * operations
+ */
 typedef struct pdc_transfer_request {
     pdcid_t obj_id;
     pdcid_t local_obj_id;
@@ -113,8 +115,11 @@ typedef struct pdc_transfer_request {
     int     is_done;
 
     // list of bulk handles used for region request
-    hg_bulk_t bulk_handles[MAX_BULK_HANDLES];
-    uint32_t  num_bulk_handles;
+    hg_bulk_t* bulk_handles;
+    // current number of bulk handles stored in array
+    uint32_t num_bulk_handles;
+    // current length of the array
+    uint32_t bulk_handles_capacity;
 } pdc_transfer_request;
 
 // We pack all arguments for a start_all call to the same data server in a single structure, so we do not need
@@ -150,6 +155,83 @@ typedef struct pdc_transfer_request_wait_all_pkg {
     pdc_transfer_request *                    transfer_request;
     struct pdc_transfer_request_wait_all_pkg *next;
 } pdc_transfer_request_wait_all_pkg;
+
+#define REGION_TRANSFER_INIT_BULK_HANDLES 2
+
+/**
+ * @brief Initialize a pdc_transfer_request's bulk handle array.
+ *
+ * This function allocates memory for an initial number of bulk handles in a transfer request.
+ * Each entry is initialized to HG_BULK_NULL. The initial capacity is set to
+ * REGION_TRANSFER_INIT_BULK_HANDLES.
+ *
+ * \param tr Pointer to a pdc_transfer_request structure to initialize.
+ *
+ * \return SUCCEED on success, FAIL on failure (e.g., if `tr` is NULL or memory allocation fails).
+ */
+perr_t PDCregion_transfer_init_bulk_handles(pdc_transfer_request* tr)
+{
+    FUNC_ENTER(NULL);
+
+    perr_t ret_value = SUCCEED;
+
+    if (tr == NULL)
+        PGOTO_ERROR(FAIL, "tr was NULL");
+
+    tr->bulk_handles_capacity = REGION_TRANSFER_INIT_BULK_HANDLES;
+    tr->num_bulk_handles = 0;
+    tr->bulk_handles = (hg_bulk_t*)PDC_malloc(sizeof(hg_bulk_t) * tr->bulk_handles_capacity);
+
+    for (int i = 0; i < tr->bulk_handles_capacity; i++)
+        tr->bulk_handles[i] = HG_BULK_NULL;
+
+done:
+    FUNC_LEAVE(ret_value);
+}
+
+/**
+ * @brief Add a new bulk handle to a transfer request.
+ *
+ * If the internal array is full, it reallocates the array with increased capacity
+ * (doubling it each time). New elements are initialized to HG_BULK_NULL.
+ *
+ * \param tr Pointer to a pdc_transfer_request structure where the bulk handle should be added.
+ * \param bulk_handle The bulk handle to add to the transfer request.
+ *
+ * \return SUCCEED on success, FAIL on error (e.g., invalid input or reallocation failure).
+ */
+perr_t PDCregion_transfer_add_bulk_handle(pdc_transfer_request* tr, hg_bulk_t bulk_handle)
+{
+    FUNC_ENTER(NULL);
+
+    perr_t ret_value = SUCCEED;
+
+    if (tr == NULL)
+        PGOTO_ERROR(FAIL, "Invalid pdc transfer request");
+    if (tr->bulk_handles == NULL && tr->num_bulk_handles > 0)
+        PGOTO_ERROR(FAIL, "PDC transfer request has bulk handles but bulk_handles is NULL");
+
+    // Grow array if needed
+    if (tr->num_bulk_handles >= tr->bulk_handles_capacity) {
+        size_t new_capacity = tr->bulk_handles_capacity > 0 ? tr->bulk_handles_capacity * 2 : REGION_TRANSFER_INIT_BULK_HANDLES;
+        hg_bulk_t* new_array = (hg_bulk_t*)PDC_realloc(tr->bulk_handles, new_capacity * sizeof(hg_bulk_t));
+        if (new_array == NULL)
+            PGOTO_ERROR(FAIL, "Failed to reallocate bulk handle array");
+
+        // Initialize the new slots to HG_BULK_NULL
+        for (size_t i = tr->bulk_handles_capacity; i < new_capacity; i++)
+            new_array[i] = HG_BULK_NULL;
+
+        tr->bulk_handles = new_array;
+        tr->bulk_handles_capacity = new_capacity;
+    }
+
+    tr->bulk_handles[tr->num_bulk_handles] = bulk_handle;
+    tr->num_bulk_handles++;
+
+done:
+    FUNC_LEAVE(ret_value);
+}
 
 static int
 sort_by_data_server_start_all(const void *elem1, const void *elem2)
@@ -253,9 +335,7 @@ PDCregion_transfer_create(void *buf, pdc_access_t access_type, pdcid_t obj_id, p
     p->consistency        = obj2->obj_pt->obj_prop_pub->consistency;
     p->merged_request_id  = 0;
     p->is_done            = 0;
-    p->num_bulk_handles   = 0;
-    for (int i = 0; i < MAX_BULK_HANDLES; i++)
-        p->bulk_handles[i] = HG_BULK_NULL;
+    PDCregion_transfer_init_bulk_handles(p);
     unit = p->unit;
 
     p->local_region_ndim   = reg1->ndim;
@@ -765,6 +845,7 @@ register_metadata(pdc_transfer_request_start_all_pkg **transfer_request_input, i
         *transfer_request_end, **transfer_request_output, *previous = NULL;
     uint64_t total_buf_size, output_buf_size, query_id;
     char *   buf, *output_buf;
+    hg_bulk_t bulk_handle;
 
     transfer_request_output     = NULL;
     transfer_request_front_head = NULL;
@@ -789,21 +870,18 @@ register_metadata(pdc_transfer_request_start_all_pkg **transfer_request_input, i
             transfer_requests[i - 1]->transfer_request->metadata_server_id) {
             n_objs = i - index;
             pack_region_metadata_query(transfer_requests + index, n_objs, &buf, &total_buf_size);
-            pdc_transfer_request *transfer_request = transfer_requests[index]->transfer_request;
-            hg_bulk_t *bulk_handle = &transfer_request->bulk_handles[transfer_request->num_bulk_handles];
             PDC_Client_transfer_request_metadata_query(
-                bulk_handle, buf, total_buf_size, n_objs,
+                &bulk_handle, buf, total_buf_size, n_objs,
                 transfer_requests[index]->transfer_request->metadata_server_id, is_write, &output_buf_size,
                 &query_id);
-            transfer_request->num_bulk_handles++;
+            PDCregion_transfer_add_bulk_handle(transfer_requests[index]->transfer_request, bulk_handle);
             buf = (char *)PDC_free(buf);
             if (query_id) {
                 output_buf  = (char *)PDC_malloc(output_buf_size);
-                bulk_handle = &transfer_request->bulk_handles[transfer_request->num_bulk_handles];
                 PDC_Client_transfer_request_metadata_query2(
-                    bulk_handle, output_buf, output_buf_size, query_id,
+                    &bulk_handle, output_buf, output_buf_size, query_id,
                     transfer_requests[index]->transfer_request->metadata_server_id);
-                transfer_request->num_bulk_handles++;
+                PDCregion_transfer_add_bulk_handle(transfer_requests[index]->transfer_request, bulk_handle);
                 unpack_region_metadata_query(output_buf, transfer_requests + index, &transfer_request_head,
                                              &transfer_request_end, &output_size);
                 output_buf = (char *)PDC_free(output_buf);
@@ -822,22 +900,19 @@ register_metadata(pdc_transfer_request_start_all_pkg **transfer_request_input, i
     if (size) {
         n_objs = size - index;
         pack_region_metadata_query(transfer_requests + index, n_objs, &buf, &total_buf_size);
-        pdc_transfer_request *transfer_request = transfer_requests[index]->transfer_request;
-        hg_bulk_t *bulk_handle = &transfer_request->bulk_handles[transfer_request->num_bulk_handles];
         PDC_Client_transfer_request_metadata_query(
-            bulk_handle, buf, total_buf_size, n_objs,
+            &bulk_handle, buf, total_buf_size, n_objs,
             transfer_requests[index]->transfer_request->metadata_server_id, is_write, &output_buf_size,
             &query_id);
-        transfer_request->num_bulk_handles++;
+        PDCregion_transfer_add_bulk_handle(transfer_requests[index]->transfer_request, bulk_handle);
         buf = (char *)PDC_free(buf);
         // If it is a valid query ID, then it means regions are overlapping.
         if (query_id) {
             output_buf  = (char *)PDC_malloc(output_buf_size);
-            bulk_handle = &transfer_request->bulk_handles[transfer_request->num_bulk_handles];
             PDC_Client_transfer_request_metadata_query2(
-                bulk_handle, output_buf, output_buf_size, query_id,
+                &bulk_handle, output_buf, output_buf_size, query_id,
                 transfer_requests[index]->transfer_request->metadata_server_id);
-            transfer_request->num_bulk_handles++;
+            PDCregion_transfer_add_bulk_handle(transfer_requests[index]->transfer_request, bulk_handle);
             unpack_region_metadata_query(output_buf, transfer_requests + index, &transfer_request_head,
                                          &transfer_request_end, &output_size);
             output_buf = (char *)PDC_free(output_buf);
@@ -1225,6 +1300,7 @@ PDC_Client_start_all_requests(pdc_transfer_request_start_all_pkg **transfer_requ
     char *    bulk_buf;
     size_t    bulk_buf_size;
     int *     bulk_buf_ref;
+    hg_bulk_t bulk_handle;
 
     if (size == 0)
         PGOTO_DONE(ret_value);
@@ -1241,13 +1317,10 @@ PDC_Client_start_all_requests(pdc_transfer_request_start_all_pkg **transfer_requ
                                          &bulk_buf_size, read_bulk_buf + index);
             bulk_buf_ref                           = (int *)PDC_malloc(sizeof(int));
             bulk_buf_ref[0]                        = n_objs;
-            pdc_transfer_request *transfer_request = transfer_requests[index]->transfer_request;
-            hg_bulk_t *bulk_handle = &transfer_request->bulk_handles[transfer_request->num_bulk_handles];
             PDC_Client_transfer_request_all(
-                bulk_handle, n_objs, transfer_requests[index]->transfer_request->access_type,
+                &bulk_handle, n_objs, transfer_requests[index]->transfer_request->access_type,
                 transfer_requests[index]->data_server_id, bulk_buf, bulk_buf_size, metadata_id + index, comm);
-            transfer_request->num_bulk_handles++;
-
+            PDCregion_transfer_add_bulk_handle(transfer_requests[index]->transfer_request, bulk_handle);
             for (j = index; j < i; ++j) {
                 // All requests share the same bulk buffer, reference counter is also shared among all
                 // requests.
@@ -1272,12 +1345,10 @@ PDC_Client_start_all_requests(pdc_transfer_request_start_all_pkg **transfer_requ
                                      &bulk_buf_size, read_bulk_buf + index);
         bulk_buf_ref                           = (int *)PDC_malloc(sizeof(int));
         bulk_buf_ref[0]                        = n_objs;
-        pdc_transfer_request *transfer_request = transfer_requests[index]->transfer_request;
-        hg_bulk_t *bulk_handle = &transfer_request->bulk_handles[transfer_request->num_bulk_handles];
         PDC_Client_transfer_request_all(
-            bulk_handle, n_objs, transfer_requests[index]->transfer_request->access_type,
+            &bulk_handle, n_objs, transfer_requests[index]->transfer_request->access_type,
             transfer_requests[index]->data_server_id, bulk_buf, bulk_buf_size, metadata_id + index, comm);
-        transfer_request->num_bulk_handles++;
+        PDCregion_transfer_add_bulk_handle(transfer_requests[index]->transfer_request, bulk_handle);
 
         for (j = index; j < size; ++j) {
             // All requests share the same bulk buffer, reference counter is also shared among all
@@ -1503,6 +1574,7 @@ PDCregion_transfer_start_common(pdcid_t transfer_request_id,
     pdc_transfer_request *transfer_request;
     size_t                unit;
     int                   i;
+    hg_bulk_t bulk_handle;
 
     transferinfo = PDC_find_id(transfer_request_id);
     if (NULL == transferinfo)
@@ -1564,12 +1636,12 @@ PDCregion_transfer_start_common(pdcid_t transfer_request_id,
                 transfer_request->read_bulk_buf[i] = transfer_request->output_buf[i];
             }
             ret_value = PDC_Client_transfer_request(
-                &transfer_request->bulk_handles[transfer_request->num_bulk_handles],
+                &bulk_handle,
                 transfer_request->output_buf[i], transfer_request->obj_id, transfer_request->obj_servers[i],
                 transfer_request->obj_ndim, transfer_request->obj_dims, transfer_request->remote_region_ndim,
                 transfer_request->output_offsets[i], transfer_request->output_sizes[i], unit,
                 transfer_request->access_type, transfer_request->metadata_id + i);
-            transfer_request->num_bulk_handles++;
+            PDCregion_transfer_add_bulk_handle(transfer_request, bulk_handle);
         }
     }
     else if (transfer_request->region_partition == PDC_OBJ_STATIC) {
@@ -1585,12 +1657,12 @@ PDCregion_transfer_start_common(pdcid_t transfer_request_id,
         // Submit transfer request to server by designating data server ID, remote region info, and contiguous
         // memory buffer for copy.
         ret_value = PDC_Client_transfer_request(
-            &transfer_request->bulk_handles[transfer_request->num_bulk_handles], transfer_request->new_buf,
+            &bulk_handle, transfer_request->new_buf,
             transfer_request->obj_id, transfer_request->data_server_id, transfer_request->obj_ndim,
             transfer_request->obj_dims, transfer_request->remote_region_ndim,
             transfer_request->remote_region_offset, transfer_request->remote_region_size, unit,
             transfer_request->access_type, transfer_request->metadata_id);
-        transfer_request->num_bulk_handles++;
+        PDCregion_transfer_add_bulk_handle(transfer_request, bulk_handle);
     }
 
     // For POSIX consistency, we block here until the data is received by the server
@@ -1767,6 +1839,7 @@ PDCregion_transfer_wait_all(pdcid_t *transfer_request_id, int size)
     uint64_t *                          metadata_ids, merge_off = 0, cur_off = 0;
     pdc_transfer_request_wait_all_pkg **transfer_requests, *transfer_request_head, *transfer_request_end,
         *temp;
+    hg_bulk_t bulk_handle;
 
     struct _pdc_id_info **transferinfo;
     pdc_transfer_request *transfer_request, *merged_request;
@@ -1856,11 +1929,9 @@ PDCregion_transfer_wait_all(pdcid_t *transfer_request_id, int size)
                 metadata_ids[j] = transfer_requests[j]->metadata_id;
             }
 
-            pdc_transfer_request *tr          = transfer_requests[index]->transfer_request;
-            hg_bulk_t *           bulk_handle = &tr->bulk_handles[tr->num_bulk_handles];
-            PDC_Client_transfer_request_wait_all(bulk_handle, n_objs, metadata_ids + index,
+            PDC_Client_transfer_request_wait_all(&bulk_handle, n_objs, metadata_ids + index,
                                                  transfer_requests[index]->data_server_id);
-            tr->num_bulk_handles++;
+            PDCregion_transfer_add_bulk_handle(transfer_requests[index]->transfer_request, bulk_handle);
             for (j = index; j < i; ++j) {
                 if (transfer_requests[j]->transfer_request->region_partition == PDC_REGION_STATIC ||
                     transfer_requests[j]->transfer_request->region_partition == PDC_REGION_DYNAMIC ||
@@ -1901,11 +1972,9 @@ PDCregion_transfer_wait_all(pdcid_t *transfer_request_id, int size)
         for (j = index; j < total_requests; ++j) {
             metadata_ids[j] = transfer_requests[j]->metadata_id;
         }
-        pdc_transfer_request *tr          = transfer_requests[index]->transfer_request;
-        hg_bulk_t *           bulk_handle = &tr->bulk_handles[tr->num_bulk_handles];
-        PDC_Client_transfer_request_wait_all(bulk_handle, n_objs, metadata_ids + index,
+        PDC_Client_transfer_request_wait_all(&bulk_handle, n_objs, metadata_ids + index,
                                              transfer_requests[index]->data_server_id);
-        tr->num_bulk_handles++;
+        PDCregion_transfer_add_bulk_handle(transfer_requests[index]->transfer_request, bulk_handle);
         for (j = index; j < total_requests; ++j) {
             if (transfer_requests[j]->transfer_request->region_partition == PDC_REGION_STATIC ||
                 transfer_requests[j]->transfer_request->region_partition == PDC_REGION_DYNAMIC ||
