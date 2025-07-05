@@ -87,11 +87,6 @@ main(int argc, char **argv)
     dims[2] = DIM2;
 
     // create a pdc
-    pdc = PDCinit("pdc");
-    LOG_INFO("create a new pdc\n");
-
-    // create a container property
-    // create a pdc
     TASSERT((pdc = PDCinit("pdc")) != 0, "Call to PDCinit succeeded", "Call to PDCinit failed");
     // create a container property
     TASSERT((cont_prop = PDCprop_create(PDC_CONT_CREATE, pdc)) != 0, "Call to PDCprop_create succeeded",
@@ -325,7 +320,7 @@ main(int argc, char **argv)
         TASSERT((obj[i] = PDCobj_open(obj_name, pdc)) != 0, "Call to PDCobj_open succeeded",
                 "Call to PDCobj_open failed");
     }
-
+   
     TASSERT(PDCregion_close(reg) >= 0, "Call to PDCregion_close succeeded", "Call to PDCregion_close failed");
 
     offset[0]        = 0;
