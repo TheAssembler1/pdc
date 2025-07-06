@@ -95,7 +95,7 @@ main(int argc, char **argv)
         LOG_ERROR("Failed to create container property");
 
     // create a container
-    i       = 0 sprintf(cont_name, "Cont%d", i);
+    i       = sprintf(cont_name, "Cont%d", i);
     cont[i] = PDCcont_create(cont_name, cont_prop);
     if (cont[i] <= 0)
         LOG_ERROR("Failed to create container");

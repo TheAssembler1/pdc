@@ -1119,13 +1119,13 @@ PDC_Server_finalize()
     if (pdc_server_rank_g == 0)
         PDC_Server_rm_config_file();
 
-    hg_ret = HG_Context_destroy(hg_context_g);
-    if (hg_ret != HG_SUCCESS)
+    if (HG_Context_destroy(hg_context_g) != HG_SUCCESS)
         PGOTO_ERROR(FAIL, "Error with HG_Context_destroy");
 
-    hg_ret = HG_Finalize(hg_class_g);
-    if (hg_ret != HG_SUCCESS)
-        LOG_WARNING("Error with HG_Finalize\n");
+    if (HG_Finalize(hg_class_g) != HG_SUCCESS)
+        PGOTO_ERROR(FAIL, "Error with HG_Finalize\n");
+    else
+        LOG_INFO("No errors with HG_Finalize\n");
 
 done:
     all_addr_strings_g    = (char **)PDC_free(all_addr_strings_g);
@@ -2310,7 +2310,10 @@ done:
 #ifdef PDC_TIMING
     PDC_server_timing_report();
 #endif
-    PDC_Server_finalize();
+    if (PDC_Server_finalize() != SUCCEED) {
+        LOG_ERROR("Error with PDC_Server_finalize");
+        ret_value = FAIL;
+    }
 #ifdef ENABLE_MPI
     MPI_Finalize();
 #endif

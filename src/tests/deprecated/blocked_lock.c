@@ -154,7 +154,7 @@ main(int argc, char **argv)
     if (PDCprop_close(cont_prop) < 0)
         LOG_ERROR("Failed to close property");
 
-    if (PDC_close(pdc_id) < 0)
+    if (PDCclose(pdc_id) < 0)
         LOG_ERROR("Failed to close PDC\n");
 
 #ifdef ENABLE_MPI
