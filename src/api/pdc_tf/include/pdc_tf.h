@@ -12,6 +12,9 @@
  *  7. Rename global region remote region... that could be confusing
  *  8. Figure out of total data size of region is important for identifying during transfer
  *  9. Remove state and func structs also remove the extern
+ *  10. Parse func name correctly when adding function
+ *  11. PDC_TF_MAX_FUNC_NAME_LEN maybe should be dynamic?
+ *  12. PDC_TF_MAX_BUILTIN_FUNCS should defintely by dynamic
  */
 
 #include "pdc_public.h"
@@ -82,11 +85,15 @@ typedef enum {
 // creates a new directed graph and returns ID
 pdcid_t PDCtf_create_dg(char *dg_name);
 
+#define PDC_TF_MAX_TYPE_LEN 100
+#define PDC_TF_TYPE_FUNC_NAME_DELIM ':'
+
 /**
  * creates a new function and returns ID
- * the lib:func is the path to the library and function to execute
+ * \param type_func_name type:func_name specifies how to access function
+ *        the type can either be, "builtin" | "library_path"
  */
-perr_t PDCtf_add_func(pdcid_t dg_id, char *path_colon_name, pdc_tf_dev_t dev, pdcid_t input_state_id,
+perr_t PDCtf_add_func(pdcid_t dg_id, char *type_func_name, pdc_tf_dev_t dev, pdcid_t input_state_id,
                       pdcid_t output_state_id);
 
 /**

@@ -40,12 +40,12 @@ workflow1(pdcid_t pdc, pdcid_t cont)
     pdcid_t compressed_id           = PDCtf_create_state("compressed_floats");
     pdcid_t decompressed_doubles_id = PDCtf_create_state("decompressed_doubles");
 
-    PDCtf_add_func(dg_id, "lib:decomp_to_f", PDC_TF_CPU_DEVICE, decompressed_doubles_id, float_id);
-    PDCtf_add_func(dg_id, "lib:f_to_decomp", PDC_TF_CPU_DEVICE, float_id, decompressed_doubles_id);
-    PDCtf_add_func(dg_id, "lib:compress_func", PDC_TF_CPU_DEVICE, float_id, compressed_id);
-    PDCtf_add_func(dg_id, "lib:decompress_func", PDC_TF_CPU_DEVICE, compressed_id, float_id);
-    PDCtf_add_func(dg_id, "gpulib:compress_func", PDC_TF_GPU_DEVICE, float_id, compressed_id);
-    PDCtf_add_func(dg_id, "gpulib:decompress_func", PDC_TF_GPU_DEVICE, compressed_id, float_id);
+    PDCtf_add_func(dg_id, "builtin:double_to_float", PDC_TF_CPU_DEVICE, decompressed_doubles_id, float_id);
+    PDCtf_add_func(dg_id, "builtin:float_to_double", PDC_TF_CPU_DEVICE, float_id, decompressed_doubles_id);
+    PDCtf_add_func(dg_id, "builtin:zfp_compress", PDC_TF_CPU_DEVICE, float_id, compressed_id);
+    PDCtf_add_func(dg_id, "builtin:zfp_decompress", PDC_TF_CPU_DEVICE, compressed_id, float_id);
+    /*PDCtf_add_func(dg_id, "gpulib:compress_func", PDC_TF_GPU_DEVICE, float_id, compressed_id);
+    PDCtf_add_func(dg_id, "gpulib:decompress_func", PDC_TF_GPU_DEVICE, compressed_id, float_id);*/
 
     PDCtf_print_dg(dg_id);
 

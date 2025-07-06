@@ -5,13 +5,10 @@
 pdc_dg_t *graphs[200];
 state *   states[200];
 
-bool
-c_func_dummy(void *input, void **output)
-{
-    LOG_INFO("c_func_dummy was called\n");
+pdc_tf_builtin_func_t pdc_tf_builtin_funcs_g[PDC_TF_MAX_BUILTIN_FUNCS];
+uint32_t pdc_tf_builtin_cur_func_g = 0;
 
-    return true;
-}
+bool pdc_tf_has_init_g = false;
 
 perr_t
 PDCtf_exec_graph(pdcid_t dg_id, pdcid_t current_state_id, pdcid_t desired_state_id)
@@ -38,9 +35,9 @@ PDCtf_exec_graph(pdcid_t dg_id, pdcid_t current_state_id, pdcid_t desired_state_
             func * f  = (func *)(e.data);
 
             if (f->c_func(NULL, NULL) == false)
-                PGOTO_ERROR(FAIL, "Error when running transformation, %s", f->path_colon_name);
+                PGOTO_ERROR(FAIL, "Error when running transformation, %s", f->type_func_name);
             else
-                LOG_INFO("Transformation %s(%s) = %s ran successfully\n", f->path_colon_name, v1->name,
+                LOG_INFO("Transformation %s(%s) = %s ran successfully\n", f->type_func_name, v1->name,
                          v2->name);
         }
     }
@@ -51,4 +48,78 @@ PDCtf_exec_graph(pdcid_t dg_id, pdcid_t current_state_id, pdcid_t desired_state_
 
 done:
     FUNC_LEAVE(ret_value);
+}
+
+perr_t PDCtf_add_builtin_func(char* func_name, bool (*c_func)(void *input, void **output))
+{
+    FUNC_ENTER(NULL);
+
+    int ret_value = SUCCEED;
+    strcpy(pdc_tf_builtin_funcs_g[pdc_tf_builtin_cur_func_g].name, func_name);
+    pdc_tf_builtin_funcs_g[pdc_tf_builtin_cur_func_g].c_func = c_func;
+
+    pdc_tf_builtin_cur_func_g++;
+
+    LOG_INFO("Successfully added builtin function %s\n", func_name);
+
+    FUNC_LEAVE(ret_value);
+}
+
+perr_t PDCtf_link_builtin_func(char* func_name, func* f) {
+    FUNC_ENTER(NULL);
+
+    perr_t ret_value = SUCCEED;
+    bool found = false;
+
+    for(int i = 0; i < pdc_tf_builtin_cur_func_g; i++) {
+        if(strcmp(pdc_tf_builtin_funcs_g[i].name, func_name) == 0) {
+            found = true;
+            f->c_func = pdc_tf_builtin_funcs_g[i].c_func;
+        }
+    }
+
+    if(!found)
+        PGOTO_ERROR(FAIL, "Builtin function not found");
+
+done:
+    FUNC_LEAVE(ret_value);
+}
+
+perr_t PDCtf_init_builtin_funcs() {
+    FUNC_ENTER(NULL);
+
+    perr_t ret_value = SUCCEED;
+
+    if(PDCtf_add_builtin_func("double_to_float", pdc_tf_builtin_double_to_float) != SUCCEED)
+        PGOTO_ERROR(FAIL, "Failed to add builtin func double_to_float");
+    if(PDCtf_add_builtin_func("float_to_double", pdc_tf_builtin_float_to_double) != SUCCEED)
+        PGOTO_ERROR(FAIL, "Failed to add builtin func float_to_double");
+    if(PDCtf_add_builtin_func("zfp_compress", pdc_tf_builtin_zfp_compress) != SUCCEED)
+        PGOTO_ERROR(FAIL, "Failed to add builtin func zfp_compress");
+    if(PDCtf_add_builtin_func("zfp_decompress", pdc_tf_builtin_zfp_decompress) != SUCCEED)
+        PGOTO_ERROR(FAIL, "Failed to add builtin func zfp_decompress");
+
+done:
+    FUNC_LEAVE(ret_value);
+}
+
+// FIXME: move to its own file
+bool pdc_tf_builtin_double_to_float(void *input, void **output) {
+    LOG_INFO("pdc_tf_builtin_double_to_float was called\n");
+    return true;
+}
+
+bool pdc_tf_builtin_float_to_double(void *input, void **output) {
+    LOG_INFO("pdc_tf_builtin_float_to_double was called\n");
+    return true;
+}
+
+bool pdc_tf_builtin_zfp_compress(void *input, void **output) {
+    LOG_INFO("pdc_tf_builtin_zfp_compress was called\n");
+    return true;
+}
+
+bool pdc_tf_builtin_zfp_decompress(void *input, void **output) {
+    LOG_INFO("pdc_tf_builtin_zfp_decompress was called\n");
+    return true;
 }
