@@ -12,7 +12,7 @@ uint32_t              pdc_tf_builtin_cur_func_g = 0;
 bool pdc_tf_has_init_g = false;
 
 perr_t
-PDCtf_exec_graph(pdcid_t dg_id, pdcid_t current_state_id, pdcid_t desired_state_id)
+PDCtf_exec_graph(pdcid_t dg_id, pdcid_t current_state_id, pdcid_t desired_state_id, void* input)
 {
     FUNC_ENTER(NULL);
 
@@ -35,7 +35,7 @@ PDCtf_exec_graph(pdcid_t dg_id, pdcid_t current_state_id, pdcid_t desired_state_
             state *v2 = (state *)(graphs[dg_id]->vertices[e.v2_id]->data);
             func * f  = (func *)(e.data);
 
-            if (f->c_func(NULL, NULL) == false)
+            if (f->c_func(NULL, 1, NULL, NULL, input, NULL) == false)
                 PGOTO_ERROR(FAIL, "Error when running transformation, %s", f->type_func_name);
             else
                 LOG_INFO("Transformation %s(%s) = %s ran successfully\n", f->type_func_name, v1->name,
@@ -52,7 +52,7 @@ done:
 }
 
 perr_t
-PDCtf_add_builtin_func(char *func_name, bool (*c_func)(void *input, void **output))
+PDCtf_add_builtin_func(char *func_name, c_func_t c_func)
 {
     FUNC_ENTER(NULL);
 

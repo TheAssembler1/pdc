@@ -11,12 +11,12 @@
 
 #define NUM_PARTICLES_PER_DIM 10
 #define NUM_DIMS              1
-#define TYPE                  PDC_INT
+#define TYPE                  PDC_FLOAT
 #define INIT_VAL              2
 #define FINAL_VAL             2
 
 static void
-set_buf(int *buf, int val, uint64_t num)
+set_buf(float *buf, int val, uint64_t num)
 {
     for (uint64_t i = 0; i < num; i++)
         buf[i] = val;
@@ -31,7 +31,7 @@ workflow1(pdcid_t pdc, pdcid_t cont)
     uint64_t total_particles = NUM_PARTICLES_PER_DIM;
     for (int i = 2; i <= NUM_DIMS; i++)
         total_particles *= NUM_PARTICLES_PER_DIM;
-    int *data = (int *)malloc(total_particles * sizeof(int));
+    float *data = (float *)malloc(total_particles * sizeof(float));
     set_buf(data, INIT_VAL, total_particles);
 
     pdcid_t dg_id = PDCtf_create_dg("example_dg");
@@ -58,6 +58,7 @@ workflow1(pdcid_t pdc, pdcid_t cont)
         offset[i] = 0;
         dims[i]   = NUM_PARTICLES_PER_DIM;
     }
+
     TASSERT(PDCprop_set_obj_type(obj_prop, TYPE) >= 0, "obj_prop_set_obj_type succeeded",
             "obj_prop_set_obj_type failed");
     TASSERT(PDCprop_set_obj_dims(obj_prop, NUM_DIMS, dims) >= 0, "obj_prop_set_obj_dims succeeded",
@@ -88,7 +89,7 @@ workflow1(pdcid_t pdc, pdcid_t cont)
     set_buf(data, 0, total_particles);
 
     // read transfer
-    /*LOG_INFO("Starting region transfer read\n");
+    LOG_INFO("Starting region transfer read\n");
     TASSERT((transfer_id = PDCregion_transfer_create(data, PDC_READ, obj_id, reg, reg)) != 0,
             "region_transfer_create succeeded", "region_transfer_create failed");
     TASSERT(PDCregion_transfer_start(transfer_id) >= 0, "region_transfer_start succeeded",
@@ -104,7 +105,7 @@ workflow1(pdcid_t pdc, pdcid_t cont)
             TGOTO_ERROR(FAIL, "Data validation failed at index %d: expected %d, got %d\n", i, FINAL_VAL,
                         data[i]);
     }
-    LOG_INFO("Data buffer had expected values\n");*/
+    LOG_INFO("Data buffer had expected values\n");
 
     PDCtf_close_dg(dg_id);
     TASSERT(PDCregion_close(reg) >= 0, "Call to PDCregion_close succeeded", "Call to PDCregion_close failed");
