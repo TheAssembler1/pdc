@@ -12,7 +12,7 @@ uint32_t              pdc_tf_builtin_cur_func_g = 0;
 bool pdc_tf_has_init_g = false;
 
 perr_t
-PDCtf_exec_graph(pdcid_t dg_id, pdcid_t current_state_id, pdcid_t desired_state_id, void* input)
+PDCtf_exec_graph(pdcid_t dg_id, pdcid_t current_state_id, pdcid_t desired_state_id, void *input)
 {
     FUNC_ENTER(NULL);
 

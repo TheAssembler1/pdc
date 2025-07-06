@@ -3,8 +3,8 @@
 
 #include "pdc.h"
 
-typedef bool (*c_func_t)(void* params, uint8_t ndim, uint32_t* dims,
-                         uint32_t* sizes, void *input, void **output);
+typedef bool (*c_func_t)(void *params, uint8_t ndim, uint32_t *dims, uint32_t *sizes, void *input,
+                         void **output);
 
 typedef struct state {
     pdcid_t id;
@@ -26,7 +26,7 @@ extern bool pdc_tf_has_init_g;
 
 // this structure used to store our builtin functions
 typedef struct pdc_tf_builtin_func_t {
-    char name[PDC_TF_MAX_FUNC_NAME_LEN];
+    char     name[PDC_TF_MAX_FUNC_NAME_LEN];
     c_func_t c_func;
 } pdc_tf_builtin_func_t;
 
@@ -37,7 +37,7 @@ extern uint32_t              pdc_tf_builtin_cur_func_g;
 extern pdc_dg_t *graphs[200];
 extern state *   states[200];
 
-perr_t PDCtf_exec_graph(pdcid_t dg_id, pdcid_t current_state_id, pdcid_t desired_state_id, void* input);
+perr_t PDCtf_exec_graph(pdcid_t dg_id, pdcid_t current_state_id, pdcid_t desired_state_id, void *input);
 perr_t PDCtf_init_builtin_funcs();
 perr_t PDCtf_add_builtin_func(char *func_name, c_func_t c_func);
 perr_t PDCtf_link_builtin_func(char *func_name, func *f);

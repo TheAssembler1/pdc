@@ -3271,7 +3271,7 @@ PDC_Client_transfer_request(pdcid_t local_obj_id, void *buf, pdcid_t obj_id, uin
     if (!(access_type == PDC_WRITE || access_type == PDC_READ))
         PGOTO_ERROR(FAIL, "Invalid PDC type");
 
-    if(access_type == PDC_WRITE) {
+    if (access_type == PDC_WRITE) {
         // check if we need to execute directed graph
         // FIXME: we know this is the transfer for now
         const struct _pdc_id_info *obj_id_info = PDC_find_id(local_obj_id);
