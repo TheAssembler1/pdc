@@ -29,13 +29,13 @@ typedef struct pdc_tf_builtin_func_t {
 
 // this is our global array of builtin functions
 extern pdc_tf_builtin_func_t pdc_tf_builtin_funcs_g[PDC_TF_MAX_BUILTIN_FUNCS];
-extern uint32_t pdc_tf_builtin_cur_func_g;
+extern uint32_t              pdc_tf_builtin_cur_func_g;
 
 extern pdc_dg_t *graphs[200];
 extern state *   states[200];
 
 perr_t PDCtf_exec_graph(pdcid_t dg_id, pdcid_t current_state_id, pdcid_t desired_state_id);
 perr_t PDCtf_init_builtin_funcs();
-perr_t PDCtf_add_builtin_func(char* func_name, bool (*c_func)(void *input, void **output));
-perr_t PDCtf_link_builtin_func(char* func_name, func* f);
+perr_t PDCtf_add_builtin_func(char *func_name, bool (*c_func)(void *input, void **output));
+perr_t PDCtf_link_builtin_func(char *func_name, func *f);
 #endif // PDC_TF_COMMON_H

@@ -34,9 +34,9 @@ edge_free(void *data)
 
     LOG_INFO("edge_free called\n");
 
-    func *f            = (func *)data;
+    func *f           = (func *)data;
     f->type_func_name = PDC_free(f->type_func_name);
-    f                  = PDC_free(f);
+    f                 = PDC_free(f);
 
     FUNC_LEAVE_VOID();
 }
@@ -63,8 +63,8 @@ PDCtf_create_dg(char *dg_name)
     LOG_INFO("Creating directed graph\n");
 
     // FIXME: should do this in the init of the client/server
-    if(!pdc_tf_has_init_g) {
-        if(PDCtf_init_builtin_funcs() != SUCCEED)
+    if (!pdc_tf_has_init_g) {
+        if (PDCtf_init_builtin_funcs() != SUCCEED)
             LOG_ERROR("PDCtf_init_builtin_funcs failed\n");
         pdc_tf_has_init_g = true;
     }
@@ -88,21 +88,23 @@ PDCtf_create_dg(char *dg_name)
  *
  * \return Returns SUCCEED on success, FAIL if input is invalid or allocation fails.
  */
-static perr_t get_type_from_type_func_name(char *str, char** type) {
+static perr_t
+get_type_from_type_func_name(char *str, char **type)
+{
     FUNC_ENTER(NULL);
 
     perr_t ret_value = SUCCEED;
 
-    const char* has_delim = strchr(str, PDC_TF_TYPE_FUNC_NAME_DELIM);
-    if(has_delim == NULL)
+    const char *has_delim = strchr(str, PDC_TF_TYPE_FUNC_NAME_DELIM);
+    if (has_delim == NULL)
         PGOTO_ERROR(FAIL, "invalid type_func_name, must in the form \"type:func_name\"");
 
     uint32_t cur_pos = 0;
-    *type = PDC_calloc(1, PDC_TF_MAX_TYPE_LEN * sizeof(char));
+    *type            = PDC_calloc(1, PDC_TF_MAX_TYPE_LEN * sizeof(char));
     // extract type
-    while(str[cur_pos] != PDC_TF_TYPE_FUNC_NAME_DELIM) {
+    while (str[cur_pos] != PDC_TF_TYPE_FUNC_NAME_DELIM) {
         // make sure there is room for terminator
-        if(cur_pos >= PDC_TF_MAX_TYPE_LEN - 1)
+        if (cur_pos >= PDC_TF_MAX_TYPE_LEN - 1)
             PGOTO_ERROR(FAIL, "type part too long");
         (*type)[cur_pos] = str[cur_pos];
         cur_pos++;
@@ -110,7 +112,7 @@ static perr_t get_type_from_type_func_name(char *str, char** type) {
     (*type)[cur_pos] = '\0';
 
 done:
-    if(ret_value == FAIL)
+    if (ret_value == FAIL)
         *type = PDC_free(*type);
     FUNC_LEAVE(ret_value);
 }
@@ -127,35 +129,40 @@ done:
  *
  * \return Returns SUCCEED on success, FAIL if input is invalid or allocation fails.
  */
-static perr_t get_func_from_type_func_name(char *str, char** func_name) {
+static perr_t
+get_func_from_type_func_name(char *str, char **func_name)
+{
     FUNC_ENTER(NULL);
 
     perr_t ret_value = SUCCEED;
 
-    const char* has_delim = strchr(str, PDC_TF_TYPE_FUNC_NAME_DELIM);
-    if(has_delim == NULL)
+    const char *has_delim = strchr(str, PDC_TF_TYPE_FUNC_NAME_DELIM);
+    if (has_delim == NULL)
         PGOTO_ERROR(FAIL, "invalid type_func_name, must in the form \"type:func_name\"");
 
     uint32_t cur_pos = 0;
-    *func_name = PDC_calloc(1, PDC_TF_MAX_FUNC_NAME_LEN * sizeof(char));
+    *func_name       = PDC_calloc(1, PDC_TF_MAX_FUNC_NAME_LEN * sizeof(char));
     // move to delimiter
-    while(str[cur_pos] != PDC_TF_TYPE_FUNC_NAME_DELIM) { cur_pos++; }
+    while (str[cur_pos] != PDC_TF_TYPE_FUNC_NAME_DELIM) {
+        cur_pos++;
+    }
 
     // move beyond the delimiter
     cur_pos++;
     uint32_t start = cur_pos;
 
     // extract func_name
-    while(str[cur_pos] != '\0') {
+    while (str[cur_pos] != '\0') {
         // make sure there is room for terminator
-        if(cur_pos - start >= PDC_TF_MAX_FUNC_NAME_LEN - 1)
+        if (cur_pos - start >= PDC_TF_MAX_FUNC_NAME_LEN - 1)
             PGOTO_ERROR(FAIL, "func_name part too long");
-        (*func_name)[cur_pos - start] = str[cur_pos]; cur_pos++;
-     }
-     (*func_name)[cur_pos - start] = '\0';
+        (*func_name)[cur_pos - start] = str[cur_pos];
+        cur_pos++;
+    }
+    (*func_name)[cur_pos - start] = '\0';
 
 done:
-    if(ret_value == FAIL)
+    if (ret_value == FAIL)
         *func_name = PDC_free(*func_name);
     FUNC_LEAVE(ret_value);
 }
@@ -168,28 +175,27 @@ PDCtf_add_func(pdcid_t dg_id, char *type_func_name, pdc_tf_dev_t dev, pdcid_t in
 
     int ret_value = SUCCEED;
 
-    char* type = NULL, *func_name = NULL;
-    if(get_type_from_type_func_name(type_func_name, &type) != SUCCEED)
+    char *type = NULL, *func_name = NULL;
+    if (get_type_from_type_func_name(type_func_name, &type) != SUCCEED)
         PGOTO_ERROR(FAIL, "Error with get_type_from_type_func_name");
-    if(get_func_from_type_func_name(type_func_name, &func_name) != SUCCEED)
+    if (get_func_from_type_func_name(type_func_name, &func_name) != SUCCEED)
         PGOTO_ERROR(FAIL, "Error with get_func_from_type_func_name");
 
     LOG_INFO("Attempting to load function with type:name %s:%s\n", type, func_name);
 
-
-    if(strcmp(type, "builtin") == 0) {
+    if (strcmp(type, "builtin") == 0) {
         LOG_INFO("Looking up builtin function");
-    } else
+    }
+    else
         PGOTO_ERROR(FAIL, "Invalid type_func_name type");
 
-    func *f            = (func *)PDC_calloc(1, sizeof(func));
+    func *f = (func *)PDC_calloc(1, sizeof(func));
 
-    
     // try to link function
-    if(PDCtf_link_builtin_func(func_name, f) != SUCCEED)
+    if (PDCtf_link_builtin_func(func_name, f) != SUCCEED)
         PGOTO_ERROR(FAIL, "Failed to PDCtf_link_builtin_func");
     f->type_func_name = strdup(type_func_name);
-    f->dev             = dev;
+    f->dev            = dev;
 
     if (PDCdg_add_edge(graphs[dg_id], states[input_data_state], states[output_data_state], f) ==
         PDC_DG_INVALID_EDGE) {
@@ -197,9 +203,9 @@ PDCtf_add_func(pdcid_t dg_id, char *type_func_name, pdc_tf_dev_t dev, pdcid_t in
     }
 
 done:
-    if(type)
+    if (type)
         type = PDC_free(type);
-    if(func_name)
+    if (func_name)
         func_name = PDC_free(func_name);
 
     FUNC_LEAVE(ret_value);

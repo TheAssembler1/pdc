@@ -85,7 +85,7 @@ typedef enum {
 // creates a new directed graph and returns ID
 pdcid_t PDCtf_create_dg(char *dg_name);
 
-#define PDC_TF_MAX_TYPE_LEN 100
+#define PDC_TF_MAX_TYPE_LEN         100
 #define PDC_TF_TYPE_FUNC_NAME_DELIM ':'
 
 /**

@@ -7,7 +7,7 @@ pdc_dg_t *graphs[200];
 state *   states[200];
 
 pdc_tf_builtin_func_t pdc_tf_builtin_funcs_g[PDC_TF_MAX_BUILTIN_FUNCS];
-uint32_t pdc_tf_builtin_cur_func_g = 0;
+uint32_t              pdc_tf_builtin_cur_func_g = 0;
 
 bool pdc_tf_has_init_g = false;
 
@@ -51,7 +51,8 @@ done:
     FUNC_LEAVE(ret_value);
 }
 
-perr_t PDCtf_add_builtin_func(char* func_name, bool (*c_func)(void *input, void **output))
+perr_t
+PDCtf_add_builtin_func(char *func_name, bool (*c_func)(void *input, void **output))
 {
     FUNC_ENTER(NULL);
 
@@ -66,41 +67,44 @@ perr_t PDCtf_add_builtin_func(char* func_name, bool (*c_func)(void *input, void 
     FUNC_LEAVE(ret_value);
 }
 
-perr_t PDCtf_link_builtin_func(char* func_name, func* f) {
+perr_t
+PDCtf_link_builtin_func(char *func_name, func *f)
+{
     FUNC_ENTER(NULL);
 
     perr_t ret_value = SUCCEED;
-    bool found = false;
+    bool   found     = false;
 
-    for(int i = 0; i < pdc_tf_builtin_cur_func_g; i++) {
-        if(strcmp(pdc_tf_builtin_funcs_g[i].name, func_name) == 0) {
-            found = true;
+    for (int i = 0; i < pdc_tf_builtin_cur_func_g; i++) {
+        if (strcmp(pdc_tf_builtin_funcs_g[i].name, func_name) == 0) {
+            found     = true;
             f->c_func = pdc_tf_builtin_funcs_g[i].c_func;
         }
     }
 
-    if(!found)
+    if (!found)
         PGOTO_ERROR(FAIL, "Builtin function not found");
 
 done:
     FUNC_LEAVE(ret_value);
 }
 
-perr_t PDCtf_init_builtin_funcs() {
+perr_t
+PDCtf_init_builtin_funcs()
+{
     FUNC_ENTER(NULL);
 
     perr_t ret_value = SUCCEED;
 
-    if(PDCtf_add_builtin_func("double_to_float", pdc_tf_builtin_double_to_float) != SUCCEED)
+    if (PDCtf_add_builtin_func("double_to_float", pdc_tf_builtin_double_to_float) != SUCCEED)
         PGOTO_ERROR(FAIL, "Failed to add builtin func double_to_float");
-    if(PDCtf_add_builtin_func("float_to_double", pdc_tf_builtin_float_to_double) != SUCCEED)
+    if (PDCtf_add_builtin_func("float_to_double", pdc_tf_builtin_float_to_double) != SUCCEED)
         PGOTO_ERROR(FAIL, "Failed to add builtin func float_to_double");
-    if(PDCtf_add_builtin_func("zfp_compress", pdc_tf_builtin_zfp_compress) != SUCCEED)
+    if (PDCtf_add_builtin_func("zfp_compress", pdc_tf_builtin_zfp_compress) != SUCCEED)
         PGOTO_ERROR(FAIL, "Failed to add builtin func zfp_compress");
-    if(PDCtf_add_builtin_func("zfp_decompress", pdc_tf_builtin_zfp_decompress) != SUCCEED)
+    if (PDCtf_add_builtin_func("zfp_decompress", pdc_tf_builtin_zfp_decompress) != SUCCEED)
         PGOTO_ERROR(FAIL, "Failed to add builtin func zfp_decompress");
 
 done:
     FUNC_LEAVE(ret_value);
 }
-
