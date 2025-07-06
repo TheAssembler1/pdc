@@ -38,10 +38,4 @@ perr_t PDCtf_exec_graph(pdcid_t dg_id, pdcid_t current_state_id, pdcid_t desired
 perr_t PDCtf_init_builtin_funcs();
 perr_t PDCtf_add_builtin_func(char* func_name, bool (*c_func)(void *input, void **output));
 perr_t PDCtf_link_builtin_func(char* func_name, func* f);
-
-// FIXME: move to its own file
-bool pdc_tf_builtin_double_to_float(void *input, void **output);
-bool pdc_tf_builtin_float_to_double(void *input, void **output);
-bool pdc_tf_builtin_zfp_compress(void *input, void **output);
-bool pdc_tf_builtin_zfp_decompress(void *input, void **output);
 #endif // PDC_TF_COMMON_H
