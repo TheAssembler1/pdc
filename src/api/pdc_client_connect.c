@@ -4819,14 +4819,14 @@ PDC_Client_add_objects_to_container(int nobj, pdcid_t *local_obj_ids, pdcid_t lo
 
     obj_ids = (uint64_t *)PDC_malloc(sizeof(uint64_t) * nobj);
     for (i = 0; i < nobj; i++) {
-        if((id_info    = PDC_find_id(local_obj_ids[i])) == NULL) {
+        if ((id_info = PDC_find_id(local_obj_ids[i])) == NULL) {
             LOG_ERROR("Failed to find PDC ID: %d\n", local_obj_ids[i]);
             continue;
         }
         obj_ids[i] = ((struct _pdc_obj_info *)(id_info->obj_ptr))->obj_info_pub->meta_id;
     }
 
-    if((id_info      = PDC_find_id(local_cont_id)) == NULL)
+    if ((id_info = PDC_find_id(local_cont_id)) == NULL)
         PGOTO_ERROR(FAIL, "Failed to find PDC ID: %d", local_cont_id);
     cont_meta_id = ((struct _pdc_cont_info *)(id_info->obj_ptr))->cont_info_pub->meta_id;
 
@@ -4850,14 +4850,14 @@ PDC_Client_del_objects_to_container(int nobj, pdcid_t *local_obj_ids, pdcid_t lo
 
     obj_ids = (uint64_t *)PDC_malloc(sizeof(uint64_t) * nobj);
     for (i = 0; i < nobj; i++) {
-        if((id_info    = PDC_find_id(local_obj_ids[i])) == NULL) {
+        if ((id_info = PDC_find_id(local_obj_ids[i])) == NULL) {
             LOG_ERROR("Failed to find PDC ID: %d\n", local_obj_ids[i]);
             continue;
         }
         obj_ids[i] = ((struct _pdc_obj_info *)(id_info->obj_ptr))->obj_info_pub->meta_id;
     }
 
-    if((id_info      = PDC_find_id(local_cont_id)) == NULL)
+    if ((id_info = PDC_find_id(local_cont_id)) == NULL)
         PGOTO_ERROR(FAIL, "Failed to find PDC ID: %d", local_cont_id);
     cont_meta_id = ((struct _pdc_cont_info *)(id_info->obj_ptr))->cont_info_pub->meta_id;
 
@@ -6945,9 +6945,9 @@ PDCobj_put_data(const char *obj_name, void *data, uint64_t size, pdcid_t cont_id
     struct _pdc_id_info *  id_info = NULL;
     pdcid_t                transfer_request;
 
-    if((id_info = PDC_find_id(cont_id)) == NULL)
+    if ((id_info = PDC_find_id(cont_id)) == NULL)
         PGOTO_ERROR(0, "Failed to find PDC ID: %d", cont_id);
-    info    = (struct _pdc_cont_info *)(id_info->obj_ptr);
+    info = (struct _pdc_cont_info *)(id_info->obj_ptr);
 
     obj_prop = PDCprop_create(PDC_OBJ_CREATE, info->cont_pt->pdc->local_id);
     PDCprop_set_obj_type(obj_prop, PDC_CHAR);

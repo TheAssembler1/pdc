@@ -193,19 +193,19 @@ PDCbuf_obj_map(void *buf, pdc_var_type_t local_type, pdcid_t local_reg, pdcid_t 
     struct _pdc_id_info *   reginfo1, *reginfo2;
     struct pdc_region_info *reg1, *reg2;
 
-    if((reginfo1 = PDC_find_id(local_reg)) == NULL)
+    if ((reginfo1 = PDC_find_id(local_reg)) == NULL)
         PGOTO_ERROR(FAIL, "Failed to find PDC ID: %d", local_reg);
-    reg1     = (struct pdc_region_info *)(reginfo1->obj_ptr);
+    reg1 = (struct pdc_region_info *)(reginfo1->obj_ptr);
 
     if ((objinfo2 = PDC_find_id(remote_obj)) == NULL)
-        PGOTO_ERROR(FAIL,  "Failed to find PDC ID: %d", remote_obj);
+        PGOTO_ERROR(FAIL, "Failed to find PDC ID: %d", remote_obj);
     obj2           = (struct _pdc_obj_info *)(objinfo2->obj_ptr);
     remote_meta_id = obj2->obj_info_pub->meta_id;
     remote_type    = obj2->obj_pt->obj_prop_pub->type;
 
-    if((reginfo2 = PDC_find_id(remote_reg)) == NULL)
-        PGOTO_ERROR(0,  "Failed to find PDC ID: %d", remote_reg);
-    reg2     = (struct pdc_region_info *)(reginfo2->obj_ptr);
+    if ((reginfo2 = PDC_find_id(remote_reg)) == NULL)
+        PGOTO_ERROR(0, "Failed to find PDC ID: %d", remote_reg);
+    reg2 = (struct pdc_region_info *)(reginfo2->obj_ptr);
     if (obj2->obj_pt->obj_prop_pub->ndim != reg2->ndim)
         PGOTO_ERROR(FAIL, "Remote object dimension and region dimension does not match");
     for (i = 0; i < reg2->ndim; i++)
@@ -240,7 +240,7 @@ PDCregion_get_info(pdcid_t reg_id)
     struct _pdc_id_info *   region;
 
     if ((region = PDC_find_id(reg_id)) == NULL)
-        PGOTO_ERROR(NULL,  "Failed to find PDC ID: %d", reg_id);
+        PGOTO_ERROR(NULL, "Failed to find PDC ID: %d", reg_id);
 
     info      = (struct pdc_region_info *)(region->obj_ptr);
     ret_value = info;

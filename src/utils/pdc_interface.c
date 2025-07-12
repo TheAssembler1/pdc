@@ -156,7 +156,7 @@ PDC_dec_ref(pdcid_t id)
     struct PDC_id_type * type_ptr;
 
     /* General lookup of the ID */
-    if((id_ptr = PDC_find_id(id)) == NULL)
+    if ((id_ptr = PDC_find_id(id)) == NULL)
         PGOTO_ERROR(0, "Failed to find PDC ID: %d", id);
 
     ret_value = hg_atomic_decr32(&(id_ptr->count));

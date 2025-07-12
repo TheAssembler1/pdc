@@ -69,7 +69,7 @@ PDCcont_create(const char *cont_name, pdcid_t cont_prop_id)
         PGOTO_ERROR(0, "PDC pub container memory allocation failed");
     p->cont_info_pub->name = strdup(cont_name);
 
-    if((id_info   = PDC_find_id(cont_prop_id)) == NULL)
+    if ((id_info = PDC_find_id(cont_prop_id)) == NULL)
         PGOTO_ERROR(0, "Failed to find PDC ID: %d", cont_prop_id);
     cont_prop = (struct _pdc_cont_prop *)(id_info->obj_ptr);
 
@@ -120,7 +120,7 @@ PDCcont_create_col(const char *cont_name, pdcid_t cont_prop_id)
         PGOTO_ERROR(0, "PDC pub container memory allocation failed");
     p->cont_info_pub->name = strdup(cont_name);
 
-    if((id_info = PDC_find_id(cont_prop_id)) == NULL)
+    if ((id_info = PDC_find_id(cont_prop_id)) == NULL)
         PGOTO_ERROR(0, "Failed to find PDC ID: %d", cont_prop_id);
     cont_prop = (struct _pdc_cont_prop *)(id_info->obj_ptr);
 
@@ -170,7 +170,7 @@ PDC_cont_create_local(pdcid_t pdc, const char *cont_name, uint64_t cont_meta_id)
 
     cont_prop_id = PDCprop_create(PDC_CONT_CREATE, pdc);
 
-    if((id_info = PDC_find_id(cont_prop_id)) == NULL)
+    if ((id_info = PDC_find_id(cont_prop_id)) == NULL)
         PGOTO_ERROR(0, "Failed to find PDC ID: %d", cont_prop_id);
     cont_prop  = (struct _pdc_cont_prop *)(id_info->obj_ptr);
     p->cont_pt = (struct _pdc_cont_prop *)PDC_calloc(1, sizeof(struct _pdc_cont_prop));

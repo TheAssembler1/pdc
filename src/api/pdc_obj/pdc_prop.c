@@ -73,10 +73,10 @@ PDCprop_create(pdc_prop_type_t type, pdcid_t pdcid)
         p->cont_life    = PDC_PERSIST;
         new_id_c        = PDC_id_register(PDC_CONT_PROP, p);
         p->cont_prop_id = new_id_c;
-        if((id_info         = PDC_find_id(pdcid)) == NULL)
+        if ((id_info = PDC_find_id(pdcid)) == NULL)
             PGOTO_ERROR(0, "Failed to find PDC ID: %d", id_info);
-        pdc_class       = (struct _pdc_class *)(id_info->obj_ptr);
-        p->pdc          = (struct _pdc_class *)PDC_calloc(1, sizeof(struct _pdc_class));
+        pdc_class = (struct _pdc_class *)(id_info->obj_ptr);
+        p->pdc    = (struct _pdc_class *)PDC_calloc(1, sizeof(struct _pdc_class));
         if (p->pdc == NULL)
             PGOTO_ERROR(0, "PDC class allocation failed");
         if (pdc_class->name)
@@ -105,10 +105,10 @@ PDCprop_create(pdc_prop_type_t type, pdcid_t pdcid)
         q->buf                            = NULL;
         new_id_o                          = PDC_id_register(PDC_OBJ_PROP, q);
         q->obj_prop_pub->obj_prop_id      = new_id_o;
-        if((id_info = PDC_find_id(pdcid)) == NULL)
+        if ((id_info = PDC_find_id(pdcid)) == NULL)
             PGOTO_ERROR(0, "Failed to find PDC ID: %d", pdcid);
-        pdc_class                         = (struct _pdc_class *)(id_info->obj_ptr);
-        q->pdc                            = (struct _pdc_class *)PDC_calloc(1, sizeof(struct _pdc_class));
+        pdc_class = (struct _pdc_class *)(id_info->obj_ptr);
+        q->pdc    = (struct _pdc_class *)PDC_calloc(1, sizeof(struct _pdc_class));
         if (q->pdc == NULL)
             PGOTO_ERROR(0, "PDC class allocation failed");
         if (pdc_class->name)
@@ -294,7 +294,7 @@ PDCcont_prop_get_info(pdcid_t cont_prop)
     struct _pdc_cont_prop *info      = NULL;
     struct _pdc_id_info *  prop;
 
-    if((prop = PDC_find_id(cont_prop)) == NULL)
+    if ((prop = PDC_find_id(cont_prop)) == NULL)
         PGOTO_ERROR(NULL, "Failed to find PDC ID: %d", cont_prop);
     info = (struct _pdc_cont_prop *)(prop->obj_ptr);
 
@@ -325,7 +325,7 @@ PDCobj_prop_get_info(pdcid_t obj_prop)
     struct _pdc_id_info * prop;
     size_t                i;
 
-    if((prop = PDC_find_id(obj_prop)) == NULL)
+    if ((prop = PDC_find_id(obj_prop)) == NULL)
         PGOTO_ERROR(NULL, "Failed to find PDC ID: %d", obj_prop);
     info = (struct _pdc_obj_prop *)(prop->obj_ptr);
 
@@ -354,7 +354,7 @@ PDC_obj_prop_get_info(pdcid_t obj_prop)
     struct _pdc_id_info * prop;
     size_t                i;
 
-    if((prop = PDC_find_id(obj_prop)) == NULL)
+    if ((prop = PDC_find_id(obj_prop)) == NULL)
         PGOTO_ERROR(NULL, "Failed to find PDC ID: %d", obj_prop);
     info = (struct _pdc_obj_prop *)(prop->obj_ptr);
 

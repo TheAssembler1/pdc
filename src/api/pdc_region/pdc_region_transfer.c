@@ -870,7 +870,7 @@ prepare_start_all_requests(pdcid_t *transfer_request_id, int size,
     struct _pdc_id_info * transferinfo;
     pdc_transfer_request *transfer_request;
     int                   set_output_buf = 0;
-    int ret_value = SUCCEED;
+    int                   ret_value      = SUCCEED;
 
     write_request_pkgs             = NULL;
     read_request_pkgs              = NULL;
@@ -1265,7 +1265,7 @@ merge_transfer_request_ids(pdcid_t *transfer_request_id, int size, pdcid_t *merg
     pdc_transfer_request **all_transfer_request;
     uint64_t               new_buf_size = 0, copy_off = 0;
     uint64_t               offset_local[3], size_local[3], offset_remote[3], size_remote[3];
-    perr_t ret_value = SUCCEED;
+    perr_t                 ret_value = SUCCEED;
 
     all_transfer_request = (pdc_transfer_request **)PDC_calloc(size, sizeof(pdc_transfer_request *));
 
@@ -1704,7 +1704,7 @@ PDCregion_transfer_wait_all(pdcid_t *transfer_request_id, int size)
         *temp;
 
     struct _pdc_id_info **transferinfos;
-    struct _pdc_id_info* transfer_info;
+    struct _pdc_id_info * transfer_info;
     pdc_transfer_request *transfer_request, *merged_request;
     pdcid_t *             my_transfer_request_id = transfer_request_id;
 
@@ -1721,7 +1721,7 @@ PDCregion_transfer_wait_all(pdcid_t *transfer_request_id, int size)
 
     // Check if we merged the previous request
     if (size > PDC_MERGE_TRANSFER_MIN_COUNT) {
-        if((transferinfos[0] = PDC_find_id(transfer_request_id[0])) == NULL)
+        if ((transferinfos[0] = PDC_find_id(transfer_request_id[0])) == NULL)
             PGOTO_ERROR(FAIL, "Failed to find PDC ID: %d", transfer_request_id[0]);
         transfer_request = (pdc_transfer_request *)(transferinfos[0]->obj_ptr);
         if (transfer_request->merged_request_id != 0) {
@@ -1868,7 +1868,7 @@ PDCregion_transfer_wait_all(pdcid_t *transfer_request_id, int size)
     // Deal with merged read requests, need to copy a large buffer to each of the original request buf
     // TODO: Currently only supports 1D merging, so only consider 1D for now
     if (merged_xfer == 1) {
-        if((transfer_info = PDC_find_id(my_transfer_request_id[0])) == NULL)
+        if ((transfer_info = PDC_find_id(my_transfer_request_id[0])) == NULL)
             PGOTO_ERROR(FAIL, "Failed to find PDC ID: %d", my_transfer_request_id[0]);
         merged_request = (pdc_transfer_request *)(transfer_info->obj_ptr);
         for (i = 0; i < ori_size; ++i) {
@@ -1929,7 +1929,7 @@ PDCregion_transfer_wait_all(pdcid_t *transfer_request_id, int size)
     }
     transfer_requests = (pdc_transfer_request_wait_all_pkg **)PDC_free(transfer_requests);
     metadata_ids      = (uint64_t *)PDC_free(metadata_ids);
-    transferinfos      = (struct _pdc_id_info **)PDC_free(transferinfos);
+    transferinfos     = (struct _pdc_id_info **)PDC_free(transferinfos);
 
 done:
     FUNC_LEAVE(ret_value);

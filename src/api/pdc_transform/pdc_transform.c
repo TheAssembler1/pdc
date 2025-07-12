@@ -234,7 +234,7 @@ PDCbuf_map_transform_register(char *func, void *buf, pdcid_t src_region_id, pdci
     thisFtn->readyState     = current_state;
     thisFtn->ftn_lastResult = 0;
     thisFtn->data           = buf;
-    id_info = PDC_find_id(dest_object_id);
+    id_info                 = PDC_find_id(dest_object_id);
     if (id_info)
         object1 = (struct _pdc_obj_info *)(id_info->obj_ptr);
     if (object1) {

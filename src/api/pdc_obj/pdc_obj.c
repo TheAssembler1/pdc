@@ -136,7 +136,7 @@ PDC_obj_create(pdcid_t cont_id, const char *obj_name, pdcid_t obj_prop_id, _pdc_
         meta_id = 0;
     }
     else {
-        if((id_info = PDC_find_id(cont_id)) == NULL)
+        if ((id_info = PDC_find_id(cont_id)) == NULL)
             PGOTO_ERROR(0, "Failed to find PDC ID: %d", cont_id);
         /* struct _pdc_cont_info field */
         cont_info = (struct _pdc_cont_info *)(id_info->obj_ptr);
@@ -170,7 +170,7 @@ PDC_obj_create(pdcid_t cont_id, const char *obj_name, pdcid_t obj_prop_id, _pdc_
         meta_id                         = p->cont->cont_info_pub->meta_id;
     }
 
-    if((id_info = PDC_find_id(obj_prop_id)) == NULL)
+    if ((id_info = PDC_find_id(obj_prop_id)) == NULL)
         PGOTO_ERROR(0, "Failed to find PDC ID: %d", cont_id);
     obj_prop = (struct _pdc_obj_prop *)(id_info->obj_ptr);
 
