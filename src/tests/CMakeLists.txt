@@ -122,6 +122,15 @@ set(PROGRAMS
 #   message(FATAL_ERROR "Could not find HDF5, please make sure that HDF5 has been compiled with shared libraries enabled.")
 # endif()
 
+
+# FIXME: NOAH
+find_package(ZFP REQUIRED)
+
+if(TARGET ZFP::zfp)
+    set(ZFP_LIB ZFP::zfp)
+else()
+    set(ZFP_LIB ${ZFP_LIBRARIES})
+endif()
 foreach(program ${PROGRAMS})
   get_filename_component(program_name ${program} NAME)
   get_filename_component(program_dir ${program} DIRECTORY)
@@ -135,6 +144,14 @@ foreach(program ${PROGRAMS})
       ${CMAKE_SOURCE_DIR}/src/tests/include
     )
     target_link_libraries(${program_name} pdc pdc_commons ${TEST_EXT_LIB})
+
+    target_link_libraries(${program_name}
+            ${MERCURY_LIBRARY}
+            ${PDC_COMMONS_LIBRARIES}
+            -lm -ldl
+            ${PDC_EXT_LIB_DEPENDENCIES}
+            ${ZFP_LIB}
+    )
   else()
     message(WARNING "Source file ${SOURCE_FILE} not found, skipping ${program_name}.")
   endif()
@@ -165,6 +182,13 @@ if(BUILD_MPI_TESTING)
       target_include_directories(${program_name} PRIVATE 
         ${TEST_EXT_INCLUDE_DIRS}
         ${CMAKE_SOURCE_DIR}/src/tests/include)
+      target_link_libraries(${program_name}
+              ${MERCURY_LIBRARY}
+              ${PDC_COMMONS_LIBRARIES}
+              -lm -ldl
+              ${PDC_EXT_LIB_DEPENDENCIES}
+              ${ZFP_LIB}
+      )
     else()
       message(WARNING "Source file ${SOURCE_FILE} not found, skipping ${program_name}.")
     endif()
@@ -181,7 +205,6 @@ if(UUID_FOUND)
     dart/dart_func_test
     dart/dart_test
   )
-
   set(TEST_EXT_LIB ${TEST_EXT_LIB} ${UUID_LIBRARIES})
   set(TEST_EXT_INCLUDE_DIRS ${TEST_EXT_INCLUDE_DIRS} ${UUID_INCLUDE_DIRS} ${CMAKE_CURRENT_SOURCE_DIR}/helper/include)
 
@@ -208,6 +231,13 @@ if(UUID_FOUND)
       add_executable(${program_name} ${SOURCE_FILE} ${EXTRA_SRC_FILE})
       target_link_libraries(${program_name} pdc pdc_commons ${TEST_EXT_LIB})
       target_include_directories(${program_name} PRIVATE ${TEST_EXT_INCLUDE_DIRS})
+      target_link_libraries(${program_name}
+              ${MERCURY_LIBRARY}
+              ${PDC_COMMONS_LIBRARIES}
+              -lm -ldl
+              ${PDC_EXT_LIB_DEPENDENCIES}
+              ${ZFP_LIB}
+      )
     else()
       message(WARNING "Source file ${SOURCE_FILE} not found, skipping ${program_name}.")
     endif()

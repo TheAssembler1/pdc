@@ -3,13 +3,40 @@
 
 #include "pdc.h"
 
-typedef bool (*c_func_t)(void *params, uint8_t ndim, uint32_t *dims, uint32_t *sizes, void *input,
-                         void **output);
-
 typedef struct state {
     pdcid_t id;
     char *  name;
 } state;
+
+/**
+ * used as input and output region for transformations
+ * ndim: number of dimensions
+ * dims: array of dimensions
+ * unit: bytes/element
+ */
+typedef struct pdc_tf_region_t {
+    size_t   ndim;
+    uint64_t dims[DIM_MAX];
+    uint32_t unit;
+} pdc_tf_region_t;
+
+/**
+ * Prototype for region transformation functions
+ *
+ * Before the function is invoked, `output_reg` is set to `input_reg`, so if the
+ * transformation does not change the region size, the user does not need to
+ * modify `output_reg`.
+ *
+ * `region_data` is a double pointer to the input region's data buffer.
+ * The function may either mutate the existing buffer in place or allocate a new
+ * buffer and update `*region_data` to point to it.
+ *
+ * If a new data buffer is assigned to `*region_data`, it must be heap-allocated
+ * so that PDC can free it. The callee is responsible for freeing the original
+ * buffer if it is replaced.
+ */
+typedef bool (*c_func_t)(void *params, void **region_data,
+                         pdc_tf_region_t input_reg, pdc_tf_region_t* output_reg);
 
 typedef struct func {
     pdc_tf_dev_t dev;

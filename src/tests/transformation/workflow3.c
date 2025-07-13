@@ -11,7 +11,7 @@
 
 #define NUM_PARTICLES_PER_DIM 10
 #define NUM_DIMS              1
-#define TYPE                  PDC_FLOAT
+#define TYPE                  PDC_DOUBLE
 #define INIT_VAL              2
 #define FINAL_VAL             2
 
@@ -44,8 +44,6 @@ workflow1(pdcid_t pdc, pdcid_t cont)
     PDCtf_add_func(dg_id, "builtin:float_to_double", PDC_TF_CPU_DEVICE, float_id, decompressed_doubles_id);
     PDCtf_add_func(dg_id, "builtin:zfp_compress", PDC_TF_CPU_DEVICE, float_id, compressed_id);
     PDCtf_add_func(dg_id, "builtin:zfp_decompress", PDC_TF_CPU_DEVICE, compressed_id, float_id);
-    /*PDCtf_add_func(dg_id, "gpulib:compress_func", PDC_TF_GPU_DEVICE, float_id, compressed_id);
-    PDCtf_add_func(dg_id, "gpulib:decompress_func", PDC_TF_GPU_DEVICE, compressed_id, float_id);*/
 
     PDCtf_print_dg(dg_id);
 

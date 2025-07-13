@@ -34,8 +34,20 @@ PDCtf_exec_graph(pdcid_t dg_id, pdcid_t current_state_id, pdcid_t desired_state_
             state *v1 = (state *)(graphs[dg_id]->vertices[e.v1_id]->data);
             state *v2 = (state *)(graphs[dg_id]->vertices[e.v2_id]->data);
             func * f  = (func *)(e.data);
+            pdc_tf_region_t input_region, output_region;
 
-            if (f->c_func(NULL, 1, NULL, NULL, input, NULL) == false)
+            // by default set ouptut_region size to input_region size
+            // FIXME: get through parameters
+            input_region.ndim = 1;
+            input_region.unit = PDC_get_var_type_size(PDC_FLOAT);
+            input_region.dims[0] = 10;
+
+
+            memcpy(&output_region, &input_region, sizeof(pdc_tf_region_t));
+            // this pointer is set to ouput region data
+            void** output = NULL;
+
+            if (f->c_func(NULL,  &input, input_region, &output_region) == false)
                 PGOTO_ERROR(FAIL, "Error when running transformation, %s", f->type_func_name);
             else
                 LOG_INFO("Transformation %s(%s) = %s ran successfully\n", f->type_func_name, v1->name,
@@ -57,6 +69,10 @@ PDCtf_add_builtin_func(char *func_name, c_func_t c_func)
     FUNC_ENTER(NULL);
 
     int ret_value = SUCCEED;
+
+    if(func_name == NULL)
+        PGOTO_ERROR(FAIL, "func_name was NULL");
+
     strcpy(pdc_tf_builtin_funcs_g[pdc_tf_builtin_cur_func_g].name, func_name);
     pdc_tf_builtin_funcs_g[pdc_tf_builtin_cur_func_g].c_func = c_func;
 
@@ -64,8 +80,10 @@ PDCtf_add_builtin_func(char *func_name, c_func_t c_func)
 
     LOG_INFO("Successfully added builtin function %s\n", func_name);
 
+done:
     FUNC_LEAVE(ret_value);
 }
+
 
 perr_t
 PDCtf_link_builtin_func(char *func_name, func *f)
@@ -74,6 +92,11 @@ PDCtf_link_builtin_func(char *func_name, func *f)
 
     perr_t ret_value = SUCCEED;
     bool   found     = false;
+
+    if(func_name == NULL)
+        PGOTO_ERROR(FAIL, "func_name was NULL");
+    if(f == NULL)
+        PGOTO_ERROR(FAIL, "f was NULL");
 
     for (int i = 0; i < pdc_tf_builtin_cur_func_g; i++) {
         if (strcmp(pdc_tf_builtin_funcs_g[i].name, func_name) == 0) {
@@ -100,10 +123,12 @@ PDCtf_init_builtin_funcs()
         PGOTO_ERROR(FAIL, "Failed to add builtin func double_to_float");
     if (PDCtf_add_builtin_func("float_to_double", pdc_tf_builtin_float_to_double) != SUCCEED)
         PGOTO_ERROR(FAIL, "Failed to add builtin func float_to_double");
+#ifdef ENABLE_TF_ZFP_COMPRESSION
     if (PDCtf_add_builtin_func("zfp_compress", pdc_tf_builtin_zfp_compress) != SUCCEED)
         PGOTO_ERROR(FAIL, "Failed to add builtin func zfp_compress");
     if (PDCtf_add_builtin_func("zfp_decompress", pdc_tf_builtin_zfp_decompress) != SUCCEED)
         PGOTO_ERROR(FAIL, "Failed to add builtin func zfp_decompress");
+#endif
 
 done:
     FUNC_LEAVE(ret_value);
