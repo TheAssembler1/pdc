@@ -252,7 +252,7 @@ PDCtf_close_dg(pdcid_t dg_id)
 
 // region transfer to/from the specified obj_id, global_reg_id follow DG
 perr_t
-PDCtf_attach_to_region(pdcid_t dg_id, pdcid_t obj_id, pdcid_t remote_reg_id, pdcid_t client_state_id,
+PDCtf_attach_to_region(pdcid_t dg_id, pdcid_t obj_id, pdcid_t remote_reg_id, pdcid_t client_state_id, pdc_var_type_t client_var_type,
                        pdcid_t server_state_id)
 {
     FUNC_ENTER(NULL);
@@ -269,7 +269,7 @@ PDCtf_attach_to_region(pdcid_t dg_id, pdcid_t obj_id, pdcid_t remote_reg_id, pdc
 
     // pull out pdc obj transform information
     struct pdc_tf_obj_t *pdc_tf_obj        = obj_info->pdc_tf_obj;
-    const uint32_t       cur_remote_region = pdc_tf_obj->num_remote_regions;
+    const uint32_t       cur_remote_region = pdc_tf_obj->num_regions;
 
     // add remote region information
     struct _pdc_id_info *region_id_info = PDC_find_id(remote_reg_id);
@@ -279,7 +279,7 @@ PDCtf_attach_to_region(pdcid_t dg_id, pdcid_t obj_id, pdcid_t remote_reg_id, pdc
     pdc_tf_obj->client_regions[cur_remote_region].ndim   = region_info->ndim;
     pdc_tf_obj->client_regions[cur_remote_region].offset = region_info->offset;
     pdc_tf_obj->client_regions[cur_remote_region].dims   = region_info->size;
-    pdc_tf_obj->client_regions[cur_remote_region].unit   = region_info->unit;
+    pdc_tf_obj->client_regions[cur_remote_region].unit   = PDC_get_var_type_size(client_var_type);
 
     // since this in on the client side the current state is the client_state_id
     pdc_tf_obj->tf_regions_info[cur_remote_region].current_state_id = client_state_id;
@@ -289,7 +289,7 @@ PDCtf_attach_to_region(pdcid_t dg_id, pdcid_t obj_id, pdcid_t remote_reg_id, pdc
     pdc_tf_obj->tf_regions_info[cur_remote_region].dg_id = dg_id;
 
     // increase the current region
-    pdc_tf_obj->num_remote_regions++;
+    pdc_tf_obj->num_regions++;
 done:
     FUNC_LEAVE(ret_value);
 }

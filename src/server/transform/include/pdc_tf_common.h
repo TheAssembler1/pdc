@@ -64,7 +64,7 @@ typedef struct pdc_tf_obj_t {
     pdc_tf_absolute_region_t  client_regions[MAX_REGIONS];
     pdc_tf_absolute_region_t  remote_regions[MAX_REGIONS];
     pdc_tf_region_info tf_regions_info[MAX_REGIONS];
-    uint32_t           num_remote_regions;
+    uint32_t           num_regions;
 } pdc_obj_tf_t;
 
 /**

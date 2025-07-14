@@ -3262,6 +3262,8 @@ PDC_Client_transfer_request(pdcid_t local_obj_id, void *buf, pdcid_t obj_id, uin
     hg_handle_t                       client_send_transfer_request_handle;
     struct _pdc_transfer_request_args transfer_args;
     char                              cur_time[64];
+    bool has_attached_graph = false;
+    pdcid_t region_with_graph = 0;
 
     FUNC_ENTER(NULL);
 #ifdef PDC_TIMING
@@ -3271,14 +3273,35 @@ PDC_Client_transfer_request(pdcid_t local_obj_id, void *buf, pdcid_t obj_id, uin
     if (!(access_type == PDC_WRITE || access_type == PDC_READ))
         PGOTO_ERROR(FAIL, "Invalid PDC type");
 
-    if (access_type == PDC_WRITE) {
-        // check if we need to execute directed graph
-        // FIXME: we know this is the transfer for now
-        const struct _pdc_id_info *obj_id_info = PDC_find_id(local_obj_id);
-        if (obj_id_info == NULL)
-            PGOTO_ERROR(FAIL, "Failed to find object id");
-        const struct _pdc_obj_info *obj_info = obj_id_info->obj_ptr;
+    // check if there is a graph to execute
+    const struct _pdc_id_info *obj_id_info = PDC_find_id(local_obj_id);
+    if (obj_id_info == NULL)
+        PGOTO_ERROR(FAIL, "Failed to find object id");
+    const struct _pdc_obj_info *obj_info = obj_id_info->obj_ptr;
+    // loop through attached graphs
+    if(obj_info->pdc_tf_obj != NULL) {
+        for(int j = 0; j < obj_info->pdc_tf_obj->num_regions; j++) {
+            pdc_tf_absolute_region_t abs_reg = obj_info->pdc_tf_obj->client_regions[j];
 
+            // check if ndim, offset, dims, unit match
+            bool ndim_matches = abs_reg.ndim == remote_ndim;
+            bool unit_matches   = abs_reg.unit == unit;
+            // note these return 0 on match so ! is needed
+            bool offset_matches = !memcmp(abs_reg.offset, remote_offset, obj_ndim * sizeof(uint64_t));
+            bool dims_matches   = !memcmp(abs_reg.dims, remote_size, obj_ndim * sizeof(uint64_t));
+
+            if (ndim_matches && offset_matches && dims_matches && unit_matches) {
+                region_with_graph = j;
+                has_attached_graph = true;
+                break;
+            }
+        }
+    }
+
+    if(!has_attached_graph)
+        LOG_INFO("Region transfer has no attached graph\n");
+
+    if (has_attached_graph && access_type == PDC_WRITE) {
         // FIXME: get actual region
         uint32_t region_id = 0;
 
@@ -3292,9 +3315,9 @@ PDC_Client_transfer_request(pdcid_t local_obj_id, void *buf, pdcid_t obj_id, uin
 
         // initialize input_region
         input_region.unit = unit;
-        input_region.ndim = obj_ndim;
+        input_region.ndim = remote_ndim;
         // copy over dimensions
-        memcpy(input_region.dims, obj_dims, obj_ndim * unit);
+        memcpy(input_region.dims, obj_dims, remote_ndim * unit);
 
         if (PDCtf_exec_graph(dg_id, current_state_id, desired_state_id,
                              input_region, remote_offset, &output_region, &buf) != SUCCEED)

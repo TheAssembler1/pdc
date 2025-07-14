@@ -70,7 +70,7 @@ workflow1(pdcid_t pdc, pdcid_t cont)
             "region_create failed");
 
     // attach graph to region
-    PDCtf_attach_to_region(dg_id, obj_id, reg_global, decompressed_doubles_id, compressed_id);
+    PDCtf_attach_to_region(dg_id, obj_id, reg_global, decompressed_doubles_id, TYPE, compressed_id);
 
     // write transfer
     LOG_INFO("Starting region transfer write\n");
