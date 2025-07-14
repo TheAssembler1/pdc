@@ -2430,10 +2430,8 @@ PDC_Client_query_metadata_name_timestep(const char *obj_name, int time_step, pdc
      * then this will be NULL. Still need to return as FAIL
      * otherwise calling code will expect *out to be non-NULL.
      */
-    if (*out == NULL) {
-        LOG_INFO("Metadata not found\n");
+    if (*out == NULL)
         PGOTO_DONE(FAIL);
-    }
 
 done:
     HG_Destroy(metadata_query_handle);
