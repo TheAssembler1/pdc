@@ -3285,7 +3285,16 @@ PDC_Client_transfer_request(pdcid_t local_obj_id, void *buf, pdcid_t obj_id, uin
         // since we are on the client and we are doing a write the desired state is the server state id
         const pdcid_t desired_state_id = obj_info->pdc_tf_obj->tf_regions_info[0].server_state_id;
 
-        if (PDCtf_exec_graph(dg_id, current_state_id, desired_state_id, buf) != SUCCEED)
+        pdc_tf_region_t input_region, output_region;
+
+        // initialize input_region
+        input_region.unit = unit;
+        input_region.ndim = obj_ndim;
+        // copy over dimensions
+        memcpy(input_region.dims, obj_dims, obj_ndim * unit);
+
+        if (PDCtf_exec_graph(dg_id, current_state_id, desired_state_id,
+                             input_region, &output_region, &buf) != SUCCEED)
             PGOTO_ERROR(FAIL, "Failed to PDCtf_exec_graph");
     }
 
@@ -3299,11 +3308,8 @@ PDC_Client_transfer_request(pdcid_t local_obj_id, void *buf, pdcid_t obj_id, uin
 
     // Compute metadata server id
     meta_server_id = PDC_get_server_by_obj_id(obj_id, pdc_server_num_g);
-
     in.meta_server_id = meta_server_id;
-
     hg_class = HG_Context_get_class(send_context_g);
-
     debug_server_id_count[data_server_id]++;
 
     total_data_size = unit;

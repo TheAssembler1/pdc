@@ -3,11 +3,6 @@
 
 #include "pdc.h"
 
-typedef struct state {
-    pdcid_t id;
-    char *  name;
-} state;
-
 /**
  * used as input and output region for transformations
  * ndim: number of dimensions
@@ -19,6 +14,22 @@ typedef struct pdc_tf_region_t {
     uint64_t dims[DIM_MAX];
     uint32_t unit;
 } pdc_tf_region_t;
+
+
+typedef struct state {
+    pdcid_t id;
+    char *  name;
+    /**
+     * store the latest shape of the data when at this state
+     * useful for compression:
+     *
+     * Ex. If a previous PDC_WRITE ran a transformation to compress
+     * the data to a region. The corresponding READ needs ot know
+     * what the size of the compression was. The server_state will
+     * have the region size which can be used.
+     */
+    //pdc_tf_region_t region;
+} state;
 
 /**
  * Prototype for region transformation functions
@@ -32,8 +43,7 @@ typedef struct pdc_tf_region_t {
  * buffer and update `*region_data` to point to it.
  *
  * If a new data buffer is assigned to `*region_data`, it must be heap-allocated
- * so that PDC can free it. The callee is responsible for freeing the original
- * buffer if it is replaced.
+ * so that PDC can free it. The original pointer should NOT be freed.
  */
 typedef bool (*c_func_t)(void *params, void **region_data,
                          pdc_tf_region_t input_reg, pdc_tf_region_t* output_reg);
@@ -64,7 +74,8 @@ extern uint32_t              pdc_tf_builtin_cur_func_g;
 extern pdc_dg_t *graphs[200];
 extern state *   states[200];
 
-perr_t PDCtf_exec_graph(pdcid_t dg_id, pdcid_t current_state_id, pdcid_t desired_state_id, void *input);
+perr_t PDCtf_exec_graph(pdcid_t dg_id, pdcid_t current_state_id, pdcid_t desired_state_id,
+                        pdc_tf_region_t input_region, pdc_tf_region_t* output_region, void **input);
 perr_t PDCtf_init_builtin_funcs();
 perr_t PDCtf_add_builtin_func(char *func_name, c_func_t c_func);
 perr_t PDCtf_link_builtin_func(char *func_name, func *f);

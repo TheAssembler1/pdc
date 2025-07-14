@@ -11,53 +11,44 @@ uint32_t              pdc_tf_builtin_cur_func_g = 0;
 
 bool pdc_tf_has_init_g = false;
 
-perr_t
-PDCtf_exec_graph(pdcid_t dg_id, pdcid_t current_state_id, pdcid_t desired_state_id, void *input)
+perr_t PDCtf_exec_graph(pdcid_t dg_id, pdcid_t current_state_id, pdcid_t desired_state_id,
+                        pdc_tf_region_t input_region, pdc_tf_region_t* output_region, void **input)
 {
     FUNC_ENTER(NULL);
 
     int ret_value = SUCCEED;
 
     LOG_INFO("PDCtf_exec_graph was called\n");
-    pdc_dg_t *dg = graphs[dg_id];
 
     void *         input_state  = states[current_state_id];
     void *         output_state = states[desired_state_id];
     pdc_dg_edge_t *edges_out;
     uint32_t       num_edges;
 
+    memcpy(output_region, &input_region, sizeof(pdc_tf_region_t));
+
     if (PDCdg_shortest_path(graphs[dg_id], input_state, output_state, &edges_out, &num_edges)) {
         LOG_INFO("Path was found:\n");
         for (uint32_t j = 0; j < num_edges; j++) {
             pdc_dg_edge_t e = edges_out[j];
-
             state *v1 = (state *)(graphs[dg_id]->vertices[e.v1_id]->data);
             state *v2 = (state *)(graphs[dg_id]->vertices[e.v2_id]->data);
-            func * f  = (func *)(e.data);
-            pdc_tf_region_t input_region, output_region;
+            func *f   = (func *)(e.data);
 
-            // by default set ouptut_region size to input_region size
-            // FIXME: get through parameters
-            input_region.ndim = 1;
-            input_region.unit = PDC_get_var_type_size(PDC_FLOAT);
-            input_region.dims[0] = 10;
-
-
-            memcpy(&output_region, &input_region, sizeof(pdc_tf_region_t));
-            // this pointer is set to ouput region data
-            void** output = NULL;
-
-            if (f->c_func(NULL,  &input, input_region, &output_region) == false)
+            // run the transformation
+            if (f->c_func(NULL,  input, input_region, output_region) == false)
                 PGOTO_ERROR(FAIL, "Error when running transformation, %s", f->type_func_name);
             else
                 LOG_INFO("Transformation %s(%s) = %s ran successfully\n", f->type_func_name, v1->name,
                          v2->name);
+
+            // set previous output region as input region for next transformation
+            if(j + 1 != num_edges)
+                memcpy(&input_region, output_region, sizeof(pdc_tf_region_t));
         }
     }
-    else {
-        LOG_INFO("No path found\n");
+    else
         PGOTO_ERROR(FAIL, "No path to desired states");
-    }
 
 done:
     FUNC_LEAVE(ret_value);

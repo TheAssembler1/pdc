@@ -9,11 +9,11 @@
 #include "pdc.h"
 #include "test_helper.h"
 
-#define NUM_PARTICLES_PER_DIM 10
+#define NUM_PARTICLES_PER_DIM 1028
 #define NUM_DIMS              1
 #define TYPE                  PDC_DOUBLE
-#define INIT_VAL              2
-#define FINAL_VAL             2
+#define INIT_VAL              2.0
+#define FINAL_VAL             2.0
 
 static void
 set_buf(float *buf, int val, uint64_t num)
