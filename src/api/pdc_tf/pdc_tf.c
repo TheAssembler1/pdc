@@ -10,6 +10,7 @@
 #include "pdc_malloc.h"
 #include "pdc_region.h"
 #include "pdc_tf_common.h"
+#include "pdc_client_server_common.h"
 
 // FIXME: just a temp way of generating id's...
 static pdcid_t tf_cur_graph_id = 100;
@@ -277,8 +278,8 @@ PDCtf_attach_to_region(pdcid_t dg_id, pdcid_t obj_id, pdcid_t remote_reg_id, pdc
         PGOTO_ERROR(FAIL, "Cannot locate remote region ID");
     struct pdc_region_info *region_info                  = region_id_info->obj_ptr;
     pdc_tf_obj->client_regions[cur_remote_region].ndim   = region_info->ndim;
-    pdc_tf_obj->client_regions[cur_remote_region].offset = region_info->offset;
-    pdc_tf_obj->client_regions[cur_remote_region].dims   = region_info->size;
+    memcpy(pdc_tf_obj->client_regions[cur_remote_region].offset, region_info->offset, region_info->ndim * sizeof(uint64_t));
+    memcpy(pdc_tf_obj->client_regions[cur_remote_region].dims, region_info->size, region_info->ndim * sizeof(uint64_t));
     pdc_tf_obj->client_regions[cur_remote_region].unit   = PDC_get_var_type_size(client_var_type);
 
     // since this in on the client side the current state is the client_state_id

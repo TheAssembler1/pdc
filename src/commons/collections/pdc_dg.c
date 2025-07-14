@@ -31,7 +31,6 @@ resize_dg(pdc_dg_t *dg, uint32_t new_vertex_count, uint32_t new_edge_count)
     if (dg->edge_capacity < new_edge_count) {
         while (dg->edge_capacity < new_edge_count)
             dg->edge_capacity *= 2;
-
         dg->edges = (pdc_dg_edge_t **)PDC_realloc(dg->edges, sizeof(pdc_dg_edge_t *) * dg->edge_capacity);
     }
 

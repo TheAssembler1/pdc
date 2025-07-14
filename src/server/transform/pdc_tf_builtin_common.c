@@ -163,6 +163,7 @@ pdc_tf_builtin_zfp_compress(void *params, void **region_data,
 
     // Update output region dims to reflect compressed data size (1D)
     output_reg->ndim = 1;
+    output_reg->unit = 1;
     output_reg->dims[0] = compressed_size;
 
     // Free zfp structures

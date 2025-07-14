@@ -15,8 +15,8 @@
 typedef struct pdc_tf_absolute_region_t {
     size_t    ndim;
     uint8_t   unit;
-    uint64_t *offset;
-    uint64_t *dims;
+    uint64_t offset[DIM_MAX];
+    uint64_t dims[DIM_MAX];
 } pdc_tf_absolute_region_t;
 
 /**
