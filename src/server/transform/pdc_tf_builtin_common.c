@@ -171,7 +171,7 @@ pdc_tf_builtin_zfp_compress(void *params, void **region_data,
     zfp_stream_close(zfp);
     stream_close(stream);
 
-    LOG_INFO("ZFP compression succeeded, compressed size: %zu bytes\n", compressed_size);
+    LOG_INFO("ZFP compression succeeded, compressed size bytes: %zu bytes\n", compressed_size);
 
     return true;
 }
@@ -181,7 +181,119 @@ pdc_tf_builtin_zfp_decompress(void *params, void **region_data,
                               pdc_tf_region_t input_reg, pdc_tf_region_t* output_reg)
 {
     LOG_INFO("pdc_tf_builtin_zfp_decompress was called\n");
+
     log_pdc_region_t(input_reg);
+
+    // Hardcoded for now to match compress path
+    zfp_type z_type = zfp_type_float;
+    uint8_t align = 0;
+
+    // Compressed buffer from input
+    void* compressed_buffer = *region_data;
+    size_t compressed_size = input_reg.dims[0];
+
+    // Create bitstream from compressed data
+    bitstream* stream = stream_open(compressed_buffer, compressed_size);
+    if (!stream) {
+        LOG_ERROR("Failed to open bitstream for decompression\n");
+        return false;
+    }
+
+    // Create zfp stream and associate it with bitstream
+    zfp_stream* zfp = zfp_stream_open(NULL);
+    if (!zfp) {
+        LOG_ERROR("Failed to create zfp stream\n");
+        stream_close(stream);
+        return false;
+    }
+
+    zfp_stream_set_bit_stream(zfp, stream);
+    zfp_stream_rewind(zfp);
+
+    // TODO: Allow these to come from params (currently hardcoded)
+    uint64_t dims[DIM_MAX];
+    int ndim = 1;
+    dims[0] = 400;
+
+    // Allocate uncompressed buffer
+    size_t total_elems = 1;
+    for (int i = 0; i < ndim; ++i)
+        total_elems *= dims[i];
+
+    LOG_INFO("EXPECTED TOTAL ELEMENTS: %lu\n", total_elems);
+
+    float* decompressed_data = (float*)malloc(total_elems * sizeof(float));
+    if (!decompressed_data) {
+        LOG_ERROR("Failed to allocate memory for decompressed data\n");
+        zfp_stream_close(zfp);
+        stream_close(stream);
+        return false;
+    }
+
+    // Create ZFP field for decompression
+    zfp_field* field = NULL;
+    switch (ndim) {
+        case 1:
+            field = zfp_field_1d(decompressed_data, z_type, dims[0]);
+            break;
+        case 2:
+            field = zfp_field_2d(decompressed_data, z_type, dims[0], dims[1]);
+            break;
+        case 3:
+            field = zfp_field_3d(decompressed_data, z_type, dims[0], dims[1], dims[2]);
+            break;
+        case 4:
+            field = zfp_field_4d(decompressed_data, z_type, dims[0], dims[1], dims[2], dims[3]);
+            break;
+        default:
+            LOG_ERROR("Unsupported ndim: %d\n", ndim);
+            free(decompressed_data);
+            zfp_stream_close(zfp);
+            stream_close(stream);
+            return false;
+    }
+
+    if (!field) {
+        LOG_ERROR("Failed to create zfp field\n");
+        free(decompressed_data);
+        zfp_stream_close(zfp);
+        stream_close(stream);
+        return false;
+    }
+
+    // Decompress
+    size_t decompressed_size = zfp_decompress(zfp, field);
+    if (decompressed_size == 0) {
+        LOG_ERROR("ZFP decompression failed\n");
+        free(decompressed_data);
+        zfp_field_free(field);
+        zfp_stream_close(zfp);
+        stream_close(stream);
+        return false;
+    }
+
+    for(int i = 0; i < 400; i++) {
+        LOG_JUST_PRINT("%.1f ", decompressed_data[i]);
+        if(i != 0 && (i + 1) % 20 == 0)
+            LOG_JUST_PRINT("\n");
+    }
+    LOG_JUST_PRINT("\n");
+
+    // Set output region unit and dims (same as input)
+    output_reg->unit = 4;
+    output_reg->ndim = 1;
+    memcpy(output_reg->dims, dims, ndim * sizeof(uint64_t));
+
+    // Update region_data to point to decompressed buffer
+    *region_data = decompressed_data;
+
+    LOG_INFO("ZFP decompression succeeded, decompressed size bytes: %zu\n", decompressed_size);
+
+    zfp_field_free(field);
+    zfp_stream_close(zfp);
+    stream_close(stream);
+
     return true;
 }
+
 #endif // ENABLE_TF_ZFP_COMPRESSION

@@ -3244,7 +3244,7 @@ done:
     FUNC_LEAVE(ret_value);
 }
 
-static bool is_exec_graph(pdcid_t obj_id, struct _pdc_obj_info** _obj_info, pdcid_t* region_exec_graph_id, int remote_ndim, uint8_t remote_unit, uint64_t* remote_offset, uint64_t* remote_dims) {
+static bool should_exec_graph(pdcid_t obj_id, struct _pdc_obj_info** _obj_info, pdcid_t* region_exec_graph_id, int client_ndim, uint8_t client_unit, uint64_t* client_offset, uint64_t* client_dims) {
     bool ret_value = false;
 
     // check if there is a graph to execute
@@ -3258,19 +3258,19 @@ static bool is_exec_graph(pdcid_t obj_id, struct _pdc_obj_info** _obj_info, pdci
         for(*region_exec_graph_id = 0; *region_exec_graph_id  < obj_info->pdc_tf_obj->num_regions; (*region_exec_graph_id)++) {
             pdc_tf_absolute_region_t abs_reg = obj_info->pdc_tf_obj->client_regions[*region_exec_graph_id];
 
-            // check if remote ndim, offset, dims, unit match
-            bool ndim_matches = abs_reg.ndim == remote_ndim;
-            bool unit_matches   = abs_reg.unit == remote_unit;
+            // check if client ndim, offset, dims, unit match
+            bool ndim_matches = abs_reg.ndim == client_ndim;
+            bool unit_matches   = abs_reg.unit == client_unit;
             // note these return 0 on match so ! is needed
-            bool offset_matches = !memcmp(abs_reg.offset, remote_offset, remote_ndim * sizeof(uint64_t));
-            bool dims_matches   = !memcmp(abs_reg.dims, remote_dims, remote_ndim * sizeof(uint64_t));
+            bool offset_matches = !memcmp(abs_reg.offset, client_offset, client_ndim * sizeof(uint64_t));
+            bool dims_matches   = !memcmp(abs_reg.dims, client_dims, client_ndim * sizeof(uint64_t));
 
             if (ndim_matches && offset_matches && dims_matches && unit_matches)
                 PGOTO_DONE(true);
         }
     }
 
-done:
+    done:
     FUNC_LEAVE(ret_value);
 }
 
@@ -3304,7 +3304,7 @@ PDC_Client_transfer_request(pdcid_t local_obj_id, void *buf, pdcid_t obj_id, uin
         PGOTO_ERROR(FAIL, "Invalid PDC type");
 
     in.obj_ndim = obj_ndim;
-    has_attached_graph = is_exec_graph(local_obj_id, &obj_info, &region_id, remote_ndim,
+    has_attached_graph = should_exec_graph(local_obj_id, &obj_info, &region_id, remote_ndim,
                                        unit, remote_offset, remote_size);
 
     if(!has_attached_graph)
@@ -3324,12 +3324,13 @@ PDC_Client_transfer_request(pdcid_t local_obj_id, void *buf, pdcid_t obj_id, uin
 
         // since we are on the client side the desired_state_id is the server_state_id
         if (PDCtf_exec_graph(region_info->dg_id, region_info->client_state_id, region_info->server_state_id,
-                             input_region, remote_offset, &output_region, &buf) != SUCCEED)
+                             input_region, &output_region, &buf) != SUCCEED)
             PGOTO_ERROR(FAIL, "Failed to PDCtf_exec_graph");
 
-        LOG_INFO("OUTPUT_REGION UNIT: %lu\n", output_region.unit);
-
-        // set output region size for region mapping purposes
+        /**
+         * set remote abs region info for mapping
+         * NOTE: the client mapping is set when the transform is attached to the region
+         */
         abs_remote_region->ndim = output_region.ndim;
         memcpy(abs_remote_region->dims, output_region.dims, output_region.ndim * sizeof(uint64_t));
         abs_remote_region->unit = output_region.unit;

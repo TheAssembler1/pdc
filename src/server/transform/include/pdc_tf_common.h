@@ -134,7 +134,7 @@ extern pdc_dg_t *pdc_tf_graphs[200];
 extern state *   pdc_tf_states[200];
 
 perr_t PDCtf_exec_graph(pdcid_t dg_id, pdcid_t current_state_id, pdcid_t desired_state_id,
-                        pdc_tf_region_t input_region, uint64_t* offset, pdc_tf_region_t* output_region, void **input);
+                        pdc_tf_region_t input_region, pdc_tf_region_t* output_region, void **input);
 perr_t PDCtf_init_builtin_funcs();
 perr_t PDCtf_add_builtin_func(char *func_name, c_func_t c_func);
 perr_t PDCtf_link_builtin_func(char *func_name, func *f);

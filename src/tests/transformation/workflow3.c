@@ -13,10 +13,18 @@
 #define NUM_DIMS              1
 #define TYPE                  PDC_DOUBLE
 #define INIT_VAL              2.0
+#define INIT_READ_VAL         0.0
 #define FINAL_VAL             2.0
 
 static void
-set_buf(float *buf, int val, uint64_t num)
+set_buf_double(double *buf, int val, uint64_t num)
+{
+    for (uint64_t i = 0; i < num; i++)
+        buf[i] = val;
+}
+
+static void
+set_buf_float(float *buf, int val, uint64_t num)
 {
     for (uint64_t i = 0; i < num; i++)
         buf[i] = val;
@@ -31,8 +39,11 @@ workflow1(pdcid_t pdc, pdcid_t cont)
     uint64_t total_particles = NUM_PARTICLES_PER_DIM;
     for (int i = 2; i <= NUM_DIMS; i++)
         total_particles *= NUM_PARTICLES_PER_DIM;
-    float *data = (float *)malloc(total_particles * sizeof(float));
-    set_buf(data, INIT_VAL, total_particles);
+    double *data = (double *)malloc(total_particles * sizeof(double));
+    float *data_read = (float *)malloc(total_particles * sizeof(float));
+
+    set_buf_double(data, INIT_VAL, total_particles);
+    set_buf_float(data_read, INIT_READ_VAL, total_particles);
 
     pdcid_t dg_id = PDCtf_create_dg("example_dg");
 
@@ -73,7 +84,7 @@ workflow1(pdcid_t pdc, pdcid_t cont)
     PDCtf_attach_to_region(dg_id, obj_id, reg_global, decompressed_doubles_id, TYPE, compressed_id);
 
     for (int i = 0; i < total_particles; i++) {
-        LOG_JUST_PRINT("%f ", i, data[i]);
+        LOG_JUST_PRINT("%.1f ", i, data[i]);
         if(i != 0 && (i + 1) % 20 == 0)
             LOG_JUST_PRINT("\n");
     }
@@ -90,12 +101,9 @@ workflow1(pdcid_t pdc, pdcid_t cont)
     TASSERT(PDCregion_transfer_close(transfer_id) >= 0, "region_transfer_close succeeded",
             "region_transfer_close failed");
 
-    // reset data buffer
-    set_buf(data, 0, total_particles);
-
     // read transfer
     LOG_INFO("Starting region transfer read\n");
-    TASSERT((transfer_id = PDCregion_transfer_create(data, PDC_READ, obj_id, reg, reg)) != 0,
+    TASSERT((transfer_id = PDCregion_transfer_create(data_read, PDC_READ, obj_id, reg, reg)) != 0,
             "region_transfer_create succeeded", "region_transfer_create failed");
     TASSERT(PDCregion_transfer_start(transfer_id) >= 0, "region_transfer_start succeeded",
             "region_transfer_start failed");
@@ -105,7 +113,7 @@ workflow1(pdcid_t pdc, pdcid_t cont)
             "region_transfer_close failed");
 
     for (int i = 0; i < total_particles; i++) {
-        LOG_JUST_PRINT("%f ", i, data[i]);
+        LOG_JUST_PRINT("%.1f ", i, data_read[i]);
         if(i != 0 && (i + 1) % 20 == 0)
             LOG_JUST_PRINT("\n");
     }
