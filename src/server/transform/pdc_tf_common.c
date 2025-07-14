@@ -11,8 +11,9 @@ uint32_t              pdc_tf_builtin_cur_func_g = 0;
 
 bool pdc_tf_has_init_g = false;
 
-perr_t PDCtf_exec_graph(pdcid_t dg_id, pdcid_t current_state_id, pdcid_t desired_state_id,
-                        pdc_tf_region_t input_region, pdc_tf_region_t* output_region, void **input)
+perr_t
+PDCtf_exec_graph(pdcid_t dg_id, pdcid_t current_state_id, pdcid_t desired_state_id,
+                 pdc_tf_region_t input_region, pdc_tf_region_t *output_region, void **input)
 {
     FUNC_ENTER(NULL);
 
@@ -30,20 +31,20 @@ perr_t PDCtf_exec_graph(pdcid_t dg_id, pdcid_t current_state_id, pdcid_t desired
     if (PDCdg_shortest_path(pdc_tf_graphs[dg_id], input_state, output_state, &edges_out, &num_edges)) {
         LOG_INFO("Path was found:\n");
         for (uint32_t j = 0; j < num_edges; j++) {
-            pdc_dg_edge_t e = edges_out[j];
-            state *v1 = (state *)(pdc_tf_graphs[dg_id]->vertices[e.v1_id]->data);
-            state *v2 = (state *)(pdc_tf_graphs[dg_id]->vertices[e.v2_id]->data);
-            func *f   = (func *)(e.data);
+            pdc_dg_edge_t e  = edges_out[j];
+            state *       v1 = (state *)(pdc_tf_graphs[dg_id]->vertices[e.v1_id]->data);
+            state *       v2 = (state *)(pdc_tf_graphs[dg_id]->vertices[e.v2_id]->data);
+            func *        f  = (func *)(e.data);
 
             // run the transformation
-            if (f->c_func(NULL,  input, input_region, output_region) == false)
+            if (f->c_func(NULL, input, input_region, output_region) == false)
                 PGOTO_ERROR(FAIL, "Error when running transformation, %s", f->type_func_name);
             else
                 LOG_INFO("Transformation %s(%s) = %s ran successfully\n", f->type_func_name, v1->name,
                          v2->name);
 
             // set previous output region as input region for next transformation
-            if(j + 1 != num_edges)
+            if (j + 1 != num_edges)
                 memcpy(&input_region, output_region, sizeof(pdc_tf_region_t));
         }
     }
@@ -61,7 +62,7 @@ PDCtf_add_builtin_func(char *func_name, c_func_t c_func)
 
     int ret_value = SUCCEED;
 
-    if(func_name == NULL)
+    if (func_name == NULL)
         PGOTO_ERROR(FAIL, "func_name was NULL");
 
     strcpy(pdc_tf_builtin_funcs_g[pdc_tf_builtin_cur_func_g].name, func_name);
@@ -75,7 +76,6 @@ done:
     FUNC_LEAVE(ret_value);
 }
 
-
 perr_t
 PDCtf_link_builtin_func(char *func_name, func *f)
 {
@@ -84,9 +84,9 @@ PDCtf_link_builtin_func(char *func_name, func *f)
     perr_t ret_value = SUCCEED;
     bool   found     = false;
 
-    if(func_name == NULL)
+    if (func_name == NULL)
         PGOTO_ERROR(FAIL, "func_name was NULL");
-    if(f == NULL)
+    if (f == NULL)
         PGOTO_ERROR(FAIL, "f was NULL");
 
     for (int i = 0; i < pdc_tf_builtin_cur_func_g; i++) {

@@ -39,8 +39,8 @@ workflow1(pdcid_t pdc, pdcid_t cont)
     uint64_t total_particles = NUM_PARTICLES_PER_DIM;
     for (int i = 2; i <= NUM_DIMS; i++)
         total_particles *= NUM_PARTICLES_PER_DIM;
-    double *data = (double *)malloc(total_particles * sizeof(double));
-    float *data_read = (float *)malloc(total_particles * sizeof(float));
+    double *data      = (double *)malloc(total_particles * sizeof(double));
+    float * data_read = (float *)malloc(total_particles * sizeof(float));
 
     set_buf_double(data, INIT_VAL, total_particles);
     set_buf_float(data_read, INIT_READ_VAL, total_particles);
@@ -85,7 +85,7 @@ workflow1(pdcid_t pdc, pdcid_t cont)
 
     for (int i = 0; i < total_particles; i++) {
         LOG_JUST_PRINT("%.1f ", i, data[i]);
-        if(i != 0 && (i + 1) % 20 == 0)
+        if (i != 0 && (i + 1) % 20 == 0)
             LOG_JUST_PRINT("\n");
     }
     LOG_JUST_PRINT("\n");
@@ -114,7 +114,7 @@ workflow1(pdcid_t pdc, pdcid_t cont)
 
     for (int i = 0; i < total_particles; i++) {
         LOG_JUST_PRINT("%.1f ", i, data_read[i]);
-        if(i != 0 && (i + 1) % 20 == 0)
+        if (i != 0 && (i + 1) % 20 == 0)
             LOG_JUST_PRINT("\n");
     }
     LOG_JUST_PRINT("\n");

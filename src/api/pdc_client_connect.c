@@ -3244,23 +3244,27 @@ done:
     FUNC_LEAVE(ret_value);
 }
 
-static bool should_exec_graph(pdcid_t obj_id, struct _pdc_obj_info** _obj_info, pdcid_t* region_exec_graph_id, int client_ndim, uint8_t client_unit, uint64_t* client_offset, uint64_t* client_dims) {
+static bool
+should_exec_graph(pdcid_t obj_id, struct _pdc_obj_info **_obj_info, pdcid_t *region_exec_graph_id,
+                  int client_ndim, uint8_t client_unit, uint64_t *client_offset, uint64_t *client_dims)
+{
     bool ret_value = false;
 
     // check if there is a graph to execute
     const struct _pdc_id_info *obj_id_info = PDC_find_id(obj_id);
     if (obj_id_info == NULL)
         PGOTO_ERROR(false, "Failed to find object id");
-    *_obj_info = obj_id_info->obj_ptr;
-    struct _pdc_obj_info* obj_info = *_obj_info;
+    *_obj_info                     = obj_id_info->obj_ptr;
+    struct _pdc_obj_info *obj_info = *_obj_info;
     // loop through attached graphs
-    if(obj_info->pdc_tf_obj != NULL) {
-        for(*region_exec_graph_id = 0; *region_exec_graph_id  < obj_info->pdc_tf_obj->num_regions; (*region_exec_graph_id)++) {
+    if (obj_info->pdc_tf_obj != NULL) {
+        for (*region_exec_graph_id = 0; *region_exec_graph_id < obj_info->pdc_tf_obj->num_regions;
+             (*region_exec_graph_id)++) {
             pdc_tf_absolute_region_t abs_reg = obj_info->pdc_tf_obj->client_regions[*region_exec_graph_id];
 
             // check if client ndim, offset, dims, unit match
             bool ndim_matches = abs_reg.ndim == client_ndim;
-            bool unit_matches   = abs_reg.unit == client_unit;
+            bool unit_matches = abs_reg.unit == client_unit;
             // note these return 0 on match so ! is needed
             bool offset_matches = !memcmp(abs_reg.offset, client_offset, client_ndim * sizeof(uint64_t));
             bool dims_matches   = !memcmp(abs_reg.dims, client_dims, client_ndim * sizeof(uint64_t));
@@ -3270,7 +3274,7 @@ static bool should_exec_graph(pdcid_t obj_id, struct _pdc_obj_info** _obj_info, 
         }
     }
 
-    done:
+done:
     FUNC_LEAVE(ret_value);
 }
 
@@ -3292,9 +3296,9 @@ PDC_Client_transfer_request(pdcid_t local_obj_id, void *buf, pdcid_t obj_id, uin
     hg_handle_t                       client_send_transfer_request_handle;
     struct _pdc_transfer_request_args transfer_args;
     char                              cur_time[64];
-    bool has_attached_graph = false;
-    pdcid_t region_id = 0;
-    struct _pdc_obj_info* obj_info;
+    bool                              has_attached_graph = false;
+    pdcid_t                           region_id          = 0;
+    struct _pdc_obj_info *            obj_info;
 
 #ifdef PDC_TIMING
     double start          = MPI_Wtime(), end;
@@ -3304,15 +3308,15 @@ PDC_Client_transfer_request(pdcid_t local_obj_id, void *buf, pdcid_t obj_id, uin
         PGOTO_ERROR(FAIL, "Invalid PDC type");
 
     in.obj_ndim = obj_ndim;
-    has_attached_graph = should_exec_graph(local_obj_id, &obj_info, &region_id, remote_ndim,
-                                       unit, remote_offset, remote_size);
+    has_attached_graph =
+        should_exec_graph(local_obj_id, &obj_info, &region_id, remote_ndim, unit, remote_offset, remote_size);
 
-    if(!has_attached_graph)
+    if (!has_attached_graph)
         LOG_INFO("Not attached graph for region transfer\n");
 
     if (has_attached_graph && access_type == PDC_WRITE) {
-        pdc_tf_region_info* region_info = &obj_info->pdc_tf_obj->tf_regions_info[region_id];
-        pdc_tf_absolute_region_t* abs_remote_region = &obj_info->pdc_tf_obj->remote_regions[region_id];
+        pdc_tf_region_info *      region_info       = &obj_info->pdc_tf_obj->tf_regions_info[region_id];
+        pdc_tf_absolute_region_t *abs_remote_region = &obj_info->pdc_tf_obj->remote_regions[region_id];
 
         pdc_tf_region_t input_region, output_region;
 
@@ -3337,16 +3341,17 @@ PDC_Client_transfer_request(pdcid_t local_obj_id, void *buf, pdcid_t obj_id, uin
 
         // set output region for bulk transfer
         in.remote_unit = output_region.unit;
-        remote_ndim = output_region.ndim;
+        remote_ndim    = output_region.ndim;
         // overwrite remote_size, remote_offset doesn't change
         memcpy(remote_size, output_region.dims, output_region.ndim * sizeof(uint64_t));
-    } else if(has_attached_graph && access_type == PDC_READ) {
-        pdc_tf_region_info* region_info = &obj_info->pdc_tf_obj->tf_regions_info[region_id];
-        pdc_tf_absolute_region_t* abs_remote_region = &obj_info->pdc_tf_obj->remote_regions[region_id];
+    }
+    else if (has_attached_graph && access_type == PDC_READ) {
+        pdc_tf_region_info *      region_info       = &obj_info->pdc_tf_obj->tf_regions_info[region_id];
+        pdc_tf_absolute_region_t *abs_remote_region = &obj_info->pdc_tf_obj->remote_regions[region_id];
 
         // resize bulk transfer based on mapping
         in.remote_unit = abs_remote_region->unit;
-        remote_ndim = abs_remote_region->ndim;
+        remote_ndim    = abs_remote_region->ndim;
         // overwrite remote_size, remote_offset doesn't change
         memcpy(remote_size, abs_remote_region->dims, abs_remote_region->ndim * sizeof(uint64_t));
 
@@ -3357,7 +3362,8 @@ PDC_Client_transfer_request(pdcid_t local_obj_id, void *buf, pdcid_t obj_id, uin
          * the client's conceptual view of the region vs the actual
          * region on the data server side.
          */
-    } else { // there is no graph to execute
+    }
+    else { // there is no graph to execute
         in.remote_unit = unit;
     }
 
@@ -3374,9 +3380,9 @@ PDC_Client_transfer_request(pdcid_t local_obj_id, void *buf, pdcid_t obj_id, uin
     in.obj_id      = obj_id;
 
     // Compute metadata server id
-    meta_server_id = PDC_get_server_by_obj_id(obj_id, pdc_server_num_g);
+    meta_server_id    = PDC_get_server_by_obj_id(obj_id, pdc_server_num_g);
     in.meta_server_id = meta_server_id;
-    hg_class = HG_Context_get_class(send_context_g);
+    hg_class          = HG_Context_get_class(send_context_g);
     debug_server_id_count[data_server_id]++;
     pack_region_metadata(remote_ndim, remote_offset, remote_size, &(in.remote_region));
 

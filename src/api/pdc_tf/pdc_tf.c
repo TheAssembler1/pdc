@@ -70,7 +70,7 @@ PDCtf_create_dg(char *dg_name)
         pdc_tf_has_init_g = true;
     }
 
-    pdcid_t dg_id = tf_cur_graph_id;
+    pdcid_t dg_id        = tf_cur_graph_id;
     pdc_tf_graphs[dg_id] = PDCdg_create(NULL, vertices_are_equal, NULL, edge_free, vertex_free);
 
     tf_cur_graph_id++;
@@ -199,8 +199,7 @@ PDCtf_add_func(pdcid_t dg_id, char *type_func_name, pdc_tf_dev_t dev, pdcid_t in
     f->dev            = dev;
 
     if (PDCdg_add_edge(pdc_tf_graphs[dg_id], pdc_tf_states[input_data_state],
-                       pdc_tf_states[output_data_state], f) ==
-        PDC_DG_INVALID_EDGE) {
+                       pdc_tf_states[output_data_state], f) == PDC_DG_INVALID_EDGE) {
         PGOTO_ERROR(FAIL, "Failed to add edge to dg");
     }
 
@@ -220,7 +219,7 @@ PDCtf_create_state(char *state_name)
 
     LOG_INFO("Creating %s state\n", state_name);
 
-    pdcid_t state_id       = tf_cur_state_id;
+    pdcid_t state_id              = tf_cur_state_id;
     pdc_tf_states[state_id]       = (state *)PDC_calloc(1, sizeof(state));
     pdc_tf_states[state_id]->id   = state_id;
     pdc_tf_states[state_id]->name = strdup(state_name);
@@ -253,8 +252,8 @@ PDCtf_close_dg(pdcid_t dg_id)
 
 // region transfer to/from the specified obj_id, global_reg_id follow DG
 perr_t
-PDCtf_attach_to_region(pdcid_t dg_id, pdcid_t obj_id, pdcid_t remote_reg_id, pdcid_t client_state_id, pdc_var_type_t client_var_type,
-                       pdcid_t server_state_id)
+PDCtf_attach_to_region(pdcid_t dg_id, pdcid_t obj_id, pdcid_t remote_reg_id, pdcid_t client_state_id,
+                       pdc_var_type_t client_var_type, pdcid_t server_state_id)
 {
     FUNC_ENTER(NULL);
 
@@ -276,11 +275,13 @@ PDCtf_attach_to_region(pdcid_t dg_id, pdcid_t obj_id, pdcid_t remote_reg_id, pdc
     struct _pdc_id_info *region_id_info = PDC_find_id(remote_reg_id);
     if (region_id_info == NULL)
         PGOTO_ERROR(FAIL, "Cannot locate remote region ID");
-    struct pdc_region_info *region_info                  = region_id_info->obj_ptr;
-    pdc_tf_obj->client_regions[cur_remote_region].ndim   = region_info->ndim;
-    memcpy(pdc_tf_obj->client_regions[cur_remote_region].offset, region_info->offset, region_info->ndim * sizeof(uint64_t));
-    memcpy(pdc_tf_obj->client_regions[cur_remote_region].dims, region_info->size, region_info->ndim * sizeof(uint64_t));
-    pdc_tf_obj->client_regions[cur_remote_region].unit   = PDC_get_var_type_size(client_var_type);
+    struct pdc_region_info *region_info                = region_id_info->obj_ptr;
+    pdc_tf_obj->client_regions[cur_remote_region].ndim = region_info->ndim;
+    memcpy(pdc_tf_obj->client_regions[cur_remote_region].offset, region_info->offset,
+           region_info->ndim * sizeof(uint64_t));
+    memcpy(pdc_tf_obj->client_regions[cur_remote_region].dims, region_info->size,
+           region_info->ndim * sizeof(uint64_t));
+    pdc_tf_obj->client_regions[cur_remote_region].unit = PDC_get_var_type_size(client_var_type);
 
     // since this in on the client side the current state is the client_state_id
     pdc_tf_obj->tf_regions_info[cur_remote_region].current_state_id = client_state_id;

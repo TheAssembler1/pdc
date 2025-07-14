@@ -13,8 +13,8 @@
  * by its dimensions using the following attributes
  */
 typedef struct pdc_tf_absolute_region_t {
-    size_t    ndim;
-    uint8_t   unit;
+    size_t   ndim;
+    uint8_t  unit;
     uint64_t offset[DIM_MAX];
     uint64_t dims[DIM_MAX];
 } pdc_tf_absolute_region_t;
@@ -61,10 +61,10 @@ typedef struct pdc_tf_region_info {
  * that need to know the actual server-side size and offset of the data.
  */
 typedef struct pdc_tf_obj_t {
-    pdc_tf_absolute_region_t  client_regions[MAX_REGIONS];
-    pdc_tf_absolute_region_t  remote_regions[MAX_REGIONS];
-    pdc_tf_region_info tf_regions_info[MAX_REGIONS];
-    uint32_t           num_regions;
+    pdc_tf_absolute_region_t client_regions[MAX_REGIONS];
+    pdc_tf_absolute_region_t remote_regions[MAX_REGIONS];
+    pdc_tf_region_info       tf_regions_info[MAX_REGIONS];
+    uint32_t                 num_regions;
 } pdc_obj_tf_t;
 
 /**
@@ -98,8 +98,8 @@ typedef struct state {
  * If a new data buffer is assigned to `*region_data`, it must be heap-allocated
  * so that PDC can free it. The original pointer should NOT be freed.
  */
-typedef bool (*c_func_t)(void *params, void **region_data,
-                         pdc_tf_region_t input_state, pdc_tf_region_t * output_state);
+typedef bool (*c_func_t)(void *params, void **region_data, pdc_tf_region_t input_state,
+                         pdc_tf_region_t *output_state);
 
 /**
  * what device the function can run on
@@ -116,7 +116,7 @@ typedef struct func {
 // FIXME: we could store this in a dynamically allocated buf
 #define PDC_TF_MAX_FUNC_NAME_LEN 100
 #define PDC_TF_MAX_BUILTIN_FUNCS 100
-#define PDC_TF_MAPPINGS 100
+#define PDC_TF_MAPPINGS          100
 // FIXME: this could just happen on client/server init
 extern bool pdc_tf_has_init_g;
 
@@ -134,7 +134,7 @@ extern pdc_dg_t *pdc_tf_graphs[200];
 extern state *   pdc_tf_states[200];
 
 perr_t PDCtf_exec_graph(pdcid_t dg_id, pdcid_t current_state_id, pdcid_t desired_state_id,
-                        pdc_tf_region_t input_region, pdc_tf_region_t* output_region, void **input);
+                        pdc_tf_region_t input_region, pdc_tf_region_t *output_region, void **input);
 perr_t PDCtf_init_builtin_funcs();
 perr_t PDCtf_add_builtin_func(char *func_name, c_func_t c_func);
 perr_t PDCtf_link_builtin_func(char *func_name, func *f);
