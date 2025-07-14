@@ -3,8 +3,8 @@
 #include "pdc_tf.h"
 #include "pdc_timing.h"
 
-pdc_dg_t *graphs[200];
-state *   states[200];
+pdc_dg_t *pdc_tf_graphs[200];
+state *   pdc_tf_states[200];
 
 pdc_tf_builtin_func_t pdc_tf_builtin_funcs_g[PDC_TF_MAX_BUILTIN_FUNCS];
 uint32_t              pdc_tf_builtin_cur_func_g = 0;
@@ -12,7 +12,7 @@ uint32_t              pdc_tf_builtin_cur_func_g = 0;
 bool pdc_tf_has_init_g = false;
 
 perr_t PDCtf_exec_graph(pdcid_t dg_id, pdcid_t current_state_id, pdcid_t desired_state_id,
-                        pdc_tf_region_t input_region, pdc_tf_region_t* output_region, void **input)
+                        pdc_tf_region_t input_region, uint64_t* offset, pdc_tf_region_t* output_region, void **input)
 {
     FUNC_ENTER(NULL);
 
@@ -20,19 +20,19 @@ perr_t PDCtf_exec_graph(pdcid_t dg_id, pdcid_t current_state_id, pdcid_t desired
 
     LOG_INFO("PDCtf_exec_graph was called\n");
 
-    void *         input_state  = states[current_state_id];
-    void *         output_state = states[desired_state_id];
+    void *         input_state  = pdc_tf_states[current_state_id];
+    void *         output_state = pdc_tf_states[desired_state_id];
     pdc_dg_edge_t *edges_out;
     uint32_t       num_edges;
 
     memcpy(output_region, &input_region, sizeof(pdc_tf_region_t));
 
-    if (PDCdg_shortest_path(graphs[dg_id], input_state, output_state, &edges_out, &num_edges)) {
+    if (PDCdg_shortest_path(pdc_tf_graphs[dg_id], input_state, output_state, &edges_out, &num_edges)) {
         LOG_INFO("Path was found:\n");
         for (uint32_t j = 0; j < num_edges; j++) {
             pdc_dg_edge_t e = edges_out[j];
-            state *v1 = (state *)(graphs[dg_id]->vertices[e.v1_id]->data);
-            state *v2 = (state *)(graphs[dg_id]->vertices[e.v2_id]->data);
+            state *v1 = (state *)(pdc_tf_graphs[dg_id]->vertices[e.v1_id]->data);
+            state *v2 = (state *)(pdc_tf_graphs[dg_id]->vertices[e.v2_id]->data);
             func *f   = (func *)(e.data);
 
             // run the transformation

@@ -3279,11 +3279,14 @@ PDC_Client_transfer_request(pdcid_t local_obj_id, void *buf, pdcid_t obj_id, uin
             PGOTO_ERROR(FAIL, "Failed to find object id");
         const struct _pdc_obj_info *obj_info = obj_id_info->obj_ptr;
 
+        // FIXME: get actual region
+        uint32_t region_id = 0;
+
         // id information for executing graph
-        const pdcid_t dg_id            = obj_info->pdc_tf_obj->tf_regions_info[0].dg_id;
-        const pdcid_t current_state_id = obj_info->pdc_tf_obj->tf_regions_info[0].current_state_id;
+        const pdcid_t dg_id            = obj_info->pdc_tf_obj->tf_regions_info[region_id].dg_id;
+        const pdcid_t current_state_id = obj_info->pdc_tf_obj->tf_regions_info[region_id].current_state_id;
         // since we are on the client and we are doing a write the desired state is the server state id
-        const pdcid_t desired_state_id = obj_info->pdc_tf_obj->tf_regions_info[0].server_state_id;
+        const pdcid_t desired_state_id = obj_info->pdc_tf_obj->tf_regions_info[region_id].server_state_id;
 
         pdc_tf_region_t input_region, output_region;
 
@@ -3294,8 +3297,13 @@ PDC_Client_transfer_request(pdcid_t local_obj_id, void *buf, pdcid_t obj_id, uin
         memcpy(input_region.dims, obj_dims, obj_ndim * unit);
 
         if (PDCtf_exec_graph(dg_id, current_state_id, desired_state_id,
-                             input_region, &output_region, &buf) != SUCCEED)
+                             input_region, remote_offset, &output_region, &buf) != SUCCEED)
             PGOTO_ERROR(FAIL, "Failed to PDCtf_exec_graph");
+
+        // set output region size
+        obj_info->pdc_tf_obj->remote_regions[region_id].ndim = output_region.ndim;
+        obj_info->pdc_tf_obj->remote_regions[region_id].dims = output_region.dims;
+        obj_info->pdc_tf_obj->remote_regions[region_id].unit = output_region.unit;
     }
 
     LOG_DEBUG("rank = %d, data_server_id = %u\n", pdc_client_mpi_rank_g, data_server_id);

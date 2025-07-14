@@ -1,7 +1,71 @@
 #ifndef PDC_TF_COMMON_H
 #define PDC_TF_COMMON_H
 
-#include "pdc.h"
+#include "pdc_public.h"
+#include "pdc_dg.h"
+#include "pdc_region.h"
+
+#define MAX_REGIONS 10
+
+/**
+ * Since the transfer request doesn't store the
+ * region id we have to identify the region
+ * by its dimensions using the following attributes
+ */
+typedef struct pdc_tf_absolute_region_t {
+    size_t    ndim;
+    uint8_t   unit;
+    uint64_t *offset;
+    uint64_t *dims;
+} pdc_tf_absolute_region_t;
+
+/**
+ * Keeps track of the state of a region as it
+ * progresses to the server_state_id or
+ * the client_state_id
+ */
+typedef struct pdc_tf_region_info {
+    pdcid_t dg_id;
+    pdcid_t current_state_id;
+    pdcid_t client_state_id;
+    pdcid_t server_state_id;
+} pdc_tf_region_info;
+
+/**
+ * Used as a  field in _pdc_obj_info see pdc_obj_pkh.h
+ * When a user attaches a graph to an object(s)/region
+ * it is appended the array of regions here.
+ *
+ * Each appended region has an associated tf_region_info
+ * in the tf_regions_info array. This has information
+ * such as the current state of the region and the associated
+ * graph.
+ *
+ * If the graph is attached to an object we simply
+ * create a region that spans the entire object and
+ * tie the graph to that.
+ *
+ * Maps the user's conceptual region to the actual (possibly transformed) region
+ * stored on the data server.
+ *
+ * Example:
+ *   - A user performs a PDC_WRITE of 20 elements at offset 10.
+ *   - This data is compressed and stored as 5 elements at offset 10 on the server.
+ *   - When the user later performs a PDC_READ for 20 elements at offset 10,
+ *     this mapping is used to determine the current server-side region
+ *     (i.e., 5 elements at offset 10).
+ *   - The decompression transformation uses this information to decompress
+ *     the correct region before returning 20 elements to the user.
+ *
+ * This mapping is essential for inverse transformations like decompression
+ * that need to know the actual server-side size and offset of the data.
+ */
+typedef struct pdc_tf_obj_t {
+    pdc_tf_absolute_region_t  client_regions[MAX_REGIONS];
+    pdc_tf_absolute_region_t  remote_regions[MAX_REGIONS];
+    pdc_tf_region_info tf_regions_info[MAX_REGIONS];
+    uint32_t           num_remote_regions;
+} pdc_obj_tf_t;
 
 /**
  * used as input and output region for transformations
@@ -15,28 +79,17 @@ typedef struct pdc_tf_region_t {
     uint32_t unit;
 } pdc_tf_region_t;
 
-
 typedef struct state {
     pdcid_t id;
     char *  name;
-    /**
-     * store the latest shape of the data when at this state
-     * useful for compression:
-     *
-     * Ex. If a previous PDC_WRITE ran a transformation to compress
-     * the data to a region. The corresponding READ needs ot know
-     * what the size of the compression was. The server_state will
-     * have the region size which can be used.
-     */
-    //pdc_tf_region_t region;
 } state;
 
 /**
  * Prototype for region transformation functions
  *
- * Before the function is invoked, `output_reg` is set to `input_reg`, so if the
+ * Before the function is invoked, `output_state.tf_region` is set to `input_state.tf_region`, so if the
  * transformation does not change the region size, the user does not need to
- * modify `output_reg`.
+ * modify `output_state.tf_region`.
  *
  * `region_data` is a double pointer to the input region's data buffer.
  * The function may either mutate the existing buffer in place or allocate a new
@@ -46,7 +99,12 @@ typedef struct state {
  * so that PDC can free it. The original pointer should NOT be freed.
  */
 typedef bool (*c_func_t)(void *params, void **region_data,
-                         pdc_tf_region_t input_reg, pdc_tf_region_t* output_reg);
+                         pdc_tf_region_t input_state, pdc_tf_region_t * output_state);
+
+/**
+ * what device the function can run on
+ */
+typedef enum pdc_tf_dev_t { PDC_TF_GPU_DEVICE, PDC_TF_CPU_DEVICE } pdc_tf_dev_t;
 
 typedef struct func {
     pdc_tf_dev_t dev;
@@ -58,6 +116,7 @@ typedef struct func {
 // FIXME: we could store this in a dynamically allocated buf
 #define PDC_TF_MAX_FUNC_NAME_LEN 100
 #define PDC_TF_MAX_BUILTIN_FUNCS 100
+#define PDC_TF_MAPPINGS 100
 // FIXME: this could just happen on client/server init
 extern bool pdc_tf_has_init_g;
 
@@ -71,11 +130,11 @@ typedef struct pdc_tf_builtin_func_t {
 extern pdc_tf_builtin_func_t pdc_tf_builtin_funcs_g[PDC_TF_MAX_BUILTIN_FUNCS];
 extern uint32_t              pdc_tf_builtin_cur_func_g;
 
-extern pdc_dg_t *graphs[200];
-extern state *   states[200];
+extern pdc_dg_t *pdc_tf_graphs[200];
+extern state *   pdc_tf_states[200];
 
 perr_t PDCtf_exec_graph(pdcid_t dg_id, pdcid_t current_state_id, pdcid_t desired_state_id,
-                        pdc_tf_region_t input_region, pdc_tf_region_t* output_region, void **input);
+                        pdc_tf_region_t input_region, uint64_t* offset, pdc_tf_region_t* output_region, void **input);
 perr_t PDCtf_init_builtin_funcs();
 perr_t PDCtf_add_builtin_func(char *func_name, c_func_t c_func);
 perr_t PDCtf_link_builtin_func(char *func_name, func *f);

@@ -70,7 +70,7 @@ PDCtf_create_dg(char *dg_name)
     }
 
     pdcid_t dg_id = tf_cur_graph_id;
-    graphs[dg_id] = PDCdg_create(NULL, vertices_are_equal, NULL, edge_free, vertex_free);
+    pdc_tf_graphs[dg_id] = PDCdg_create(NULL, vertices_are_equal, NULL, edge_free, vertex_free);
 
     tf_cur_graph_id++;
     FUNC_LEAVE(dg_id);
@@ -197,7 +197,8 @@ PDCtf_add_func(pdcid_t dg_id, char *type_func_name, pdc_tf_dev_t dev, pdcid_t in
     f->type_func_name = strdup(type_func_name);
     f->dev            = dev;
 
-    if (PDCdg_add_edge(graphs[dg_id], states[input_data_state], states[output_data_state], f) ==
+    if (PDCdg_add_edge(pdc_tf_graphs[dg_id], pdc_tf_states[input_data_state],
+                       pdc_tf_states[output_data_state], f) ==
         PDC_DG_INVALID_EDGE) {
         PGOTO_ERROR(FAIL, "Failed to add edge to dg");
     }
@@ -219,9 +220,9 @@ PDCtf_create_state(char *state_name)
     LOG_INFO("Creating %s state\n", state_name);
 
     pdcid_t state_id       = tf_cur_state_id;
-    states[state_id]       = (state *)PDC_calloc(1, sizeof(state));
-    states[state_id]->id   = state_id;
-    states[state_id]->name = strdup(state_name);
+    pdc_tf_states[state_id]       = (state *)PDC_calloc(1, sizeof(state));
+    pdc_tf_states[state_id]->id   = state_id;
+    pdc_tf_states[state_id]->name = strdup(state_name);
 
     tf_cur_state_id++;
     FUNC_LEAVE(state_id);
@@ -244,7 +245,7 @@ PDCtf_close_dg(pdcid_t dg_id)
     FUNC_ENTER(NULL);
 
     perr_t ret_value = SUCCEED;
-    PDCdg_destroy(graphs[dg_id]);
+    PDCdg_destroy(pdc_tf_graphs[dg_id]);
 
     FUNC_LEAVE(ret_value);
 }
@@ -274,10 +275,11 @@ PDCtf_attach_to_region(pdcid_t dg_id, pdcid_t obj_id, pdcid_t remote_reg_id, pdc
     struct _pdc_id_info *region_id_info = PDC_find_id(remote_reg_id);
     if (region_id_info == NULL)
         PGOTO_ERROR(FAIL, "Cannot locate remote region ID");
-    struct pdc_region_info *region_info                                = region_id_info->obj_ptr;
-    pdc_tf_obj->remote_regions[cur_remote_region].remote_region_ndim   = region_info->ndim;
-    pdc_tf_obj->remote_regions[cur_remote_region].remote_region_offset = region_info->offset;
-    pdc_tf_obj->remote_regions[cur_remote_region].remote_region_size   = region_info->size;
+    struct pdc_region_info *region_info                  = region_id_info->obj_ptr;
+    pdc_tf_obj->client_regions[cur_remote_region].ndim   = region_info->ndim;
+    pdc_tf_obj->client_regions[cur_remote_region].offset = region_info->offset;
+    pdc_tf_obj->client_regions[cur_remote_region].dims   = region_info->size;
+    pdc_tf_obj->client_regions[cur_remote_region].unit   = region_info->unit;
 
     // since this in on the client side the current state is the client_state_id
     pdc_tf_obj->tf_regions_info[cur_remote_region].current_state_id = client_state_id;
@@ -412,7 +414,7 @@ PDCtf_print_dg(pdcid_t dg_id)
         "\tnode [fontsize=10, shape=box, style=filled, fillcolor=lightgray, fontname=\"Helvetica\"];\n");
     LOG_JUST_PRINT("\tedge [fontsize=10];\n");
 
-    pdc_dg_t *dg = graphs[dg_id];
+    pdc_dg_t *dg = pdc_tf_graphs[dg_id];
     for (int i = 0; i < dg->edge_count; i++) {
         pdc_dg_edge_t *edge = dg->edges[i];
 
@@ -449,18 +451,18 @@ PDCtf_print_dg(pdcid_t dg_id)
 void
 PDCtf_print_exec_path(pdcid_t dg_id, pdcid_t client_state_id, pdcid_t server_state_id)
 {
-    void *         input_state  = states[client_state_id];
-    void *         output_state = states[server_state_id];
+    void *         input_state  = pdc_tf_states[client_state_id];
+    void *         output_state = pdc_tf_states[server_state_id];
     pdc_dg_edge_t *edges_out;
     uint32_t       num_edges;
 
-    if (PDCdg_shortest_path(graphs[dg_id], input_state, output_state, &edges_out, &num_edges)) {
+    if (PDCdg_shortest_path(pdc_tf_graphs[dg_id], input_state, output_state, &edges_out, &num_edges)) {
         LOG_INFO("Path was found:\n");
         for (uint32_t j = 0; j < num_edges; j++) {
             pdc_dg_edge_t e = edges_out[j];
 
-            state *v1 = (state *)(graphs[dg_id]->vertices[e.v1_id]->data);
-            state *v2 = (state *)(graphs[dg_id]->vertices[e.v2_id]->data);
+            state *v1 = (state *)(pdc_tf_graphs[dg_id]->vertices[e.v1_id]->data);
+            state *v2 = (state *)(pdc_tf_graphs[dg_id]->vertices[e.v2_id]->data);
 
             LOG_INFO("%d: %s(%s) = %s\n", j + 1, ((func *)(e.data))->type_func_name, v1->name, v2->name);
         }

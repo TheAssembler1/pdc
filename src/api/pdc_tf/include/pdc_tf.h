@@ -14,70 +14,18 @@
  *  9. Remove state and func structs also remove the extern
  *  10. Parse func name correctly when adding function
  *  11. PDC_TF_MAX_FUNC_NAME_LEN maybe should be dynamic?
- *  12. PDC_TF_MAX_BUILTIN_FUNCS should defintely by dynamic
+ *  12. PDC_TF_MAX_BUILTIN_FUNCS should definitely by dynamic
  */
 
 #include "pdc_public.h"
 #include "pdc_dg.h"
-
-#define MAX_REGIONS 10
-
-/**
- * since the transfer request doesn't store the
- * region id we have to identify the region
- * by its dimensions using the following attributes
- * there may be another struct already in the codebase
- * we could copy here.
- */
-typedef struct pdc_tf_remote_reg {
-    size_t    remote_region_ndim;
-    uint64_t *remote_region_offset;
-    uint64_t *remote_region_size;
-    uint64_t  total_data_size;
-} pdc_tf_remote_reg;
-
-/**
- * Keeps track of the state of a region as it
- * progresses to the server_state_id or
- * the client_state_id
- */
-typedef struct pdc_tf_region_info {
-    pdcid_t dg_id;
-    pdcid_t current_state_id;
-    pdcid_t client_state_id;
-    pdcid_t server_state_id;
-} pdc_tf_region_info;
-
-/**
- * Used as a  field in _pdc_obj_info see pdc_obj_pkh.h
- * When a user attaches a graph to an object(s)/region
- * it is appended the array of regions here.
- *
- * Each appended region has an associated tf_region_info
- * in the tf_regions_info array. This has information
- * such as the current state of the region and the associated
- * graph.
- *
- * If the graph is attached to an object we simply
- * create a region that spans the entire object and
- * tie the graph to that.
- */
-typedef struct pdc_tf_obj_t {
-    pdc_tf_remote_reg  remote_regions[MAX_REGIONS];
-    pdc_tf_region_info tf_regions_info[MAX_REGIONS];
-    uint32_t           num_remote_regions;
-} pdc_obj_tf_t;
-
-/**
- * what device the function can run on
- */
-typedef enum { PDC_TF_GPU_DEVICE, PDC_TF_CPU_DEVICE } pdc_tf_dev_t;
+#include "pdc_tf_common.h"
 
 /**
  * - PDC_TF_OVERWRITE: the transformation modifies the existing object.
  * - PDC_TF_CREATE: the transformation creates a new object for the output.
  */
-typedef enum {
+typedef enum pdc_tf_output_mode_t {
     PDC_TF_OVERWRITE,
     PDC_TF_CREATE,
 } pdc_tf_output_mode_t;

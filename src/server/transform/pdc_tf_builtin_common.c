@@ -40,7 +40,7 @@ pdc_tf_builtin_double_to_float(void *params, void **region_data,
     double *buf = *((double **)region_data);
 
     // copy into new buffer
-    float* new_buf = (float*)PDC_malloc(get_pdc_region_t_bytes(input_reg));
+    float* new_buf = (float*)malloc(get_pdc_region_t_bytes(input_reg));
     for(int i = 0; i < get_pdc_region_t_elements(input_reg); i++)
         new_buf[i] = (float)buf[i];
 
@@ -126,7 +126,7 @@ pdc_tf_builtin_zfp_compress(void *params, void **region_data,
 
     // Allocate buffer for compressed data
     size_t bufsize = zfp_stream_maximum_size(zfp, field);
-    void* compressed_buffer = PDC_malloc(bufsize);
+    void* compressed_buffer = malloc(bufsize);
     if (!compressed_buffer) {
         LOG_ERROR("Failed to allocate memory for compressed data\n");
         zfp_field_free(field);
