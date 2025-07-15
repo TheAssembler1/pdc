@@ -1626,13 +1626,11 @@ PDC_Client_finalize()
         LOG_INFO("T_memcpy: %.2f\n", memcpy_time_g);
 #endif
 
-    hg_ret = HG_Context_destroy(send_context_g);
-    if (hg_ret != HG_SUCCESS)
+    if (HG_Context_destroy(send_context_g) != HG_SUCCESS)
         PGOTO_ERROR(FAIL, "Error with HG_Context_destroy");
 
-    hg_ret = HG_Finalize(send_class_g);
-    if (hg_ret != HG_SUCCESS)
-        LOG_WARNING("Error with HG_Finalize\n");
+    if (HG_Finalize(send_class_g) != HG_SUCCESS)
+        PGOTO_ERROR(FAIL, "Error with HG_Finalize");
 
 done:
     FUNC_LEAVE(ret_value);
@@ -2974,8 +2972,9 @@ done:
 }
 
 perr_t
-PDC_Client_transfer_request_all(int n_objs, pdc_access_t access_type, uint32_t data_server_id, char *bulk_buf,
-                                hg_size_t bulk_size, uint64_t *metadata_id,
+PDC_Client_transfer_request_all(hg_bulk_t *bulk_handle, int n_objs, pdc_access_t access_type,
+                                uint32_t data_server_id, char *bulk_buf, hg_size_t bulk_size,
+                                uint64_t *metadata_id,
 #ifdef ENABLE_MPI
                                 MPI_Comm comm)
 #else
@@ -3015,8 +3014,9 @@ PDC_Client_transfer_request_all(int n_objs, pdc_access_t access_type, uint32_t d
                        transfer_request_all_register_id_g, &client_send_transfer_request_all_handle);
 
     // Create bulk handles
-    hg_ret = HG_Bulk_create(hg_class, 1, (void **)&bulk_buf, &bulk_size, HG_BULK_READWRITE,
+    hg_ret       = HG_Bulk_create(hg_class, 1, (void **)&bulk_buf, &bulk_size, HG_BULK_READWRITE,
                             &(in.local_bulk_handle));
+    *bulk_handle = in.local_bulk_handle;
     if (hg_ret != HG_SUCCESS)
         PGOTO_ERROR(FAIL, "Could not create local bulk data handle");
 
@@ -3076,8 +3076,8 @@ done:
 }
 
 perr_t
-PDC_Client_transfer_request_metadata_query2(char *buf, uint64_t total_buf_size, uint64_t query_id,
-                                            uint32_t metadata_server_id)
+PDC_Client_transfer_request_metadata_query2(hg_bulk_t *bulk_handle, char *buf, uint64_t total_buf_size,
+                                            uint64_t query_id, uint32_t metadata_server_id)
 {
     FUNC_ENTER(NULL);
 
@@ -3110,6 +3110,7 @@ PDC_Client_transfer_request_metadata_query2(char *buf, uint64_t total_buf_size, 
     // For sending metadata
     hg_ret = HG_Bulk_create(hg_class, 1, (void **)&buf, (hg_size_t *)&(in.total_buf_size), HG_BULK_READWRITE,
                             &(in.local_bulk_handle));
+    *bulk_handle = in.local_bulk_handle;
     if (hg_ret != HG_SUCCESS)
         PGOTO_ERROR(FAIL, "Could not create local bulk data handle");
 
@@ -3137,8 +3138,8 @@ done:
 }
 
 perr_t
-PDC_Client_transfer_request_metadata_query(char *buf, uint64_t total_buf_size, int n_objs,
-                                           uint32_t metadata_server_id, uint8_t is_write,
+PDC_Client_transfer_request_metadata_query(hg_bulk_t *bulk_handle, char *buf, uint64_t total_buf_size,
+                                           int n_objs, uint32_t metadata_server_id, uint8_t is_write,
                                            uint64_t *output_buf_size, uint64_t *query_id)
 {
     FUNC_ENTER(NULL);
@@ -3174,6 +3175,7 @@ PDC_Client_transfer_request_metadata_query(char *buf, uint64_t total_buf_size, i
     // For sending metadata
     hg_ret = HG_Bulk_create(hg_class, 1, (void **)&buf, (hg_size_t *)&(in.total_buf_size), HG_BULK_READWRITE,
                             &(in.local_bulk_handle));
+    *bulk_handle = in.local_bulk_handle;
     if (hg_ret != HG_SUCCESS)
         PGOTO_ERROR(FAIL, "Could not create local bulk data handle");
 
@@ -3203,7 +3205,8 @@ done:
 }
 
 perr_t
-PDC_Client_transfer_request_wait_all(int n_objs, pdcid_t *transfer_request_id, uint32_t data_server_id)
+PDC_Client_transfer_request_wait_all(hg_bulk_t *bulk_handle, int n_objs, pdcid_t *transfer_request_id,
+                                     uint32_t data_server_id)
 {
     FUNC_ENTER(NULL);
 
@@ -3238,6 +3241,7 @@ PDC_Client_transfer_request_wait_all(int n_objs, pdcid_t *transfer_request_id, u
     // For sending metadata
     hg_ret = HG_Bulk_create(hg_class, 1, (void **)&transfer_request_id, (hg_size_t *)&(in.total_buf_size),
                             HG_BULK_READWRITE, &(in.local_bulk_handle));
+    *bulk_handle = in.local_bulk_handle;
     if (hg_ret != HG_SUCCESS)
         PGOTO_ERROR(FAIL, "Could not create local bulk data handle");
 
@@ -3269,8 +3273,8 @@ done:
 }
 
 perr_t
-PDC_Client_transfer_request(void *buf, pdcid_t obj_id, uint32_t data_server_id, int obj_ndim,
-                            uint64_t *obj_dims, int remote_ndim, uint64_t *remote_offset,
+PDC_Client_transfer_request(hg_bulk_t *bulk_handle, void *buf, pdcid_t obj_id, uint32_t data_server_id,
+                            int obj_ndim, uint64_t *obj_dims, int remote_ndim, uint64_t *remote_offset,
                             uint64_t *remote_size, size_t unit, pdc_access_t access_type,
                             pdcid_t *metadata_id)
 {
@@ -3328,6 +3332,7 @@ PDC_Client_transfer_request(void *buf, pdcid_t obj_id, uint32_t data_server_id, 
     // Create bulk handle
     hg_ret = HG_Bulk_create(hg_class, 1, (void **)&buf, (hg_size_t *)&total_data_size, HG_BULK_READWRITE,
                             &(in.local_bulk_handle));
+    *bulk_handle = in.local_bulk_handle;
 
     if (hg_ret != HG_SUCCESS)
         PGOTO_ERROR(FAIL, "Could not create local bulk data handle");

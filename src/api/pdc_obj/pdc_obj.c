@@ -169,7 +169,9 @@ PDC_obj_create(pdcid_t cont_id, const char *obj_name, pdcid_t obj_prop_id, _pdc_
         meta_id                         = p->cont->cont_info_pub->meta_id;
     }
 
-    id_info  = PDC_find_id(obj_prop_id);
+    id_info = PDC_find_id(obj_prop_id);
+    if (id_info == NULL)
+        PGOTO_ERROR(0, "Failed to find obj prop using pdcid");
     obj_prop = (struct _pdc_obj_prop *)(id_info->obj_ptr);
 
     /* struct _pdc_obj_prop field */
