@@ -69,7 +69,9 @@ PDCcont_create(const char *cont_name, pdcid_t cont_prop_id)
         PGOTO_ERROR(0, "PDC pub container memory allocation failed");
     p->cont_info_pub->name = strdup(cont_name);
 
-    id_info   = PDC_find_id(cont_prop_id);
+    id_info = PDC_find_id(cont_prop_id);
+    if (id_info == NULL)
+        PGOTO_ERROR(0, "Failed to find cont prop using pdcid");
     cont_prop = (struct _pdc_cont_prop *)(id_info->obj_ptr);
 
     p->cont_pt = (struct _pdc_cont_prop *)PDC_calloc(1, sizeof(struct _pdc_cont_prop));

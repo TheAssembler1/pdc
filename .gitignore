@@ -13,6 +13,9 @@ src/install
 # ignore jetbrains
 .idea
 
+# ignore intellij files
+.idea
+
 # ignore macos files
 .DS_Store
 
