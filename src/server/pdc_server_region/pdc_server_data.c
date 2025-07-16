@@ -4059,11 +4059,7 @@ PDC_Server_data_write_out(uint64_t obj_id, struct pdc_region_info *region_info, 
     uint64_t              i, j, pos;
     uint64_t *            overlap_offset, *overlap_size;
     char *                tmp_buf;
-#if 0
-    size_t                total_write_size = 0, local_write_size;
-    int is_overlap;
-#endif
-    FUNC_ENTER(NULL);
+    
 #ifdef PDC_TIMING
     double start = MPI_Wtime(), start_posix;
 #endif
@@ -4078,6 +4074,8 @@ PDC_Server_data_write_out(uint64_t obj_id, struct pdc_region_info *region_info, 
         write_size *= region_info->size[2];
     region = PDC_Server_get_obj_region(obj_id);
     PDC_Server_register_obj_region_by_pointer(&region, obj_id, 0);
+
+    LOG_INFO("POSIX WRITE OUT SIZE: %lu\n", write_size);
 
     region_list_t *request_region = (region_list_t *)PDC_calloc(1, sizeof(region_list_t));
     for (i = 0; i < region_info->ndim; i++) {

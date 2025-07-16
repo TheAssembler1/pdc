@@ -250,7 +250,7 @@ PDCtf_close_dg(pdcid_t dg_id)
     FUNC_LEAVE(ret_value);
 }
 
-// region transfer to/from the specified obj_id, global_reg_id follow DG
+// region transfer to/from the specified obj_id, remote_reg_id follow DG
 perr_t
 PDCtf_attach_to_region(pdcid_t dg_id, pdcid_t obj_id, pdcid_t remote_reg_id, pdcid_t client_state_id,
                        pdc_var_type_t client_var_type, pdcid_t server_state_id)
