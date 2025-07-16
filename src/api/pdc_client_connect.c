@@ -3352,7 +3352,7 @@ PDC_Client_transfer_request(hg_bulk_t *bulk_handle, void *buf, pdcid_t obj_id, u
         PGOTO_ERROR(FAIL, "Transfer request failed");
 
     HG_Destroy(client_send_transfer_request_handle);
-    done:
+done:
     FUNC_LEAVE(ret_value);
 }
 

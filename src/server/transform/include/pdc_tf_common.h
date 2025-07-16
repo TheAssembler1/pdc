@@ -66,8 +66,8 @@ typedef struct pdc_tf_obj_t {
     // this is the actual remote region
     pdc_tf_absolute_region_t remote_regions[MAX_REGIONS];
     // this tracks state of the region
-    pdc_tf_region_info       tf_regions_info[MAX_REGIONS];
-    uint32_t                 num_regions;
+    pdc_tf_region_info tf_regions_info[MAX_REGIONS];
+    uint32_t           num_regions;
 } pdc_obj_tf_t;
 
 /**
