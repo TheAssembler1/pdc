@@ -1804,7 +1804,7 @@ PDCregion_transfer_start_common(pdcid_t transfer_request_id,
     perr_t ret_value = SUCCEED;
     bool should_run_transfer_start = false;
 
-    //check_exec_tf_graph(transfer_request_id, &should_run_transfer_start);
+    check_exec_tf_graph(transfer_request_id, &should_run_transfer_start);
     ret_value = region_transfer_start_common_helper(transfer_request_id, comm);
 
 done:

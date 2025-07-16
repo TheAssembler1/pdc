@@ -4,6 +4,6 @@
 
 pushd ./build/bin || exit 1  # Exit if cd fails
 export PDC_DEBUG=1
-"./sandbox"
+"./workflow3"
 popd
 

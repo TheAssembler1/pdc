@@ -4059,7 +4059,7 @@ PDC_Server_data_write_out(uint64_t obj_id, struct pdc_region_info *region_info, 
     uint64_t              i, j, pos;
     uint64_t *            overlap_offset, *overlap_size;
     char *                tmp_buf;
-    
+
 #ifdef PDC_TIMING
     double start = MPI_Wtime(), start_posix;
 #endif
@@ -4406,6 +4406,8 @@ PDC_Server_data_read_from(uint64_t obj_id, struct pdc_region_info *region_info, 
     for (i = 0; i < region_info->ndim; i++) {
         request_bytes *= region_info->size[i];
     }
+
+    LOG_INFO("POSIX READ FROM SIZE: %lu\n", request_bytes);
 
 #ifdef ENABLE_TIMING
     struct timeval pdc_timer_start, pdc_timer_end;

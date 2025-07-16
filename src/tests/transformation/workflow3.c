@@ -102,7 +102,7 @@ workflow1(pdcid_t pdc, pdcid_t cont)
             "region_transfer_close failed");
 
     // read transfer
-    LOG_INFO("Starting region transfer read\n");
+    /*LOG_INFO("Starting region transfer read\n");
     TASSERT((transfer_id = PDCregion_transfer_create(data_read, PDC_READ, obj_id, reg, reg)) != 0,
             "region_transfer_create succeeded", "region_transfer_create failed");
     TASSERT(PDCregion_transfer_start(transfer_id) >= 0, "region_transfer_start succeeded",
@@ -117,7 +117,7 @@ workflow1(pdcid_t pdc, pdcid_t cont)
         if (i != 0 && (i + 1) % 20 == 0)
             LOG_JUST_PRINT("\n");
     }
-    LOG_JUST_PRINT("\n");
+    LOG_JUST_PRINT("\n");*/
 
     PDCtf_close_dg(dg_id);
     TASSERT(PDCregion_close(reg) >= 0, "Call to PDCregion_close succeeded", "Call to PDCregion_close failed");

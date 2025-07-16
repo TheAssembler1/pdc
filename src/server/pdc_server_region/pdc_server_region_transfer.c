@@ -270,10 +270,8 @@ PDC_Server_transfer_request_io(uint64_t obj_id, int obj_ndim, const uint64_t *ob
     char     storage_location[ADDR_MAX];
     ssize_t  io_size;
     uint64_t i, j;
-    char     cur_time[64];
 
     if (io_by_region_g || obj_ndim == 0) {
-        // PDC_Server_register_obj_region(obj_id);
         if (is_write) {
             PDC_Server_data_write_out(obj_id, region_info, buf, unit);
         }
