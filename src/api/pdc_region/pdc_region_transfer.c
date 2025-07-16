@@ -1446,6 +1446,110 @@ PDCregion_transfer_start_all_mpi(pdcid_t *transfer_request_id, int size, MPI_Com
 }
 #endif
 
+
+static bool
+should_exec_graph(pdcid_t obj_id, struct _pdc_obj_info **_obj_info, pdcid_t *region_exec_graph_id,
+                  int client_ndim, uint8_t client_unit, uint64_t *client_offset, uint64_t *client_dims)
+{
+    bool ret_value = false;
+
+    // check if there is a graph to execute
+    const struct _pdc_id_info *obj_id_info = PDC_find_id(obj_id);
+    if (obj_id_info == NULL)
+        PGOTO_ERROR(false, "Failed to find object id");
+    *_obj_info                     = obj_id_info->obj_ptr;
+    struct _pdc_obj_info *obj_info = *_obj_info;
+    // loop through attached graphs
+    if (obj_info->pdc_tf_obj != NULL) {
+        for (*region_exec_graph_id = 0; *region_exec_graph_id < obj_info->pdc_tf_obj->num_regions;
+             (*region_exec_graph_id)++) {
+            pdc_tf_absolute_region_t abs_reg = obj_info->pdc_tf_obj->client_regions[*region_exec_graph_id];
+
+            // check if client ndim, offset, dims, unit match
+            bool ndim_matches = abs_reg.ndim == client_ndim;
+            bool unit_matches = abs_reg.unit == client_unit;
+            // note these return 0 on match so ! is needed
+            bool offset_matches = !memcmp(abs_reg.offset, client_offset, client_ndim * sizeof(uint64_t));
+            bool dims_matches   = !memcmp(abs_reg.dims, client_dims, client_ndim * sizeof(uint64_t));
+
+            if (ndim_matches && offset_matches && dims_matches && unit_matches)
+                PGOTO_DONE(true);
+        }
+    }
+
+    done:
+    FUNC_LEAVE(ret_value);
+}
+
+static perr_t check_exec_tf_graph() {
+    FUNC_ENTER(NULL);
+
+    perr_t ret_value = SUCCEED;
+
+    in.obj_ndim = obj_ndim;
+    has_attached_graph =
+            should_exec_graph(local_obj_id, &obj_info, &region_id, remote_ndim, unit, remote_offset, remote_size);
+
+    if (!has_attached_graph)
+        LOG_INFO("Not attached graph for region transfer\n");
+
+    if (has_attached_graph && access_type == PDC_WRITE) {
+        pdc_tf_region_info *      region_info       = &obj_info->pdc_tf_obj->tf_regions_info[region_id];
+        pdc_tf_absolute_region_t *abs_remote_region = &obj_info->pdc_tf_obj->remote_regions[region_id];
+
+        pdc_tf_region_t input_region, output_region;
+
+        // initialize input_region
+        input_region.unit = unit;
+        input_region.ndim = remote_ndim;
+        // copy over dimensions
+        memcpy(input_region.dims, remote_size, remote_ndim * sizeof(uint64_t));
+
+        // since we are on the client side the desired_state_id is the server_state_id
+        if (PDCtf_exec_graph(region_info->dg_id, region_info->client_state_id, region_info->server_state_id,
+                             input_region, &output_region, &buf) != SUCCEED)
+            PGOTO_ERROR(FAIL, "Failed to PDCtf_exec_graph");
+
+        /**
+         * set remote abs region info for mapping
+         * NOTE: the client mapping is set when the transform is attached to the region
+         */
+        abs_remote_region->ndim = output_region.ndim;
+        memcpy(abs_remote_region->dims, output_region.dims, output_region.ndim * sizeof(uint64_t));
+        abs_remote_region->unit = output_region.unit;
+
+        // set output region for bulk transfer
+        in.remote_unit = output_region.unit;
+        remote_ndim    = output_region.ndim;
+        // overwrite remote_size, remote_offset doesn't change
+        memcpy(remote_size, output_region.dims, output_region.ndim * sizeof(uint64_t));
+    }
+    else if (has_attached_graph && access_type == PDC_READ) {
+        pdc_tf_region_info *      region_info       = &obj_info->pdc_tf_obj->tf_regions_info[region_id];
+        pdc_tf_absolute_region_t *abs_remote_region = &obj_info->pdc_tf_obj->remote_regions[region_id];
+
+        // resize bulk transfer based on mapping
+        in.remote_unit = abs_remote_region->unit;
+        remote_ndim    = abs_remote_region->ndim;
+        // overwrite remote_size, remote_offset doesn't change
+        memcpy(remote_size, abs_remote_region->dims, abs_remote_region->ndim * sizeof(uint64_t));
+
+        /**
+         * NOTE: we have to execute the graph when the data is received
+         * which is done in the region transfer wait. Here we simply
+         * setup the bulk transfer using the transform mapping between
+         * the client's conceptual view of the region vs the actual
+         * region on the data server side.
+         */
+    }
+    else { // there is no graph to execute
+        in.remote_unit = unit;
+    }
+
+done:
+    FUNC_LEAVE(ret_value);
+}
+
 perr_t
 PDCregion_transfer_start_common(pdcid_t transfer_request_id,
 #ifdef ENABLE_MPI
@@ -1467,6 +1571,9 @@ PDCregion_transfer_start_common(pdcid_t transfer_request_id,
         PGOTO_DONE(ret_value);
 
     transfer_request = (pdc_transfer_request *)(transferinfo->obj_ptr);
+
+    // check and if needed execute tf graph
+    check_exec_tf_graph();
 
     if (transfer_request->metadata_id != NULL)
         PGOTO_ERROR(FAIL, "PDC_Client attempted to start existing transfer request");
@@ -1952,41 +2059,6 @@ done:
     FUNC_LEAVE(ret_value);
 }
 
-// FIMXE: make common should_exec_graph in pdc tf common.c
-static bool
-should_exec_graph(pdcid_t obj_id, struct _pdc_obj_info **_obj_info, pdcid_t *region_exec_graph_id,
-                  int remote_ndim, uint8_t remote_unit, uint64_t *remote_offset, uint64_t *remote_dims)
-{
-    bool ret_value = false;
-
-    // check if there is a graph to execute
-    const struct _pdc_id_info *obj_id_info = PDC_find_id(obj_id);
-    if (obj_id_info == NULL)
-        PGOTO_ERROR(false, "Failed to find object id");
-    *_obj_info                     = obj_id_info->obj_ptr;
-    struct _pdc_obj_info *obj_info = *_obj_info;
-    // loop through attached graphs
-    if (obj_info->pdc_tf_obj != NULL) {
-        for (*region_exec_graph_id = 0; *region_exec_graph_id < obj_info->pdc_tf_obj->num_regions;
-             (*region_exec_graph_id)++) {
-            pdc_tf_absolute_region_t abs_reg = obj_info->pdc_tf_obj->client_regions[*region_exec_graph_id];
-
-            // check if remote ndim, offset, dims, unit match
-            bool ndim_matches = abs_reg.ndim == remote_ndim;
-            bool unit_matches = abs_reg.unit == remote_unit;
-            // note these return 0 on match so ! is needed
-            bool offset_matches = !memcmp(abs_reg.offset, remote_offset, remote_ndim * sizeof(uint64_t));
-            bool dims_matches   = !memcmp(abs_reg.dims, remote_dims, remote_ndim * sizeof(uint64_t));
-
-            if (ndim_matches && offset_matches && dims_matches && unit_matches)
-                PGOTO_DONE(true);
-        }
-    }
-
-done:
-    FUNC_LEAVE(ret_value);
-}
-
 perr_t
 PDCregion_transfer_wait(pdcid_t transfer_request_id)
 {
@@ -2005,20 +2077,11 @@ PDCregion_transfer_wait(pdcid_t transfer_request_id)
 
     pdcid_t               region_id = 0;
     struct _pdc_obj_info *obj_info;
-    /**
-     * The remote transfer request properties (ndim, offset, size, unit) are not
-     * changed in the region start. Only the bulk transfer is modified there to
-     * retrieve the correct amount of data. So here we need to map these properties
-     * onto the actual remote request properties then execute the graph.
-     */
-    bool has_attached_graph = should_exec_graph(
-        transfer_request->local_obj_id, &obj_info, &region_id, transfer_request->remote_region_ndim,
-        transfer_request->unit, transfer_request->remote_region_offset, transfer_request->remote_region_size);
 
     pdc_tf_region_info *      region_info;
     pdc_tf_absolute_region_t *abs_remote_region;
     pdc_tf_region_t           input_region;
-    if (has_attached_graph && transfer_request->access_type == PDC_READ) {
+    if (transfer_request->access_type == PDC_READ) {
         region_info       = &obj_info->pdc_tf_obj->tf_regions_info[region_id];
         abs_remote_region = &obj_info->pdc_tf_obj->remote_regions[region_id];
 
@@ -2082,10 +2145,6 @@ PDCregion_transfer_wait(pdcid_t transfer_request_id)
                 transfer_request->local_region_offset, transfer_request->local_region_size, unit,
                 transfer_request->access_type, transfer_request->n_obj_servers, transfer_request->new_buf,
                 transfer_request->bulk_buf, transfer_request->bulk_buf_ref, transfer_request->read_bulk_buf);
-
-            if (has_attached_graph && transfer_request->access_type == PDC_READ) {
-            }
-
             transfer_request->output_offsets = (uint64_t **)PDC_free(transfer_request->output_offsets);
             transfer_request->output_sizes   = (uint64_t **)PDC_free(transfer_request->output_sizes);
             transfer_request->sub_offsets    = (uint64_t **)PDC_free(transfer_request->sub_offsets);

@@ -3244,42 +3244,8 @@ done:
     FUNC_LEAVE(ret_value);
 }
 
-static bool
-should_exec_graph(pdcid_t obj_id, struct _pdc_obj_info **_obj_info, pdcid_t *region_exec_graph_id,
-                  int client_ndim, uint8_t client_unit, uint64_t *client_offset, uint64_t *client_dims)
-{
-    bool ret_value = false;
-
-    // check if there is a graph to execute
-    const struct _pdc_id_info *obj_id_info = PDC_find_id(obj_id);
-    if (obj_id_info == NULL)
-        PGOTO_ERROR(false, "Failed to find object id");
-    *_obj_info                     = obj_id_info->obj_ptr;
-    struct _pdc_obj_info *obj_info = *_obj_info;
-    // loop through attached graphs
-    if (obj_info->pdc_tf_obj != NULL) {
-        for (*region_exec_graph_id = 0; *region_exec_graph_id < obj_info->pdc_tf_obj->num_regions;
-             (*region_exec_graph_id)++) {
-            pdc_tf_absolute_region_t abs_reg = obj_info->pdc_tf_obj->client_regions[*region_exec_graph_id];
-
-            // check if client ndim, offset, dims, unit match
-            bool ndim_matches = abs_reg.ndim == client_ndim;
-            bool unit_matches = abs_reg.unit == client_unit;
-            // note these return 0 on match so ! is needed
-            bool offset_matches = !memcmp(abs_reg.offset, client_offset, client_ndim * sizeof(uint64_t));
-            bool dims_matches   = !memcmp(abs_reg.dims, client_dims, client_ndim * sizeof(uint64_t));
-
-            if (ndim_matches && offset_matches && dims_matches && unit_matches)
-                PGOTO_DONE(true);
-        }
-    }
-
-done:
-    FUNC_LEAVE(ret_value);
-}
-
 perr_t
-PDC_Client_transfer_request(pdcid_t local_obj_id, void *buf, pdcid_t obj_id, uint32_t data_server_id,
+PDC_Client_transfer_request(hg_bulk_t *bulk_handle, void *buf, pdcid_t obj_id, uint32_t data_server_id,
                             int obj_ndim, uint64_t *obj_dims, int remote_ndim, uint64_t *remote_offset,
                             uint64_t *remote_size, size_t unit, pdc_access_t access_type,
                             pdcid_t *metadata_id)
@@ -3296,10 +3262,8 @@ PDC_Client_transfer_request(pdcid_t local_obj_id, void *buf, pdcid_t obj_id, uin
     hg_handle_t                       client_send_transfer_request_handle;
     struct _pdc_transfer_request_args transfer_args;
     char                              cur_time[64];
-    bool                              has_attached_graph = false;
-    pdcid_t                           region_id          = 0;
-    struct _pdc_obj_info *            obj_info;
 
+    FUNC_ENTER(NULL);
 #ifdef PDC_TIMING
     double start          = MPI_Wtime(), end;
     double function_start = start;
@@ -3307,95 +3271,46 @@ PDC_Client_transfer_request(pdcid_t local_obj_id, void *buf, pdcid_t obj_id, uin
     if (!(access_type == PDC_WRITE || access_type == PDC_READ))
         PGOTO_ERROR(FAIL, "Invalid PDC type");
 
+    LOG_DEBUG("rank = %d, data_server_id = %u\n", pdc_client_mpi_rank_g, data_server_id);
+    in.access_type = access_type;
+    in.remote_unit = unit;
+    in.obj_id      = obj_id;
+
     in.obj_ndim = obj_ndim;
-    has_attached_graph =
-        should_exec_graph(local_obj_id, &obj_info, &region_id, remote_ndim, unit, remote_offset, remote_size);
-
-    if (!has_attached_graph)
-        LOG_INFO("Not attached graph for region transfer\n");
-
-    if (has_attached_graph && access_type == PDC_WRITE) {
-        pdc_tf_region_info *      region_info       = &obj_info->pdc_tf_obj->tf_regions_info[region_id];
-        pdc_tf_absolute_region_t *abs_remote_region = &obj_info->pdc_tf_obj->remote_regions[region_id];
-
-        pdc_tf_region_t input_region, output_region;
-
-        // initialize input_region
-        input_region.unit = unit;
-        input_region.ndim = remote_ndim;
-        // copy over dimensions
-        memcpy(input_region.dims, remote_size, remote_ndim * sizeof(uint64_t));
-
-        // since we are on the client side the desired_state_id is the server_state_id
-        if (PDCtf_exec_graph(region_info->dg_id, region_info->client_state_id, region_info->server_state_id,
-                             input_region, &output_region, &buf) != SUCCEED)
-            PGOTO_ERROR(FAIL, "Failed to PDCtf_exec_graph");
-
-        /**
-         * set remote abs region info for mapping
-         * NOTE: the client mapping is set when the transform is attached to the region
-         */
-        abs_remote_region->ndim = output_region.ndim;
-        memcpy(abs_remote_region->dims, output_region.dims, output_region.ndim * sizeof(uint64_t));
-        abs_remote_region->unit = output_region.unit;
-
-        // set output region for bulk transfer
-        in.remote_unit = output_region.unit;
-        remote_ndim    = output_region.ndim;
-        // overwrite remote_size, remote_offset doesn't change
-        memcpy(remote_size, output_region.dims, output_region.ndim * sizeof(uint64_t));
-    }
-    else if (has_attached_graph && access_type == PDC_READ) {
-        pdc_tf_region_info *      region_info       = &obj_info->pdc_tf_obj->tf_regions_info[region_id];
-        pdc_tf_absolute_region_t *abs_remote_region = &obj_info->pdc_tf_obj->remote_regions[region_id];
-
-        // resize bulk transfer based on mapping
-        in.remote_unit = abs_remote_region->unit;
-        remote_ndim    = abs_remote_region->ndim;
-        // overwrite remote_size, remote_offset doesn't change
-        memcpy(remote_size, abs_remote_region->dims, abs_remote_region->ndim * sizeof(uint64_t));
-
-        /**
-         * NOTE: we have to execute the graph when the data is received
-         * which is done in the region transfer wait. Here we simply
-         * setup the bulk transfer using the transform mapping between
-         * the client's conceptual view of the region vs the actual
-         * region on the data server side.
-         */
-    }
-    else { // there is no graph to execute
-        in.remote_unit = unit;
-    }
-
     PDC_copy_region_desc(obj_dims, in.obj_dims, in.obj_ndim, in.obj_ndim);
 
-    total_data_size = in.remote_unit;
+    // Compute metadata server id
+    meta_server_id = PDC_get_server_by_obj_id(obj_id, pdc_server_num_g);
+
+    in.meta_server_id = meta_server_id;
+
+    hg_class = HG_Context_get_class(send_context_g);
+
+    debug_server_id_count[data_server_id]++;
+
+    total_data_size = unit;
     for (i = 0; i < remote_ndim; ++i) {
         total_data_size *= remote_size[i];
     }
 
-    LOG_INFO("Bulk data transfer size: %lu\n", total_data_size);
-
-    in.access_type = access_type;
-    in.obj_id      = obj_id;
-
-    // Compute metadata server id
-    meta_server_id    = PDC_get_server_by_obj_id(obj_id, pdc_server_num_g);
-    in.meta_server_id = meta_server_id;
-    hg_class          = HG_Context_get_class(send_context_g);
-    debug_server_id_count[data_server_id]++;
     pack_region_metadata(remote_ndim, remote_offset, remote_size, &(in.remote_region));
 
     if (PDC_Client_try_lookup_server(data_server_id, 0) != SUCCEED)
         PGOTO_ERROR(FAIL, "Error with PDC_Client_try_lookup_server");
+
     hg_ret = HG_Create(send_context_g, pdc_server_info_g[data_server_id].addr, transfer_request_register_id_g,
                        &client_send_transfer_request_handle);
+
     // Create bulk handle
     hg_ret = HG_Bulk_create(hg_class, 1, (void **)&buf, (hg_size_t *)&total_data_size, HG_BULK_READWRITE,
                             &(in.local_bulk_handle));
+    *bulk_handle = in.local_bulk_handle;
+
     if (hg_ret != HG_SUCCESS)
         PGOTO_ERROR(FAIL, "Could not create local bulk data handle");
+
     hg_atomic_set32(&atomic_work_todo_g, 1);
+
     hg_ret = HG_Forward(client_send_transfer_request_handle, client_send_transfer_request_rpc_cb,
                         &transfer_args, &in);
 
@@ -3410,8 +3325,10 @@ PDC_Client_transfer_request(pdcid_t local_obj_id, void *buf, pdcid_t obj_id, uin
 #endif
 
     PDC_Client_transfer_pthread_create();
+
     if (hg_ret != HG_SUCCESS)
         PGOTO_ERROR(FAIL, "PDC_Client_send_transfer_request(): Could not start HG_Forward()");
+
     PDC_Client_wait_pthread_progress();
 
 #ifdef PDC_TIMING
@@ -3425,13 +3342,13 @@ PDC_Client_transfer_request(pdcid_t local_obj_id, void *buf, pdcid_t obj_id, uin
         pdc_timestamp_register(pdc_client_transfer_request_start_write_timestamps, function_start, end);
     }
 #endif
-
     *metadata_id = transfer_args.metadata_id;
+
     if (transfer_args.ret != 1)
         PGOTO_ERROR(FAIL, "Transfer request failed");
 
     HG_Destroy(client_send_transfer_request_handle);
-done:
+    done:
     FUNC_LEAVE(ret_value);
 }
 
