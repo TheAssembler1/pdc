@@ -2422,8 +2422,17 @@ PDC_Client_query_metadata_name_timestep(const char *obj_name, int time_step, pdc
     hg_atomic_set32(&atomic_work_todo_g, 1);
     PDC_Client_check_response(&send_context_g);
     *out = lookup_args.data;
-    LOG_DEBUG("rank = %d, PDC_Client_query_metadata_name_timestep = %u\n", pdc_client_mpi_rank_g,
-              out[0]->data_server_id);
+
+    /**
+     * Not necessarily an error. If the obj does not exist
+     * then this will be NULL. Still need to return as FAIL
+     * otherwise calling code will expect *out to be non-NULL.
+     */
+    if (*out == NULL) {
+        LOG_INFO("Object metadata does not exist\n");
+        PGOTO_DONE(FAIL);
+    }
+
 done:
     HG_Destroy(metadata_query_handle);
 
