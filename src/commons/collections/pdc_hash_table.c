@@ -539,9 +539,9 @@ hash_table_num_entries(HashTable *hash_table)
 {
     FUNC_ENTER(NULL);
 
-    if(hash_table == NULL) {
-	    LOG_WARNING("hash_table was NULL\n");
-	    FUNC_LEAVE(0);
+    if (hash_table == NULL) {
+        LOG_WARNING("hash_table was NULL\n");
+        FUNC_LEAVE(0);
     };
 
     FUNC_LEAVE(hash_table->entries);
@@ -554,13 +554,13 @@ hash_table_iterate(HashTable *hash_table, HashTableIterator *iterator)
 
     unsigned int chain;
 
-    if(hash_table == NULL) {
-	LOG_WARNING("hash_table was NULL\n");
-	FUNC_LEAVE_VOID();
+    if (hash_table == NULL) {
+        LOG_WARNING("hash_table was NULL\n");
+        FUNC_LEAVE_VOID();
     }
-    if(iterator == NULL) {
-	LOG_WARNING("iterator was NULL\n");
-	FUNC_LEAVE_VOID();
+    if (iterator == NULL) {
+        LOG_WARNING("iterator was NULL\n");
+        FUNC_LEAVE_VOID();
     }
 
     iterator->hash_table = hash_table;
