@@ -32,6 +32,10 @@ CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 #include "alloc-testing.h"
 #endif
 
+#ifdef ENABLE_MULTITHREAD
+hg_thread_mutex_t hash_table_new_mutex_g;
+#endif
+
 struct _HashTableEntry {
     HashTablePair   pair;
     HashTableEntry *next;
