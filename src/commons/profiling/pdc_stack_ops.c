@@ -4,6 +4,7 @@
 #include "pdc_stack_ops.h"
 #include "pdc_logger.h"
 #include "pdc_hashtab.h"
+#include "pdc_malloc.h"
 
 profileEntry_t *calltree = NULL;
 profileEntry_t *freelist = NULL;
@@ -11,14 +12,33 @@ profileEntry_t *freelist = NULL;
 static int profilerrors = 0;
 
 hash_table_t hashtable;
+htab_t       thisHashTable;
 
-htab_t thisHashTable;
-
-/* For now we disable profiling (by default)
- * Note that one can always ENABLE it by set the
- * environment variable "PROFILE_ENABLE=true"
+/**
+ * We need to disable these macros in certain
+ * files (pdc_stack_ops.c, pdc_malloc.c, and pdc_hashtab.c)
+ * so we do not create an infinite recursion chain
+ *
+ * Only the FUNC_* need to be disabled in pdc_malloc.c
  */
+#ifdef ENABLE_PROFILING
+pbool_t enableProfiling = TRUE;
+#undef PDC_Malloc
+#undef PDC_Realloc
+#undef PDC_Free
+#undef PDC_Calloc
+#define PDC_Malloc  malloc
+#define PDC_Realloc realloc
+#define PDC_Free(p) ((void *)free(p), (void *)NULL)
+#define PDC_Calloc  calloc
+
+#undef FUNC_ENTER
+#undef FUNC_LEAVE
+#define FUNC_ENTER(x)
+#define FUNC_LEAVE(x) return (x)
+#else
 pbool_t enableProfiling = FALSE;
+#endif
 
 /*
  *  The idea of this implementation is to simulate the call stack
@@ -82,7 +102,6 @@ pbool_t enableProfiling = FALSE;
  *  sum all of the individual profile times, the total should
  *  match the execution time of the program.
  */
-
 void
 push(const char *ftnkey, const char *tags)
 {
@@ -92,7 +111,7 @@ push(const char *ftnkey, const char *tags)
         freelist  = thisEntry->next;
     }
     else {
-        if ((thisEntry = (profileEntry_t *)malloc(sizeof(profileEntry_t))) == NULL) {
+        if ((thisEntry = (profileEntry_t *)PDC_malloc(sizeof(profileEntry_t))) == NULL) {
             perror("malloc");
             profilerrors++;
         }
@@ -134,7 +153,8 @@ pop()
     void **tableEntry = htab_find_slot(thisHashTable, thisEntry, INSERT);
     if (*tableEntry == NULL) {
         /* No table entry found so add it now ... */
-        master = (profileEntry_t *)malloc(sizeof(profileEntry_t));
+        // do NOT use will cause infinite recursion between PDC_malloc and pop
+        master = (profileEntry_t *)PDC_malloc(sizeof(profileEntry_t));
         if (master) {
             thisEntry->count = 1;
             memcpy(master, thisEntry, sizeof(profileEntry_t));
@@ -197,8 +217,9 @@ show_profile_info(void **ht_live_entry, void *extraInfo ATTRIBUTE(unused))
         if (count == 0)
             puts(header);
         totalTime = thisEntry->totalTime;
-        LOG_INFO("%s\n %d\t%-6" PRId64 " %6" PRId64 ",%6" PRId64 "\t\t %s\n", LineBreak, ++count, totalCalls,
-                 totalTime.tv_sec / totalCalls, totalTime.tv_nsec / totalCalls, thisEntry->ftnkey);
+        LOG_JUST_PRINT("%s\n %d\t%-6" PRId64 " %6" PRId64 ",%6" PRId64 "\t\t %s\n", LineBreak, ++count,
+                       totalCalls, totalTime.tv_sec / totalCalls, totalTime.tv_nsec / totalCalls,
+                       thisEntry->ftnkey);
     }
 
     return TRUE;
@@ -224,7 +245,6 @@ toggle_profile_enable()
  * The profile_fini should probably be used to dump the contents of the profile
  * hashtable.
  */
-
 void __attribute__((constructor)) profile_init(void)
 {
     int   default_HashtableSize = 128;

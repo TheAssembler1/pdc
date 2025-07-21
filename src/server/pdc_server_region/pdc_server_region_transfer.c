@@ -2,6 +2,7 @@
 #include "pdc_server_data.h"
 #include "pdc_timing.h"
 #include "pdc_logger.h"
+#include "pdc_malloc.h"
 
 static int io_by_region_g = 1;
 
@@ -42,13 +43,14 @@ PDC_server_transfer_request_finalize()
 perr_t
 PDC_commit_request(uint64_t transfer_request_id)
 {
+    FUNC_ENTER(NULL);
+
     pdc_transfer_request_status *ptr;
     perr_t                       ret_value = SUCCEED;
-    FUNC_ENTER(NULL);
 
     if (transfer_request_status_list == NULL) {
         transfer_request_status_list =
-            (pdc_transfer_request_status *)malloc(sizeof(pdc_transfer_request_status));
+            (pdc_transfer_request_status *)PDC_malloc(sizeof(pdc_transfer_request_status));
         transfer_request_status_list->status              = PDC_TRANSFER_STATUS_PENDING;
         transfer_request_status_list->handle_ref          = NULL;
         transfer_request_status_list->out_type            = -1;
@@ -57,17 +59,16 @@ PDC_commit_request(uint64_t transfer_request_id)
         transfer_request_status_list_end                  = transfer_request_status_list;
     }
     else {
-        ptr                   = transfer_request_status_list_end;
-        ptr->next             = (pdc_transfer_request_status *)malloc(sizeof(pdc_transfer_request_status));
-        ptr->next->status     = PDC_TRANSFER_STATUS_PENDING;
-        ptr->next->handle_ref = NULL;
-        ptr->next->out_type   = -1;
+        ptr               = transfer_request_status_list_end;
+        ptr->next         = (pdc_transfer_request_status *)PDC_malloc(sizeof(pdc_transfer_request_status));
+        ptr->next->status = PDC_TRANSFER_STATUS_PENDING;
+        ptr->next->handle_ref            = NULL;
+        ptr->next->out_type              = -1;
         ptr->next->transfer_request_id   = transfer_request_id;
         ptr->next->next                  = NULL;
         transfer_request_status_list_end = ptr->next;
     }
 
-    fflush(stdout);
     FUNC_LEAVE(ret_value);
 }
 
@@ -79,13 +80,13 @@ PDC_commit_request(uint64_t transfer_request_id)
 perr_t
 PDC_finish_request(uint64_t transfer_request_id)
 {
+    FUNC_ENTER(NULL);
+
     pdc_transfer_request_status *   ptr, *tmp = NULL;
     perr_t                          ret_value = SUCCEED;
     transfer_request_wait_out_t     out;
     transfer_request_wait_all_out_t out_all;
     char                            cur_time[64];
-
-    FUNC_ENTER(NULL);
 
     ptr = transfer_request_status_list;
     while (ptr != NULL) {
@@ -108,7 +109,7 @@ PDC_finish_request(uint64_t transfer_request_id)
                         ret_value = HG_Respond(ptr->handle, NULL, NULL, &out);
                     }
                     HG_Destroy(ptr->handle);
-                    free(ptr->handle_ref);
+                    ptr->handle_ref = (int *)PDC_free(ptr->handle_ref);
                 }
                 if (tmp != NULL) {
                     /* Case for removing the any nodes but the first one. */
@@ -117,13 +118,13 @@ PDC_finish_request(uint64_t transfer_request_id)
                     if (ptr->next == NULL) {
                         transfer_request_status_list_end = tmp;
                     }
-                    free(ptr);
+                    ptr = (pdc_transfer_request_status *)PDC_free(ptr);
                 }
                 else {
                     /* Case for removing the first node, i.e ptr == transfer_request_status_list*/
                     tmp                          = transfer_request_status_list;
                     transfer_request_status_list = transfer_request_status_list->next;
-                    free(tmp);
+                    tmp                          = (pdc_transfer_request_status *)PDC_free(tmp);
                     /* Free pointer is the last list node, so nothing is left in the list. */
                     if (transfer_request_status_list == NULL) {
                         transfer_request_status_list_end = NULL;
@@ -136,7 +137,6 @@ PDC_finish_request(uint64_t transfer_request_id)
         ptr = ptr->next;
     }
 
-    fflush(stdout);
     FUNC_LEAVE(ret_value);
 }
 
@@ -149,9 +149,10 @@ PDC_finish_request(uint64_t transfer_request_id)
 pdc_transfer_status_t
 PDC_check_request(uint64_t transfer_request_id)
 {
+    FUNC_ENTER(NULL);
+
     pdc_transfer_request_status *ptr, *tmp = NULL;
     pdc_transfer_status_t        ret_value = PDC_TRANSFER_STATUS_NOT_FOUND;
-    FUNC_ENTER(NULL);
 
     ptr = transfer_request_status_list;
     while (ptr != NULL) {
@@ -169,13 +170,13 @@ PDC_check_request(uint64_t transfer_request_id)
                     if (ptr->next == NULL) {
                         transfer_request_status_list_end = tmp;
                     }
-                    free(ptr);
+                    ptr = (pdc_transfer_request_status *)PDC_free(ptr);
                 }
                 else {
                     /* Case for removing the first node, i.e ptr == transfer_request_status_list*/
                     tmp                          = transfer_request_status_list;
                     transfer_request_status_list = transfer_request_status_list->next;
-                    free(tmp);
+                    tmp                          = (pdc_transfer_request_status *)PDC_free(tmp);
                     /* Free pointer is the last list node, so nothing is left in the list. */
                     if (transfer_request_status_list == NULL) {
                         transfer_request_status_list_end = NULL;
@@ -188,7 +189,6 @@ PDC_check_request(uint64_t transfer_request_id)
         ptr = ptr->next;
     }
 
-    fflush(stdout);
     FUNC_LEAVE(ret_value);
 }
 
@@ -200,9 +200,10 @@ PDC_check_request(uint64_t transfer_request_id)
 pdc_transfer_status_t
 PDC_try_finish_request(uint64_t transfer_request_id, hg_handle_t handle, int *handle_ref, int out_type)
 {
+    FUNC_ENTER(NULL);
+
     pdc_transfer_request_status *ptr;
     pdc_transfer_status_t        ret_value = PDC_TRANSFER_STATUS_NOT_FOUND;
-    FUNC_ENTER(NULL);
 
     ptr = transfer_request_status_list;
     while (ptr != NULL) {
@@ -216,7 +217,6 @@ PDC_try_finish_request(uint64_t transfer_request_id, hg_handle_t handle, int *ha
         ptr = ptr->next;
     }
 
-    fflush(stdout);
     FUNC_LEAVE(ret_value);
 }
 
@@ -231,14 +231,13 @@ PDC_try_finish_request(uint64_t transfer_request_id, hg_handle_t handle, int *ha
 pdcid_t
 PDC_transfer_request_id_register()
 {
-    pdcid_t ret_value;
-
     FUNC_ENTER(NULL);
+
+    pdcid_t ret_value;
 
     ret_value = transfer_request_id_g;
     transfer_request_id_g++;
 
-    fflush(stdout);
     FUNC_LEAVE(ret_value);
 }
 
@@ -262,6 +261,8 @@ perr_t
 PDC_Server_transfer_request_io(uint64_t obj_id, int obj_ndim, const uint64_t *obj_dims,
                                struct pdc_region_info *region_info, void *buf, size_t unit, int is_write)
 {
+    FUNC_ENTER(NULL);
+
     perr_t   ret_value = SUCCEED;
     int      fd;
     char *   data_path                = NULL;
@@ -271,10 +272,6 @@ PDC_Server_transfer_request_io(uint64_t obj_id, int obj_ndim, const uint64_t *ob
     uint64_t i, j;
     char     cur_time[64];
 
-    FUNC_ENTER(NULL);
-
-    /* PDC_get_time_str(cur_time); */
-
     if (io_by_region_g || obj_ndim == 0) {
         // PDC_Server_register_obj_region(obj_id);
         if (is_write) {
@@ -283,13 +280,10 @@ PDC_Server_transfer_request_io(uint64_t obj_id, int obj_ndim, const uint64_t *ob
         else {
             PDC_Server_data_read_from(obj_id, region_info, buf, unit);
         }
-        // PDC_Server_unregister_obj_region(obj_id);
-        goto done;
+        PGOTO_DONE(ret_value);
     }
-    if (obj_ndim != (int)region_info->ndim) {
-        LOG_ERROR("Server I/O error: Obj dim does not match obj dim\n");
-        goto done;
-    }
+    if (obj_ndim != (int)region_info->ndim)
+        PGOTO_ERROR(FAIL, "Obj dim does not match obj dim\n");
 
     user_specified_data_path = getenv("PDC_DATA_LOC");
     if (user_specified_data_path != NULL) {
@@ -304,9 +298,6 @@ PDC_Server_transfer_request_io(uint64_t obj_id, int obj_ndim, const uint64_t *ob
     snprintf(storage_location, ADDR_MAX, "%.200s/pdc_data/%" PRIu64 "/server%d/s%04d.bin", data_path, obj_id,
              PDC_get_rank(), PDC_get_rank());
     PDC_mkdir(storage_location);
-
-    /* LOG_ERROR("Rank %d, write to offset %llu, size %llu\n", server_rank, region_info->offset[0],
-     * region_info->size[0]); */
 
     fd = open(storage_location, O_RDWR | O_CREAT, 0666);
     if (region_info->ndim == 1) {
@@ -372,40 +363,42 @@ PDC_Server_transfer_request_io(uint64_t obj_id, int obj_ndim, const uint64_t *ob
     close(fd);
 
 done:
-    /* PDC_get_time_str(cur_time); */
-
-    fflush(stdout);
     FUNC_LEAVE(ret_value);
 }
 
 int
 clean_write_bulk_data(transfer_request_all_data *request_data)
 {
-    free(request_data->obj_id);
-    free(request_data->obj_ndim);
-    free(request_data->remote_ndim);
-    free(request_data->remote_offset);
-    free(request_data->unit);
-    free(request_data->data_buf);
-    return 0;
+    FUNC_ENTER(NULL);
+
+    request_data->obj_id        = (pdcid_t *)PDC_free(request_data->obj_id);
+    request_data->obj_ndim      = (int *)PDC_free(request_data->obj_ndim);
+    request_data->remote_ndim   = (int *)PDC_free(request_data->remote_ndim);
+    request_data->remote_offset = (uint64_t **)PDC_free(request_data->remote_offset);
+    request_data->unit          = (size_t *)PDC_free(request_data->unit);
+    request_data->data_buf      = (char **)PDC_free(request_data->data_buf);
+
+    FUNC_LEAVE(0);
 }
 
 int
 parse_bulk_data(void *buf, transfer_request_all_data *request_data, pdc_access_t access_type)
 {
+    FUNC_ENTER(NULL);
+
     char *   ptr = (char *)buf;
     int      i, j;
     uint64_t data_size;
 
     // preallocate arrays of size number of objects
-    request_data->obj_id        = (pdcid_t *)malloc(sizeof(pdcid_t) * request_data->n_objs);
-    request_data->obj_ndim      = (int *)malloc(sizeof(int) * request_data->n_objs);
-    request_data->remote_ndim   = (int *)malloc(sizeof(int) * request_data->n_objs);
-    request_data->remote_offset = (uint64_t **)malloc(sizeof(uint64_t *) * request_data->n_objs * 3);
+    request_data->obj_id        = (pdcid_t *)PDC_malloc(sizeof(pdcid_t) * request_data->n_objs);
+    request_data->obj_ndim      = (int *)PDC_malloc(sizeof(int) * request_data->n_objs);
+    request_data->remote_ndim   = (int *)PDC_malloc(sizeof(int) * request_data->n_objs);
+    request_data->remote_offset = (uint64_t **)PDC_malloc(sizeof(uint64_t *) * request_data->n_objs * 3);
     request_data->remote_length = request_data->remote_offset + request_data->n_objs;
     request_data->obj_dims      = request_data->remote_length + request_data->n_objs;
-    request_data->unit          = (size_t *)malloc(sizeof(size_t) * request_data->n_objs);
-    request_data->data_buf      = (char **)malloc(sizeof(char *) * request_data->n_objs);
+    request_data->unit          = (size_t *)PDC_malloc(sizeof(size_t) * request_data->n_objs);
+    request_data->data_buf      = (char **)PDC_malloc(sizeof(char *) * request_data->n_objs);
 
     /*
      * The following times n_objs (one set per object).
@@ -448,5 +441,5 @@ parse_bulk_data(void *buf, transfer_request_all_data *request_data, pdc_access_t
         }
     }
 
-    return 0;
+    FUNC_LEAVE(0);
 }

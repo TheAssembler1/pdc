@@ -1,3 +1,6 @@
+#ifndef PDC_SERVER_REGION_TRANSFER_H
+#define PDC_SERVER_REGION_TRANSFER_H
+
 #include "pdc_region.h"
 
 typedef struct transfer_request_all_data {
@@ -71,7 +74,6 @@ pdc_transfer_status_t PDC_try_finish_request(uint64_t transfer_request_id, hg_ha
  * TODO: Scan the entire transfer list and search for repetitive nodes.
  * Not a thread-safe function, need protection from pthread_mutex_lock(&transfer_request_id_mutex);
  */
-
 pdcid_t PDC_transfer_request_id_register();
 
 perr_t PDC_Server_transfer_request_io(uint64_t obj_id, int obj_ndim, const uint64_t *obj_dims,
@@ -81,3 +83,5 @@ perr_t PDC_Server_transfer_request_io(uint64_t obj_id, int obj_ndim, const uint6
 int clean_write_bulk_data(transfer_request_all_data *request_data);
 
 int parse_bulk_data(void *buf, transfer_request_all_data *request_data, pdc_access_t access_type);
+
+#endif

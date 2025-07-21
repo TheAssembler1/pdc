@@ -1,7 +1,7 @@
 /* linked list management library - by xant
  */
 
-//#include <stdio.h>
+// #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <errno.h>
@@ -9,6 +9,7 @@
 #include "linklist.h"
 #include "atomic_defs.h"
 #include "pdc_malloc.h"
+#include "pdc_timing.h"
 
 // size_t mem_usage_by_all_linkedlist;
 
@@ -71,14 +72,16 @@ static inline int           swap_entries(linked_list_t *list, size_t pos1, size_
 linked_list_t *
 list_create()
 {
+    FUNC_ENTER(NULL);
+
     linked_list_t *list = (linked_list_t *)PDC_calloc(1, sizeof(linked_list_t));
     if (list) {
         if (list_init(list) != 0) {
-            free(list);
-            return NULL;
+            list = (linked_list_t *)PDC_free(list);
+            FUNC_LEAVE(NULL);
         }
     }
-    return list;
+    FUNC_LEAVE(list);
 }
 
 /*
@@ -88,6 +91,8 @@ list_create()
 int
 list_init(linked_list_t *list __attribute__((unused)))
 {
+    FUNC_ENTER(NULL);
+
 #ifdef THREAD_SAFE
     pthread_mutexattr_t attr;
     if (pthread_mutexattr_init(&attr) != 0) {
@@ -99,7 +104,8 @@ list_init(linked_list_t *list __attribute__((unused)))
     }
     pthread_mutexattr_destroy(&attr);
 #endif
-    return 0;
+
+    FUNC_LEAVE(0);
 }
 
 /*
@@ -108,6 +114,8 @@ list_init(linked_list_t *list __attribute__((unused)))
 void
 list_destroy(linked_list_t *list)
 {
+    FUNC_ENTER(NULL);
+
     if (list) {
         while (list->slices)
             slice_destroy(list->slices->value);
@@ -115,25 +123,31 @@ list_destroy(linked_list_t *list)
 #ifdef THREAD_SAFE
         MUTEX_DESTROY(list->lock);
 #endif
-        free(list);
+        list = (linked_list_t *)PDC_free(list);
     }
+
+    FUNC_LEAVE_VOID();
 }
 
 static void
 list_destroy_tagged_value_internal(tagged_value_t *tval, void (*free_cb)(void *v))
 {
+    FUNC_ENTER(NULL);
+
     if (tval) {
-        free(tval->tag);
+        tval->tag = (char *)PDC_free(tval->tag);
         if (tval->value) {
             if (tval->type == TV_TYPE_LIST)
                 list_destroy((linked_list_t *)tval->value);
             else if (free_cb)
                 free_cb(tval->value);
             else if (tval->vlen)
-                free(tval->value);
+                tval->value = (void *)PDC_free(tval->value);
         }
-        free(tval);
+        tval = (tagged_value_t *)PDC_free(tval);
     }
+
+    FUNC_LEAVE_VOID();
 }
 
 /*
@@ -145,6 +159,8 @@ list_destroy_tagged_value_internal(tagged_value_t *tval, void (*free_cb)(void *v
 void
 list_clear(linked_list_t *list)
 {
+    FUNC_ENTER(NULL);
+
     list_entry_t *e;
     /* Destroy all entries still in list */
     while ((e = shift_entry(list)) != NULL) {
@@ -157,37 +173,54 @@ list_clear(linked_list_t *list)
 
         destroy_entry(e);
     }
+
+    FUNC_LEAVE_VOID();
 }
 
 /* Returns actual lenght of linked_list_t pointed by l */
 size_t
 list_count(linked_list_t *l)
 {
+    FUNC_ENTER(NULL);
+
     size_t len;
     MUTEX_LOCK(l->lock);
     len = l->length;
     MUTEX_UNLOCK(l->lock);
-    return len;
+
+    FUNC_LEAVE(len);
 }
 
 void
 list_set_free_value_callback(linked_list_t *list, free_value_callback_t free_value_cb)
 {
+    FUNC_ENTER(NULL);
+
     MUTEX_LOCK(list->lock);
     list->free_value_cb = free_value_cb;
     MUTEX_UNLOCK(list->lock);
+
+    FUNC_LEAVE_VOID();
 }
 
 void
 list_lock(linked_list_t *list __attribute__((unused)))
 {
+    FUNC_ENTER(NULL);
+
     MUTEX_LOCK(list->lock);
+
+    FUNC_LEAVE_VOID();
 }
 
 void
 list_unlock(linked_list_t *list __attribute__((unused)))
 {
+    FUNC_ENTER(NULL);
+
     MUTEX_UNLOCK(list->lock);
+
+    FUNC_LEAVE_VOID();
 }
 
 /*
@@ -197,8 +230,11 @@ list_unlock(linked_list_t *list __attribute__((unused)))
 static inline list_entry_t *
 create_entry()
 {
+    FUNC_ENTER(NULL);
+
     list_entry_t *new_entry = (list_entry_t *)PDC_calloc(1, sizeof(list_entry_t));
-    return new_entry;
+
+    FUNC_LEAVE(new_entry);
 }
 
 /*
@@ -209,6 +245,8 @@ create_entry()
 static inline void
 destroy_entry(list_entry_t *entry)
 {
+    FUNC_ENTER(NULL);
+
     long pos;
     if (entry) {
         if (entry->list) {
@@ -217,8 +255,10 @@ destroy_entry(list_entry_t *entry)
             if (pos >= 0)
                 remove_entry(entry->list, pos);
         }
-        free(entry);
+        entry = (list_entry_t *)PDC_free(entry);
     }
+
+    FUNC_LEAVE_VOID();
 }
 
 /*
@@ -228,6 +268,8 @@ destroy_entry(list_entry_t *entry)
 static inline list_entry_t *
 pop_entry(linked_list_t *list)
 {
+    FUNC_ENTER(NULL);
+
     list_entry_t *entry;
     MUTEX_LOCK(list->lock);
 
@@ -249,7 +291,8 @@ pop_entry(linked_list_t *list)
         list->head = list->tail = NULL;
 
     MUTEX_UNLOCK(list->lock);
-    return entry;
+
+    FUNC_LEAVE(entry);
 }
 
 /*
@@ -258,9 +301,11 @@ pop_entry(linked_list_t *list)
 static inline int
 push_entry(linked_list_t *list, list_entry_t *entry)
 {
+    FUNC_ENTER(NULL);
+
     list_entry_t *p;
     if (!entry)
-        return -1;
+        FUNC_LEAVE(-1);
     MUTEX_LOCK(list->lock);
     if (list->length == 0) {
         list->head = list->tail = entry;
@@ -275,7 +320,8 @@ push_entry(linked_list_t *list, list_entry_t *entry)
     list->length++;
     entry->list = list;
     MUTEX_UNLOCK(list->lock);
-    return 0;
+
+    FUNC_LEAVE(0);
 }
 
 /*
@@ -285,6 +331,8 @@ push_entry(linked_list_t *list, list_entry_t *entry)
 static inline list_entry_t *
 shift_entry(linked_list_t *list)
 {
+    FUNC_ENTER(NULL);
+
     list_entry_t *entry;
     MUTEX_LOCK(list->lock);
     entry = list->head;
@@ -306,7 +354,8 @@ shift_entry(linked_list_t *list)
     if (list->length == 0)
         list->head = list->tail = NULL;
     MUTEX_UNLOCK(list->lock);
-    return entry;
+
+    FUNC_LEAVE(entry);
 }
 
 /*
@@ -315,9 +364,11 @@ shift_entry(linked_list_t *list)
 static inline int
 unshift_entry(linked_list_t *list, list_entry_t *entry)
 {
+    FUNC_ENTER(NULL);
+
     list_entry_t *p;
     if (!entry)
-        return -1;
+        FUNC_LEAVE(-1);
     MUTEX_LOCK(list->lock);
     if (list->length == 0) {
         list->head = list->tail = entry;
@@ -334,7 +385,8 @@ unshift_entry(linked_list_t *list, list_entry_t *entry)
     if (list->cur)
         list->pos++;
     MUTEX_UNLOCK(list->lock);
-    return 0;
+
+    FUNC_LEAVE(0);
 }
 
 /*
@@ -343,6 +395,8 @@ unshift_entry(linked_list_t *list, list_entry_t *entry)
 static inline int
 insert_entry(linked_list_t *list, list_entry_t *entry, size_t pos)
 {
+    FUNC_ENTER(NULL);
+
     list_entry_t *prev, *next;
     int           ret = -1;
     MUTEX_LOCK(list->lock);
@@ -360,7 +414,7 @@ insert_entry(linked_list_t *list, list_entry_t *entry, size_t pos)
                 if (emptyEntry)
                     destroy_entry(emptyEntry);
                 MUTEX_UNLOCK(list->lock);
-                return -1;
+                FUNC_LEAVE(-1);
             }
         }
         ret = push_entry(list, entry);
@@ -368,7 +422,7 @@ insert_entry(linked_list_t *list, list_entry_t *entry, size_t pos)
 
     if (ret == 0) {
         MUTEX_UNLOCK(list->lock);
-        return ret;
+        FUNC_LEAVE(ret);
     }
 
     prev = pick_entry(list, pos - 1);
@@ -383,7 +437,8 @@ insert_entry(linked_list_t *list, list_entry_t *entry, size_t pos)
         ret = 0;
     }
     MUTEX_UNLOCK(list->lock);
-    return ret;
+
+    FUNC_LEAVE(ret);
 }
 
 /*
@@ -392,6 +447,8 @@ insert_entry(linked_list_t *list, list_entry_t *entry, size_t pos)
 static inline list_entry_t *
 pick_entry(linked_list_t *list, size_t pos)
 {
+    FUNC_ENTER(NULL);
+
     unsigned int  i;
     list_entry_t *entry;
 
@@ -399,7 +456,7 @@ pick_entry(linked_list_t *list, size_t pos)
 
     if (list->length <= pos) {
         MUTEX_UNLOCK(list->lock);
-        return NULL;
+        FUNC_LEAVE(NULL);
     }
 
     size_t half_length = list->length >> 1;
@@ -439,7 +496,8 @@ pick_entry(linked_list_t *list, size_t pos)
     }
 
     MUTEX_UNLOCK(list->lock);
-    return entry;
+
+    FUNC_LEAVE(entry);
 }
 
 /* Retreive the list_entry_t at pos in a linked_list_t removing it from the list
@@ -449,34 +507,42 @@ pick_entry(linked_list_t *list, size_t pos)
 static inline list_entry_t *
 fetch_entry(linked_list_t *list, size_t pos)
 {
+    FUNC_ENTER(NULL);
+
     list_entry_t *entry = NULL;
     if (pos == 0)
-        return shift_entry(list);
+        FUNC_LEAVE(shift_entry(list));
     else if (pos == list_count(list) - 1)
-        return pop_entry(list);
+        FUNC_LEAVE(pop_entry(list));
 
     entry = remove_entry(list, pos);
-    return entry;
+
+    FUNC_LEAVE(entry);
 }
 
 static inline int
 move_entry(linked_list_t *list, size_t srcPos, size_t dstPos)
 {
+    FUNC_ENTER(NULL);
+
     list_entry_t *e;
 
     e = fetch_entry(list, srcPos);
     if (e) {
         if (insert_entry(list, e, dstPos) == 0)
-            return 0;
+            FUNC_LEAVE(0);
     }
+
     /* TODO - Unimplemented */
-    return -1;
+    FUNC_LEAVE(-1);
 }
 
 /* XXX - still dangerous ... */
 static inline int
 swap_entries(linked_list_t *list, size_t pos1, size_t pos2)
 {
+    FUNC_ENTER(NULL);
+
     list_entry_t *e1;
     list_entry_t *e2;
     if (pos2 > pos1) {
@@ -492,16 +558,18 @@ swap_entries(linked_list_t *list, size_t pos1, size_t pos2)
         insert_entry(list, e2, pos1);
     }
     else
-        return -1;
+        FUNC_LEAVE(-1);
 
     /* TODO - Unimplemented */
-    return 0;
+    FUNC_LEAVE(0);
 }
 
 /* return old entry at pos */
 static inline list_entry_t *
 subst_entry(linked_list_t *list, size_t pos, list_entry_t *entry)
 {
+    FUNC_ENTER(NULL);
+
     list_entry_t *old;
 
     MUTEX_LOCK(list->lock);
@@ -509,19 +577,22 @@ subst_entry(linked_list_t *list, size_t pos, list_entry_t *entry)
     old = fetch_entry(list, pos);
     if (!old) {
         MUTEX_UNLOCK(list->lock);
-        return NULL;
+        FUNC_LEAVE(NULL);
     }
     insert_entry(list, entry, pos);
 
     MUTEX_UNLOCK(list->lock);
+
     /* XXX - NO CHECK ON INSERTION */
-    return old;
+    FUNC_LEAVE(old);
 }
 
 /* XXX - POSSIBLE RACE CONDITION BETWEEN pick_entry and the actual removal */
 static inline list_entry_t *
 remove_entry(linked_list_t *list, size_t pos)
 {
+    FUNC_ENTER(NULL);
+
     list_entry_t *next, *prev;
     list_entry_t *entry = pick_entry(list, pos);
     MUTEX_LOCK(list->lock);
@@ -551,10 +622,11 @@ remove_entry(linked_list_t *list, size_t pos)
             list->pos--;
         }
         MUTEX_UNLOCK(list->lock);
-        return entry;
+        FUNC_LEAVE(entry);
     }
     MUTEX_UNLOCK(list->lock);
-    return NULL;
+
+    FUNC_LEAVE(NULL);
 }
 
 /* return position of entry if linked in a list.
@@ -562,13 +634,15 @@ remove_entry(linked_list_t *list, size_t pos)
 long
 get_entry_position(list_entry_t *entry)
 {
+    FUNC_ENTER(NULL);
+
     int            i = 0;
     linked_list_t *list;
     list_entry_t * p;
     list = entry->list;
 
     if (!list)
-        return -1;
+        FUNC_LEAVE(-1);
 
     MUTEX_LOCK(list->lock);
     if (list) {
@@ -576,113 +650,138 @@ get_entry_position(list_entry_t *entry)
         while (p) {
             if (p == entry) {
                 MUTEX_UNLOCK(list->lock);
-                return i;
+                FUNC_LEAVE(i);
             }
             p = p->next;
             i++;
         }
     }
     MUTEX_UNLOCK(list->lock);
-    return -1;
+
+    FUNC_LEAVE(-1);
 }
 
 void *
 list_pop_value(linked_list_t *list)
 {
+    FUNC_ENTER(NULL);
+
     void *        val   = NULL;
     list_entry_t *entry = pop_entry(list);
     if (entry) {
         val = entry->value;
         destroy_entry(entry);
     }
-    return val;
+
+    FUNC_LEAVE(val);
 }
 
 int
 list_push_value(linked_list_t *list, void *val)
 {
+    FUNC_ENTER(NULL);
+
     int           res;
     list_entry_t *new_entry = create_entry();
     if (!new_entry)
-        return -1;
+        FUNC_LEAVE(-1);
     new_entry->value = val;
     res              = push_entry(list, new_entry);
     if (res != 0)
         destroy_entry(new_entry);
-    return res;
+
+    FUNC_LEAVE(res);
 }
 
 int
 list_unshift_value(linked_list_t *list, void *val)
 {
+    FUNC_ENTER(NULL);
+
     int           res;
     list_entry_t *new_entry = create_entry();
     if (!new_entry)
-        return -1;
+        FUNC_LEAVE(-1);
     new_entry->value = val;
     res              = unshift_entry(list, new_entry);
     if (res != 0)
         destroy_entry(new_entry);
-    return res;
+
+    FUNC_LEAVE(res);
 }
 
 void *
 list_shift_value(linked_list_t *list)
 {
+    FUNC_ENTER(NULL);
+
     void *        val   = NULL;
     list_entry_t *entry = shift_entry(list);
     if (entry) {
         val = entry->value;
         destroy_entry(entry);
     }
-    return val;
+
+    FUNC_LEAVE(val);
 }
 
 int
 list_insert_value(linked_list_t *list, void *val, size_t pos)
 {
+    FUNC_ENTER(NULL);
+
     int           res;
     list_entry_t *new_entry = create_entry();
     if (!new_entry)
-        return -1;
+        FUNC_LEAVE(-1);
     new_entry->value = val;
     res              = insert_entry(list, new_entry, pos);
     if (res != 0)
         destroy_entry(new_entry);
-    return res;
+
+    FUNC_LEAVE(res);
 }
 
 void *
 list_pick_value(linked_list_t *list, size_t pos)
 {
+    FUNC_ENTER(NULL);
+
     list_entry_t *entry = pick_entry(list, pos);
     if (entry)
         return entry->value;
-    return NULL;
+
+    FUNC_LEAVE(NULL);
 }
 
 void *
 list_fetch_value(linked_list_t *list, size_t pos)
 {
+    FUNC_ENTER(NULL);
+
     void *        val   = NULL;
     list_entry_t *entry = fetch_entry(list, pos);
     if (entry) {
         val = entry->value;
         destroy_entry(entry);
     }
-    return val;
+
+    FUNC_LEAVE(val);
 }
 
 /* just an accessor to move_entry */
 int
 list_move_value(linked_list_t *list, size_t srcPos, size_t dstPos)
 {
-    return move_entry(list, srcPos, dstPos);
+    FUNC_ENTER(NULL);
+    FUNC_LEAVE(move_entry(list, srcPos, dstPos));
 }
 
 void *
 list_set_value(linked_list_t *list, size_t pos, void *newval)
 {
+    FUNC_ENTER(NULL);
+
     void *old_value = NULL;
     MUTEX_LOCK(list->lock);
     list_entry_t *entry = pick_entry(list, pos);
@@ -694,13 +793,16 @@ list_set_value(linked_list_t *list, size_t pos, void *newval)
         list_insert_value(list, newval, pos);
     }
     MUTEX_UNLOCK(list->lock);
-    return old_value;
+
+    FUNC_LEAVE(old_value);
 }
 
 /* return old value at pos */
 void *
 list_subst_value(linked_list_t *list, size_t pos, void *newval)
 {
+    FUNC_ENTER(NULL);
+
     void *old_value = NULL;
     MUTEX_LOCK(list->lock);
     list_entry_t *entry = pick_entry(list, pos);
@@ -709,30 +811,37 @@ list_subst_value(linked_list_t *list, size_t pos, void *newval)
         entry->value = newval;
     }
     MUTEX_UNLOCK(list->lock);
-    return old_value;
+
+    FUNC_LEAVE(old_value);
 }
 
 int
 list_swap_values(linked_list_t *list, size_t pos1, size_t pos2)
 {
-    return swap_entries(list, pos1, pos2);
+    FUNC_ENTER(NULL);
+    FUNC_LEAVE(swap_entries(list, pos1, pos2));
 }
 
 int
 list_foreach_value(linked_list_t *list, int (*item_handler)(void *item, size_t idx, void *user), void *user)
 {
+    FUNC_ENTER(NULL);
+
     MUTEX_LOCK(list->lock);
     slice_t slice = {.list = list, .offset = 0, .length = list->length};
     MUTEX_UNLOCK(list->lock);
-    return slice_foreach_value(&slice, item_handler, user);
+
+    FUNC_LEAVE(slice_foreach_value(&slice, item_handler, user));
 }
 
 tagged_value_t *
 list_create_tagged_value_nocopy(char *tag, void *val)
 {
+    FUNC_ENTER(NULL);
+
     tagged_value_t *newval = (tagged_value_t *)PDC_calloc(1, sizeof(tagged_value_t));
     if (!newval) {
-        return NULL;
+        FUNC_LEAVE(NULL);
     }
 
     if (tag)
@@ -740,7 +849,7 @@ list_create_tagged_value_nocopy(char *tag, void *val)
     if (val)
         newval->value = val;
 
-    return newval;
+    FUNC_LEAVE(newval);
 }
 
 /*
@@ -753,9 +862,11 @@ list_create_tagged_value_nocopy(char *tag, void *val)
 tagged_value_t *
 list_create_tagged_value(char *tag, void *val, size_t vlen)
 {
+    FUNC_ENTER(NULL);
+
     tagged_value_t *newval = (tagged_value_t *)PDC_calloc(1, sizeof(tagged_value_t));
     if (!newval) {
-        return NULL;
+        FUNC_LEAVE(NULL);
     }
 
     if (tag)
@@ -769,9 +880,9 @@ list_create_tagged_value(char *tag, void *val, size_t vlen)
                 newval->vlen = vlen;
             }
             else {
-                free(newval->tag);
-                free(newval);
-                return NULL;
+                newval->tag = (char *)PDC_free(newval->tag);
+                newval      = (tagged_value_t *)PDC_free(newval);
+                FUNC_LEAVE(NULL);
             }
             newval->type = TV_TYPE_BINARY;
         }
@@ -781,7 +892,8 @@ list_create_tagged_value(char *tag, void *val, size_t vlen)
             newval->type  = TV_TYPE_STRING;
         }
     }
-    return newval;
+
+    FUNC_LEAVE(newval);
 }
 
 /*
@@ -793,28 +905,37 @@ list_create_tagged_value(char *tag, void *val, size_t vlen)
 tagged_value_t *
 list_create_tagged_sublist(char *tag, linked_list_t *sublist)
 {
+    FUNC_ENTER(NULL);
+
     tagged_value_t *newval = (tagged_value_t *)PDC_calloc(1, sizeof(tagged_value_t));
     if (!newval) {
-        return NULL;
+        FUNC_LEAVE(NULL);
     }
 
     if (tag)
         newval->tag = strdup(tag);
     newval->type  = TV_TYPE_LIST;
     newval->value = sublist;
-    return newval;
+
+    FUNC_LEAVE(newval);
 }
 
 /* Release resources for tagged_value_t pointed by tval */
 void
 list_destroy_tagged_value(tagged_value_t *tval)
 {
+    FUNC_ENTER(NULL);
+
     list_destroy_tagged_value_internal(tval, NULL);
+
+    FUNC_LEAVE_VOID();
 }
 
 tagged_value_t *
 list_set_tagged_value(linked_list_t *list, char *tag, void *value, size_t len, int copy)
 {
+    FUNC_ENTER(NULL);
+
     int i;
 
     tagged_value_t *tval;
@@ -830,9 +951,9 @@ list_set_tagged_value(linked_list_t *list, char *tag, void *value, size_t len, i
             MUTEX_UNLOCK(list->lock);
             if (!list_set_value(list, i, tval)) {
                 list_destroy_tagged_value(tval);
-                return NULL;
+                FUNC_LEAVE(NULL);
             }
-            return tv;
+            FUNC_LEAVE(tv);
         }
     }
     if (list_push_tagged_value(list, tval) == 0) {
@@ -840,14 +961,16 @@ list_set_tagged_value(linked_list_t *list, char *tag, void *value, size_t len, i
         tval = NULL;
     }
     MUTEX_UNLOCK(list->lock);
-    return NULL;
+
+    FUNC_LEAVE(NULL);
 }
 
 /* Pops a tagged_value_t from the list pointed by list */
 tagged_value_t *
 list_pop_tagged_value(linked_list_t *list)
 {
-    return (tagged_value_t *)list_pop_value(list);
+    FUNC_ENTER(NULL);
+    FUNC_LEAVE((tagged_value_t *)list_pop_value(list));
 }
 
 /*
@@ -857,6 +980,8 @@ list_pop_tagged_value(linked_list_t *list)
 int
 list_push_tagged_value(linked_list_t *list, tagged_value_t *tval)
 {
+    FUNC_ENTER(NULL);
+
     list_entry_t *new_entry;
     int           res = 0;
     if (tval) {
@@ -869,12 +994,15 @@ list_push_tagged_value(linked_list_t *list, tagged_value_t *tval)
                 destroy_entry(new_entry);
         }
     }
-    return res;
+
+    FUNC_LEAVE(res);
 }
 
 int
 list_unshift_tagged_value(linked_list_t *list, tagged_value_t *tval)
 {
+    FUNC_ENTER(NULL);
+
     int           res = 0;
     list_entry_t *new_entry;
     if (tval) {
@@ -887,18 +1015,22 @@ list_unshift_tagged_value(linked_list_t *list, tagged_value_t *tval)
                 destroy_entry(new_entry);
         }
     }
-    return res;
+
+    FUNC_LEAVE(res);
 }
 
 tagged_value_t *
 shift_tagged_value(linked_list_t *list)
 {
-    return (tagged_value_t *)list_shift_value(list);
+    FUNC_ENTER(NULL);
+    FUNC_LEAVE((tagged_value_t *)list_shift_value(list));
 }
 
 int
 list_insert_tagged_value(linked_list_t *list, tagged_value_t *tval, size_t pos)
 {
+    FUNC_ENTER(NULL);
+
     int           res = 0;
     list_entry_t *new_entry;
     if (tval) {
@@ -911,19 +1043,22 @@ list_insert_tagged_value(linked_list_t *list, tagged_value_t *tval, size_t pos)
                 destroy_entry(new_entry);
         }
     }
-    return res;
+
+    FUNC_LEAVE(res);
 }
 
 tagged_value_t *
 list_pick_tagged_value(linked_list_t *list, size_t pos)
 {
-    return (tagged_value_t *)list_pick_value(list, pos);
+    FUNC_ENTER(NULL);
+    FUNC_LEAVE((tagged_value_t *)list_pick_value(list, pos));
 }
 
 tagged_value_t *
 list_fetch_tagged_value(linked_list_t *list, size_t pos)
 {
-    return (tagged_value_t *)list_fetch_value(list, pos);
+    FUNC_ENTER(NULL);
+    FUNC_LEAVE((tagged_value_t *)list_fetch_value(list, pos));
 }
 
 /*
@@ -932,6 +1067,8 @@ list_fetch_tagged_value(linked_list_t *list, size_t pos)
 tagged_value_t *
 list_get_tagged_value(linked_list_t *list, char *tag)
 {
+    FUNC_ENTER(NULL);
+
     int             i;
     tagged_value_t *tval;
     for (i = 0; i < (int)list_count(list); i++) {
@@ -940,9 +1077,10 @@ list_get_tagged_value(linked_list_t *list, char *tag)
             continue;
         }
         if (strcmp(tval->tag, tag) == 0)
-            return tval;
+            FUNC_LEAVE(tval);
     }
-    return NULL;
+
+    FUNC_LEAVE(NULL);
 }
 
 /*
@@ -956,6 +1094,8 @@ list_get_tagged_value(linked_list_t *list, char *tag)
 size_t
 list_get_tagged_values(linked_list_t *list, char *tag, linked_list_t *values)
 {
+    FUNC_ENTER(NULL);
+
     int             i;
     int             ret;
     tagged_value_t *tval;
@@ -970,38 +1110,44 @@ list_get_tagged_values(linked_list_t *list, char *tag, linked_list_t *values)
             ret++;
         }
     }
-    return ret;
+
+    FUNC_LEAVE(ret);
 }
 
 static inline void
 swap_entry_node_val(list_entry_t *p1, list_entry_t *p2)
 {
+    FUNC_ENTER(NULL);
+
     if (!p1 || !p2)
-        return;
+        FUNC_LEAVE_VOID();
 
     void *tmp = p1->value;
     p1->value = p2->value;
     p2->value = tmp;
+
+    FUNC_LEAVE_VOID();
 }
 
 static inline void
 list_quick_sort(list_entry_t *head, list_entry_t *tail, list_entry_t *pivot, int length,
                 list_comparator_callback_t comparator)
 {
+    FUNC_ENTER(NULL);
+
     if (!head || !tail || !pivot || length < 2 || !comparator)
-        return;
+        FUNC_LEAVE_VOID();
 
     if (length == 2) {
         if (comparator(head->value, tail->value) < 0)
             swap_entry_node_val(head, tail);
-        return;
+        FUNC_LEAVE_VOID();
     }
 
     void *        pvalue = pivot->value;
     list_entry_t *p1 = head, *p2 = tail;
 
     for (;;) {
-
         while (p1 && p1 != pivot && comparator(p1->value, pvalue) > 0)
             p1 = p1->next;
 
@@ -1107,17 +1253,23 @@ list_quick_sort(list_entry_t *head, list_entry_t *tail, list_entry_t *pivot, int
         list_quick_sort(head, pivot->prev, pv1, l1, comparator);
     if (l2 > 1 && pivot->next && tail != pivot->next)
         list_quick_sort(pivot->next, tail, pv2, l2, comparator);
+
+    FUNC_LEAVE_VOID();
 }
 
 void
 list_sort(linked_list_t *list, list_comparator_callback_t comparator)
 {
+    FUNC_ENTER(NULL);
+
     MUTEX_LOCK(list->lock);
     list_entry_t *pivot = pick_entry(list, (list->length / 2) - 1);
     list_quick_sort(list->head, list->tail, pivot, list->length, comparator);
     list->cur = NULL;
     list->pos = 0;
     MUTEX_UNLOCK(list->lock);
+
+    FUNC_LEAVE_VOID();
 }
 
 // size_t
@@ -1129,6 +1281,8 @@ list_sort(linked_list_t *list, list_comparator_callback_t comparator)
 slice_t *
 slice_create(linked_list_t *list, size_t offset, size_t length)
 {
+    FUNC_ENTER(NULL);
+
     slice_t *slice    = PDC_calloc(1, sizeof(slice_t));
     slice->list       = list;
     slice->offset     = offset;
@@ -1146,12 +1300,14 @@ slice_create(linked_list_t *list, size_t offset, size_t length)
         e->prev   = cur;
     }
 
-    return slice;
+    FUNC_LEAVE(slice);
 }
 
 void
 slice_destroy(slice_t *slice)
 {
+    FUNC_ENTER(NULL);
+
     linked_list_t *list = slice->list;
     list_entry_t * cur  = list->slices;
     list_entry_t * prev = NULL;
@@ -1170,12 +1326,16 @@ slice_destroy(slice_t *slice)
         prev = cur;
         cur  = cur->next;
     }
-    free(slice);
+    slice = (slice_t *)PDC_free(slice);
+
+    FUNC_LEAVE_VOID();
 }
 
 int
 slice_foreach_value(slice_t *slice, int (*item_handler)(void *item, size_t idx, void *user), void *user)
 {
+    FUNC_ENTER(NULL);
+
     linked_list_t *list = slice->list;
     MUTEX_LOCK(list->lock);
     size_t        idx = 0;
@@ -1220,7 +1380,8 @@ slice_foreach_value(slice_t *slice, int (*item_handler)(void *item, size_t idx, 
         }
     }
     MUTEX_UNLOCK(list->lock);
-    return idx;
+
+    FUNC_LEAVE(idx);
 }
 
 // vim: tabstop=4 shiftwidth=4 expandtab:

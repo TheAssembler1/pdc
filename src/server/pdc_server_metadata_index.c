@@ -19,9 +19,13 @@ IDIOMS_t *idioms_g = NULL;
 void
 PDC_Server_metadata_index_init(uint32_t num_server, uint32_t server_id)
 {
+    FUNC_ENTER(NULL);
+
     midx_num_server_g = num_server;
     midx_server_id_g  = server_id;
     idioms_g          = IDIOMS_init(server_id, num_server);
+
+    FUNC_LEAVE_VOID();
 }
 
 /****************************/
@@ -31,9 +35,10 @@ PDC_Server_metadata_index_init(uint32_t num_server, uint32_t server_id)
 perr_t
 PDC_Server_dart_get_server_info(dart_get_server_info_in_t *in, dart_get_server_info_out_t *out)
 {
-    perr_t ret_value = SUCCEED;
     FUNC_ENTER(NULL);
-    uint32_t serverId = in->serverId;
+
+    perr_t   ret_value = SUCCEED;
+    uint32_t serverId  = in->serverId;
 
     out->indexed_word_count = idioms_g->index_record_count_g;
     out->request_count      = idioms_g->search_request_count_g;
@@ -45,6 +50,8 @@ perr_t
 PDC_Server_dart_perform_one_server(dart_perform_one_server_in_t *in, dart_perform_one_server_out_t *out,
                                    uint64_t *n_obj_ids_ptr, uint64_t **buf_ptrs)
 {
+    FUNC_ENTER(NULL);
+
     perr_t                 result     = SUCCEED;
     dart_op_type_t         op_type    = in->op_type;
     dart_hash_algo_t       hash_algo  = in->hash_algo;
@@ -54,13 +61,14 @@ PDC_Server_dart_perform_one_server(dart_perform_one_server_in_t *in, dart_perfor
     pdc_c_var_type_t       attr_dtype = in->attr_vtype;
     dart_object_ref_type_t ref_type   = in->obj_ref_type;
 
-    IDIOMS_md_idx_record_t *idx_record = (IDIOMS_md_idx_record_t *)calloc(1, sizeof(IDIOMS_md_idx_record_t));
-    idx_record->key                    = attr_key;
-    idx_record->value                  = attr_val;
-    idx_record->virtual_node_id        = in->vnode_id;
-    idx_record->type                   = in->attr_vtype;
-    idx_record->value_len              = in->attr_vsize;
-    idx_record->src_client_id          = in->src_client_id;
+    IDIOMS_md_idx_record_t *idx_record =
+        (IDIOMS_md_idx_record_t *)PDC_calloc(1, sizeof(IDIOMS_md_idx_record_t));
+    idx_record->key             = attr_key;
+    idx_record->value           = attr_val;
+    idx_record->virtual_node_id = in->vnode_id;
+    idx_record->type            = in->attr_vtype;
+    idx_record->value_len       = in->attr_vsize;
+    idx_record->src_client_id   = in->src_client_id;
 
     uint64_t obj_locator = in->obj_primary_ref;
     if (ref_type == REF_PRIMARY_ID) {
@@ -73,7 +81,7 @@ PDC_Server_dart_perform_one_server(dart_perform_one_server_in_t *in, dart_perfor
         obj_locator = in->obj_server_ref;
     }
 
-    idx_record->obj_ids     = (uint64_t *)calloc(1, sizeof(uint64_t));
+    idx_record->obj_ids     = (uint64_t *)PDC_calloc(1, sizeof(uint64_t));
     idx_record->obj_ids[0]  = obj_locator;
     idx_record->num_obj_ids = 1;
 
@@ -107,7 +115,8 @@ PDC_Server_dart_perform_one_server(dart_perform_one_server_in_t *in, dart_perfor
             out->has_bulk = 1;
         }
     }
-    return result;
+
+    FUNC_LEAVE(result);
 }
 
 // ********************* Index Dump  *********************
@@ -115,9 +124,12 @@ PDC_Server_dart_perform_one_server(dart_perform_one_server_in_t *in, dart_perfor
 perr_t
 metadata_index_dump(char *checkpiont_dir, uint32_t serverID)
 {
+    FUNC_ENTER(NULL);
+
     perr_t ret_value = SUCCEED;
     ret_value        = idioms_metadata_index_dump(idioms_g, checkpiont_dir, serverID);
-    return ret_value;
+
+    FUNC_LEAVE(ret_value);
 }
 
 // ********************* Index Recover  *********************
@@ -125,7 +137,10 @@ metadata_index_dump(char *checkpiont_dir, uint32_t serverID)
 perr_t
 metadata_index_recover(char *checkpiont_dir, int num_server, uint32_t serverID)
 {
+    FUNC_ENTER(NULL);
+
     perr_t ret_value = SUCCEED;
     ret_value        = idioms_metadata_index_recover(idioms_g, checkpiont_dir, num_server, serverID);
-    return ret_value;
+
+    FUNC_LEAVE(ret_value);
 }

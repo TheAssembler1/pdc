@@ -8,13 +8,13 @@ jl_load_module(const char *mod_name)
     const char *julia_module_dir = getenv("PDC_JULIA_MODULE_DIR");
     if (julia_module_dir == NULL || strlen(julia_module_dir) == 0) {
         // try to get it from PWD
-        LOG_WARNING("[PDC_JL_HELPER] Warning: PDC_JULIA_MODULE_DIR is not set, fallback to PWD!\n");
+        LOG_WARNING("[PDC_JL_HELPER] Warning: PDC_JULIA_MODULE_DIR is not set, fallback to PWD\n");
         julia_module_dir = getenv("PWD");
     }
 
     if (julia_module_dir == NULL || strlen(julia_module_dir) == 0) {
         // No way to find julia module directory
-        LOG_ERROR("[PDC_JL_HELPER] Error: Not able to find Julia module directory!\n");
+        LOG_ERROR("[PDC_JL_HELPER] Error: Not able to find Julia module directory\n");
         exit(-1);
     }
     LOG_INFO("[PDC_JL_HELPER] Julia module directory: %s\n", julia_module_dir);

@@ -76,36 +76,6 @@ double   server_hash_insert_time_g  = 0.0;
 double   server_bloom_init_time_g   = 0.0;
 uint32_t n_metadata_g               = 0;
 
-pbool_t
-PDC_region_is_identical(region_info_transfer_t reg1, region_info_transfer_t reg2)
-{
-    pbool_t ret_value = 0;
-
-    FUNC_ENTER(NULL);
-
-    if (reg1.ndim != reg2.ndim)
-        PGOTO_DONE(ret_value);
-    if (reg1.ndim >= 1) {
-        if (reg1.count_0 != reg2.count_0 || reg1.start_0 != reg2.start_0)
-            PGOTO_DONE(ret_value);
-    }
-    if (reg1.ndim >= 2) {
-        if (reg1.count_1 != reg2.count_1 || reg1.start_1 != reg2.start_1)
-            PGOTO_DONE(ret_value);
-    }
-    if (reg1.ndim >= 3) {
-        if (reg1.count_2 != reg2.count_2 || reg1.start_2 != reg2.start_2)
-            PGOTO_DONE(ret_value);
-    }
-    if (reg1.ndim >= 4) {
-        if (reg1.count_3 != reg2.count_3 || reg1.start_3 != reg2.start_3)
-            PGOTO_DONE(ret_value);
-    }
-    ret_value = 1;
-done:
-    FUNC_LEAVE(ret_value);
-}
-
 /*
  * Check if two hash keys are equal
  *
@@ -117,7 +87,8 @@ done:
 static int
 PDC_Server_metadata_int_equal(void *vlocation1, void *vlocation2)
 {
-    return *((uint32_t *)vlocation1) == *((uint32_t *)vlocation2);
+    FUNC_ENTER(NULL);
+    FUNC_LEAVE(*((uint32_t *)vlocation1) == *((uint32_t *)vlocation2));
 }
 
 /*
@@ -130,7 +101,8 @@ PDC_Server_metadata_int_equal(void *vlocation1, void *vlocation2)
 static unsigned int
 PDC_Server_metadata_int_hash(void *vlocation)
 {
-    return *((uint32_t *)vlocation);
+    FUNC_ENTER(NULL);
+    FUNC_LEAVE(*((uint32_t *)vlocation));
 }
 
 /*
@@ -143,7 +115,11 @@ PDC_Server_metadata_int_hash(void *vlocation)
 static void
 PDC_Server_metadata_int_hash_key_free(void *key)
 {
-    free((uint32_t *)key);
+    FUNC_ENTER(NULL);
+
+    key = (void *)PDC_free((uint32_t *)key);
+
+    FUNC_LEAVE_VOID();
 }
 
 /*
@@ -156,10 +132,10 @@ PDC_Server_metadata_int_hash_key_free(void *key)
 static void
 PDC_Server_metadata_hash_value_free(void *value)
 {
+    FUNC_ENTER(NULL);
+
     pdc_metadata_t *           elt, *tmp;
     pdc_hash_table_entry_head *head;
-
-    FUNC_ENTER(NULL);
 
     head = (pdc_hash_table_entry_head *)value;
 
@@ -172,9 +148,11 @@ PDC_Server_metadata_hash_value_free(void *value)
     if (is_restart_g == 0) {
         DL_FOREACH_SAFE(head->metadata, elt, tmp)
         {
-            free(elt);
+            elt = (pdc_metadata_t *)PDC_free(elt);
         }
     }
+
+    FUNC_LEAVE_VOID();
 }
 
 /*
@@ -187,9 +165,13 @@ PDC_Server_metadata_hash_value_free(void *value)
 static void
 PDC_Server_container_hash_value_free(void *value)
 {
+    FUNC_ENTER(NULL);
+
     pdc_cont_hash_table_entry_t *head = (pdc_cont_hash_table_entry_t *)value;
     if (head->obj_ids != NULL)
-        free(head->obj_ids);
+        head->obj_ids = (uint64_t *)PDC_free(head->obj_ids);
+
+    FUNC_LEAVE_VOID();
 }
 
 /*
@@ -202,9 +184,9 @@ PDC_Server_container_hash_value_free(void *value)
 void
 PDC_Server_metadata_init(pdc_metadata_t *a)
 {
-    int i;
-
     FUNC_ENTER(NULL);
+
+    int i;
 
     a->user_id     = 0;
     a->time_step   = 0;
@@ -229,6 +211,8 @@ PDC_Server_metadata_init(pdc_metadata_t *a)
     a->next                = NULL;
     a->transform_state     = 0;
     memset(&a->current_state, 0, sizeof(struct _pdc_transform_state));
+
+    FUNC_LEAVE_VOID();
 }
 // ^ hash table
 
@@ -244,7 +228,10 @@ static inline void
 combine_obj_info_to_string(pdc_metadata_t *metadata, char *output)
 {
     FUNC_ENTER(NULL);
+
     snprintf(output, TAG_LEN_MAX, "%s%d", metadata->obj_name, metadata->time_step);
+
+    FUNC_LEAVE_VOID();
 }
 
 /*
@@ -258,22 +245,18 @@ combine_obj_info_to_string(pdc_metadata_t *metadata, char *output)
 static pdc_metadata_t *
 find_metadata_by_id_from_list(pdc_metadata_t *mlist, uint64_t obj_id)
 {
-    pdc_metadata_t *ret_value, *elt;
-
     FUNC_ENTER(NULL);
 
+    pdc_metadata_t *ret_value, *elt;
+
     ret_value = NULL;
-    if (mlist == NULL) {
-        ret_value = NULL;
-        goto done;
-    }
+    if (mlist == NULL)
+        PGOTO_DONE(NULL);
 
     DL_FOREACH(mlist, elt)
     {
-        if (elt->obj_id == obj_id) {
-            ret_value = elt;
-            goto done;
-        }
+        if (elt->obj_id == obj_id)
+            PGOTO_DONE(elt);
     }
 
 done:
@@ -283,14 +266,14 @@ done:
 pdc_metadata_t *
 find_metadata_by_id(uint64_t obj_id)
 {
+    FUNC_ENTER(NULL);
+
     pdc_metadata_t *           ret_value = NULL;
     pdc_hash_table_entry_head *head;
     pdc_metadata_t *           elt;
     HashTableIterator          hash_table_iter;
     HashTablePair              pair;
     int                        n_entry;
-
-    FUNC_ENTER(NULL);
 
     if (metadata_hash_table_g != NULL) {
         // Since we only have the obj id, need to iterate the entire hash table
@@ -309,10 +292,10 @@ find_metadata_by_id(uint64_t obj_id)
                 }
             }
         }
-    } // if (metadata_hash_table_g != NULL)
+    }
     else {
-        LOG_INFO("==PDC_SERVER: metadata_hash_table_g not initialized!\n");
-        goto done;
+        LOG_WARNING("metadata_hash_table_g not initialized\n");
+        PGOTO_DONE(ret_value);
     }
 
 done:
@@ -322,9 +305,9 @@ done:
 pdc_metadata_t *
 PDC_Server_get_obj_metadata(pdcid_t obj_id)
 {
-    pdc_metadata_t *ret_value = NULL;
-
     FUNC_ENTER(NULL);
+
+    pdc_metadata_t *ret_value = NULL;
 
     ret_value = find_metadata_by_id(obj_id);
 
@@ -334,9 +317,12 @@ PDC_Server_get_obj_metadata(pdcid_t obj_id)
 int
 PDC_Server_has_metadata(pdcid_t obj_id)
 {
+    FUNC_ENTER(NULL);
+
     if (obj_id / PDC_SERVER_ID_INTERVEL == (pdcid_t)pdc_server_rank_g + 1)
-        return 1;
-    return 0;
+        FUNC_LEAVE(1);
+
+    FUNC_LEAVE(0);
 }
 
 /*
@@ -350,13 +336,13 @@ PDC_Server_has_metadata(pdcid_t obj_id)
 static pdc_metadata_t *
 find_identical_metadata(pdc_hash_table_entry_head *entry, pdc_metadata_t *a)
 {
+    FUNC_ENTER(NULL);
+
     pdc_metadata_t *ret_value = NULL;
     BLOOM_TYPE_T *  bloom;
     int             bloom_check;
     char            combined_string[TAG_LEN_MAX];
     pdc_metadata_t *elt;
-
-    FUNC_ENTER(NULL);
 
     // Use bloom filter to quick check if current metadata is in the list
     if (entry->bloom != NULL && a->user_id != 0 && a->app_name[0] != 0) {
@@ -391,19 +377,15 @@ find_identical_metadata(pdc_hash_table_entry_head *entry, pdc_metadata_t *a)
 #endif
 
         n_bloom_total_g++;
-        if (bloom_check == 0) {
-            ret_value = NULL;
-            goto done;
-        }
+        if (bloom_check == 0)
+            PGOTO_DONE(NULL);
         else {
             // bloom filter says maybe, so need to check entire list
             n_bloom_maybe_g++;
             DL_FOREACH(entry->metadata, elt)
             {
-                if (PDC_metadata_cmp(elt, a) == 0) {
-                    ret_value = elt;
-                    goto done;
-                }
+                if (PDC_metadata_cmp(elt, a) == 0)
+                    PGOTO_DONE(elt);
             }
         }
     }
@@ -411,12 +393,10 @@ find_identical_metadata(pdc_hash_table_entry_head *entry, pdc_metadata_t *a)
         // Bloom has not been created
         DL_FOREACH(entry->metadata, elt)
         {
-            if (PDC_metadata_cmp(elt, a) == 0) {
-                ret_value = elt;
-                goto done;
-            }
+            if (PDC_metadata_cmp(elt, a) == 0)
+                PGOTO_DONE(elt);
         }
-    } // if bloom==NULL
+    }
 
 done:
     FUNC_LEAVE(ret_value);
@@ -430,9 +410,9 @@ done:
 static uint64_t
 PDC_Server_gen_obj_id()
 {
-    uint64_t ret_value;
-
     FUNC_ENTER(NULL);
+
+    uint64_t ret_value;
 
 #ifdef ENABLE_MULTITHREAD
     hg_thread_mutex_lock(&gen_obj_id_mutex_g);
@@ -450,25 +430,21 @@ PDC_Server_gen_obj_id()
 perr_t
 PDC_Server_init_hash_table()
 {
-    perr_t ret_value = SUCCEED;
-
     FUNC_ENTER(NULL);
+
+    perr_t ret_value = SUCCEED;
 
     // Metadata hash table
     metadata_hash_table_g = hash_table_new(PDC_Server_metadata_int_hash, PDC_Server_metadata_int_equal);
-    if (metadata_hash_table_g == NULL) {
-        LOG_ERROR("==PDC_SERVER: metadata_hash_table_g init error! Exit...\n");
-        goto done;
-    }
+    if (metadata_hash_table_g == NULL)
+        PGOTO_ERROR(FAIL, "metadata_hash_table_g init error, exit...");
     hash_table_register_free_functions(metadata_hash_table_g, PDC_Server_metadata_int_hash_key_free,
                                        PDC_Server_metadata_hash_value_free);
 
     // Container hash table
     container_hash_table_g = hash_table_new(PDC_Server_metadata_int_hash, PDC_Server_metadata_int_equal);
-    if (container_hash_table_g == NULL) {
-        LOG_ERROR("==PDC_SERVER: container_hash_table_g init error! Exit...\n");
-        goto done;
-    }
+    if (container_hash_table_g == NULL)
+        PGOTO_ERROR(FAIL, "metadata_hash_table_g init error, exit...");
     hash_table_register_free_functions(container_hash_table_g, PDC_Server_metadata_int_hash_key_free,
                                        PDC_Server_container_hash_value_free);
 
@@ -489,24 +465,19 @@ done:
 static perr_t
 PDC_Server_remove_from_bloom(pdc_metadata_t *metadata, BLOOM_TYPE_T *bloom)
 {
-    perr_t ret_value = SUCCEED;
-
     FUNC_ENTER(NULL);
 
-    if (bloom == NULL) {
-        LOG_ERROR("==PDC_SERVER: PDC_Server_remove_from_bloom(): bloom pointer is NULL\n");
-        ret_value = FAIL;
-        goto done;
-    }
+    perr_t ret_value = SUCCEED;
+
+    if (bloom == NULL)
+        PGOTO_ERROR(FAIL, "PDC_Server_remove_from_bloom pointer is NULL\n");
 
     char combined_string[TAG_LEN_MAX];
     combine_obj_info_to_string(metadata, combined_string);
 
     ret_value = BLOOM_REMOVE(bloom, combined_string, strlen(combined_string));
-    if (ret_value != SUCCEED) {
-        LOG_ERROR("==PDC_SERVER[%d]: PDC_Server_remove_from_bloom() - error\n", pdc_server_rank_g);
-        goto done;
-    }
+    if (ret_value != SUCCEED)
+        PGOTO_ERROR(FAIL, "Rank [%d]: PDC_Server_remove_from_bloom() - error\n", pdc_server_rank_g);
 
 done:
     FUNC_LEAVE(ret_value);
@@ -523,22 +494,19 @@ done:
 static perr_t
 PDC_Server_add_to_bloom(pdc_metadata_t *metadata, BLOOM_TYPE_T *bloom)
 {
+    FUNC_ENTER(NULL);
+
     perr_t ret_value = SUCCEED;
     char   combined_string[TAG_LEN_MAX];
 
-    FUNC_ENTER(NULL);
-
-    if (bloom == NULL) {
-        goto done;
-    }
+    if (bloom == NULL)
+        PGOTO_ERROR(FAIL, "bloom was NULL");
 
     combine_obj_info_to_string(metadata, combined_string);
 
     ret_value = BLOOM_ADD(bloom, combined_string, strlen(combined_string));
-    if (ret_value != SUCCEED) {
-        LOG_ERROR("==PDC_SERVER[%d]: PDC_Server_add_to_bloom() - error \n", pdc_server_rank_g);
-        goto done;
-    }
+    if (ret_value != SUCCEED)
+        PGOTO_ERROR(FAIL, "Error with BLOOM_ADD");
 
 done:
     FUNC_LEAVE(ret_value);
@@ -554,11 +522,11 @@ done:
 static perr_t
 PDC_Server_bloom_init(pdc_hash_table_entry_head *entry)
 {
-    perr_t ret_value  = 0;
+    FUNC_ENTER(NULL);
+
+    perr_t ret_value  = SUCCEED;
     int    capacity   = 500000;
     double error_rate = 0.05;
-
-    FUNC_ENTER(NULL);
 
     // Init bloom filter
     n_bloom_maybe_g = 0;
@@ -574,11 +542,8 @@ PDC_Server_bloom_init(pdc_hash_table_entry_head *entry)
 #endif
 
     entry->bloom = (BLOOM_TYPE_T *)BLOOM_NEW(capacity, error_rate);
-    if (!entry->bloom) {
-        LOG_ERROR("ERROR: Could not create bloom filter\n");
-        ret_value = -1;
-        goto done;
-    }
+    if (entry->bloom == NULL)
+        PGOTO_ERROR(FAIL, "Could not create bloom filter");
 
 #ifdef ENABLE_TIMING
     // Timing
@@ -595,10 +560,10 @@ done:
 perr_t
 PDC_Server_hash_table_list_insert(pdc_hash_table_entry_head *head, pdc_metadata_t *new)
 {
+    FUNC_ENTER(NULL);
+
     perr_t          ret_value = SUCCEED;
     pdc_metadata_t *elt;
-
-    FUNC_ENTER(NULL);
 
     // add to bloom filter
     if (head->n_obj == CREATE_BLOOM_THRESHOLD) {
@@ -608,19 +573,13 @@ PDC_Server_hash_table_list_insert(pdc_hash_table_entry_head *head, pdc_metadata_
             PDC_Server_add_to_bloom(elt, head->bloom);
         }
         ret_value = PDC_Server_add_to_bloom(new, head->bloom);
-        if (ret_value != SUCCEED) {
-            LOG_ERROR("==PDC_SERVER[%d]: PDC_Server_hash_table_list_insert() - error add to bloom\n",
-                      pdc_server_rank_g);
-            goto done;
-        }
+        if (ret_value != SUCCEED)
+            PGOTO_ERROR(FAIL, "Error add to bloom");
     }
     else if (head->n_obj >= CREATE_BLOOM_THRESHOLD || head->bloom != NULL) {
         ret_value = PDC_Server_add_to_bloom(new, head->bloom);
-        if (ret_value != SUCCEED) {
-            LOG_ERROR("==PDC_SERVER[%d]: PDC_Server_hash_table_list_insert() - error add to bloom\n",
-                      pdc_server_rank_g);
-            goto done;
-        }
+        if (ret_value != SUCCEED)
+            PGOTO_ERROR(FAIL, "Error add to bloom\n");
     }
 
 #ifdef ENABLE_MULTITHREAD
@@ -635,18 +594,16 @@ PDC_Server_hash_table_list_insert(pdc_hash_table_entry_head *head, pdc_metadata_
 #endif
 
 done:
-
     FUNC_LEAVE(ret_value);
 }
 
 perr_t
 PDC_Server_hash_table_list_init(pdc_hash_table_entry_head *entry, uint32_t *hash_key)
 {
+    FUNC_ENTER(NULL);
 
     perr_t      ret_value = SUCCEED;
     hg_return_t ret;
-
-    FUNC_ENTER(NULL);
 
 #ifdef ENABLE_TIMING
     // Timing
@@ -659,11 +616,8 @@ PDC_Server_hash_table_list_init(pdc_hash_table_entry_head *entry, uint32_t *hash
 
     // Insert to hash table
     ret = hash_table_insert(metadata_hash_table_g, hash_key, entry);
-    if (ret != 1) {
-        LOG_ERROR("PDC_Server_hash_table_list_init(): Error with hash table insert!\n");
-        ret_value = FAIL;
-        goto done;
-    }
+    if (ret != 1)
+        PGOTO_ERROR(FAIL, "PDC_Server_hash_table_list_init error with hash table insert");
 
 #ifdef ENABLE_TIMING
     // Timing
@@ -680,14 +634,13 @@ done:
 perr_t
 PDC_Server_add_tag_metadata(metadata_add_tag_in_t *in, metadata_add_tag_out_t *out)
 {
+    FUNC_ENTER(NULL);
 
     perr_t    ret_value = SUCCEED;
     uint32_t *hash_key  = NULL;
 #ifdef ENABLE_MULTITHREAD
     int unlocked = 0;
 #endif
-
-    FUNC_ENTER(NULL);
 
 #ifdef ENABLE_TIMING
     // Timing
@@ -698,11 +651,9 @@ PDC_Server_add_tag_metadata(metadata_add_tag_in_t *in, metadata_add_tag_out_t *o
     gettimeofday(&pdc_timer_start, 0);
 #endif
 
-    hash_key = (uint32_t *)malloc(sizeof(uint32_t));
-    if (hash_key == NULL) {
-        LOG_ERROR("==PDC_SERVER: Cannot allocate hash_key!\n");
-        goto done;
-    }
+    hash_key = (uint32_t *)PDC_malloc(sizeof(uint32_t));
+    if (hash_key == NULL)
+        PGOTO_ERROR(FAIL, "Cannot allocate hash_key");
     total_mem_usage_g += sizeof(uint32_t);
     *hash_key       = in->hash_value;
     uint64_t obj_id = in->obj_id;
@@ -741,28 +692,24 @@ PDC_Server_add_tag_metadata(metadata_add_tag_in_t *in, metadata_add_tag_out_t *o
             } // end if (target != NULL)
             else {
                 // Object not found for deletion request
-                LOG_ERROR("==PDC_SERVER: add tag target not found 1!\n");
+                LOG_ERROR("Add tag target not found \n");
                 out->ret = -1;
             }
 
         } // end if lookup_value != NULL
         else {
-            LOG_ERROR("==PDC_SERVER: add tag target not found 2!\n");
+            LOG_ERROR("Add tag target not found 2\n");
             out->ret = -1;
         }
 
     } // if (metadata_hash_table_g != NULL)
     else {
-        LOG_ERROR("==PDC_SERVER: metadata_hash_table_g not initilized!\n");
-        ret_value = FAIL;
-        out->ret  = -1;
-        goto done;
+        out->ret = -1;
+        PGOTO_ERROR(FAIL, "metadata_hash_table_g not initilized");
     }
 
-    if (ret_value != SUCCEED) {
-        LOG_ERROR("==PDC_SERVER[%d]: error \n", pdc_server_rank_g);
-        goto done;
-    }
+    if (ret_value != SUCCEED)
+        PGOTO_DONE(FAIL);
 
 #ifdef ENABLE_MULTITHREAD
     // ^ Release hash table lock
@@ -793,21 +740,19 @@ done:
     if (unlocked == 0)
         hg_thread_mutex_unlock(&pdc_metadata_hash_table_mutex_g);
 #endif
-    fflush(stdout);
-
     FUNC_LEAVE(ret_value);
 }
 
 perr_t
 PDC_Server_update_metadata(metadata_update_in_t *in, metadata_update_out_t *out)
 {
+    FUNC_ENTER(NULL);
+
     perr_t                     ret_value = SUCCEED;
     uint64_t                   obj_id;
     pdc_hash_table_entry_head *lookup_value;
     uint32_t *                 hash_key = NULL;
     pdc_metadata_t *           target;
-
-    FUNC_ENTER(NULL);
 
 #ifdef ENABLE_TIMING
     // Timing
@@ -818,11 +763,9 @@ PDC_Server_update_metadata(metadata_update_in_t *in, metadata_update_out_t *out)
     gettimeofday(&pdc_timer_start, 0);
 #endif
 
-    hash_key = (uint32_t *)malloc(sizeof(uint32_t));
-    if (hash_key == NULL) {
-        LOG_ERROR("==PDC_SERVER: Cannot allocate hash_key!\n");
-        goto done;
-    }
+    hash_key = (uint32_t *)PDC_malloc(sizeof(uint32_t));
+    if (hash_key == NULL)
+        PGOTO_ERROR(FAIL, "Cannot allocate hash_key");
     total_mem_usage_g += sizeof(uint32_t);
     *hash_key = in->hash_value;
     obj_id    = in->obj_id;
@@ -886,10 +829,8 @@ PDC_Server_update_metadata(metadata_update_in_t *in, metadata_update_out_t *out)
 
     } // if (metadata_hash_table_g != NULL)
     else {
-        LOG_ERROR("==PDC_SERVER: metadata_hash_table_g not initialized!\n");
-        ret_value = -1;
-        out->ret  = -1;
-        goto done;
+        out->ret = -1;
+        PGOTO_ERROR(FAIL, "metadata_hash_table_g not initialized");
     }
 
 #ifdef ENABLE_MULTITHREAD
@@ -921,21 +862,20 @@ done:
     if (unlocked == 0)
         hg_thread_mutex_unlock(&pdc_metadata_hash_table_mutex_g);
 #endif
-    fflush(stdout);
     FUNC_LEAVE(ret_value);
 }
 
 perr_t
 PDC_Server_delete_metadata_by_id(metadata_delete_by_id_in_t *in, metadata_delete_by_id_out_t *out)
 {
+    FUNC_ENTER(NULL);
+
     perr_t            ret_value = FAIL;
     pdc_metadata_t *  elt;
     HashTableIterator hash_table_iter;
     HashTablePair     pair;
     uint64_t          target_obj_id;
     int               n_entry;
-
-    FUNC_ENTER(NULL);
 
     out->ret = -1;
 
@@ -971,14 +911,12 @@ PDC_Server_delete_metadata_by_id(metadata_delete_by_id_in_t *in, metadata_delete
 
             if (cont_entry->cont_id == target_obj_id) {
                 hash_table_remove(container_hash_table_g, pair.key);
-                out->ret  = 1;
-                ret_value = SUCCEED;
-                goto done;
+                out->ret = 1;
+                PGOTO_DONE(SUCCEED);
             }
         }
     }
     if (out->ret == -1 && metadata_hash_table_g != NULL) {
-
         // Since we only have the obj id, need to iterate the entire hash table
         pdc_hash_table_entry_head *head;
 
@@ -1018,10 +956,8 @@ PDC_Server_delete_metadata_by_id(metadata_delete_by_id_in_t *in, metadata_delete
         }     // while
     }         // if (metadata_hash_table_g != NULL)
     else {
-        LOG_ERROR("==PDC_SERVER: metadata_hash_table_g not initialized!\n");
-        ret_value = FAIL;
-        out->ret  = -1;
-        goto done;
+        out->ret = -1;
+        PGOTO_ERROR(FAIL, "metadata_hash_table_g not initialized");
     }
 
 done:
@@ -1069,11 +1005,11 @@ done:
 perr_t
 PDC_delete_metadata_from_hash_table(metadata_delete_in_t *in, metadata_delete_out_t *out)
 {
+    FUNC_ENTER(NULL);
+
     perr_t          ret_value = SUCCEED;
     uint32_t *      hash_key  = NULL;
     pdc_metadata_t *target;
-
-    FUNC_ENTER(NULL);
 
 #ifdef ENABLE_TIMING
     // Timing
@@ -1084,11 +1020,9 @@ PDC_delete_metadata_from_hash_table(metadata_delete_in_t *in, metadata_delete_ou
     gettimeofday(&pdc_timer_start, 0);
 #endif
 
-    hash_key = (uint32_t *)malloc(sizeof(uint32_t));
-    if (hash_key == NULL) {
-        LOG_ERROR("==PDC_SERVER: Cannot allocate hash_key!\n");
-        goto done;
-    }
+    hash_key = (uint32_t *)PDC_malloc(sizeof(uint32_t));
+    if (hash_key == NULL)
+        PGOTO_ERROR(FAIL, "Cannot allocate hash_key");
     total_mem_usage_g += sizeof(uint32_t);
     *hash_key = in->hash_value;
 
@@ -1134,24 +1068,22 @@ PDC_delete_metadata_from_hash_table(metadata_delete_in_t *in, metadata_delete_ou
             } // if (lookup_value != NULL)
             else {
                 // Object not found for deletion request
-                LOG_ERROR("==PDC_SERVER: delete target not found!\n");
+                LOG_ERROR("Delete target not found\n");
                 ret_value = -1;
                 out->ret  = -1;
             }
 
         } // if lookup_value != NULL
         else {
-            LOG_ERROR("==PDC_SERVER: delete target not found!\n");
+            LOG_ERROR("Delete target not found\n");
             ret_value = -1;
             out->ret  = -1;
         }
 
     } // if (metadata_hash_table_g != NULL)
     else {
-        LOG_ERROR("==PDC_SERVER: metadata_hash_table_g not initialized!\n");
-        ret_value = -1;
-        out->ret  = -1;
-        goto done;
+        out->ret = -1;
+        PGOTO_ERROR(FAIL, "metadata_hash_table_g not initialized");
     }
 
 #ifdef ENABLE_MULTITHREAD
@@ -1198,6 +1130,8 @@ done:
 perr_t
 PDC_insert_metadata_to_hash_table(gen_obj_id_in_t *in, gen_obj_id_out_t *out)
 {
+    FUNC_ENTER(NULL);
+
     perr_t          ret_value = SUCCEED;
     pdc_metadata_t *metadata;
     uint32_t *      hash_key, i;
@@ -1205,8 +1139,6 @@ PDC_insert_metadata_to_hash_table(gen_obj_id_in_t *in, gen_obj_id_out_t *out)
 
     // DEBUG
     int debug_flag = 0;
-
-    FUNC_ENTER(NULL);
 
 #ifdef ENABLE_TIMING
     // Timing
@@ -1218,10 +1150,8 @@ PDC_insert_metadata_to_hash_table(gen_obj_id_in_t *in, gen_obj_id_out_t *out)
 #endif
 
     metadata = (pdc_metadata_t *)PDC_malloc(sizeof(pdc_metadata_t));
-    if (metadata == NULL) {
-        LOG_ERROR("Cannot allocate pdc_metadata_t!\n");
-        goto done;
-    }
+    if (metadata == NULL)
+        PGOTO_ERROR(FAIL, "Cannot allocate pdc_metadata_t");
 
 #ifdef ENABLE_MULTITHREAD
     hg_thread_mutex_lock(&total_mem_usage_mutex_g);
@@ -1253,10 +1183,8 @@ PDC_insert_metadata_to_hash_table(gen_obj_id_in_t *in, gen_obj_id_out_t *out)
     strcpy(metadata->data_location, in->data.data_location);
 
     hash_key = (uint32_t *)PDC_malloc(sizeof(uint32_t));
-    if (hash_key == NULL) {
-        LOG_ERROR("Cannot allocate hash_key!\n");
-        goto done;
-    }
+    if (hash_key == NULL)
+        PGOTO_ERROR(FAIL, "Cannot allocate hash_key");
     total_mem_usage_g += sizeof(uint32_t);
     *hash_key = in->hash_value;
 
@@ -1277,15 +1205,14 @@ PDC_insert_metadata_to_hash_table(gen_obj_id_in_t *in, gen_obj_id_out_t *out)
         // Is this hash value exist in the Hash table?
         if (lookup_value != NULL) {
             if (debug_flag == 1)
-                LOG_DEBUG("lookup_value not NULL!\n");
+                LOG_DEBUG("lookup_value not NULL\n");
             // Check if there exist metadata identical to current one
             found_identical = find_identical_metadata(lookup_value, metadata);
             if (found_identical != NULL) {
-                LOG_ERROR("==PDC_SERVER[%d]: Found identical metadata with name %s!\n", pdc_server_rank_g,
-                          metadata->obj_name);
                 out->obj_id = 0;
-                free(metadata);
-                goto done;
+                metadata    = (pdc_metadata_t *)PDC_free(metadata);
+                PGOTO_ERROR(FAIL, "Found identical metadata with name %s", pdc_server_rank_g,
+                            metadata->obj_name);
             }
             else {
                 PDC_Server_hash_table_list_insert(lookup_value, metadata);
@@ -1293,10 +1220,8 @@ PDC_insert_metadata_to_hash_table(gen_obj_id_in_t *in, gen_obj_id_out_t *out)
         }
         else {
             // First entry for current hasy_key, init linked list, and insert to hash table
-            if (debug_flag == 1) {
+            if (debug_flag == 1)
                 LOG_DEBUG("lookup_value is NULL! Init linked list\n");
-            }
-            fflush(stdout);
 
             pdc_hash_table_entry_head *entry =
                 (pdc_hash_table_entry_head *)PDC_malloc(sizeof(pdc_hash_table_entry_head));
@@ -1309,10 +1234,8 @@ PDC_insert_metadata_to_hash_table(gen_obj_id_in_t *in, gen_obj_id_out_t *out)
             PDC_Server_hash_table_list_insert(entry, metadata);
         }
     }
-    else {
-        LOG_ERROR("metadata_hash_table_g not initialized!\n");
-        goto done;
-    }
+    else
+        PGOTO_ERROR(FAIL, "metadata_hash_table_g not initialized");
 
     // Generate object id (uint64_t)
     metadata->obj_id = PDC_Server_gen_obj_id();
@@ -1364,13 +1287,13 @@ done:
 perr_t
 PDC_Server_print_all_metadata()
 {
+    FUNC_ENTER(NULL);
+
     perr_t                     ret_value = SUCCEED;
     HashTableIterator          hash_table_iter;
     pdc_metadata_t *           elt;
     pdc_hash_table_entry_head *head;
     HashTablePair              pair;
-
-    FUNC_ENTER(NULL);
 
     hash_table_iterate(metadata_hash_table_g, &hash_table_iter);
     while (hash_table_iter_has_more(&hash_table_iter)) {
@@ -1381,19 +1304,20 @@ PDC_Server_print_all_metadata()
             PDC_print_metadata(elt);
         }
     }
+
     FUNC_LEAVE(ret_value);
 }
 
 perr_t
 PDC_Server_print_all_containers()
 {
+    FUNC_ENTER(NULL);
+
     int                          i;
     perr_t                       ret_value = SUCCEED;
     HashTableIterator            hash_table_iter;
     pdc_cont_hash_table_entry_t *cont_entry = NULL;
     HashTablePair                pair;
-
-    FUNC_ENTER(NULL);
 
     hash_table_iterate(container_hash_table_g, &hash_table_iter);
     while (hash_table_iter_has_more(&hash_table_iter)) {
@@ -1414,6 +1338,8 @@ PDC_Server_print_all_containers()
 perr_t
 PDC_Server_metadata_duplicate_check()
 {
+    FUNC_ENTER(NULL);
+
     perr_t                     ret_value = SUCCEED;
     HashTableIterator          hash_table_iter;
     HashTablePair              pair;
@@ -1423,8 +1349,6 @@ PDC_Server_metadata_duplicate_check()
     int                        all_dup_obj = 0;
     pdc_metadata_t *           elt, *elt_next;
     pdc_hash_table_entry_head *head;
-
-    FUNC_ENTER(NULL);
 
     n_entry = hash_table_num_entries(metadata_hash_table_g);
 
@@ -1439,11 +1363,9 @@ PDC_Server_metadata_duplicate_check()
 #endif
 
     if (pdc_server_rank_g == 0) {
-        LOG_INFO("==PDC_SERVER: Bloom filter says maybe %d times out of %d\n", all_maybe, all_total);
-        LOG_INFO("==PDC_SERVER: Metadata duplicate check with %d hash entries ", all_entry);
+        LOG_INFO("Bloom filter says maybe %d times out of %d\n", all_maybe, all_total);
+        LOG_INFO("Metadata duplicate check with %d hash entries\n", all_entry);
     }
-
-    fflush(stdout);
 
     hash_table_iterate(metadata_hash_table_g, &hash_table_iter);
 
@@ -1458,15 +1380,12 @@ PDC_Server_metadata_duplicate_check()
             if (elt_next != NULL) {
                 if (PDC_metadata_cmp(elt, elt_next) == 0) {
                     has_dup_obj = 1;
-                    ret_value   = FAIL;
-                    goto done;
+                    PGOTO_DONE(FAIL);
                 }
             }
         }
         count++;
     }
-
-    fflush(stdout);
 
 done:
 #ifdef ENABLE_MPI
@@ -1476,10 +1395,10 @@ done:
 #endif
     if (pdc_server_rank_g == 0) {
         if (all_dup_obj > 0) {
-            LOG_INFO("  ...Found duplicates!\n");
+            LOG_INFO("  ...Found duplicates\n");
         }
         else {
-            LOG_INFO("  ...No duplicates found!\n");
+            LOG_INFO("  ...No duplicates found\n");
         }
     }
 
@@ -1497,38 +1416,26 @@ done:
 static int
 is_metadata_satisfy_constraint(pdc_metadata_t *metadata, metadata_query_transfer_in_t *constraints)
 {
-    int ret_value = 1;
-
     FUNC_ENTER(NULL);
 
-    if (constraints->user_id > 0 && constraints->user_id != metadata->user_id) {
-        ret_value = -1;
-        goto done;
-    }
-    if (strcmp(constraints->app_name, " ") != 0 && strcmp(metadata->app_name, constraints->app_name) != 0) {
-        ret_value = -1;
-        goto done;
-    }
-    if (strcmp(constraints->obj_name, " ") != 0 && strcmp(metadata->obj_name, constraints->obj_name) != 0) {
-        ret_value = -1;
-        goto done;
-    }
+    int ret_value = 1;
+
+    if (constraints->user_id > 0 && constraints->user_id != metadata->user_id)
+        PGOTO_DONE(-1);
+    if (strcmp(constraints->app_name, " ") != 0 && strcmp(metadata->app_name, constraints->app_name) != 0)
+        PGOTO_DONE(-1);
+    if (strcmp(constraints->obj_name, " ") != 0 && strcmp(metadata->obj_name, constraints->obj_name) != 0)
+        PGOTO_DONE(-1);
     if (constraints->time_step_from > 0 && constraints->time_step_to > 0 &&
         (metadata->time_step < constraints->time_step_from ||
          metadata->time_step > constraints->time_step_to)) {
-        ret_value = -1;
-        goto done;
+        PGOTO_DONE(-1);
     }
-    if (constraints->ndim > 0 && metadata->ndim != constraints->ndim) {
-        ret_value = -1;
-        goto done;
-    }
+    if (constraints->ndim > 0 && metadata->ndim != constraints->ndim)
+        PGOTO_DONE(-1);
     // TODO: Currently only supports searching with one tag
-    if (strcmp(constraints->tags, " ") != 0 && strstr(metadata->tags, constraints->tags) == NULL) {
-
-        ret_value = -1;
-        goto done;
-    }
+    if (strcmp(constraints->tags, " ") != 0 && strstr(metadata->tags, constraints->tags) == NULL)
+        PGOTO_DONE(-1);
 
 done:
     FUNC_LEAVE(ret_value);
@@ -1537,7 +1444,9 @@ done:
 perr_t
 PDC_Server_get_partial_query_result(metadata_query_transfer_in_t *in, uint32_t *n_meta, void ***buf_ptrs)
 {
-    perr_t                     ret_value = FAIL;
+    FUNC_ENTER(NULL);
+
+    perr_t                     ret_value = SUCCEED;
     uint32_t                   i;
     uint32_t                   n_buf, iter = 0;
     pdc_hash_table_entry_head *head;
@@ -1546,17 +1455,14 @@ PDC_Server_get_partial_query_result(metadata_query_transfer_in_t *in, uint32_t *
     int                        n_entry;
     HashTablePair              pair;
 
-    FUNC_ENTER(NULL);
-
     // n_buf = n_metadata_g + 1 for potential padding array
     n_buf     = n_metadata_g + 1;
-    *buf_ptrs = (void **)calloc(n_buf, sizeof(void *));
+    *buf_ptrs = (void **)PDC_calloc(n_buf, sizeof(void *));
     for (i = 0; i < n_buf; i++) {
-        (*buf_ptrs)[i] = (void *)calloc(1, sizeof(void *));
+        (*buf_ptrs)[i] = (void *)PDC_calloc(1, sizeof(void *));
     }
     // TODO: free buf_ptrs
     if (metadata_hash_table_g != NULL) {
-
         n_entry = hash_table_num_entries(metadata_hash_table_g);
         hash_table_iterate(metadata_hash_table_g, &hash_table_iter);
 
@@ -1577,13 +1483,8 @@ PDC_Server_get_partial_query_result(metadata_query_transfer_in_t *in, uint32_t *
         }
         *n_meta = iter;
     } // if (metadata_hash_table_g != NULL)
-    else {
-        LOG_ERROR("==PDC_SERVER: metadata_hash_table_g not initialized!\n");
-        ret_value = FAIL;
-        goto done;
-    }
-
-    ret_value = SUCCEED;
+    else
+        PGOTO_ERROR(FAIL, "metadata_hash_table_g not initialized");
 
 done:
     FUNC_LEAVE(ret_value);
@@ -1593,11 +1494,13 @@ void
 num_query_action_someta(void *cond_exact, void *cond_lo, void *cond_hi, int lo_inclusive, int hi_inclusive,
                         pdc_c_var_type_t num_type, void *input, void **out, uint64_t *out_len)
 {
+    FUNC_ENTER(NULL);
+
     void *               input_val  = ((pdc_kvtag_t *)input)->value;
     size_t               input_size = ((pdc_kvtag_t *)input)->size;
     libhl_cmp_callback_t cmp_func   = LIBHL_CMP_CB(num_type);
     *out_len                        = 1;
-    *out                            = calloc(1, sizeof(uint64_t));
+    *out                            = PDC_calloc(1, sizeof(uint64_t));
     pbool_t ret_value               = FALSE;
     if (cond_exact != NULL) { // Exact
         ret_value = cmp_func(input_val, input_size, cond_exact, get_size_by_dtype(num_type)) == 0;
@@ -1624,6 +1527,8 @@ num_query_action_someta(void *cond_exact, void *cond_lo, void *cond_hi, int lo_i
     else {
     }
     *((uint64_t *)(*out)) = (uint64_t)ret_value;
+
+    FUNC_LEAVE_VOID();
 }
 
 num_query_action_collection_t soMetaNumQueryActions = {num_query_action_someta, num_query_action_someta,
@@ -1632,21 +1537,22 @@ num_query_action_collection_t soMetaNumQueryActions = {num_query_action_someta, 
 pbool_t
 _is_matching_kvtag(pdc_kvtag_t *in, pdc_kvtag_t *kvtag)
 {
-    pbool_t ret_value = TRUE;
     FUNC_ENTER(NULL);
+
+    pbool_t ret_value = TRUE;
     // match attribute name
     if (!simple_matches(kvtag->name, in->name)) {
-        return FALSE;
+        FUNC_LEAVE(FALSE);
     }
 
     // test attribute type
     if (in->type != kvtag->type) {
-        return FALSE;
+        FUNC_LEAVE(FALSE);
     }
     if (in->type == (int8_t)PDC_STRING) {
         char *pattern = (char *)in->value;
         if (!simple_matches(kvtag->value, pattern)) {
-            return FALSE;
+            FUNC_LEAVE(FALSE);
         }
     }
     else { // FIXME: for all numeric types, we use memcmp to compare, for exact value query, but we also
@@ -1667,29 +1573,33 @@ _is_matching_kvtag(pdc_kvtag_t *in, pdc_kvtag_t *kvtag)
 static int
 sqlite_query_kvtag_callback(void *data, int argc, char **argv, char **colName)
 {
+    FUNC_ENTER(NULL);
+
     pdc_sqlite3_query_t *query_data = (pdc_sqlite3_query_t *)data;
 
     if (NULL != argv[0]) {
         pdcid_t id = strtoull(argv[0], NULL, 10);
         if (query_data->nobj >= query_data->nalloc) {
             query_data->nalloc *= 2;
-            *query_data->obj_ids = realloc(*query_data->obj_ids, query_data->nalloc * sizeof(uint64_t));
+            *query_data->obj_ids = PDC_realloc(*query_data->obj_ids, query_data->nalloc * sizeof(uint64_t));
         }
         (*query_data->obj_ids)[query_data->nobj] = id;
         query_data->nobj += 1;
     }
     else {
         LOG_INFO("SQLite3 found nothing\n");
-        return 0;
+        FUNC_LEAVE(0);
     }
 
-    return 0;
+    FUNC_LEAVE(0);
 }
 #endif
 
 static perr_t
 PDC_Server_query_kvtag_rocksdb(pdc_kvtag_t *in, uint32_t *n_meta, uint64_t **obj_ids, uint64_t alloc_size)
 {
+    FUNC_ENTER(NULL);
+
     perr_t ret_value = SUCCEED;
 #ifdef ENABLE_ROCKSDB
     const char *rocksdb_key;
@@ -1716,7 +1626,7 @@ PDC_Server_query_kvtag_rocksdb(pdc_kvtag_t *in, uint32_t *n_meta, uint64_t **obj
         if (_is_matching_kvtag(in, &tmp) == TRUE) {
             if (iter >= alloc_size) {
                 alloc_size *= 2;
-                *obj_ids = (void *)realloc(*obj_ids, alloc_size * sizeof(uint64_t));
+                *obj_ids = (void *)PDC_realloc(*obj_ids, alloc_size * sizeof(uint64_t));
             }
             (*obj_ids)[iter++] = obj_id;
         }
@@ -1730,16 +1640,18 @@ PDC_Server_query_kvtag_rocksdb(pdc_kvtag_t *in, uint32_t *n_meta, uint64_t **obj
     if (rocksdb_iter)
         rocksdb_iter_destroy(rocksdb_iter);
 #else
-    LOG_ERROR("==PDC_SERVER[%d]: enabled rocksdb but PDC is not compiled with it!\n", pdc_server_rank_g);
+    LOG_ERROR("Enabled rocksdb but PDC is not compiled with it\n");
     ret_value = FAIL;
 #endif
 
-    return ret_value;
+    FUNC_LEAVE(ret_value);
 }
 
 static perr_t
 PDC_Server_query_kvtag_sqlite(pdc_kvtag_t *in, uint32_t *n_meta, uint64_t **obj_ids, uint64_t alloc_size)
 {
+    FUNC_ENTER(NULL);
+
     perr_t ret_value = SUCCEED;
 #ifdef ENABLE_SQLITE3
     char                sql[TAG_LEN_MAX];
@@ -1770,7 +1682,7 @@ PDC_Server_query_kvtag_sqlite(pdc_kvtag_t *in, uint32_t *n_meta, uint64_t **obj_
                 sprintf(sql, "SELECT objid FROM objects WHERE name = \'%s\' AND value_text LIKE \'%s\';",
                         in->name, tmp_value);
                 if (tmp_value)
-                    free(tmp_value);
+                    tmp_value = (char *)PDC_free(tmp_value);
             }
         }
         else {
@@ -1809,7 +1721,7 @@ PDC_Server_query_kvtag_sqlite(pdc_kvtag_t *in, uint32_t *n_meta, uint64_t **obj_
                 sprintf(sql, "SELECT objid FROM objects WHERE name LIKE \'%s\' AND value_text LIKE \'%s\';",
                         tmp_name, tmp_value);
                 if (tmp_value)
-                    free(tmp_value);
+                    tmp_value = (char *)PDC_free(tmp_value);
             }
         }
         else {
@@ -1818,7 +1730,7 @@ PDC_Server_query_kvtag_sqlite(pdc_kvtag_t *in, uint32_t *n_meta, uint64_t **obj_
         }
 
         if (tmp_name)
-            free(tmp_name);
+            tmp_name = (char *)PDC_free(tmp_name);
     }
 
     query_data.nobj    = 0;
@@ -1828,20 +1740,22 @@ PDC_Server_query_kvtag_sqlite(pdc_kvtag_t *in, uint32_t *n_meta, uint64_t **obj_
     // Construct a SQL query
     sqlite3_exec(sqlite3_db_g, sql, sqlite_query_kvtag_callback, &query_data, &errMessage);
     if (errMessage)
-        LOG_ERROR("==PDC_SERVER[%d]: Error from SQLite %s!\n", pdc_server_rank_g, errMessage);
+        LOG_ERROR("Error from SQLite %s\n", errMessage);
 
     *n_meta = query_data.nobj;
 #else
-    LOG_ERROR("==PDC_SERVER[%d]: enabled SQLite3 but PDC is not compiled with it!\n", pdc_server_rank_g);
+    LOG_ERROR("Enabled SQLite3 but PDC is not compiled with it\n");
     ret_value = FAIL;
 #endif
 
-    return ret_value;
+    FUNC_LEAVE(ret_value);
 }
 
 static perr_t
 PDC_Server_query_kvtag_someta(pdc_kvtag_t *in, uint32_t *n_meta, uint64_t **obj_ids, uint64_t alloc_size)
 {
+    FUNC_ENTER(NULL);
+
     perr_t                     ret_value = SUCCEED;
     uint32_t                   iter      = 0;
     pdc_hash_table_entry_head *head;
@@ -1862,7 +1776,7 @@ PDC_Server_query_kvtag_someta(pdc_kvtag_t *in, uint32_t *n_meta, uint64_t **obj_
             DL_FOREACH(head->metadata, elt)
             {
 #ifdef PDC_DEBUG_OUTPUT
-                LOG_DEBUG("==PDC_SERVER: Matching kvtag [\"%s\":\"%s\"] of object %s on condition in->key: "
+                LOG_DEBUG("Matching kvtag [\"%s\":\"%s\"] of object %s on condition in->key: "
                           "%s, in->value: %s ",
                           (char *)kvtag_list_elt->kvtag->name, (char *)kvtag_list_elt->kvtag->value,
                           elt->obj_name, in->name, in->value);
@@ -1871,18 +1785,18 @@ PDC_Server_query_kvtag_someta(pdc_kvtag_t *in, uint32_t *n_meta, uint64_t **obj_
                 {
                     if (_is_matching_kvtag(in, kvtag_list_elt->kvtag) == TRUE) {
 #ifdef PDC_DEBUG_OUTPUT
-                        println("[Found]");
+                        LOG_JUST_PRINT("[Found]\n");
 #endif
                         if (iter >= alloc_size) {
                             alloc_size *= 2;
-                            *obj_ids = (void *)realloc(*obj_ids, alloc_size * sizeof(uint64_t));
+                            *obj_ids = (void *)PDC_realloc(*obj_ids, alloc_size * sizeof(uint64_t));
                         }
                         (*obj_ids)[iter++] = elt->obj_id;
                         // break; // FIXME: shall we break here? or continue to check other kvtags?
                     }
                     else {
 #ifdef PDC_DEBUG_OUTPUT
-                        println("[NOT FOUND]");
+                        LOG_JUST_PRINT("[NOT FOUND]\n");
 #endif
                     }
                 } // End for each kvtag in list
@@ -1890,67 +1804,56 @@ PDC_Server_query_kvtag_someta(pdc_kvtag_t *in, uint32_t *n_meta, uint64_t **obj_
         }         // End looping metadata hash table
         *n_meta = iter;
 #ifdef PDC_DEBUG_OUTPUT
-        LOG_DEBUG("==PDC_SERVER[%d]: found %d objids \n", pdc_server_rank_g, iter);
+        LOG_DEBUG("Found %d objids\n", iter);
 #endif
-    } // if (metadata_hash_table_g != NULL)
+    }
     else {
-        LOG_ERROR("==PDC_SERVER: metadata_hash_table_g not initialized!\n");
+        LOG_ERROR("metadata_hash_table_g not initialized\n");
         ret_value = FAIL;
     }
 
-    return ret_value;
+    FUNC_LEAVE(ret_value);
 }
 
 perr_t
 PDC_Server_get_kvtag_query_result(pdc_kvtag_t *in /*FIXME: query input should be string-based*/,
                                   uint32_t *n_meta, uint64_t **obj_ids)
 {
-    perr_t ret_value = SUCCEED;
-
-    uint32_t alloc_size = 128;
-
     FUNC_ENTER(NULL);
 
+    perr_t   ret_value  = SUCCEED;
+    uint32_t alloc_size = 128;
+
     *n_meta  = 0;
-    *obj_ids = (void *)calloc(alloc_size, sizeof(uint64_t));
+    *obj_ids = (void *)PDC_calloc(alloc_size, sizeof(uint64_t));
 
     char *v_query = (char *)in->value;
-    LOG_INFO("==PDC_SERVER[%d] before stripQuotes: Querying kvtag with key [%s], value [%s]\n",
-             pdc_server_rank_g, in->name, (char *)in->value);
+    LOG_INFO("Before stripQuotes: Querying kvtag with key [%s], value [%s]\n", in->name, (char *)in->value);
     if (is_string_query(v_query)) {
         in->value = stripQuotes(v_query);
         in->type  = PDC_STRING;
     }
 
-    LOG_INFO("==PDC_SERVER[%d] after stripQuotes: Querying kvtag with key [%s], value [%s]\n",
-             pdc_server_rank_g, in->name, (char *)in->value);
+    LOG_INFO("After stripQuotes: Querying kvtag with key [%s], value [%s]\n", in->name, (char *)in->value);
 
     if (use_rocksdb_g == 1) {
         ret_value = PDC_Server_query_kvtag_rocksdb(in, n_meta, obj_ids, alloc_size);
-        if (ret_value != SUCCEED) {
-            LOG_ERROR("==PDC_SERVER[%d]: Error with PDC_Server_query_kvtag_rocksdb!\n", pdc_server_rank_g);
-            goto done;
-        }
+        if (ret_value != SUCCEED)
+            PGOTO_ERROR(FAIL, "Error with PDC_Server_query_kvtag_rocksdb");
     }
     else if (use_sqlite3_g) {
         ret_value = PDC_Server_query_kvtag_sqlite(in, n_meta, obj_ids, alloc_size);
-        if (ret_value != SUCCEED) {
-            LOG_ERROR("==PDC_SERVER[%d]: Error with PDC_Server_query_kvtag_sqlite!\n", pdc_server_rank_g);
-            goto done;
-        }
+        if (ret_value != SUCCEED)
+            PGOTO_ERROR(FAIL, "Error with PDC_Server_query_kvtag_sqlite");
     } // End if SQLite3
     else {
         // SoMeta backend
         ret_value = PDC_Server_query_kvtag_someta(in, n_meta, obj_ids, alloc_size);
-        if (ret_value != SUCCEED) {
-            LOG_ERROR("==PDC_SERVER[%d]: Error with PDC_Server_query_kvtag_someta!\n", pdc_server_rank_g);
-            goto done;
-        }
+        if (ret_value != SUCCEED)
+            PGOTO_ERROR(FAIL, "Error with PDC_Server_query_kvtag_someta");
     }
 
 done:
-    fflush(stdout);
-
     FUNC_LEAVE(ret_value);
 }
 
@@ -1958,12 +1861,12 @@ perr_t
 PDC_Server_search_with_name_timestep(const char *obj_name, uint32_t hash_key, uint32_t ts,
                                      pdc_metadata_t **out)
 {
+    FUNC_ENTER(NULL);
+
     perr_t                     ret_value = SUCCEED;
     pdc_hash_table_entry_head *lookup_value;
     pdc_metadata_t             metadata;
     const char *               name;
-
-    FUNC_ENTER(NULL);
 
     *out = NULL;
 
@@ -1982,39 +1885,32 @@ PDC_Server_search_with_name_timestep(const char *obj_name, uint32_t hash_key, ui
         // Is this hash value exist in the Hash table?
         if (lookup_value != NULL) {
             *out = find_identical_metadata(lookup_value, &metadata);
-
-            if (*out == NULL) {
-                ret_value = FAIL;
-                goto done;
-            }
+            if (*out == NULL)
+                PGOTO_DONE(FAIL);
         }
         else {
             *out = NULL;
         }
     }
-    else {
-        LOG_ERROR("metadata_hash_table_g not initialized!\n");
-        ret_value = -1;
-        goto done;
-    }
+    else
+        PGOTO_ERROR(FAIL, "metadata_hash_table_g not initialized");
 
     if (*out == NULL)
-        LOG_ERROR("==PDC_SERVER[%d]: Queried object with name [%s] not found! \n", pdc_server_rank_g, name);
+        PGOTO_ERROR(FAIL, "Queried object with name [%s] not found", name);
 
 done:
-    fflush(stdout);
     FUNC_LEAVE(ret_value);
 }
 
 perr_t
 PDC_Server_search_with_name_hash(const char *obj_name, uint32_t hash_key, pdc_metadata_t **out)
 {
+    FUNC_ENTER(NULL);
+
     perr_t                     ret_value = SUCCEED;
     pdc_hash_table_entry_head *lookup_value;
     pdc_metadata_t             metadata;
     const char *               name;
-
-    FUNC_ENTER(NULL);
 
     *out = NULL;
 
@@ -2034,33 +1930,28 @@ PDC_Server_search_with_name_hash(const char *obj_name, uint32_t hash_key, pdc_me
         // Is this hash value exist in the Hash table?
         if (lookup_value != NULL) {
             *out = find_identical_metadata(lookup_value, &metadata);
-
-            if (*out == NULL) {
-                ret_value = FAIL;
-                goto done;
-            }
+            if (*out == NULL)
+                PGOTO_DONE(FAIL);
         }
         else {
             *out = NULL;
         }
     }
-    else {
-        LOG_ERROR("metadata_hash_table_g not initialized!\n");
-        ret_value = -1;
-        goto done;
-    }
+    else
+        PGOTO_ERROR(FAIL, "metadata_hash_table_g not initialized");
 
     if (*out == NULL)
-        LOG_ERROR("==PDC_SERVER[%d]: Queried object with name [%s] not found! \n", pdc_server_rank_g, name);
+        PGOTO_ERROR(FAIL, "Queried object with name [%s] not found", name);
 
 done:
-    fflush(stdout);
     FUNC_LEAVE(ret_value);
 }
 
 perr_t
 PDC_Server_get_local_metadata_by_id(uint64_t obj_id, pdc_metadata_t **res_meta_ptr)
 {
+    FUNC_ENTER(NULL);
+
     perr_t ret_value = SUCCEED;
 
     pdc_hash_table_entry_head *head;
@@ -2068,8 +1959,6 @@ PDC_Server_get_local_metadata_by_id(uint64_t obj_id, pdc_metadata_t **res_meta_p
     HashTableIterator          hash_table_iter;
     int                        n_entry;
     HashTablePair              pair;
-
-    FUNC_ENTER(NULL);
 
     *res_meta_ptr = NULL;
 
@@ -2086,16 +1975,14 @@ PDC_Server_get_local_metadata_by_id(uint64_t obj_id, pdc_metadata_t **res_meta_p
             {
                 if (elt->obj_id == obj_id) {
                     *res_meta_ptr = elt;
-                    goto done;
+                    PGOTO_DONE(ret_value);
                 }
             }
         }
     }
     else {
-        LOG_ERROR("==PDC_SERVER: metadata_hash_table_g not initialized!\n");
-        ret_value     = FAIL;
         *res_meta_ptr = NULL;
-        goto done;
+        PGOTO_ERROR(FAIL, "metadata_hash_table_g not initialized");
     }
 
 done:
@@ -2112,47 +1999,40 @@ done:
 static hg_return_t
 PDC_Server_get_metadata_by_id_cb(const struct hg_cb_info *callback_info)
 {
+    FUNC_ENTER(NULL);
+
     hg_return_t                ret_value;
     hg_handle_t                handle;
     pdc_metadata_t *           meta = NULL;
     get_metadata_by_id_args_t *cb_args;
     get_metadata_by_id_out_t   output;
 
-    FUNC_ENTER(NULL);
-
     cb_args = (get_metadata_by_id_args_t *)callback_info->arg;
     handle  = callback_info->info.forward.handle;
 
     ret_value = HG_Get_output(handle, &output);
-    if (ret_value != HG_SUCCESS) {
-        LOG_ERROR("==PDC_SERVER[%d]: PDC_Server_get_metadata_by_id_cb - error HG_Get_output\n",
-                  pdc_server_rank_g);
-        goto done;
-    }
+    if (ret_value != HG_SUCCESS)
+        PGOTO_ERROR(ret_value, "Error HG_Get_output");
 
     if (output.res_meta.obj_id != 0) {
         // TODO free metdata
-        meta = (pdc_metadata_t *)malloc(sizeof(pdc_metadata_t));
+        meta = (pdc_metadata_t *)PDC_malloc(sizeof(pdc_metadata_t));
         PDC_transfer_t_to_metadata_t(&output.res_meta, meta);
     }
-    else {
-        LOG_ERROR("==PDC_SERVER[%d]: no valid metadata is retrieved\n", pdc_server_rank_g);
-        goto done;
-    }
+    else
+        PGOTO_ERROR(ret_value, "No valid metadata is retrieved");
 
     // Execute the callback function
     if (NULL != cb_args->cb) {
         ((region_list_t *)(cb_args->args))->meta = meta;
         cb_args->cb(cb_args->args, PDC_POSIX);
     }
-    else {
-        LOG_ERROR("==PDC_SERVER[%d]: NULL callback ptr\n", pdc_server_rank_g);
-        goto done;
-    }
+    else
+        PGOTO_ERROR(ret_value, "NULL callback ptr");
 
 done:
     HG_Free_output(handle, &output);
-    free(cb_args);
+    cb_args = (get_metadata_by_id_args_t *)PDC_free(cb_args);
     HG_Destroy(handle);
 
     FUNC_LEAVE(ret_value);
@@ -2161,6 +2041,8 @@ done:
 perr_t
 PDC_Server_get_metadata_by_id_with_cb(uint64_t obj_id, perr_t (*cb)(), void *args)
 {
+    FUNC_ENTER(NULL);
+
     pdc_metadata_t *           res_meta_ptr = NULL;
     hg_return_t                hg_ret;
     perr_t                     ret_value = SUCCEED;
@@ -2169,16 +2051,12 @@ PDC_Server_get_metadata_by_id_with_cb(uint64_t obj_id, perr_t (*cb)(), void *arg
     get_metadata_by_id_args_t *cb_args;
     get_metadata_by_id_in_t    in;
 
-    FUNC_ENTER(NULL);
-
     server_id = PDC_get_server_by_obj_id(obj_id, pdc_server_size_g);
     if (server_id == (uint32_t)pdc_server_rank_g) {
         // Metadata object is local, no need to send update RPC
         ret_value = PDC_Server_get_local_metadata_by_id(obj_id, &res_meta_ptr);
-        if (ret_value != SUCCEED) {
-            LOG_ERROR("==PDC_SERVER[%d]: PDC_Server_get_local_metadata_by_id FAILED!\n", pdc_server_rank_g);
-            goto done;
-        }
+        if (ret_value != SUCCEED)
+            PGOTO_ERROR(FAIL, "Error with PDC_Server_get_local_metadata_by_id");
 
         ((region_list_t *)args)->meta = res_meta_ptr;
         // Call the callback function directly and pass in the result metadata ptr
@@ -2186,16 +2064,13 @@ PDC_Server_get_metadata_by_id_with_cb(uint64_t obj_id, perr_t (*cb)(), void *arg
     }
     else {
         if (PDC_Server_lookup_server_id(server_id) != SUCCEED) {
-            LOG_ERROR("==PDC_SERVER[%d]: Error getting remote server %d addr via lookup\n", pdc_server_rank_g,
-                      server_id);
-            ret_value = FAIL;
-            goto done;
+            PGOTO_ERROR(FAIL, "Error getting remote server %d addr via lookup", server_id);
         }
 
         HG_Create(hg_context_g, pdc_remote_server_info_g[server_id].addr, get_metadata_by_id_register_id_g,
                   &get_metadata_by_id_handle);
 
-        cb_args       = (get_metadata_by_id_args_t *)malloc(sizeof(get_metadata_by_id_args_t));
+        cb_args       = (get_metadata_by_id_args_t *)PDC_malloc(sizeof(get_metadata_by_id_args_t));
         in.obj_id     = obj_id;
         cb_args->cb   = cb;
         cb_args->args = args;
@@ -2204,26 +2079,23 @@ PDC_Server_get_metadata_by_id_with_cb(uint64_t obj_id, perr_t (*cb)(), void *arg
         hg_ret = HG_Forward(get_metadata_by_id_handle, PDC_Server_get_metadata_by_id_cb, &cb_args, &in);
 
         if (hg_ret != HG_SUCCESS) {
-            LOG_ERROR("==PDC_SERVER[%d]: Could not forward\n", pdc_server_rank_g);
             res_meta_ptr = NULL;
             HG_Destroy(get_metadata_by_id_handle);
-            return FAIL;
+            PGOTO_ERROR(FAIL, "Could not forward");
         }
     }
 
 done:
-    fflush(stdout);
-
     FUNC_LEAVE(ret_value);
 }
 
 perr_t
 PDC_Server_create_container(gen_cont_id_in_t *in, gen_cont_id_out_t *out)
 {
+    FUNC_ENTER(NULL);
+
     perr_t    ret_value = SUCCEED;
     uint32_t *hash_key;
-
-    FUNC_ENTER(NULL);
 
     out->cont_id = 0;
 
@@ -2260,16 +2132,13 @@ PDC_Server_create_container(gen_cont_id_in_t *in, gen_cont_id_out_t *out)
             out->cont_id = lookup_value->cont_id;
         }
         else {
-            hash_key = (uint32_t *)malloc(sizeof(uint32_t));
-            if (hash_key == NULL) {
-                LOG_ERROR("Cannot allocate hash_key!\n");
-                ret_value = FAIL;
-                goto done;
-            }
+            hash_key = (uint32_t *)PDC_malloc(sizeof(uint32_t));
+            if (hash_key == NULL)
+                PGOTO_ERROR(FAIL, "Cannot allocate hash_key");
             *hash_key = in->hash_value;
 
             pdc_cont_hash_table_entry_t *entry =
-                (pdc_cont_hash_table_entry_t *)calloc(1, sizeof(pdc_cont_hash_table_entry_t));
+                (pdc_cont_hash_table_entry_t *)PDC_calloc(1, sizeof(pdc_cont_hash_table_entry_t));
             strcpy(entry->cont_name, in->cont_name);
             entry->n_obj       = 0;
             entry->n_allocated = 0;
@@ -2283,18 +2152,14 @@ PDC_Server_create_container(gen_cont_id_in_t *in, gen_cont_id_out_t *out)
             hg_thread_mutex_unlock(&total_mem_usage_mutex_g);
 #endif
             // Insert to hash table
-            if (hash_table_insert(container_hash_table_g, hash_key, entry) != 1) {
-                LOG_ERROR("==PDC_SERVER[%d]: hash table insert failed\n", pdc_server_rank_g);
-                ret_value = FAIL;
-            }
+            if (hash_table_insert(container_hash_table_g, hash_key, entry) != 1)
+                PGOTO_ERROR(FAIL, "Hash table insert failed");
             else
                 out->cont_id = entry->cont_id;
         }
     }
-    else {
-        LOG_ERROR("==PDC_SERVER[%d]: container_hash_table_g not initialized!\n", pdc_server_rank_g);
-        goto done;
-    }
+    else
+        PGOTO_ERROR(FAIL, "container_hash_table_g not initialized");
 
 #ifdef ENABLE_MULTITHREAD
     // ^ Release hash table lock
@@ -2328,10 +2193,10 @@ done:
 perr_t
 PDC_Server_delete_container_by_name(gen_cont_id_in_t *in, gen_cont_id_out_t *out)
 {
+    FUNC_ENTER(NULL);
+
     perr_t   ret_value = SUCCEED;
     uint32_t hash_key;
-
-    FUNC_ENTER(NULL);
 
     out->cont_id = 0;
 
@@ -2349,24 +2214,19 @@ PDC_Server_delete_container_by_name(gen_cont_id_in_t *in, gen_cont_id_out_t *out
 
         // Is this hash value exist in the Hash table?
         if (lookup_value != NULL) {
-
             // Check if there exist metadata identical to current one
-            LOG_INFO("==PDC_SERVER[%d]: Found existing container with same hash value, name=%s!\n",
-                     pdc_server_rank_g, lookup_value->cont_name);
+            LOG_INFO("Found existing container with same hash value, name=%s\n", lookup_value->cont_name);
             out->cont_id = 0;
-            goto done;
+            PGOTO_DONE(ret_value);
         }
         else {
             // Check if there exist metadata identical to current one
-            LOG_ERROR("==PDC_SERVER[%d]: Did not found existing container with same hash value, name=%s!\n",
-                      pdc_server_rank_g, lookup_value->cont_name);
-            ret_value = FAIL;
+            PGOTO_ERROR(FAIL, "Did not found existing container with same hash value, name=%s",
+                        lookup_value->cont_name);
         }
     }
-    else {
-        LOG_ERROR("==PDC_SERVER[%d]: container_hash_table_g not initialized!\n", pdc_server_rank_g);
-        goto done;
-    }
+    else
+        PGOTO_ERROR(FAIL, "container_hash_table_g not initialized");
 
 #ifdef ENABLE_MULTITHREAD
     // ^ Release hash table lock
@@ -2380,14 +2240,13 @@ done:
 perr_t
 PDC_Server_find_container_by_name(const char *cont_name, pdc_cont_hash_table_entry_t **out)
 {
+    FUNC_ENTER(NULL);
+
     perr_t   ret_value = SUCCEED;
     uint32_t hash_key;
 
-    FUNC_ENTER(NULL);
-    if (NULL == cont_name || NULL == out) {
-        LOG_ERROR("==PDC_SERVER[%d]: input is NULL! \n", pdc_server_rank_g);
-        goto done;
-    }
+    if (NULL == cont_name || NULL == out)
+        PGOTO_ERROR(FAIL, "Input is NULL");
 
     if (container_hash_table_g != NULL) {
         // lookup
@@ -2400,17 +2259,13 @@ PDC_Server_find_container_by_name(const char *cont_name, pdc_cont_hash_table_ent
             }
         }
     }
-    else {
-        LOG_ERROR("container_hash_table_g not initialized!\n");
-        ret_value = -1;
-        goto done;
-    }
+    else
+        PGOTO_ERROR(FAIL, "container_hash_table_g not initialized");
 
     if (*out == NULL)
-        LOG_ERROR("==PDC_SERVER[%d]: container [%s] not found! \n", pdc_server_rank_g, cont_name);
+        PGOTO_ERROR(FAIL, "Container [%s] not found", cont_name);
 
 done:
-    fflush(stdout);
     FUNC_LEAVE(ret_value);
 }
 
@@ -2426,18 +2281,16 @@ done:
 static perr_t
 PDC_Server_find_container_by_id(uint64_t cont_id, pdc_cont_hash_table_entry_t **out)
 {
+    FUNC_ENTER(NULL);
+
     perr_t                       ret_value = SUCCEED;
     pdc_cont_hash_table_entry_t *cont_entry;
     HashTableIterator            hash_table_iter;
     int                          n_entry;
     HashTablePair                pair;
 
-    FUNC_ENTER(NULL);
-
-    if (NULL == out) {
-        LOG_ERROR("==PDC_SERVER[%d]: input is NULL! \n", pdc_server_rank_g);
-        goto done;
-    }
+    if (NULL == out)
+        PGOTO_ERROR(FAIL, "Input is NULL");
 
     if (container_hash_table_g != NULL) {
         // Since we only have the obj id, need to iterate the entire hash table
@@ -2452,31 +2305,28 @@ PDC_Server_find_container_by_id(uint64_t cont_id, pdc_cont_hash_table_entry_t **
 
             if (cont_entry->cont_id == cont_id) {
                 *out = cont_entry;
-                goto done;
+                PGOTO_DONE(ret_value);
             }
         }
     }
     else {
-        LOG_ERROR("==PDC_SERVER[%d]: container_hash_table_g not initialized!\n", pdc_server_rank_g);
-        ret_value = FAIL;
-        out       = NULL;
-        goto done;
+        out = NULL;
+        PGOTO_ERROR(FAIL, "container_hash_table_g not initialized");
     }
 
 done:
-    fflush(stdout);
-
     FUNC_LEAVE(ret_value);
 }
 
 perr_t
 PDC_Server_container_add_objs(int n_obj, uint64_t *obj_ids, uint64_t cont_id)
 {
+    FUNC_ENTER(NULL);
+
     perr_t                       ret_value    = SUCCEED;
     pdc_cont_hash_table_entry_t *cont_entry   = NULL;
     int                          realloc_size = 0;
 
-    FUNC_ENTER(NULL);
     ret_value = PDC_Server_find_container_by_id(cont_id, &cont_entry);
 
     if (cont_entry != NULL) {
@@ -2493,16 +2343,13 @@ PDC_Server_container_add_objs(int n_obj, uint64_t *obj_ids, uint64_t cont_id)
             realloc_size *= (sizeof(uint64_t) * 2);
 
             if (is_debug_g == 1) {
-                LOG_DEBUG("==PDC_SERVER[%d]: realloc from %d to %ld!\n", pdc_server_rank_g,
-                          cont_entry->n_allocated, realloc_size / sizeof(uint64_t));
+                LOG_DEBUG("RRealloc from %d to %ld\n", cont_entry->n_allocated,
+                          realloc_size / sizeof(uint64_t));
             }
 
             cont_entry->obj_ids = (uint64_t *)PDC_realloc(cont_entry->obj_ids, realloc_size);
-            if (NULL == cont_entry->obj_ids) {
-                LOG_ERROR("==PDC_SERVER[%d]: ERROR with realloc!\n", pdc_server_rank_g);
-                ret_value = FAIL;
-                goto done;
-            }
+            if (NULL == cont_entry->obj_ids)
+                PGOTO_ERROR(FAIL, "PDC_realloc failed");
             total_mem_usage_g -= sizeof(uint64_t) * cont_entry->n_allocated;
 
             cont_entry->n_allocated = realloc_size / sizeof(uint64_t);
@@ -2515,32 +2362,27 @@ PDC_Server_container_add_objs(int n_obj, uint64_t *obj_ids, uint64_t cont_id)
 
         // Debug prints
         if (is_debug_g == 1) {
-            LOG_DEBUG("==PDC_SERVER[%d]: add %d objects to container %" PRIu64 ", total %d !\n",
-                      pdc_server_rank_g, n_obj, cont_id, cont_entry->n_obj - cont_entry->n_deleted);
+            LOG_DEBUG("Add %d objects to container %" PRIu64 ", total %d\n", n_obj, cont_id,
+                      cont_entry->n_obj - cont_entry->n_deleted);
         }
-
-        // TODO: find duplicates
     }
-    else {
-        LOG_ERROR("==PDC_SERVER[%d]: container %" PRIu64 " not found!\n", pdc_server_rank_g, cont_id);
-        ret_value = FAIL;
-        goto done;
-    }
+    else
+        PGOTO_ERROR(FAIL, "Container %" PRIu64 " not found", cont_id);
 
 done:
-    fflush(stdout);
     FUNC_LEAVE(ret_value);
 }
 
 perr_t
 PDC_Server_container_del_objs(int n_obj, uint64_t *obj_ids, uint64_t cont_id)
 {
+    FUNC_ENTER(NULL);
+
     perr_t                       ret_value  = SUCCEED;
     pdc_cont_hash_table_entry_t *cont_entry = NULL;
     int                          i, j;
     int                          n_deletes = 0;
 
-    FUNC_ENTER(NULL);
     ret_value = PDC_Server_find_container_by_id(cont_id, &cont_entry);
 
     if (cont_entry != NULL) {
@@ -2554,71 +2396,56 @@ PDC_Server_container_del_objs(int n_obj, uint64_t *obj_ids, uint64_t cont_id)
                 }
             }
         }
-        // Debug print
-        LOG_DEBUG("==PDC_SERVER[%d]: successfully deleted %d objects!\n", pdc_server_rank_g, n_deletes);
+        LOG_DEBUG("Successfully deleted %d objects\n", n_deletes);
 
         if (n_deletes != n_obj) {
-            LOG_INFO("==PDC_SERVER[%d]: %d objects are not found to be deleted!\n", pdc_server_rank_g,
-                     n_obj - n_deletes);
+            LOG_INFO("%d objects are not found to be deleted\n", n_obj - n_deletes);
         }
     }
-    else {
-        LOG_ERROR("==PDC_SERVER[%d]: container %" PRIu64 " not found!\n", pdc_server_rank_g, cont_id);
-        ret_value = FAIL;
-        goto done;
-    }
+    else
+        PGOTO_ERROR(FAIL, "Container %" PRIu64 " not found", cont_id);
 
 done:
-    fflush(stdout);
-
     FUNC_LEAVE(ret_value);
 }
 
 perr_t
 PDC_Server_container_add_tags(uint64_t cont_id, char *tags)
 {
+    FUNC_ENTER(NULL);
+
     perr_t                       ret_value  = SUCCEED;
     pdc_cont_hash_table_entry_t *cont_entry = NULL;
 
-    FUNC_ENTER(NULL);
     ret_value = PDC_Server_find_container_by_id(cont_id, &cont_entry);
 
-    if (cont_entry != NULL) {
-
-        if (tags != NULL) {
-            strcat(cont_entry->tags, tags);
-        }
-    }
-    else {
-        LOG_ERROR("==PDC_SERVER[%d]: container %" PRIu64 " not found!\n", pdc_server_rank_g, cont_id);
-        ret_value = FAIL;
-        goto done;
-    }
+    if (cont_entry != NULL && tags != NULL)
+        strcat(cont_entry->tags, tags);
+    else
+        PGOTO_ERROR(FAIL, "Container %" PRIu64 " not found", cont_id);
 
 done:
-    fflush(stdout);
-
     FUNC_LEAVE(ret_value);
 }
 
 static perr_t
 PDC_copy_all_storage_meta(pdc_metadata_t *meta, region_storage_meta_t **storage_meta, int *n_region)
 {
+    FUNC_ENTER(NULL);
+
     perr_t         ret_value  = SUCCEED;
     region_list_t *region_elt = NULL, *region_head = NULL;
     int            i, region_cnt;
 
-    FUNC_ENTER(NULL);
-
-    if (NULL == meta || NULL == storage_meta) {
-        ret_value = FAIL;
-        goto done;
-    }
+    if (meta == NULL)
+        PGOTO_ERROR(FAIL, "meta was NULL");
+    if (storage_meta == NULL)
+        PGOTO_ERROR(FAIL, "storage_meta was NULL");
 
     region_head = meta->storage_region_list_head;
     DL_COUNT(region_head, region_elt, region_cnt);
     *n_region     = region_cnt;
-    *storage_meta = (region_storage_meta_t *)calloc(sizeof(region_storage_meta_t), region_cnt);
+    *storage_meta = (region_storage_meta_t *)PDC_calloc(sizeof(region_storage_meta_t), region_cnt);
 
     i = 0;
     DL_FOREACH(region_head, region_elt)
@@ -2647,6 +2474,8 @@ done:
 static perr_t
 PDC_Server_get_storage_meta_by_names(query_read_names_args_t *args)
 {
+    FUNC_ENTER(NULL);
+
     hg_return_t             hg_ret = HG_SUCCESS;
     perr_t                  ret_value;
     hg_handle_t             rpc_handle;
@@ -2660,11 +2489,10 @@ PDC_Server_get_storage_meta_by_names(query_read_names_args_t *args)
     int                     i = 0, j = 0;
     region_storage_meta_t **all_storage_meta;
     int *                   all_nregion, total_region;
-    FUNC_ENTER(NULL);
 
     // Get the storage meta for each queried object name
-    all_storage_meta = (region_storage_meta_t **)calloc(sizeof(region_storage_meta_t *), args->cnt);
-    all_nregion      = (int *)calloc(sizeof(int), args->cnt);
+    all_storage_meta = (region_storage_meta_t **)PDC_calloc(sizeof(region_storage_meta_t *), args->cnt);
+    all_nregion      = (int *)PDC_calloc(sizeof(int), args->cnt);
 
     total_region = 0;
     for (i = 0; i < args->cnt; i++) {
@@ -2673,44 +2501,36 @@ PDC_Server_get_storage_meta_by_names(query_read_names_args_t *args)
         // FIXME: currently assumes timestep 0
         PDC_Server_search_with_name_timestep(obj_name, PDC_get_hash_by_name(obj_name), 0, &meta);
         if (meta == NULL) {
-            LOG_ERROR("==PDC_SERVER[%d]: No metadata with name [%s] found!\n", pdc_server_rank_g, obj_name);
+            LOG_ERROR("No metadata with name [%s] found\n", obj_name);
             continue;
         }
 
         ret_value = PDC_copy_all_storage_meta(meta, &(all_storage_meta[i]), &(all_nregion[i]));
         if (ret_value != SUCCEED) {
-            LOG_ERROR("==PDC_SERVER[%d]: Error when getting storage meta for [%s]!\n", pdc_server_rank_g,
-                      obj_name);
+            LOG_ERROR("Error when getting storage meta for [%s]\n", obj_name);
             continue;
         }
         total_region += all_nregion[i];
 
-        if (all_storage_meta[i]->storage_location[1] != 'g') {
-            LOG_ERROR("==PDC_SERVER[%d]: Error with storage meta for [%s], obj_id %" PRIu64
-                      ", loc [%s], offset "
+        if (all_storage_meta[i]->storage_location[1] != 'g')
+            LOG_ERROR("Error with storage meta for [%s], obj_id %" PRIu64 ", loc [%s], offset "
                       "%" PRIu64 "\n",
-                      pdc_server_rank_g, obj_name, all_storage_meta[i]->obj_id,
-                      all_storage_meta[i]->storage_location, all_storage_meta[i]->offset);
-            fflush(stdout);
-        }
-
+                      obj_name, all_storage_meta[i]->obj_id, all_storage_meta[i]->storage_location,
+                      all_storage_meta[i]->offset);
     } // End for cnt
 
     // Now the storage meta is stored in all_storage_meta;
     client_id = args->client_id;
     if (PDC_Server_lookup_client(client_id) != SUCCEED) {
-        LOG_ERROR("==PDC_SERVER[%d]: Error getting client %d addr via lookup\n", pdc_server_rank_g,
-                  client_id);
-        ret_value = FAIL;
-        goto done;
+        PGOTO_ERROR(FAIL, "Error getting client %d addr via lookup", client_id);
     }
 
     // Now we have all the storage metadata of the queried objects, send them back to client with
     // bulk transfer to args->origin_id
     // Prepare bulk ptrs, buf_ptrs[0] is task_id
     int nbuf  = total_region + 1;
-    buf_sizes = (hg_size_t *)calloc(nbuf, sizeof(hg_size_t));
-    buf_ptrs  = (void **)calloc(nbuf, sizeof(void *));
+    buf_sizes = (hg_size_t *)PDC_calloc(nbuf, sizeof(hg_size_t));
+    buf_ptrs  = (void **)PDC_calloc(nbuf, sizeof(void *));
 
     buf_ptrs[0]  = &(args->client_seq_id);
     buf_sizes[0] = sizeof(int);
@@ -2726,24 +2546,14 @@ PDC_Server_get_storage_meta_by_names(query_read_names_args_t *args)
 
     /* Register memory */
     hg_ret = HG_Bulk_create(hg_class_g, nbuf, buf_ptrs, buf_sizes, HG_BULK_READ_ONLY, &bulk_handle);
-    if (hg_ret != HG_SUCCESS) {
-        LOG_ERROR("Could not create bulk data handle\n");
-        ret_value = FAIL;
-        goto done;
-    }
-
-    if (pdc_client_info_g[client_id].addr == NULL) {
-        LOG_ERROR("==PDC_SERVER[%d]: Error with client %d addr\n", pdc_server_rank_g, client_id);
-        goto done;
-    }
-
+    if (hg_ret != HG_SUCCESS)
+        PGOTO_ERROR(FAIL, "Could not create bulk data handle");
+    if (pdc_client_info_g[client_id].addr == NULL)
+        PGOTO_ERROR(FAIL, "Error with client %d addr", client_id);
     hg_ret = HG_Create(hg_context_g, pdc_client_info_g[client_id].addr,
                        send_client_storage_meta_rpc_register_id_g, &rpc_handle);
-    if (hg_ret != HG_SUCCESS) {
-        LOG_ERROR("Could not create handle\n");
-        ret_value = FAIL;
-        goto done;
-    }
+    if (hg_ret != HG_SUCCESS)
+        PGOTO_ERROR(FAIL, "Could not create handle");
 
     /* Fill input structure */
     bulk_rpc_in.cnt         = total_region;
@@ -2752,17 +2562,12 @@ PDC_Server_get_storage_meta_by_names(query_read_names_args_t *args)
     bulk_rpc_in.bulk_handle = bulk_handle;
 
     hg_ret = HG_Forward(rpc_handle, PDC_check_int_ret_cb, NULL, &bulk_rpc_in);
-    if (hg_ret != HG_SUCCESS) {
-        LOG_ERROR("Could not forward call\n");
-        ret_value = FAIL;
-        goto done;
-    }
+    if (hg_ret != HG_SUCCESS)
+        PGOTO_ERROR(FAIL, "Could not forward call");
 
     HG_Destroy(rpc_handle);
 
 done:
-    fflush(stdout);
-
     FUNC_LEAVE(ret_value);
 }
 
@@ -2776,17 +2581,22 @@ done:
 hg_return_t
 PDC_Server_query_read_names_clinet_cb(const struct hg_cb_info *callback_info)
 {
+    FUNC_ENTER(NULL);
+
     PDC_Server_get_storage_meta_by_names((query_read_names_args_t *)callback_info->arg);
 
-    return HG_SUCCESS;
+    FUNC_LEAVE(HG_SUCCESS);
 }
 
 perr_t
 PDC_free_cont_hash_table()
 {
+    FUNC_ENTER(NULL);
+
     if (container_hash_table_g != NULL)
         hash_table_free(container_hash_table_g);
-    return SUCCEED;
+
+    FUNC_LEAVE(SUCCEED);
 }
 
 /*
@@ -2800,23 +2610,25 @@ PDC_free_cont_hash_table()
 static perr_t
 PDC_add_kvtag_to_list(pdc_kvtag_list_t **list_head, pdc_kvtag_t *tag)
 {
+    FUNC_ENTER(NULL);
+
     perr_t            ret_value = SUCCEED;
     pdc_kvtag_list_t *new_list_item;
     pdc_kvtag_t *     newtag;
-    FUNC_ENTER(NULL);
 
     PDC_kvtag_dup(tag, &newtag);
     new_list_item        = (pdc_kvtag_list_t *)PDC_calloc(1, sizeof(pdc_kvtag_list_t));
     new_list_item->kvtag = newtag;
     DL_APPEND(*list_head, new_list_item);
 
-    fflush(stdout);
     FUNC_LEAVE(ret_value);
 }
 
 static perr_t
 PDC_Server_add_kvtag_rocksdb(metadata_add_kvtag_in_t *in, metadata_add_tag_out_t *out)
 {
+    FUNC_ENTER(NULL);
+
     perr_t ret_value = SUCCEED;
 #ifdef ENABLE_ROCKSDB
     rocksdb_writeoptions_t *writeoptions             = rocksdb_writeoptions_create();
@@ -2827,23 +2639,24 @@ PDC_Server_add_kvtag_rocksdb(metadata_add_kvtag_in_t *in, metadata_add_tag_out_t
     rocksdb_put(rocksdb_g, writeoptions, rocksdb_key, strlen(rocksdb_key) + 1, in->kvtag.value,
                 in->kvtag.size, &err);
     if (err != NULL) {
-        LOG_ERROR("==PDC_SERVER[%d]: Error with rocksdb_put %s, [%s]!\n", pdc_server_rank_g, in->kvtag.name,
-                  err);
+        LOG_ERROR("Error with rocksdb_put %s, [%s]\n", in->kvtag.name, err);
         ret_value = FAIL;
     }
     else
         out->ret = 1;
 #else
-    LOG_ERROR("==PDC_SERVER[%d]: enabled rocksdb but PDC is not compiled with it!\n", pdc_server_rank_g);
+    LOG_ERROR("Enabled rocksdb but PDC is not compiled with it\n");
     ret_value = FAIL;
 #endif
 
-    return ret_value;
+    FUNC_LEAVE(ret_value);
 }
 
 static perr_t
 PDC_Server_add_kvtag_sqlite3(metadata_add_kvtag_in_t *in, metadata_add_tag_out_t *out)
 {
+    FUNC_ENTER(NULL);
+
     perr_t ret_value = SUCCEED;
 #ifdef ENABLE_SQLITE3
     char  sql[TAG_LEN_MAX] = {0};
@@ -2865,31 +2678,30 @@ PDC_Server_add_kvtag_sqlite3(metadata_add_kvtag_in_t *in, metadata_add_tag_out_t
         sprintf(sql, "INSERT INTO objects (objid, name, value_double) VALUES (%llu, '%s', '%lf');",
                 in->obj_id, in->kvtag.name, *((double *)in->kvtag.value));
     }
-    else {
-        LOG_ERROR("==PDC_SERVER[%d]: datatype not supported %d!\n", pdc_server_rank_g, in->kvtag.type);
-        ret_value = FAIL;
-        goto done;
-    }
+    else
+        PGOTO_ERROR(FAIL, "Datatype not supported %d", in->kvtag.type);
 
     sqlite3_exec(sqlite3_db_g, sql, NULL, 0, &errMessage);
 
     if (errMessage)
-        LOG_ERROR("==PDC_SERVER[%d]: Error from SQLite %s!\n", pdc_server_rank_g, errMessage);
+        LOG_ERROR("Error from SQLite %s\n", errMessage);
     else
         out->ret = 1;
 
 done:
 #else
-    LOG_ERROR("==PDC_SERVER[%d]: enabled SQLite3 but PDC is not compiled with it!\n", pdc_server_rank_g);
+    LOG_ERROR("Enabled SQLite3 but PDC is not compiled with it\n");
     ret_value = FAIL;
 #endif
 
-    return ret_value;
+    FUNC_LEAVE(ret_value);
 }
 
 static perr_t
 PDC_Server_add_kvtag_someta(metadata_add_kvtag_in_t *in, metadata_add_tag_out_t *out)
 {
+    FUNC_ENTER(NULL);
+
     perr_t                       ret_value = SUCCEED;
     pdc_hash_table_entry_head *  lookup_value;
     pdc_cont_hash_table_entry_t *cont_lookup_value;
@@ -2918,24 +2730,24 @@ PDC_Server_add_kvtag_someta(metadata_add_kvtag_in_t *in, metadata_add_tag_out_t 
             out->ret = 1;
         }
         else {
-            LOG_ERROR("==PDC_SERVER[%d]: add tag target %" PRIu64 " not found!\n", pdc_server_rank_g,
-                      in->obj_id);
+            LOG_ERROR("Add tag target %" PRIu64 " not found\n", in->obj_id);
             ret_value = FAIL;
             out->ret  = -1;
         }
     }
 
-    return ret_value;
+    FUNC_LEAVE(ret_value);
 }
 
 perr_t
 PDC_Server_add_kvtag(metadata_add_kvtag_in_t *in, metadata_add_tag_out_t *out)
 {
+    FUNC_ENTER(NULL);
+
     perr_t ret_value = SUCCEED;
 #ifdef ENABLE_MULTITHREAD
     int unlocked;
 #endif
-    FUNC_ENTER(NULL);
 
 #ifdef ENABLE_TIMING
     struct timeval pdc_timer_start;
@@ -2954,24 +2766,18 @@ PDC_Server_add_kvtag(metadata_add_kvtag_in_t *in, metadata_add_tag_out_t *out)
 
     if (use_rocksdb_g == 1) {
         ret_value = PDC_Server_add_kvtag_rocksdb(in, out);
-        if (ret_value != SUCCEED) {
-            LOG_ERROR("==PDC_SERVER[%d]: Error with PDC_Server_add_kvtag_rocksdb!\n", pdc_server_rank_g);
-            goto done;
-        }
+        if (ret_value != SUCCEED)
+            PGOTO_ERROR(FAIL, "Error with PDC_Server_add_kvtag_rocksdb");
     } // End if rocksdb
     else if (use_sqlite3_g == 1) {
         ret_value = PDC_Server_add_kvtag_sqlite3(in, out);
-        if (ret_value != SUCCEED) {
-            LOG_ERROR("==PDC_SERVER[%d]: Error with PDC_Server_add_kvtag_sqlite3!\n", pdc_server_rank_g);
-            goto done;
-        }
+        if (ret_value != SUCCEED)
+            PGOTO_ERROR(FAIL, "Error with PDC_Server_add_kvtag_sqlite3");
     } // End if sqlite3
     else {
         ret_value = PDC_Server_add_kvtag_someta(in, out);
-        if (ret_value != SUCCEED) {
-            LOG_ERROR("==PDC_SERVER[%d]: Error with PDC_Server_add_kvtag_someta!\n", pdc_server_rank_g);
-            goto done;
-        }
+        if (ret_value != SUCCEED)
+            PGOTO_ERROR(FAIL, "Error with PDC_Server_add_kvtag_someta");
     }
 
 done:
@@ -3003,18 +2809,16 @@ done:
     if (unlocked == 0)
         hg_thread_mutex_unlock(&pdc_metadata_hash_table_mutex_g);
 #endif
-    fflush(stdout);
-
     FUNC_LEAVE(ret_value);
 }
 
 static perr_t
 PDC_get_kvtag_value_from_list(pdc_kvtag_list_t **list_head, char *key, metadata_get_kvtag_out_t *out)
 {
+    FUNC_ENTER(NULL);
+
     perr_t            ret_value = SUCCEED;
     pdc_kvtag_list_t *elt;
-
-    FUNC_ENTER(NULL);
 
     DL_FOREACH(*list_head, elt)
     {
@@ -3022,11 +2826,10 @@ PDC_get_kvtag_value_from_list(pdc_kvtag_list_t **list_head, char *key, metadata_
             out->kvtag.name  = elt->kvtag->name;
             out->kvtag.size  = elt->kvtag->size;
             out->kvtag.value = elt->kvtag->value;
+            out->kvtag.type  = elt->kvtag->type;
             break;
         }
     }
-
-    fflush(stdout);
 
     FUNC_LEAVE(ret_value);
 }
@@ -3035,26 +2838,28 @@ PDC_get_kvtag_value_from_list(pdc_kvtag_list_t **list_head, char *key, metadata_
 static int
 sqlite_get_kvtag_callback(void *data, int argc, char **argv, char **colName)
 {
+    FUNC_ENTER(NULL);
+
     pdc_kvtag_t *out = (pdc_kvtag_t *)data;
 
     for (int i = 0; i < argc; i++) {
         if (NULL != argv[i]) {
             if (0 == strcmp(colName[i], "value_int")) {
-                int *int_tmp = (int *)malloc(sizeof(int));
+                int *int_tmp = (int *)PDC_malloc(sizeof(int));
                 *int_tmp     = atoi(argv[i]);
                 out->value   = (void *)int_tmp;
                 out->size    = sizeof(int);
                 break;
             }
             else if (0 == strcmp(colName[i], "value_real")) {
-                float *float_tmp = (float *)malloc(sizeof(float));
+                float *float_tmp = (float *)PDC_malloc(sizeof(float));
                 *float_tmp       = (float)atof(argv[i]);
                 out->value       = (void *)float_tmp;
                 out->size        = sizeof(float);
                 break;
             }
             else if (0 == strcmp(colName[i], "value_double")) {
-                double *double_tmp = (double *)malloc(sizeof(double));
+                double *double_tmp = (double *)PDC_malloc(sizeof(double));
                 *double_tmp        = atof(argv[i]);
                 out->value         = (void *)double_tmp;
                 out->size          = sizeof(double);
@@ -3067,18 +2872,20 @@ sqlite_get_kvtag_callback(void *data, int argc, char **argv, char **colName)
             }
             else {
                 out->value = NULL;
-                return 0;
+                FUNC_LEAVE(0);
             }
         }
     }
 
-    return 0;
+    FUNC_LEAVE(0);
 }
 #endif
 
 static perr_t
 PDC_Server_get_kvtag_rocksdb(metadata_get_kvtag_in_t *in, metadata_get_kvtag_out_t *out)
 {
+    FUNC_ENTER(NULL);
+
     perr_t ret_value = SUCCEED;
 
 #ifdef ENABLE_ROCKSDB
@@ -3089,7 +2896,7 @@ PDC_Server_get_kvtag_rocksdb(metadata_get_kvtag_in_t *in, metadata_get_kvtag_out
     size_t len;
     char * value = rocksdb_get(rocksdb_g, readoptions, rocksdb_key, strlen(rocksdb_key) + 1, &len, &err);
     if (value == NULL) {
-        LOG_ERROR("==PDC_SERVER[%d]: Error with rocksdb_get %s, [%s]!\n", pdc_server_rank_g, in->key, err);
+        LOG_ERROR("Error with rocksdb_get %s, [%s]\n", in->key, err);
         ret_value = FAIL;
     }
     out->kvtag.name  = in->key;
@@ -3097,16 +2904,18 @@ PDC_Server_get_kvtag_rocksdb(metadata_get_kvtag_in_t *in, metadata_get_kvtag_out
     out->kvtag.value = value;
     out->ret         = 1;
 #else
-    LOG_ERROR("==PDC_SERVER[%d]: enabled rocksdb but PDC is not compiled with it!\n", pdc_server_rank_g);
+    LOG_ERROR("Enabled rocksdb but PDC is not compiled with it\n");
     ret_value = FAIL;
 #endif
 
-    return ret_value;
+    FUNC_LEAVE(ret_value);
 }
 
 static perr_t
 PDC_Server_get_kvtag_sqlite3(metadata_get_kvtag_in_t *in, metadata_get_kvtag_out_t *out)
 {
+    FUNC_ENTER(NULL);
+
     perr_t ret_value = SUCCEED;
 #ifdef ENABLE_SQLITE3
     char  sql[TAG_LEN_MAX];
@@ -3118,7 +2927,7 @@ PDC_Server_get_kvtag_sqlite3(metadata_get_kvtag_in_t *in, metadata_get_kvtag_out
 
     sqlite3_exec(sqlite3_db_g, sql, sqlite_get_kvtag_callback, &out->kvtag, &errMessage);
     if (errMessage) {
-        LOG_ERROR("==PDC_SERVER[%d]: Error from SQLite %s!\n", pdc_server_rank_g, errMessage);
+        LOG_ERROR("Error from SQLite %s\n", errMessage);
     }
     else {
         // size and value is filled in sqlite_get_kvtag_callback
@@ -3126,16 +2935,18 @@ PDC_Server_get_kvtag_sqlite3(metadata_get_kvtag_in_t *in, metadata_get_kvtag_out
         out->ret        = 1;
     }
 #else
-    LOG_ERROR("==PDC_SERVER[%d]: enabled SQLite3 but PDC is not compiled with it!\n", pdc_server_rank_g);
+    LOG_ERROR("Enabled SQLite3 but PDC is not compiled with it\n");
     ret_value = FAIL;
 #endif
 
-    return ret_value;
+    FUNC_LEAVE(ret_value);
 }
 
 static perr_t
 PDC_Server_get_kvtag_someta(metadata_get_kvtag_in_t *in, metadata_get_kvtag_out_t *out)
 {
+    FUNC_ENTER(NULL);
+
     perr_t                       ret_value = SUCCEED;
     uint32_t                     hash_key;
     uint64_t                     obj_id;
@@ -3171,18 +2982,18 @@ PDC_Server_get_kvtag_someta(metadata_get_kvtag_in_t *in, metadata_get_kvtag_out_
         }
     }
 
-    return ret_value;
+    FUNC_LEAVE(ret_value);
 }
 
 perr_t
 PDC_Server_get_kvtag(metadata_get_kvtag_in_t *in, metadata_get_kvtag_out_t *out)
 {
+    FUNC_ENTER(NULL);
+
     perr_t ret_value = SUCCEED;
 #ifdef ENABLE_MULTITHREAD
     int unlocked;
 #endif
-
-    FUNC_ENTER(NULL);
 
 #ifdef ENABLE_TIMING
     struct timeval pdc_timer_start;
@@ -3201,25 +3012,19 @@ PDC_Server_get_kvtag(metadata_get_kvtag_in_t *in, metadata_get_kvtag_out_t *out)
 
     if (use_rocksdb_g == 1) {
         ret_value = PDC_Server_get_kvtag_rocksdb(in, out);
-        if (ret_value != SUCCEED) {
-            LOG_ERROR("==PDC_SERVER[%d]: Error with PDC_Server_get_kvtag_rocksdb!\n", pdc_server_rank_g);
-            goto done;
-        }
+        if (ret_value != SUCCEED)
+            PGOTO_ERROR(FAIL, "Error with PDC_Server_get_kvtag_rocksdb");
     }
     else if (use_sqlite3_g == 1) {
         ret_value = PDC_Server_get_kvtag_sqlite3(in, out);
-        if (ret_value != SUCCEED) {
-            LOG_ERROR("==PDC_SERVER[%d]: Error with PDC_Server_get_kvtag_sqlite3!\n", pdc_server_rank_g);
-            goto done;
-        }
+        if (ret_value != SUCCEED)
+            PGOTO_ERROR(FAIL, "Error with PDC_Server_get_kvtag_sqlite3");
     }
     else {
         // Someta
         ret_value = PDC_Server_get_kvtag_someta(in, out);
-        if (ret_value != SUCCEED) {
-            LOG_ERROR("==PDC_SERVER[%d]: Error with PDC_Server_get_kvtag_someta!\n", pdc_server_rank_g);
-            goto done;
-        }
+        if (ret_value != SUCCEED)
+            PGOTO_ERROR(FAIL, "Error with PDC_Server_get_kvtag_someta");
     }
 
 done:
@@ -3251,32 +3056,28 @@ done:
     if (unlocked == 0)
         hg_thread_mutex_unlock(&pdc_metadata_hash_table_mutex_g);
 #endif
-    fflush(stdout);
-
     FUNC_LEAVE(ret_value);
 }
 
 static perr_t
 PDC_del_kvtag_value_from_list(pdc_kvtag_list_t **list_head, char *key)
 {
+    FUNC_ENTER(NULL);
+
     perr_t            ret_value = SUCCEED;
     pdc_kvtag_list_t *elt;
-
-    FUNC_ENTER(NULL);
 
     DL_FOREACH(*list_head, elt)
     {
         if (strcmp(elt->kvtag->name, key) == 0) {
-            free(elt->kvtag->name);
-            free(elt->kvtag->value);
-            free(elt->kvtag);
+            elt->kvtag->name  = (char *)PDC_free(elt->kvtag->name);
+            elt->kvtag->value = (void *)PDC_free(elt->kvtag->value);
+            elt->kvtag        = (pdc_kvtag_t *)PDC_free(elt->kvtag);
             DL_DELETE(*list_head, elt);
-            free(elt);
+            elt = (pdc_kvtag_list_t *)PDC_free(elt);
             break;
         }
     }
-
-    fflush(stdout);
 
     FUNC_LEAVE(ret_value);
 }
@@ -3284,6 +3085,8 @@ PDC_del_kvtag_value_from_list(pdc_kvtag_list_t **list_head, char *key)
 static perr_t
 PDC_Server_del_kvtag_rocksdb(metadata_get_kvtag_in_t *in, metadata_add_tag_out_t *out)
 {
+    FUNC_ENTER(NULL);
+
     perr_t ret_value = SUCCEED;
 #ifdef ENABLE_ROCKSDB
     char *                  err                      = NULL;
@@ -3293,23 +3096,24 @@ PDC_Server_del_kvtag_rocksdb(metadata_get_kvtag_in_t *in, metadata_add_tag_out_t
     sprintf(rocksdb_key, "%lu`%s", in->obj_id, in->key);
     rocksdb_delete(rocksdb_g, writeoptions, rocksdb_key, strlen(rocksdb_key) + 1, &err);
     if (err != NULL) {
-        LOG_ERROR("==PDC_SERVER[%d]: Error with rocksdb_delete [%s], [%s]!\n", pdc_server_rank_g, in->key,
-                  err);
+        LOG_ERROR("Error with rocksdb_delete [%s], [%s]\n", in->key, err);
         ret_value = FAIL;
     }
     else
         out->ret = 1;
 #else
-    LOG_ERROR("==PDC_SERVER[%d]: enabled rocksdb but PDC is not compiled with it!\n", pdc_server_rank_g);
+    LOG_ERROR("Enabled rocksdb but PDC is not compiled with it\n");
     ret_value = FAIL;
 #endif
 
-    return ret_value;
+    FUNC_LEAVE(ret_value);
 }
 
 static perr_t
 PDC_Server_del_kvtag_sqlite3(metadata_get_kvtag_in_t *in, metadata_add_tag_out_t *out)
 {
+    FUNC_ENTER(NULL);
+
     perr_t ret_value = SUCCEED;
 #ifdef ENABLE_SQLITE3
     char  sql[TAG_LEN_MAX];
@@ -3319,22 +3123,24 @@ PDC_Server_del_kvtag_sqlite3(metadata_get_kvtag_in_t *in, metadata_add_tag_out_t
 
     sqlite3_exec(sqlite3_db_g, sql, NULL, 0, &errMessage);
     if (errMessage) {
-        LOG_ERROR("==PDC_SERVER[%d]: Error from SQLite %s!\n", pdc_server_rank_g, errMessage);
+        LOG_ERROR("Error from SQLite %s\n", errMessage);
         ret_value = FAIL;
     }
     else
         out->ret = 1;
 #else
-    LOG_ERROR("==PDC_SERVER[%d]: enabled SQLite3 but PDC is not compiled with it!\n", pdc_server_rank_g);
+    LOG_ERROR("Enabled SQLite3 but PDC is not compiled with it\n");
     ret_value = FAIL;
 #endif
 
-    return ret_value;
+    FUNC_LEAVE(ret_value);
 }
 
 static perr_t
 PDC_Server_del_kvtag_someta(metadata_get_kvtag_in_t *in, metadata_add_tag_out_t *out)
 {
+    FUNC_ENTER(NULL);
+
     perr_t                       ret_value = SUCCEED;
     uint32_t                     hash_key;
     uint64_t                     obj_id;
@@ -3356,7 +3162,7 @@ PDC_Server_del_kvtag_someta(metadata_get_kvtag_in_t *in, metadata_add_tag_out_t 
         else {
             ret_value = FAIL;
             out->ret  = -1;
-            LOG_ERROR("==PDC_SERVER[%d]: failed to find requested kvtag [%s]\n", pdc_server_rank_g, in->key);
+            LOG_ERROR("Failed to find requested kvtag [%s]\n", in->key);
         }
     }
     else {
@@ -3368,22 +3174,22 @@ PDC_Server_del_kvtag_someta(metadata_get_kvtag_in_t *in, metadata_add_tag_out_t 
         else {
             ret_value = FAIL;
             out->ret  = -1;
-            LOG_ERROR("==PDC_SERVER[%d]: failed to find requested kvtag [%s]\n", pdc_server_rank_g, in->key);
+            LOG_ERROR("Failed to find requested kvtag [%s]\n", in->key);
         }
     }
 
-    return ret_value;
+    FUNC_LEAVE(ret_value);
 }
 
 perr_t
 PDC_Server_del_kvtag(metadata_get_kvtag_in_t *in, metadata_add_tag_out_t *out)
 {
+    FUNC_ENTER(NULL);
+
     perr_t ret_value = SUCCEED;
 #ifdef ENABLE_MULTITHREAD
     int unlocked;
 #endif
-
-    FUNC_ENTER(NULL);
 
 #ifdef ENABLE_TIMING
     struct timeval pdc_timer_start;
@@ -3401,24 +3207,18 @@ PDC_Server_del_kvtag(metadata_get_kvtag_in_t *in, metadata_add_tag_out_t *out)
 
     if (use_rocksdb_g) {
         ret_value = PDC_Server_del_kvtag_rocksdb(in, out);
-        if (ret_value != SUCCEED) {
-            LOG_ERROR("==PDC_SERVER[%d]: Error with PDC_Server_del_kvtag_rocksdb!\n", pdc_server_rank_g);
-            goto done;
-        }
+        if (ret_value != SUCCEED)
+            PGOTO_ERROR(FAIL, "Error with PDC_Server_del_kvtag_rocksdb");
     }
     else if (use_sqlite3_g) {
         ret_value = PDC_Server_del_kvtag_sqlite3(in, out);
-        if (ret_value != SUCCEED) {
-            LOG_ERROR("==PDC_SERVER[%d]: Error with PDC_Server_del_kvtag_sqlite3!\n", pdc_server_rank_g);
-            goto done;
-        }
+        if (ret_value != SUCCEED)
+            PGOTO_ERROR(FAIL, "Error with PDC_Server_del_kvtag_sqlite3");
     }
     else {
         ret_value = PDC_Server_del_kvtag_someta(in, out);
-        if (ret_value != SUCCEED) {
-            LOG_ERROR("==PDC_SERVER[%d]: Error with PDC_Server_del_kvtag_someta!\n", pdc_server_rank_g);
-            goto done;
-        }
+        if (ret_value != SUCCEED)
+            PGOTO_ERROR(FAIL, "Error with PDC_Server_del_kvtag_someta");
     }
 
 done:
@@ -3442,8 +3242,5 @@ done:
 #endif
 
 #endif // End ENABLE_TIMING
-
-    fflush(stdout);
-
     FUNC_LEAVE(ret_value);
 }

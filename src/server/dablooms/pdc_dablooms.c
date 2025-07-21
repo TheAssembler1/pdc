@@ -13,11 +13,12 @@
 #include <sys/mman.h>
 #include <unistd.h>
 #include <errno.h>
-#include "pdc_malloc.h"
 
+#include "pdc_malloc.h"
 #include "pdc_murmur.h"
 #include "pdc_dablooms.h"
 #include "pdc_logger.h"
+#include "pdc_timing.h"
 
 #define DABLOOMS_VERSION "0.9.1"
 
@@ -27,21 +28,29 @@
 const char *
 dablooms_version(void)
 {
-    return DABLOOMS_VERSION;
+    FUNC_ENTER(NULL);
+    FUNC_LEAVE(DABLOOMS_VERSION);
 }
 
 void
 free_bitmap(bitmap_t *bitmap)
 {
-    free(bitmap);
+    FUNC_ENTER(NULL);
+
+    bitmap = (bitmap_t *)PDC_free(bitmap);
+
+    FUNC_LEAVE_VOID();
 }
 
 bitmap_t *
 bitmap_resize(bitmap_t *bitmap, size_t new_size)
 {
+    FUNC_ENTER(NULL);
+
     bitmap->array = PDC_malloc(new_size);
     bitmap->bytes = new_size;
-    return bitmap;
+
+    FUNC_LEAVE(bitmap);
 }
 
 /* Create a new bitmap, not full featured, simple to give
@@ -50,25 +59,29 @@ bitmap_resize(bitmap_t *bitmap, size_t new_size)
 bitmap_t *
 new_bitmap(size_t bytes)
 {
+    FUNC_ENTER(NULL);
+
     bitmap_t *bitmap;
 
     if ((bitmap = (bitmap_t *)PDC_malloc(sizeof(bitmap_t))) == NULL) {
-        return NULL;
+        FUNC_LEAVE(NULL);
     }
 
     bitmap->bytes = bytes;
     bitmap->array = NULL;
 
     if ((bitmap = bitmap_resize(bitmap, bytes)) == NULL) {
-        return NULL;
+        FUNC_LEAVE(NULL);
     }
 
-    return bitmap;
+    FUNC_LEAVE(bitmap);
 }
 
 int
 bitmap_increment(bitmap_t *bitmap, unsigned int index, long offset)
 {
+    FUNC_ENTER(NULL);
+
     long    access = index / 2 + offset;
     uint8_t temp;
     uint8_t n = bitmap->array[access];
@@ -83,17 +96,20 @@ bitmap_increment(bitmap_t *bitmap, unsigned int index, long offset)
 
     if (temp == 0x0f) {
         LOG_ERROR("Error, 4 bit int Overflow\n");
-        return -1;
+        FUNC_LEAVE(-1);
     }
 
     bitmap->array[access] = n;
-    return 0;
+
+    FUNC_LEAVE(0);
 }
 
 /* increments the four bit counter */
 int
 bitmap_decrement(bitmap_t *bitmap, unsigned int index, long offset)
 {
+    FUNC_ENTER(NULL);
+
     long    access = index / 2 + offset;
     uint8_t temp;
     uint8_t n = bitmap->array[access];
@@ -109,36 +125,39 @@ bitmap_decrement(bitmap_t *bitmap, unsigned int index, long offset)
 
     if (temp == 0x00) {
         LOG_ERROR("Error, Decrementing zero\n");
-        return -1;
+        FUNC_LEAVE(-1);
     }
 
     bitmap->array[access] = n;
-    return 0;
+
+    FUNC_LEAVE(0);
 }
 
 /* decrements the four bit counter */
 int
 bitmap_check(bitmap_t *bitmap, unsigned int index, long offset)
 {
+    FUNC_ENTER(NULL);
+
     long access = index / 2 + offset;
     if (index % 2 != 0) {
-        return bitmap->array[access] & 0x0f;
+        FUNC_LEAVE(bitmap->array[access] & 0x0f);
     }
-    else {
-        return bitmap->array[access] & 0xf0;
-    }
+
+    FUNC_LEAVE(bitmap->array[access] & 0xf0);
 }
 
 int
 bitmap_flush(bitmap_t *bitmap)
 {
+    FUNC_ENTER(NULL);
+
     if ((msync(bitmap->array, bitmap->bytes, MS_SYNC) < 0)) {
         perror("Error, flushing bitmap to disk");
-        return -1;
+        FUNC_LEAVE(-1);
     }
-    else {
-        return 0;
-    }
+
+    FUNC_LEAVE(0);
 }
 
 /*
@@ -153,6 +172,8 @@ bitmap_flush(bitmap_t *bitmap)
 void
 hash_func(counting_bloom_t *bloom, const char *key, size_t key_len, uint32_t *hashes)
 {
+    FUNC_ENTER(NULL);
+
     size_t   i;
     uint32_t checksum[4];
 
@@ -163,29 +184,36 @@ hash_func(counting_bloom_t *bloom, const char *key, size_t key_len, uint32_t *ha
     for (i = 0; i < bloom->nfuncs; i++) {
         hashes[i] = (h1 + i * h2) % bloom->counts_per_func;
     }
+
+    FUNC_LEAVE_VOID();
 }
 
 int
 free_counting_bloom(counting_bloom_t *bloom)
 {
+    FUNC_ENTER(NULL);
+
     if (bloom != NULL) {
-        free(bloom->hashes);
+        bloom->hashes = (uint32_t *)PDC_free(bloom->hashes);
         bloom->hashes = NULL;
-        free(bloom->bitmap);
-        free(bloom);
-        bloom = NULL;
+        bloom->bitmap = (bitmap_t *)PDC_free(bloom->bitmap);
+        bloom         = (counting_bloom_t *)PDC_free(bloom);
+        bloom         = NULL;
     }
-    return 0;
+
+    FUNC_LEAVE(0);
 }
 
 counting_bloom_t *
 counting_bloom_init(unsigned int capacity, double error_rate, long offset)
 {
+    FUNC_ENTER(NULL);
+
     counting_bloom_t *bloom;
 
     if ((bloom = PDC_malloc(sizeof(counting_bloom_t))) == NULL) {
         LOG_ERROR("Error, could not realloc a new bloom filter\n");
-        return NULL;
+        FUNC_LEAVE(NULL);
     }
     bloom->bitmap          = NULL;
     bloom->capacity        = capacity;
@@ -198,23 +226,28 @@ counting_bloom_init(unsigned int capacity, double error_rate, long offset)
     bloom->num_bytes = ((bloom->size + 1) / 2) + sizeof(counting_bloom_header_t);
     bloom->hashes    = PDC_calloc(bloom->nfuncs, sizeof(uint32_t));
 
-    return bloom;
+    FUNC_LEAVE(bloom);
 }
 
 counting_bloom_t *
 new_counting_bloom(unsigned int capacity, double error_rate)
 {
+    FUNC_ENTER(NULL);
+
     counting_bloom_t *cur_bloom;
 
     cur_bloom         = counting_bloom_init(capacity, error_rate, 0);
     cur_bloom->bitmap = new_bitmap(cur_bloom->num_bytes);
     cur_bloom->header = (counting_bloom_header_t *)(cur_bloom->bitmap->array);
-    return cur_bloom;
+
+    FUNC_LEAVE(cur_bloom);
 }
 
 int
 counting_bloom_add(counting_bloom_t *bloom, const char *s, size_t len)
 {
+    FUNC_ENTER(NULL);
+
     unsigned int  index, i, offset;
     unsigned int *hashes = bloom->hashes;
 
@@ -227,12 +260,14 @@ counting_bloom_add(counting_bloom_t *bloom, const char *s, size_t len)
     }
     bloom->header->count++;
 
-    return 0;
+    FUNC_LEAVE(0);
 }
 
 int
 counting_bloom_remove(counting_bloom_t *bloom, const char *s, size_t len)
 {
+    FUNC_ENTER(NULL);
+
     unsigned int  index, i, offset;
     unsigned int *hashes = bloom->hashes;
 
@@ -245,12 +280,14 @@ counting_bloom_remove(counting_bloom_t *bloom, const char *s, size_t len)
     }
     bloom->header->count--;
 
-    return 0;
+    FUNC_LEAVE(0);
 }
 
 int
 counting_bloom_check(counting_bloom_t *bloom, const char *s, size_t len)
 {
+    FUNC_ENTER(NULL);
+
     unsigned int  index, i, offset;
     unsigned int *hashes = bloom->hashes;
 
@@ -260,32 +297,38 @@ counting_bloom_check(counting_bloom_t *bloom, const char *s, size_t len)
         offset = i * bloom->counts_per_func;
         index  = hashes[i] + offset;
         if (!(bitmap_check(bloom->bitmap, index, bloom->offset))) {
-            return 0;
+            FUNC_LEAVE(0);
         }
     }
-    return 1;
+
+    FUNC_LEAVE(1);
 }
 
 int
 free_scaling_bloom(scaling_bloom_t *bloom)
 {
+    FUNC_ENTER(NULL);
+
     int i;
     for (i = bloom->num_blooms - 1; i >= 0; i--) {
-        free(bloom->blooms[i]->hashes);
+        bloom->blooms[i]->hashes = (uint32_t *)PDC_free(bloom->blooms[i]->hashes);
         bloom->blooms[i]->hashes = NULL;
-        free(bloom->blooms[i]);
-        bloom->blooms[i] = NULL;
+        bloom->blooms[i]         = (counting_bloom_t *)PDC_free(bloom->blooms[i]);
+        bloom->blooms[i]         = NULL;
     }
-    free(bloom->blooms);
+    bloom->blooms = (counting_bloom_t **)PDC_free(bloom->blooms);
     free_bitmap(bloom->bitmap);
-    free(bloom);
-    return 0;
+    bloom = (scaling_bloom_t *)PDC_free(bloom);
+
+    FUNC_LEAVE(0);
 }
 
 /* creates a new counting bloom filter from a given scaling bloom filter, with count and id */
 counting_bloom_t *
 new_counting_bloom_from_scale(scaling_bloom_t *bloom)
 {
+    FUNC_ENTER(NULL);
+
     unsigned int      i;
     long              offset;
     double            error_rate;
@@ -293,10 +336,10 @@ new_counting_bloom_from_scale(scaling_bloom_t *bloom)
 
     error_rate = bloom->error_rate * (pow(ERROR_TIGHTENING_RATIO, bloom->num_blooms + 1));
 
-    if ((bloom->blooms = realloc(bloom->blooms, (bloom->num_blooms + 1) * sizeof(counting_bloom_t *))) ==
+    if ((bloom->blooms = PDC_realloc(bloom->blooms, (bloom->num_blooms + 1) * sizeof(counting_bloom_t *))) ==
         NULL) {
         LOG_ERROR("Error, could not realloc a new bloom filter\n");
-        return NULL;
+        FUNC_LEAVE(NULL);
     }
 
     cur_bloom                        = counting_bloom_init(bloom->capacity, error_rate, bloom->num_bytes);
@@ -317,12 +360,14 @@ new_counting_bloom_from_scale(scaling_bloom_t *bloom)
     bloom->num_bytes += cur_bloom->num_bytes;
     cur_bloom->bitmap = bloom->bitmap;
 
-    return cur_bloom;
+    FUNC_LEAVE(cur_bloom);
 }
 
 int
 scaling_bloom_add(scaling_bloom_t *bloom, const char *s, size_t len, uint64_t id)
 {
+    FUNC_ENTER(NULL);
+
     int i;
 
     counting_bloom_t *cur_bloom = NULL;
@@ -343,12 +388,14 @@ scaling_bloom_add(scaling_bloom_t *bloom, const char *s, size_t len, uint64_t id
     }
     counting_bloom_add(cur_bloom, s, len);
 
-    return 1;
+    FUNC_LEAVE(1);
 }
 
 int
 scaling_bloom_remove(scaling_bloom_t *bloom, const char *s, size_t len, uint64_t id)
 {
+    FUNC_ENTER(NULL);
+
     counting_bloom_t *cur_bloom;
     int               i;
 
@@ -356,38 +403,44 @@ scaling_bloom_remove(scaling_bloom_t *bloom, const char *s, size_t len, uint64_t
         cur_bloom = bloom->blooms[i];
         if (id >= cur_bloom->header->id) {
             counting_bloom_remove(cur_bloom, s, len);
-            return 1;
+            FUNC_LEAVE(1);
         }
     }
-    return 0;
+
+    FUNC_LEAVE(0);
 }
 
 int
 scaling_bloom_check(scaling_bloom_t *bloom, const char *s, size_t len)
 {
+    FUNC_ENTER(NULL);
+
     int               i;
     counting_bloom_t *cur_bloom;
     for (i = bloom->num_blooms - 1; i >= 0; i--) {
         cur_bloom = bloom->blooms[i];
         if (counting_bloom_check(cur_bloom, s, len)) {
-            return 1;
+            FUNC_LEAVE(1);
         }
     }
-    return 0;
+
+    FUNC_LEAVE(0);
 }
 
 scaling_bloom_t *
 scaling_bloom_init(unsigned int capacity, double error_rate)
 {
+    FUNC_ENTER(NULL);
+
     scaling_bloom_t *bloom;
 
-    if ((bloom = malloc(sizeof(scaling_bloom_t))) == NULL) {
-        return NULL;
+    if ((bloom = PDC_malloc(sizeof(scaling_bloom_t))) == NULL) {
+        FUNC_LEAVE(NULL);
     }
     if ((bloom->bitmap = new_bitmap(sizeof(scaling_bloom_header_t))) == NULL) {
         LOG_ERROR("Error, Could not create bitmap with file\n");
         free_scaling_bloom(bloom);
-        return NULL;
+        FUNC_LEAVE(NULL);
     }
 
     bloom->header     = (scaling_bloom_header_t *)bloom->bitmap->array;
@@ -397,12 +450,13 @@ scaling_bloom_init(unsigned int capacity, double error_rate)
     bloom->num_bytes  = sizeof(scaling_bloom_header_t);
     bloom->blooms     = NULL;
 
-    return bloom;
+    FUNC_LEAVE(bloom);
 }
 
 scaling_bloom_t *
 new_scaling_bloom(unsigned int capacity, double error_rate)
 {
+    FUNC_ENTER(NULL);
 
     scaling_bloom_t * bloom;
     counting_bloom_t *cur_bloom;
@@ -412,10 +466,10 @@ new_scaling_bloom(unsigned int capacity, double error_rate)
     if (!(cur_bloom = new_counting_bloom_from_scale(bloom))) {
         LOG_ERROR("Error, Could not create counting bloom\n");
         free_scaling_bloom(bloom);
-        return NULL;
+        FUNC_LEAVE(NULL);
     }
     cur_bloom->header->count = 0;
     cur_bloom->header->id    = 0;
 
-    return bloom;
+    FUNC_LEAVE(bloom);
 }

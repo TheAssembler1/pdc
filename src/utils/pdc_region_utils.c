@@ -1,35 +1,43 @@
 #include "pdc_region.h"
+#include "pdc_timing.h"
+#include "pdc_private.h"
+#include "pdc_malloc.h"
 #include "pdc_logger.h"
 #include <string.h>
 
 int
 check_overlap(int ndim, uint64_t *offset1, uint64_t *size1, uint64_t *offset2, uint64_t *size2)
 {
+    FUNC_ENTER(NULL);
+
     int i;
     for (i = 0; i < ndim; ++i) {
         if (!((offset1[i] + size1[i] > offset2[i] && offset2[i] >= offset1[i]) ||
               (offset2[i] + size2[i] > offset1[i] && offset1[i] >= offset2[i]))) {
-            return 0;
+            FUNC_LEAVE(0);
         }
     }
-    return 1;
+
+    FUNC_LEAVE(1);
 }
 
 int
 PDC_region_overlap_detect(int ndim, uint64_t *offset1, uint64_t *size1, uint64_t *offset2, uint64_t *size2,
                           uint64_t **output_offset, uint64_t **output_size)
 {
+    FUNC_ENTER(NULL);
+
+    int ret_value = 0;
     int i;
     // First we check if two regions overlaps with each other. If any of the dimensions do not overlap, then
     // we are done.
     if (!check_overlap(ndim, offset1, size1, offset2, size2)) {
         *output_offset = NULL;
         *output_size   = NULL;
-        LOG_DEBUG("PDC_region_overlap_detect, overlap detect failed\n");
-        goto done;
+        PGOTO_DONE(ret_value);
     }
     // Overlapping exist.
-    *output_offset = (uint64_t *)malloc(sizeof(uint64_t) * ndim * 2);
+    *output_offset = (uint64_t *)PDC_malloc(sizeof(uint64_t) * ndim * 2);
     *output_size   = *output_offset + ndim;
     for (i = 0; i < ndim; ++i) {
         output_offset[0][i] = offset2[i] < offset1[i] ? offset1[i] : offset2[i];
@@ -39,7 +47,7 @@ PDC_region_overlap_detect(int ndim, uint64_t *offset1, uint64_t *size1, uint64_t
     }
 
 done:
-    return 0;
+    FUNC_LEAVE(ret_value);
 }
 
 /*
@@ -49,6 +57,8 @@ int
 memcpy_subregion(int ndim, uint64_t unit, pdc_access_t access_type, char *buf, uint64_t *size, char *sub_buf,
                  uint64_t *sub_offset, uint64_t *sub_size)
 {
+    FUNC_ENTER(NULL);
+
     uint64_t i, j;
     char *   ptr, *target_buf, *src_buf;
 
@@ -95,7 +105,7 @@ memcpy_subregion(int ndim, uint64_t unit, pdc_access_t access_type, char *buf, u
         }
     }
 
-    return 0;
+    FUNC_LEAVE(0);
 }
 
 /*
@@ -105,6 +115,8 @@ int
 memcpy_overlap_subregion(int ndim, uint64_t unit, char *buf, uint64_t *offset, uint64_t *size, char *buf2,
                          uint64_t *offset2, uint64_t *size2, uint64_t *overlap_offset, uint64_t *overlap_size)
 {
+    FUNC_ENTER(NULL);
+
     uint64_t i, j;
     char *   target_buf, *src_buf;
 
@@ -148,19 +160,183 @@ memcpy_overlap_subregion(int ndim, uint64_t unit, char *buf, uint64_t *offset, u
             break;
         }
     }
-    return 0;
+
+    FUNC_LEAVE(0);
 }
 
 // Check if the first region is fully contained in the second region. These two regions must overlap.
 int
 detect_region_contained(uint64_t *offset, uint64_t *size, uint64_t *offset2, uint64_t *size2, int ndim)
 {
+    FUNC_ENTER(NULL);
+
     int i;
 
     for (i = 0; i < ndim; ++i) {
         if (offset[i] < offset2[i] || offset[i] + size[i] > offset2[i] + size2[i]) {
-            return 0;
+            FUNC_LEAVE(0);
         }
     }
-    return 1;
+
+    FUNC_LEAVE(1);
+}
+
+pbool_t
+PDC_region_info_transfer_t_is_equal(const region_info_transfer_t *reg1, const region_info_transfer_t *reg2)
+{
+    FUNC_ENTER(NULL);
+
+    pbool_t ret_value = true;
+
+    if (reg1 == NULL && reg2 == NULL)
+        PGOTO_DONE(true);
+    if (reg1 == NULL || reg2 == NULL)
+        PGOTO_DONE(false);
+
+    if (reg1->ndim != reg2->ndim)
+        PGOTO_DONE(false);
+
+    for (int i = 0; i < reg1->ndim; i++) {
+        if (reg1->start[i] != reg2->start[i]) {
+            PGOTO_DONE(false);
+        }
+        if (reg1->count[i] != reg2->count[i]) {
+            PGOTO_DONE(false);
+        }
+    }
+
+done:
+    FUNC_LEAVE(ret_value);
+}
+
+perr_t
+PDC_copy_region_info_transfer_t(const region_info_transfer_t *src_reg, region_info_transfer_t *dest_reg)
+{
+    FUNC_ENTER(NULL);
+
+    int ret_value = SUCCEED;
+
+    if (src_reg == NULL)
+        PGOTO_ERROR(FAIL, "src_reg was NULL");
+    if (dest_reg == NULL)
+        PGOTO_ERROR(FAIL, "dest_reg was NULL");
+
+    memcpy(dest_reg, src_reg, sizeof(region_info_transfer_t));
+
+done:
+    FUNC_LEAVE(ret_value);
+}
+
+uint64_t
+PDC_get_region_desc_size_bytes(uint64_t *src_reg, int unit, int ndim)
+{
+    FUNC_ENTER(NULL);
+
+    if (src_reg == NULL)
+        LOG_WARNING("src_reg was NULL\n");
+    if (ndim == 0)
+        return 0;
+
+    uint64_t region_size = 1;
+
+    for (int i = 0; i < ndim; i++) {
+        region_size *= src_reg[i];
+    }
+
+    FUNC_LEAVE(region_size * unit);
+}
+
+uint64_t
+PDC_get_region_desc_size_from_bytes_to_elements(const uint64_t *src_reg, int unit, int ndim)
+{
+    FUNC_ENTER(NULL);
+
+    if (src_reg == NULL)
+        LOG_WARNING("src_reg was NULL\n");
+
+    uint64_t total_elements = 1;
+
+    for (int i = 0; i < ndim; i++) {
+        total_elements *= src_reg[i] / unit;
+    }
+
+    FUNC_LEAVE(total_elements);
+}
+
+uint64_t
+PDC_get_region_desc_size(const uint64_t *src_reg, int ndim)
+{
+    FUNC_ENTER(NULL);
+
+    if (src_reg == NULL)
+        LOG_WARNING("src_reg was NULL\n");
+    if (ndim == 0)
+        return 0;
+
+    uint64_t total_elements = 1;
+    for (int i = 0; i < ndim; i++) {
+        total_elements *= src_reg[i];
+    }
+
+    FUNC_LEAVE(total_elements);
+}
+
+perr_t
+PDC_copy_region_desc_bytes_to_elements(const uint64_t *src_reg, uint64_t *dest_reg, int unit, int ndim)
+{
+    FUNC_ENTER(NULL);
+
+    int ret_value = SUCCEED;
+
+    if (src_reg == NULL)
+        PGOTO_ERROR(FAIL, "src_reg was NULL");
+    if (dest_reg == NULL)
+        PGOTO_ERROR(FAIL, "dest_reg was NULL");
+
+    for (int i = 0; i < ndim; i++) {
+        dest_reg[i] = src_reg[i] / unit;
+    }
+
+done:
+    FUNC_LEAVE(ret_value);
+}
+
+perr_t
+PDC_copy_region_desc(const uint64_t *src_reg, uint64_t *dest_reg, int src_ndim, int dest_ndim)
+{
+    FUNC_ENTER(NULL);
+
+    int ret_value = SUCCEED;
+
+    if (src_ndim != dest_ndim)
+        LOG_WARNING("src_ndim was not equal to dest_ndim");
+    if (src_reg == NULL)
+        PGOTO_ERROR(FAIL, "src_reg was NULL");
+    if (dest_reg == NULL)
+        PGOTO_ERROR(FAIL, "dest_reg was NULL");
+
+    memcpy(dest_reg, src_reg, dest_ndim * sizeof(uint64_t));
+
+done:
+    FUNC_LEAVE(ret_value);
+}
+
+perr_t
+PDC_copy_region_desc_elements_to_bytes(const uint64_t *src_reg, uint64_t *dest_reg, int unit, int dest_ndim)
+{
+    FUNC_ENTER(NULL);
+
+    int ret_value = SUCCEED;
+
+    if (src_reg == NULL)
+        PGOTO_ERROR(FAIL, "src_reg was NULL");
+    if (dest_reg == NULL)
+        PGOTO_ERROR(FAIL, "dest_reg was NULL");
+
+    for (int i = 0; i < dest_ndim; i++) {
+        dest_reg[i] = src_reg[i] * unit;
+    }
+
+done:
+    FUNC_LEAVE(ret_value);
 }

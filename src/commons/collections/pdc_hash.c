@@ -1,18 +1,21 @@
-#include "pdc_hash.h"
 #include <limits.h>
 #include <ctype.h>
 #include <inttypes.h>
+#include "pdc_hash.h"
+#include "pdc_timing.h"
 
 /* Hash function for a pointer to an integer */
 
 unsigned int
 int_hash(void *vlocation)
 {
+    FUNC_ENTER(NULL);
+
     int *location;
 
     location = (int *)vlocation;
 
-    return (unsigned int)*location;
+    FUNC_LEAVE((unsigned int)*location);
 }
 
 /* Hash function for a pointer to a uint64_t integer */
@@ -20,11 +23,13 @@ int_hash(void *vlocation)
 unsigned int
 ui64_hash(void *vlocation)
 {
+    FUNC_ENTER(NULL);
+
     uint64_t *location;
 
     location = (uint64_t *)vlocation;
 
-    return (unsigned int)*location;
+    FUNC_LEAVE((unsigned int)*location);
 }
 
 /* Hash function for a generic pointer */
@@ -32,7 +37,8 @@ ui64_hash(void *vlocation)
 unsigned int
 pointer_hash(void *location)
 {
-    return (unsigned int)(unsigned long)location;
+    FUNC_ENTER(NULL);
+    FUNC_LEAVE((unsigned int)(unsigned long)location);
 }
 
 /* String hash function */
@@ -40,6 +46,8 @@ pointer_hash(void *location)
 unsigned int
 string_hash(void *string)
 {
+    FUNC_ENTER(NULL);
+
     /* This is the djb2 string hash function */
 
     unsigned int   result = 5381;
@@ -52,7 +60,7 @@ string_hash(void *string)
         ++p;
     }
 
-    return result;
+    FUNC_LEAVE(result);
 }
 
 /* The same function, with a tolower on every character so that
@@ -61,6 +69,8 @@ string_hash(void *string)
 unsigned int
 string_nocase_hash(void *string)
 {
+    FUNC_ENTER(NULL);
+
     unsigned int   result = 5381;
     unsigned char *p;
 
@@ -71,5 +81,5 @@ string_nocase_hash(void *string)
         ++p;
     }
 
-    return result;
+    FUNC_LEAVE(result);
 }

@@ -85,7 +85,7 @@ pdcid_t PDCprop_obj_dup(pdcid_t prop_id);
  *
  * \param prop_id [IN]          ID of the property
  *
- * \return Pointer to _pdc_cont_prop struct/Null on failure
+ * \return Pointer to _pdc_cont_prop struct/NULL on failure
  */
 struct _pdc_cont_prop *PDCcont_prop_get_info(pdcid_t prop_id);
 

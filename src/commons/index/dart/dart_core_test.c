@@ -1,5 +1,7 @@
 #include "dart_core.h"
 #include "pdc_logger.h"
+#include "pdc_timing.h"
+#include "pdc_malloc.h"
 
 int32_t request_count_g;
 
@@ -8,12 +10,14 @@ dart_server *all_servers;
 dart_server
 virtual_dart_retrieve_server_info_cb(uint32_t server_id)
 {
-    return all_servers[server_id];
+    FUNC_ENTER(NULL);
+    FUNC_LEAVE(all_servers[server_id]);
 }
 
 int
 main(int argc, char *argv[])
 {
+    FUNC_ENTER(NULL);
 
     if (argc != 4) {
         LOG_JUST_PRINT("Usage: %s <query_str> <num_server> <replication_factor>\n", argv[0]);
@@ -30,7 +34,7 @@ main(int argc, char *argv[])
     replication_factor       = replication_factor == 0 ? num_server / 10 : replication_factor;
 
     // Init all servers
-    all_servers = (dart_server *)malloc(num_server * sizeof(dart_server));
+    all_servers = (dart_server *)PDC_malloc(num_server * sizeof(dart_server));
     for (int i = 0; i < num_server; i++) {
         all_servers[i].id                 = i;
         all_servers[i].indexed_word_count = 0;
@@ -39,10 +43,10 @@ main(int argc, char *argv[])
 
     __dart_space_init(&dart, num_server, alphabet_size, extra_tree_height, replication_factor, 1024);
 
-    println(
-        "num_server: %d, num_client: %d, alphabet_size: %d, extra_tree_height: %d, replication_factor: %d",
+    LOG_INFO(
+        "num_server: %d, num_client: %d, alphabet_size: %d, extra_tree_height: %d, replication_factor: %d\n",
         num_server, num_client, alphabet_size, extra_tree_height, replication_factor);
-    println("DART: num_vnode: %lu", dart.num_vnode);
+    LOG_INFO("DART: num_vnode: %lu\n", dart.num_vnode);
 
     index_hash_result_t *out;
     int                  array_len = DART_hash(&dart, query_str, OP_INSERT, NULL, &out);
@@ -53,7 +57,7 @@ main(int argc, char *argv[])
     }
     LOG_JUST_PRINT("\n}\n");
 
-    free(out);
+    out = (index_hash_result_t *)PDC_free(out);
 
     array_len = DART_hash(&dart, query_str, OP_EXACT_QUERY, NULL, &out);
     LOG_JUST_PRINT("server ids for exact search (%d): \n{", array_len);
@@ -62,7 +66,7 @@ main(int argc, char *argv[])
     }
     LOG_JUST_PRINT("\n}\n");
 
-    free(out);
+    out = (index_hash_result_t *)PDC_free(out);
 
     array_len = DART_hash(&dart, substring(query_str, 0, strlen(query_str) - 3), OP_PREFIX_QUERY, NULL, &out);
     LOG_JUST_PRINT("server ids for prefix search (%d): \n{", array_len);
@@ -71,7 +75,7 @@ main(int argc, char *argv[])
     }
     LOG_JUST_PRINT("\n}\n");
 
-    free(out);
+    out = (index_hash_result_t *)PDC_free(out);
 
     array_len = DART_hash(&dart, substring(query_str, 3, strlen(query_str)), OP_SUFFIX_QUERY, NULL, &out);
     LOG_JUST_PRINT("server ids for suffix search (%d): \n{", array_len);
@@ -80,7 +84,7 @@ main(int argc, char *argv[])
     }
     LOG_JUST_PRINT("\n}\n");
 
-    free(out);
+    out = (index_hash_result_t *)PDC_free(out);
 
     array_len = DART_hash(&dart, substring(query_str, 2, strlen(query_str) - 2), OP_INFIX_QUERY, NULL, &out);
     LOG_JUST_PRINT("server ids for infix search (%d): \n{", array_len);
@@ -89,5 +93,5 @@ main(int argc, char *argv[])
     }
     LOG_JUST_PRINT("\n}\n");
 
-    return 0;
+    FUNC_LEAVE(0);
 }

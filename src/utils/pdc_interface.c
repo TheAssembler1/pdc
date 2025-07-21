@@ -27,6 +27,7 @@
 #include "pdc_interface.h"
 #include "pdc_cont_pkg.h"
 #include "pdc_cont.h"
+#include "pdc_timing.h"
 #include <stdlib.h>
 #include <assert.h>
 
@@ -44,11 +45,11 @@ static PDC_type_t PDC_next_type = (PDC_type_t)PDC_NTYPES;
 struct _pdc_id_info *
 PDC_find_id(pdcid_t idid)
 {
+    FUNC_ENTER(NULL);
+
     struct _pdc_id_info *ret_value = NULL;
     PDC_type_t           type;
     struct PDC_id_type * type_ptr;
-
-    FUNC_ENTER(NULL);
 
     /* Check arguments */
     type = PDC_TYPE(idid);
@@ -63,17 +64,16 @@ PDC_find_id(pdcid_t idid)
     PDC_LIST_SEARCH(ret_value, &type_ptr->ids, entry, id, idid);
 
 done:
-    fflush(stdout);
     FUNC_LEAVE(ret_value);
 }
 
 perr_t
 PDC_register_type(PDC_type_t type_id, PDC_free_t free_func)
 {
+    FUNC_ENTER(NULL);
+
     struct PDC_id_type *type_ptr  = NULL;
     perr_t              ret_value = SUCCEED;
-
-    FUNC_ENTER(NULL);
 
     /* Sanity check */
     assert(type_id > 0 && type_id < (int)PDC_MAX_NUM_TYPES);
@@ -101,27 +101,27 @@ PDC_register_type(PDC_type_t type_id, PDC_free_t free_func)
     type_ptr->init_count++;
 
 done:
-    fflush(stdout);
     FUNC_LEAVE(ret_value);
 }
 
 pdcid_t
 PDC_id_register(PDC_type_t type, void *object)
 {
+    FUNC_ENTER(NULL);
+
     struct PDC_id_type * type_ptr;
     struct _pdc_id_info *id_ptr;
     pdcid_t              new_id;
     pdcid_t              ret_value = 0;
-    FUNC_ENTER(NULL);
 
     /* Check arguments */
     if (type <= PDC_BADID || type >= PDC_next_type)
-        PGOTO_ERROR(ret_value, "invalid type number");
+        PGOTO_ERROR(ret_value, "Invalid type number");
     type_ptr = (pdc_id_list_g->PDC_id_type_list_g)[type];
     if (NULL == type_ptr || type_ptr->init_count <= 0)
-        PGOTO_ERROR(ret_value, "invalid type");
+        PGOTO_ERROR(ret_value, "Invalid type");
     if (NULL == (id_ptr = (struct _pdc_id_info *)PDC_malloc(sizeof(struct _pdc_id_info))))
-        PGOTO_ERROR(ret_value, "memory allocation failed");
+        PGOTO_ERROR(ret_value, "Memory allocation failed");
 
     /* Create the struct & it's ID */
     PDC_MUTEX_LOCK(type_ptr->ids);
@@ -143,22 +143,21 @@ PDC_id_register(PDC_type_t type, void *object)
     ret_value = new_id;
 
 done:
-    fflush(stdout);
     FUNC_LEAVE(ret_value);
 }
 
 int
 PDC_dec_ref(pdcid_t id)
 {
+    FUNC_ENTER(NULL);
+
     int                  ret_value = 0;
     struct _pdc_id_info *id_ptr;
     struct PDC_id_type * type_ptr;
 
-    FUNC_ENTER(NULL);
-
     /* General lookup of the ID */
-    if (NULL == (id_ptr = PDC_find_id(id)))
-        PGOTO_ERROR(FAIL, "can't locate ID");
+    if ((id_ptr = PDC_find_id(id)) == NULL)
+        PGOTO_ERROR(0, "Failed to find PDC ID: %d", id);
 
     ret_value = hg_atomic_decr32(&(id_ptr->count));
     if (ret_value == 0) {
@@ -167,7 +166,7 @@ PDC_dec_ref(pdcid_t id)
         if (!type_ptr->free_func || (type_ptr->free_func)((void *)id_ptr->obj_ptr) >= 0) {
             /* check if list is empty before remove */
             if (PDC_LIST_IS_EMPTY(&type_ptr->ids))
-                PGOTO_ERROR(FAIL, "can't remove ID node");
+                PGOTO_ERROR(FAIL, "Cannot remove ID node");
 
             PDC_MUTEX_LOCK(type_ptr->ids);
             /* Remove the node from the type */
@@ -183,21 +182,20 @@ PDC_dec_ref(pdcid_t id)
     }
 
 done:
-    fflush(stdout);
     FUNC_LEAVE(ret_value);
 }
 
 pdcid_t
 PDC_find_byname(PDC_type_t type, const char *byname)
 {
+    FUNC_ENTER(NULL);
+
     pdcid_t              ret_value = 0;
     struct _pdc_id_info *id_ptr    = NULL;
     struct PDC_id_type * type_ptr;
 
-    FUNC_ENTER(NULL);
-
     if (type <= PDC_BADID || type >= PDC_next_type)
-        PGOTO_ERROR(0, "invalid type number");
+        PGOTO_ERROR(0, "Invalid type number");
 
     type_ptr = (pdc_id_list_g->PDC_id_type_list_g)[type];
 
@@ -207,58 +205,59 @@ PDC_find_byname(PDC_type_t type, const char *byname)
         ret_value = id_ptr->id;
 
 done:
-    fflush(stdout);
     FUNC_LEAVE(ret_value);
 }
 
 int
 PDC_inc_ref(pdcid_t id)
 {
+    FUNC_ENTER(NULL);
+
     int                  ret_value = 0;
     struct _pdc_id_info *id_ptr;
 
-    FUNC_ENTER(NULL);
-
     /* General lookup of the ID */
-    if (NULL == (id_ptr = PDC_find_id(id)))
-        PGOTO_ERROR(0, "can't locate ID");
+    if ((id_ptr = PDC_find_id(id)) == NULL)
+        PGOTO_ERROR(0, "Failed to find PDC ID: %d", id);
 
     /* Set return value */
     ret_value = hg_atomic_incr32(&(id_ptr->count));
 
 done:
-    fflush(stdout);
     FUNC_LEAVE(ret_value);
 }
 
 int
 PDC_id_list_null(PDC_type_t type)
 {
+    FUNC_ENTER(NULL);
+
     perr_t              ret_value = 0;
     struct PDC_id_type *type_ptr;
 
-    FUNC_ENTER(NULL);
-
     if (type <= PDC_BADID || type >= PDC_next_type)
-        PGOTO_ERROR(FAIL, "invalid type number");
+        PGOTO_ERROR(FAIL, "Invalid type number");
+    if (pdc_id_list_g == NULL)
+        PGOTO_ERROR(FAIL, "pdc_id_list_g was NULL");
 
     type_ptr = (pdc_id_list_g->PDC_id_type_list_g)[type];
+    if (type_ptr == NULL)
+        PGOTO_ERROR(FAIL, "type_ptr was NULL");
     if (type_ptr->id_count != 0)
         ret_value = type_ptr->id_count;
 
 done:
-    fflush(stdout);
     FUNC_LEAVE(ret_value);
 }
 
 perr_t
 PDC_id_list_clear(PDC_type_t type)
 {
+    FUNC_ENTER(NULL);
+
     perr_t               ret_value = SUCCEED;
     struct PDC_id_type * type_ptr;
     struct _pdc_id_info *id_ptr;
-
-    FUNC_ENTER(NULL);
 
     type_ptr = (pdc_id_list_g->PDC_id_type_list_g)[type];
 
@@ -281,17 +280,18 @@ PDC_id_list_clear(PDC_type_t type)
 perr_t
 PDC_destroy_type(PDC_type_t type)
 {
+    FUNC_ENTER(NULL);
+
     perr_t              ret_value = SUCCEED;
     struct PDC_id_type *type_ptr  = NULL;
 
-    FUNC_ENTER(NULL);
-
+    if (pdc_id_list_g == NULL)
+        PGOTO_ERROR(FAIL, "pdc_id_list_g was NULL");
     type_ptr = (pdc_id_list_g->PDC_id_type_list_g)[type];
     if (type_ptr == NULL)
-        PGOTO_ERROR(FAIL, "type was not initialized correctly");
+        PGOTO_ERROR(FAIL, "Type was not initialized correctly");
     type_ptr = (struct PDC_id_type *)(intptr_t)PDC_free(type_ptr);
 
 done:
-    fflush(stdout);
     FUNC_LEAVE(ret_value);
 }

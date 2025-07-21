@@ -8,6 +8,7 @@
 #include "string_utils.h"
 #include "query_utils.h"
 #include "pdc_logger.h"
+#include "pdc_timing.h"
 #include <unistd.h>
 #include <inttypes.h>
 #include <stdint.h>
@@ -19,20 +20,22 @@
 IDIOMS_t *
 IDIOMS_init(uint32_t server_id, uint32_t num_servers)
 {
-    IDIOMS_t *idioms              = (IDIOMS_t *)calloc(1, sizeof(IDIOMS_t));
-    idioms->art_key_prefix_tree_g = (art_tree *)calloc(1, sizeof(art_tree));
+    FUNC_ENTER(NULL);
+
+    IDIOMS_t *idioms              = (IDIOMS_t *)PDC_calloc(1, sizeof(IDIOMS_t));
+    idioms->art_key_prefix_tree_g = (art_tree *)PDC_calloc(1, sizeof(art_tree));
     art_tree_init(idioms->art_key_prefix_tree_g);
 
-    idioms->art_key_suffix_tree_g = (art_tree *)calloc(1, sizeof(art_tree));
+    idioms->art_key_suffix_tree_g = (art_tree *)PDC_calloc(1, sizeof(art_tree));
     art_tree_init(idioms->art_key_suffix_tree_g);
 
     idioms->server_id_g   = server_id;
     idioms->num_servers_g = num_servers;
 
-    idioms->dart_info_g = (DART *)calloc(1, sizeof(DART));
+    idioms->dart_info_g = (DART *)PDC_calloc(1, sizeof(DART));
     _init_dart_space_via_idioms(idioms->dart_info_g, idioms->num_servers_g);
 
-    return idioms;
+    FUNC_LEAVE(idioms);
 }
 
 /****************************/
@@ -43,10 +46,12 @@ perr_t
 insert_obj_ids_into_value_leaf(void *index, void *attr_val, int is_trie, size_t value_len, uint64_t *obj_ids,
                                size_t num_obj_ids)
 {
+    FUNC_ENTER(NULL);
+
     perr_t ret = SUCCEED;
     if (index == NULL) {
         LOG_ERROR("index was null\n");
-        return FAIL;
+        FUNC_LEAVE(FAIL);
     }
 
     void *entry     = NULL;
@@ -82,16 +87,19 @@ insert_obj_ids_into_value_leaf(void *index, void *attr_val, int is_trie, size_t 
         set_insert(((value_index_leaf_content_t *)entry)->obj_id_set, (SetValue)obj_id);
         size_t num_entires = set_num_entries(((value_index_leaf_content_t *)entry)->obj_id_set);
     }
-    return ret;
+
+    FUNC_LEAVE(ret);
 }
 
 perr_t
 insert_value_into_second_level_index(key_index_leaf_content_t *leaf_content,
                                      IDIOMS_md_idx_record_t *  idx_record)
 {
+    FUNC_ENTER(NULL);
+
     perr_t ret = SUCCEED;
     if (leaf_content == NULL) {
-        return FAIL;
+        FUNC_LEAVE(FAIL);
     }
     char *value_type_str = get_enum_name_by_dtype(idx_record->type);
 
@@ -103,7 +111,7 @@ insert_value_into_second_level_index(key_index_leaf_content_t *leaf_content,
                                              idx_record->type == PDC_STRING, value_str_len,
                                              idx_record->obj_ids, idx_record->num_obj_ids);
         if (ret == FAIL) {
-            return ret;
+            FUNC_LEAVE(ret);
         }
 #ifndef PDC_DART_SFX_TREE
         void *reverted_val = reverse_str((char *)attr_val);
@@ -129,15 +137,18 @@ insert_value_into_second_level_index(key_index_leaf_content_t *leaf_content,
                                              idx_record->type == PDC_STRING, idx_record->value_len,
                                              idx_record->obj_ids, idx_record->num_obj_ids);
     }
-    return ret;
+
+    FUNC_LEAVE(ret);
 }
 
 perr_t
 insert_into_key_trie(art_tree *key_trie, char *key, int len, IDIOMS_md_idx_record_t *idx_record)
 {
+    FUNC_ENTER(NULL);
+
     perr_t ret = SUCCEED;
     if (key_trie == NULL) {
-        return FAIL;
+        FUNC_LEAVE(FAIL);
     }
 
     // look up for leaf_content
@@ -186,12 +197,14 @@ insert_into_key_trie(art_tree *key_trie, char *key, int len, IDIOMS_md_idx_recor
 
     // insert the value part into second level index.
     ret = insert_value_into_second_level_index(key_leaf_content, idx_record);
-    return ret;
+    FUNC_LEAVE(ret);
 }
 
 perr_t
 idioms_local_index_create(IDIOMS_t *idioms, IDIOMS_md_idx_record_t *idx_record)
 {
+    FUNC_ENTER(NULL);
+
     perr_t ret = SUCCEED;
     // get the key and create key_index_leaf_content node for it.
     char *key = idx_record->key;
@@ -261,7 +274,7 @@ idioms_local_index_create(IDIOMS_t *idioms, IDIOMS_md_idx_record_t *idx_record)
     idioms->index_record_count_g++;
     idioms->insert_request_count_g++;
 
-    return ret;
+    FUNC_LEAVE(ret);
 }
 
 /****************************/
@@ -271,9 +284,11 @@ perr_t
 delete_obj_ids_from_value_leaf(void *index, void *attr_val, int is_trie, size_t value_len, uint64_t *obj_ids,
                                size_t num_obj_ids)
 {
+    FUNC_ENTER(NULL);
+
     perr_t ret = SUCCEED;
     if (index == NULL) {
-        return ret;
+        FUNC_LEAVE(ret);
     }
 
     void *entry     = NULL;
@@ -287,13 +302,13 @@ delete_obj_ids_from_value_leaf(void *index, void *attr_val, int is_trie, size_t 
     }
 
     if (idx_found != 0) { // not found
-        return SUCCEED;
+        FUNC_LEAVE(SUCCEED);
     }
 
     uint64_t *obj_id = (uint64_t *)PDC_calloc(1, sizeof(uint64_t));
     for (int j = 0; j < num_obj_ids; j++) {
         if (ret == FAIL) {
-            return ret;
+            FUNC_LEAVE(ret);
         }
         // obj_id here is just for comparison purpose, and no need to allocate memory for it every time.
         *obj_id = obj_ids[j];
@@ -312,16 +327,19 @@ delete_obj_ids_from_value_leaf(void *index, void *attr_val, int is_trie, size_t 
         }
         // PDC_free(entry);
     }
-    return ret;
+
+    FUNC_LEAVE(ret);
 }
 
 perr_t
 delete_value_from_second_level_index(key_index_leaf_content_t *leaf_content,
                                      IDIOMS_md_idx_record_t *  idx_record)
 {
+    FUNC_ENTER(NULL);
+
     perr_t ret = SUCCEED;
     if (leaf_content == NULL) {
-        return FAIL;
+        FUNC_LEAVE(FAIL);
     }
     char *value_type_str = get_enum_name_by_dtype(idx_record->type);
     if (_getCompoundTypeFromBitmap(leaf_content->val_idx_dtype) == PDC_STRING &&
@@ -334,7 +352,7 @@ delete_value_from_second_level_index(key_index_leaf_content_t *leaf_content,
                                              idx_record->type == PDC_STRING, value_str_len,
                                              idx_record->obj_ids, idx_record->num_obj_ids);
         if (ret == FAIL) {
-            return ret;
+            FUNC_LEAVE(ret);
         }
 #ifndef PDC_DART_SFX_TREE
         void *reverted_val = reverse_str((char *)attr_val);
@@ -363,17 +381,21 @@ delete_value_from_second_level_index(key_index_leaf_content_t *leaf_content,
                                              idx_record->type == PDC_STRING, idx_record->value_len,
                                              idx_record->obj_ids, idx_record->num_obj_ids);
     }
-    return ret;
+
+    FUNC_LEAVE(ret);
 }
 
 int
 is_key_leaf_cnt_empty(key_index_leaf_content_t *leaf_content)
 {
+    FUNC_ENTER(NULL);
+
     if (leaf_content->primary_trie == NULL && leaf_content->secondary_trie == NULL &&
         leaf_content->primary_rbt == NULL && leaf_content->secondary_rbt == NULL) {
-        return 1;
+        FUNC_LEAVE(1);
     }
-    return 0;
+
+    FUNC_LEAVE(0);
 }
 
 /**
@@ -382,22 +404,24 @@ is_key_leaf_cnt_empty(key_index_leaf_content_t *leaf_content)
 perr_t
 delete_from_key_trie(art_tree *key_trie, char *key, int len, IDIOMS_md_idx_record_t *idx_record)
 {
+    FUNC_ENTER(NULL);
+
     perr_t ret = SUCCEED;
     if (key_trie == NULL) {
-        return FAIL;
+        FUNC_LEAVE(FAIL);
     }
     // look up for leaf_content
     key_index_leaf_content_t *key_leaf_content =
         (key_index_leaf_content_t *)art_search(key_trie, (unsigned char *)key, len);
     // if no corresponding leaf_content, that means the key has been deleted already.
     if (key_leaf_content == NULL) {
-        return SUCCEED;
+        FUNC_LEAVE(SUCCEED);
     }
 
     // delete the value part from second level index.
     ret = delete_value_from_second_level_index(key_leaf_content, idx_record);
     if (ret == FAIL) {
-        return ret;
+        FUNC_LEAVE(ret);
     }
 
     char *value_type_str       = get_enum_name_by_dtype(idx_record->type);
@@ -426,13 +450,12 @@ delete_from_key_trie(art_tree *key_trie, char *key, int len, IDIOMS_md_idx_recor
 
     if (is_key_leaf_cnt_empty(key_leaf_content)) {
         // delete the key from the the key trie along with the key_leaf_content.
-        free(key_leaf_content);
-        // LOG_DEBUG("Deleted key %s from the key trie\n", key);
+        key_leaf_content = (key_index_leaf_content_t *)PDC_free(key_leaf_content);
         art_delete(key_trie, (unsigned char *)key, len);
-        return SUCCEED;
+        FUNC_LEAVE(SUCCEED);
     }
 
-    return ret;
+    FUNC_LEAVE(ret);
 }
 
 /**
@@ -441,6 +464,8 @@ delete_from_key_trie(art_tree *key_trie, char *key, int len, IDIOMS_md_idx_recor
 perr_t
 idioms_local_index_delete(IDIOMS_t *idioms, IDIOMS_md_idx_record_t *idx_record)
 {
+    FUNC_ENTER(NULL);
+
     perr_t ret = SUCCEED;
     // get the key and create key_index_leaf_content node for it.
     char *key = idx_record->key; // in a delete function for trie, there is no need to duplicate the string.
@@ -485,7 +510,8 @@ idioms_local_index_delete(IDIOMS_t *idioms, IDIOMS_md_idx_record_t *idx_record)
     idioms->time_to_delete_index_g += timer_delta_us(&index_timer);
     idioms->index_record_count_g--;
     idioms->delete_request_count_g++;
-    return ret;
+
+    FUNC_LEAVE(ret);
 }
 
 /****************************/
@@ -495,15 +521,17 @@ idioms_local_index_delete(IDIOMS_t *idioms, IDIOMS_md_idx_record_t *idx_record)
 int
 collect_obj_ids(value_index_leaf_content_t *value_index_leaf, IDIOMS_md_idx_record_t *idx_record)
 {
+    FUNC_ENTER(NULL);
+
     Set *obj_id_set = (Set *)value_index_leaf->obj_id_set;
 
     // get number of object IDs in the set
     int num_obj_ids = set_num_entries(obj_id_set);
 
     // realloc the obj_ids array in idx_record
-    idx_record->obj_ids =
-        (uint64_t *)realloc(idx_record->obj_ids, sizeof(uint64_t) * (idx_record->num_obj_ids + num_obj_ids));
-    size_t      offset = idx_record->num_obj_ids;
+    idx_record->obj_ids = (uint64_t *)PDC_realloc(idx_record->obj_ids,
+                                                  sizeof(uint64_t) * (idx_record->num_obj_ids + num_obj_ids));
+    size_t      offset  = idx_record->num_obj_ids;
     SetIterator value_set_iter;
     set_iterate(obj_id_set, &value_set_iter);
     while (set_iter_has_more(&value_set_iter)) {
@@ -515,14 +543,17 @@ collect_obj_ids(value_index_leaf_content_t *value_index_leaf, IDIOMS_md_idx_reco
         idx_record->num_obj_ids += num_obj_ids;
     }
     else {
-        LOG_ERROR("ERROR: offset %zu != num_obj_ids %d\n", offset, num_obj_ids);
+        LOG_ERROR("Error offset %zu != num_obj_ids %d\n", offset, num_obj_ids);
     }
-    return 0;
+
+    FUNC_LEAVE(0);
 }
 
 int
 value_trie_callback(void *data, const unsigned char *key, uint32_t key_len, void *value)
 {
+    FUNC_ENTER(NULL);
+
     value_index_leaf_content_t *value_index_leaf = (value_index_leaf_content_t *)(value);
     IDIOMS_md_idx_record_t *    idx_record       = (IDIOMS_md_idx_record_t *)(data);
 
@@ -531,25 +562,29 @@ value_trie_callback(void *data, const unsigned char *key, uint32_t key_len, void
     if (value_query_type == PATTERN_MIDDLE) {
         char *infix = substring(v_query, 1, strlen(v_query) - 1);
         if (contains((char *)key, infix) == 0) {
-            return 0;
+            FUNC_LEAVE(0);
         }
     }
 
     if (value_index_leaf != NULL) {
         collect_obj_ids(value_index_leaf, idx_record);
     }
-    return 0;
+
+    FUNC_LEAVE(0);
 }
 
 rbt_walk_return_code_t
 value_rbt_callback(rbt_t *rbt, void *key, size_t klen, void *value, void *priv)
 {
+    FUNC_ENTER(NULL);
+
     value_index_leaf_content_t *value_index_leaf = (value_index_leaf_content_t *)(value);
     IDIOMS_md_idx_record_t *    idx_record       = (IDIOMS_md_idx_record_t *)(priv);
     if (value_index_leaf != NULL) {
         collect_obj_ids(value_index_leaf, idx_record);
     }
-    return RBT_WALK_CONTINUE;
+
+    FUNC_LEAVE(RBT_WALK_CONTINUE);
 }
 
 /**
@@ -570,8 +605,10 @@ int
 value_number_query(char *secondary_query, key_index_leaf_content_t *leafcnt,
                    IDIOMS_md_idx_record_t *idx_record)
 {
+    FUNC_ENTER(NULL);
+
     if (leafcnt->primary_rbt == NULL) {
-        return 0;
+        FUNC_LEAVE(0);
     }
 
     // allocate memory according to the val_idx_dtype for value 1 and value 2.
@@ -612,8 +649,8 @@ value_number_query(char *secondary_query, key_index_leaf_content_t *leafcnt,
         // the string is not ended or started with '~', and if it contains '~', it is a in-between query.
         split_string(secondary_query, "~", &tokens, &num_tokens);
         if (num_tokens != 2) {
-            LOG_ERROR("ERROR: invalid range query: %s\n", secondary_query);
-            return -1;
+            LOG_ERROR("Error invalid range query: %s\n", secondary_query);
+            FUNC_LEAVE(-1);
         }
         char *lo_tok = tokens[0];
         char *hi_tok = tokens[1];
@@ -629,7 +666,6 @@ value_number_query(char *secondary_query, key_index_leaf_content_t *leafcnt,
 
         int num_visited_node = rbt_range_walk(leafcnt->primary_rbt, val1, klen1, val2, klen2,
                                               value_rbt_callback, idx_record, beginInclusive, endInclusive);
-        // println("[value_number_query] num_visited_node: %d\n", num_visited_node);
     }
     else {
         // exact query by default
@@ -642,15 +678,17 @@ value_number_query(char *secondary_query, key_index_leaf_content_t *leafcnt,
         if (value_index_leaf != NULL) {
             collect_obj_ids(value_index_leaf, idx_record);
         }
-        // free(num_str);
     }
-    return 0;
+
+    FUNC_LEAVE(0);
 }
 
 int
 value_string_query(char *secondary_query, key_index_leaf_content_t *leafcnt,
                    IDIOMS_md_idx_record_t *idx_record)
 {
+    FUNC_ENTER(NULL);
+
     pattern_type_t level_two_ptn_type = determine_pattern_type(secondary_query);
     char *         tok                = NULL;
     switch (level_two_ptn_type) {
@@ -706,12 +744,15 @@ value_string_query(char *secondary_query, key_index_leaf_content_t *leafcnt,
         default:
             break;
     }
-    return 0;
+
+    FUNC_LEAVE(0);
 }
 
 int
 key_index_search_callback(void *data, const unsigned char *key, uint32_t key_len, void *value)
 {
+    FUNC_ENTER(NULL);
+
     key_index_leaf_content_t *leafcnt    = (key_index_leaf_content_t *)value;
     IDIOMS_md_idx_record_t *  idx_record = (IDIOMS_md_idx_record_t *)(data);
 
@@ -722,7 +763,7 @@ key_index_search_callback(void *data, const unsigned char *key, uint32_t key_len
     if (key_query_type == PATTERN_MIDDLE) {
         char *infix = substring(k_query, 1, strlen(k_query) - 1);
         if (contains((char *)key, infix) == 0) {
-            return 0;
+            FUNC_LEAVE(0);
         }
     }
 
@@ -740,7 +781,8 @@ key_index_search_callback(void *data, const unsigned char *key, uint32_t key_len
         // perform number search
         query_rst |= value_number_query(v_query, leafcnt, idx_record);
     }
-    return query_rst;
+
+    FUNC_LEAVE(query_rst);
 }
 
 /**
@@ -765,14 +807,16 @@ key_index_search_callback(void *data, const unsigned char *key, uint32_t key_len
 uint64_t
 idioms_local_index_search(IDIOMS_t *idioms, IDIOMS_md_idx_record_t *idx_record)
 {
+    FUNC_ENTER(NULL);
+
     uint64_t    result_count = 0;
     stopwatch_t index_timer;
     if (idioms == NULL) {
-        println("[Server_Side_Query_%d] idioms is NULL.", idioms->server_id_g);
-        return result_count;
+        LOG_INFO("[Server_Side_Query_%d] idioms is NULL\n", idioms->server_id_g);
+        FUNC_LEAVE(result_count);
     }
     if (idx_record == NULL) {
-        return result_count;
+        FUNC_LEAVE(result_count);
     }
 
     char *query      = idx_record->key;
@@ -780,17 +824,17 @@ idioms_local_index_search(IDIOMS_t *idioms, IDIOMS_md_idx_record_t *idx_record)
 
     if (NULL == kdelim_ptr) {
         if (DART_SERVER_DEBUG) {
-            println("[Server_Side_Query_%d]query string '%s' is not valid.", idioms->server_id_g, query);
+            LOG_INFO("[Server_Side_Query_%d]query string '%s' is not valid\n", idioms->server_id_g, query);
         }
-        return result_count;
+        FUNC_LEAVE(result_count);
     }
 
     char *k_query = get_key(query, KV_DELIM);
     char *v_query = get_value(query, KV_DELIM);
 
     if (DART_SERVER_DEBUG) {
-        println("[Server_Side_Query_%d] k_query = '%s' | v_query = '%s' ", idioms->server_id_g, k_query,
-                v_query);
+        LOG_INFO("[Server_Side_Query_%d] k_query = '%s' | v_query = '%s'\n", idioms->server_id_g, k_query,
+                 v_query);
     }
 
     idx_record->key   = k_query;
@@ -863,5 +907,6 @@ idioms_local_index_search(IDIOMS_t *idioms, IDIOMS_md_idx_record_t *idx_record)
     }
     idioms->time_to_search_index_g += timer_delta_us(&index_timer);
     idioms->search_request_count_g += 1;
-    return result_count;
+
+    FUNC_LEAVE(result_count);
 }

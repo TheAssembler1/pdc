@@ -3,6 +3,7 @@
 #include "bulki.h"
 #include "assert.h"
 #include "pdc_logger.h"
+#include "pdc_timing.h"
 
 typedef enum { IDIOMS_INSERT = 1, IDIOMS_DELETE = 2, IDIOMS_QUERY = 3 } IDIOMS_OP_TYPE;
 
@@ -35,24 +36,30 @@ dummy_client_t *clients;
 void
 init_servers(int num_servers)
 {
+    FUNC_ENTER(NULL);
+
     // create an array of dummy_server_t
-    servers = (dummy_server_t *)malloc(num_servers * sizeof(dummy_server_t));
+    servers = (dummy_server_t *)PDC_malloc(num_servers * sizeof(dummy_server_t));
     // initialize each server, simulating the initialization of every single process
     for (int i = 0; i < num_servers; i++) {
         servers[i].id     = i;
         servers[i].idioms = IDIOMS_init(i, num_servers);
     }
+
+    FUNC_LEAVE_VOID();
 }
 
 void
 init_clients(int num_clients, int num_servers)
 {
+    FUNC_ENTER(NULL);
+
     // create an array of dummy_client_t
-    clients = (dummy_client_t *)malloc(num_clients * sizeof(dummy_client_t));
+    clients = (dummy_client_t *)PDC_malloc(num_clients * sizeof(dummy_client_t));
     // initialize each client, simulating the initialization of every single process
     for (int i = 0; i < num_clients; i++) {
         clients[i].id                 = i;
-        clients[i].dart               = (DART *)calloc(1, sizeof(DART));
+        clients[i].dart               = (DART *)PDC_calloc(1, sizeof(DART));
         clients[i].num_servers        = num_servers;
         clients[i].DART_ALPHABET_SIZE = 27;
         clients[i].extra_tree_height  = 0;
@@ -64,6 +71,8 @@ init_clients(int num_clients, int num_servers)
     for (int i = 0; i < num_clients; i++) {
         dart_space_init(clients[i].dart, clients[i].num_servers);
     }
+
+    FUNC_LEAVE_VOID();
 }
 
 /**
@@ -79,6 +88,7 @@ void
 client_generate_request(dummy_client_t *client, IDIOMS_OP_TYPE op_type, char *key, BULKI_Entity *value_ent,
                         uint64_t *id)
 {
+    FUNC_ENTER(NULL);
 
     BULKI_Entity *bentArr = empty_Bent_Array_Entity();
     BULKI_ENTITY_append_BULKI_Entity(bentArr,
@@ -90,19 +100,27 @@ client_generate_request(dummy_client_t *client, IDIOMS_OP_TYPE op_type, char *ke
         BULKI_ENTITY_append_BULKI_Entity(bentArr, BULKI_ENTITY(id, 1, PDC_UINT64, PDC_CLS_ITEM)); // 3. id
     }
     client->buffer_out = BULKI_Entity_serialize(bentArr, &client->buffer_out_size);
+
+    FUNC_LEAVE_VOID();
 }
 
 void
 get_server_info_cb(dart_server *server_ptr)
 {
+    FUNC_ENTER(NULL);
+
     uint32_t server_id                              = server_ptr->id;
     servers[server_id].idioms->index_record_count_g = 100;
+
+    FUNC_LEAVE_VOID();
 }
 
 int
 client_select_server(dummy_client_t *client, char *attr_key, IDIOMS_OP_TYPE op_type,
                      index_hash_result_t **hash_result)
 {
+    FUNC_ENTER(NULL);
+
     // select a server based on the key
     dart_op_type_t           dart_op   = OP_INSERT;
     char *                   input_key = attr_key;
@@ -117,74 +135,96 @@ client_select_server(dummy_client_t *client, char *attr_key, IDIOMS_OP_TYPE op_t
     else if (op_type == IDIOMS_DELETE) {
         dart_op = OP_DELETE;
     }
-    return DART_hash(client->dart, attr_key, dart_op, gsi_cp, hash_result);
+    FUNC_LEAVE(DART_hash(client->dart, attr_key, dart_op, gsi_cp, hash_result));
 }
 
 void
 sending_request_to_server(dummy_client_t *client, dummy_server_t *server)
 {
+    FUNC_ENTER(NULL);
+
     // memcpy to simulate the sending of the request to the server
     server->buffer_in_size = client->buffer_out_size;
-    server->buffer_in      = (void *)malloc(server->buffer_in_size);
+    server->buffer_in      = (void *)PDC_malloc(server->buffer_in_size);
     memcpy(server->buffer_in, client->buffer_out, server->buffer_in_size);
-    free(client->buffer_out);
+    client->buffer_out = (void *)PDC_free(client->buffer_out);
+
+    FUNC_LEAVE_VOID();
 }
 
 void
 get_response_from_server(dummy_client_t *client, dummy_server_t *server)
 {
+    FUNC_ENTER(NULL);
+
     // memcpy to simulate the receiving of the response from the server
     client->buffer_in_size = server->buffer_out_size;
-    client->buffer_in      = (void *)malloc(client->buffer_in_size);
+    client->buffer_in      = (void *)PDC_malloc(client->buffer_in_size);
     memcpy(client->buffer_in, server->buffer_out, client->buffer_in_size);
-    free(server->buffer_out);
+    server->buffer_out = (void *)PDC_free(server->buffer_out);
+
+    FUNC_LEAVE_VOID();
 }
 
 perr_t
 server_perform_query(dummy_server_t *server, char *query_str, uint64_t **object_id_list, uint64_t *count)
 {
-    IDIOMS_md_idx_record_t *idx_record = (IDIOMS_md_idx_record_t *)calloc(1, sizeof(IDIOMS_md_idx_record_t));
-    idx_record->key                    = query_str;
+    FUNC_ENTER(NULL);
+
+    IDIOMS_md_idx_record_t *idx_record =
+        (IDIOMS_md_idx_record_t *)PDC_calloc(1, sizeof(IDIOMS_md_idx_record_t));
+    idx_record->key = query_str;
     idioms_local_index_search(server->idioms, idx_record);
     *object_id_list = idx_record->obj_ids;
     *count          = idx_record->num_obj_ids;
-    return SUCCEED;
+
+    FUNC_LEAVE(SUCCEED);
 }
 
 perr_t
 server_perform_insert(dummy_server_t *server, char *key, BULKI_Entity *value_ent, uint64_t id)
 {
+    FUNC_ENTER(NULL);
+
     // we assume that the count of value_ent is 1.
-    IDIOMS_md_idx_record_t *idx_record = (IDIOMS_md_idx_record_t *)calloc(1, sizeof(IDIOMS_md_idx_record_t));
-    idx_record->key                    = key;
-    idx_record->value                  = value_ent->data;
-    idx_record->value_len              = value_ent->size;
-    idx_record->type                   = value_ent->pdc_type;
-    idx_record->num_obj_ids            = 1;
-    idx_record->obj_ids                = (uint64_t *)calloc(1, sizeof(uint64_t));
-    idx_record->obj_ids[0]             = id;
+    IDIOMS_md_idx_record_t *idx_record =
+        (IDIOMS_md_idx_record_t *)PDC_calloc(1, sizeof(IDIOMS_md_idx_record_t));
+    idx_record->key         = key;
+    idx_record->value       = value_ent->data;
+    idx_record->value_len   = value_ent->size;
+    idx_record->type        = value_ent->pdc_type;
+    idx_record->num_obj_ids = 1;
+    idx_record->obj_ids     = (uint64_t *)PDC_calloc(1, sizeof(uint64_t));
+    idx_record->obj_ids[0]  = id;
     idioms_local_index_create(server->idioms, idx_record);
-    return SUCCEED;
+
+    FUNC_LEAVE(SUCCEED);
 }
 
 perr_t
 server_perform_delete(dummy_server_t *server, char *key, BULKI_Entity *value_ent, uint64_t id)
 {
-    IDIOMS_md_idx_record_t *idx_record = (IDIOMS_md_idx_record_t *)calloc(1, sizeof(IDIOMS_md_idx_record_t));
-    idx_record->key                    = key;
-    idx_record->value                  = value_ent->data;
-    idx_record->value_len              = value_ent->size;
-    idx_record->type                   = value_ent->pdc_type;
-    idx_record->num_obj_ids            = 1;
-    idx_record->obj_ids                = (uint64_t *)calloc(1, sizeof(uint64_t));
-    idx_record->obj_ids[0]             = id;
+    FUNC_ENTER(NULL);
+
+    IDIOMS_md_idx_record_t *idx_record =
+        (IDIOMS_md_idx_record_t *)PDC_calloc(1, sizeof(IDIOMS_md_idx_record_t));
+    idx_record->key         = key;
+    idx_record->value       = value_ent->data;
+    idx_record->value_len   = value_ent->size;
+    idx_record->type        = value_ent->pdc_type;
+    idx_record->num_obj_ids = 1;
+    idx_record->obj_ids     = (uint64_t *)PDC_calloc(1, sizeof(uint64_t));
+    idx_record->obj_ids[0]  = id;
     idioms_local_index_delete(server->idioms, idx_record);
-    return SUCCEED;
+
+    FUNC_LEAVE(SUCCEED);
 }
 
 void
 server_perform_operation(dummy_server_t *server)
 {
+    FUNC_ENTER(NULL);
+
     BULKI_Entity * resultBent  = empty_Bent_Array_Entity();
     BULKI_Entity * bentArr     = BULKI_Entity_deserialize(server->buffer_in);
     BULKI_Entity * opType_ent  = BULKI_ENTITY_get_BULKI_Entity(bentArr, 0);
@@ -214,12 +254,16 @@ server_perform_operation(dummy_server_t *server)
                                          BULKI_ENTITY(obj_id_list, count, PDC_UINT64, PDC_CLS_ARRAY));
     }
     server->buffer_out = BULKI_Entity_serialize(resultBent, &server->buffer_out_size);
-    free(server->buffer_in);
+    server->buffer_in  = (void *)PDC_free(server->buffer_in);
+
+    FUNC_LEAVE_VOID();
 }
 
 perr_t
 client_parse_response(dummy_client_t *client, uint64_t **obj_id_list, uint64_t *count)
 {
+    FUNC_ENTER(NULL);
+
     BULKI_Entity *resultBent = BULKI_Entity_deserialize(client->buffer_in);
     int           result     = *(int *)BULKI_ENTITY_get_BULKI_Entity(resultBent, 0)->data;
     if (result == SUCCEED && obj_id_list != NULL && count != NULL) {
@@ -229,13 +273,16 @@ client_parse_response(dummy_client_t *client, uint64_t **obj_id_list, uint64_t *
             *count       = obj_id_bent->count;
         }
     }
-    free(client->buffer_in);
-    return result;
+    client->buffer_in = (void *)PDC_free(client->buffer_in);
+
+    FUNC_LEAVE(result);
 }
 
 perr_t
 client_insert_data(dummy_client_t *client, int id)
 {
+    FUNC_ENTER(NULL);
+
     char    key[64];
     char    value[64];
     char    int_key[64];
@@ -267,24 +314,31 @@ client_insert_data(dummy_client_t *client, int id)
     }
     char *result_str = result == SUCCEED ? "SUCCEED" : "FAILED";
     LOG_INFO("Insert result: %s\n", result_str);
-    return result;
+
+    FUNC_LEAVE(result);
 }
 
 void
 client_print_result(uint64_t *rst_ids, uint64_t rst_count)
 {
+    FUNC_ENTER(NULL);
+
     LOG_JUST_PRINT("Result count : %" PRIu64 " | ", rst_count);
     for (int i = 0; i < rst_count; i++) {
         LOG_JUST_PRINT("%lu ", rst_ids[i]);
     }
     LOG_JUST_PRINT("|\n");
+
+    FUNC_LEAVE_VOID();
 }
 
 uint64_t
 client_perform_search(dummy_client_t *client, char *query, uint64_t **rst_ids)
 {
+    FUNC_ENTER(NULL);
+
     if (rst_ids == NULL) {
-        return 0;
+        FUNC_LEAVE(0);
     }
     // generate a request for each client
     index_hash_result_t *hash_result       = NULL;
@@ -302,21 +356,24 @@ client_perform_search(dummy_client_t *client, char *query, uint64_t **rst_ids)
         if (result == SUCCEED && count > 0) {
             rst_count += count;
             if (*rst_ids == NULL) {
-                *rst_ids = (uint64_t *)malloc(rst_count * sizeof(uint64_t));
+                *rst_ids = (uint64_t *)PDC_malloc(rst_count * sizeof(uint64_t));
             }
             else {
-                *rst_ids = (uint64_t *)realloc(*rst_ids, rst_count * sizeof(uint64_t));
+                *rst_ids = (uint64_t *)PDC_realloc(*rst_ids, rst_count * sizeof(uint64_t));
             }
             memcpy(*rst_ids + rst_count - count, obj_id_list, count * sizeof(uint64_t));
         }
     }
     client_print_result(*rst_ids, rst_count);
-    return rst_count;
+
+    FUNC_LEAVE(rst_count);
 }
 
 perr_t
 client_delete_data(dummy_client_t *client, int id)
 {
+    FUNC_ENTER(NULL);
+
     char    key[64];
     char    value[64];
     char    int_key[64];
@@ -348,12 +405,15 @@ client_delete_data(dummy_client_t *client, int id)
     }
     char *result_str = result == SUCCEED ? "SUCCEED" : "FAILED";
     LOG_INFO("Delete result: %s\n", result_str);
-    return result;
+
+    FUNC_LEAVE(result);
 }
 
 void
 basic_test()
 {
+    FUNC_ENTER(NULL);
+
     perr_t insert_rst = client_insert_data(&clients[0], 10);
     assert(insert_rst == SUCCEED);
 
@@ -443,38 +503,42 @@ basic_test()
     rst_count = client_perform_search(&clients[0], query, &rst_ids);
     assert(rst_count == 0);
     assert(rst_ids == NULL);
+
+    FUNC_LEAVE_VOID();
 }
 
 int
 compare_uint64(const void *a, const void *b)
 {
-    return (*(uint64_t *)a - *(uint64_t *)b);
+    FUNC_ENTER(NULL);
+    FUNC_LEAVE((*(uint64_t *)a - *(uint64_t *)b));
 }
 
 int
 validate_query_result(int world_rank, int nres, uint64_t *pdc_ids)
 {
+    FUNC_ENTER(NULL);
+
     int i;
     int query_series = world_rank % 6;
     int step_failed  = -1;
     switch (query_series) {
         case 0:
             if (nres != 1) {
-                LOG_ERROR("Failed to query kvtag [%s] with rank %d. Expect 1 result but got %d result\n",
+                LOG_ERROR("Failed to query kvtag [%s]. Expect 1 result but got %d result\n",
                           "str109str=str109str", world_rank, nres);
                 step_failed = 0;
             }
             if (pdc_ids[0] != 109) {
-                LOG_ERROR(
-                    "Failed to query kvtag [%s] with rank %d. Expect 1 result which is 109, but got result "
-                    "%" PRIu64 ".\n",
-                    "str109str=str109str", world_rank, pdc_ids[0]);
+                LOG_ERROR("Failed to query kvtag [%s]. Expect 1 result which is 109, but got result "
+                          "%" PRIu64 ".\n",
+                          "str109str=str109str", world_rank, pdc_ids[0]);
                 step_failed = 0;
             }
             break;
         case 1:
             if (nres != 10) {
-                LOG_ERROR("Failed to query kvtag [%s] with rank %d. Expect 10 Result, but got %d result.\n",
+                LOG_ERROR("Failed to query kvtag [%s]. Expect 10 Result, but got %d result.\n",
                           "str09*=str09*", world_rank, nres);
                 step_failed = 1;
             }
@@ -482,10 +546,9 @@ validate_query_result(int world_rank, int nres, uint64_t *pdc_ids)
             qsort(pdc_ids, nres, sizeof(uint64_t), compare_uint64);
             for (i = 0; i < nres; i++) {
                 if (pdc_ids[i] != i + 90) {
-                    LOG_ERROR(
-                        "Failed to query kvtag [%s] with rank %d. The %d th result does not match. Expect "
-                        "%d, but got %" PRIu64 "\n",
-                        "str09*=str09*", world_rank, i, i + 90, pdc_ids[i]);
+                    LOG_ERROR("Failed to query kvtag [%s]. The %d th result does not match. Expect "
+                              "%d, but got %" PRIu64 "\n",
+                              "str09*=str09*", world_rank, i, i + 90, pdc_ids[i]);
                     step_failed = 1;
                     break;
                 }
@@ -493,7 +556,7 @@ validate_query_result(int world_rank, int nres, uint64_t *pdc_ids)
             break;
         case 2:
             if (nres != 10) {
-                LOG_ERROR("Failed to query kvtag [%s] with rank %d. Expect 10 result, but got %d result.\n",
+                LOG_ERROR("Failed to query kvtag [%s]. Expect 10 result, but got %d result.\n",
                           "*09str=*09str", world_rank, nres);
                 step_failed = 2;
             }
@@ -501,10 +564,9 @@ validate_query_result(int world_rank, int nres, uint64_t *pdc_ids)
             qsort(pdc_ids, nres, sizeof(uint64_t), compare_uint64);
             for (i = 0; i < nres; i++) {
                 if (pdc_ids[i] != i * 10 + 9) {
-                    LOG_ERROR(
-                        "Failed to query kvtag [%s] with rank %d. The $d th result does not match. Expect "
-                        "%d, but got %" PRIu64 "\n",
-                        "*09str=*09str", world_rank, i, i * 10 + 9, pdc_ids[i]);
+                    LOG_ERROR("Failed to query kvtag [%s]. The $d th result does not match. Expect "
+                              "%d, but got %" PRIu64 "\n",
+                              "*09str=*09str", world_rank, i, i * 10 + 9, pdc_ids[i]);
                     step_failed = 2;
                     break;
                 }
@@ -512,9 +574,8 @@ validate_query_result(int world_rank, int nres, uint64_t *pdc_ids)
             break;
         case 3:
             if (nres != 20) {
-                LOG_ERROR(
-                    "Failed to query kvtag [%s] with rank %d. Expected 20 results, but got %d results\n",
-                    "*09*=*09*", world_rank, nres);
+                LOG_ERROR("Failed to query kvtag [%s]. Expected 20 results, but got %d results\n",
+                          "*09*=*09*", world_rank, nres);
                 step_failed = 3;
             }
             // the result is not in order, so we need to sort the result first
@@ -523,10 +584,9 @@ validate_query_result(int world_rank, int nres, uint64_t *pdc_ids)
                                      99, 109, 209, 309, 409, 509, 609, 709, 809, 909};
             for (i = 0; i < nres; i++) {
                 if (pdc_ids[i] != expected[i]) {
-                    LOG_ERROR(
-                        "Failed to query kvtag [%s] with rank %d. The %d th result does not match. Expect "
-                        "%" PRIu64 ", but got %" PRIu64 " results.\n",
-                        "*09*=*09*", world_rank, i, expected[i], pdc_ids[i]);
+                    LOG_ERROR("Failed to query kvtag [%s]. The %d th result does not match. Expect "
+                              "%" PRIu64 ", but got %" PRIu64 " results.\n",
+                              "*09*=*09*", world_rank, i, expected[i], pdc_ids[i]);
                     step_failed = 3;
                     break;
                 }
@@ -534,12 +594,12 @@ validate_query_result(int world_rank, int nres, uint64_t *pdc_ids)
             break;
         case 4:
             if (nres != 1) {
-                LOG_ERROR("Failed to query kvtag [%s] with rank %d. Expected 1 result, but got %d results\n",
-                          "intkey=109", world_rank, nres);
+                LOG_ERROR("Failed to query kvtag [%s]. Expected 1 result, but got %d results\n", "intkey=109",
+                          world_rank, nres);
                 step_failed = 4;
             }
             if (pdc_ids[0] != 109) {
-                LOG_ERROR("Failed to query kvtag [%s] with rank %d. Expected 1 result which is 109, but got "
+                LOG_ERROR("Failed to query kvtag [%s]. Expected 1 result which is 109, but got "
                           "%" PRIu64 "\n",
                           "intkey=109", world_rank, pdc_ids[0]);
                 step_failed = 4;
@@ -547,19 +607,17 @@ validate_query_result(int world_rank, int nres, uint64_t *pdc_ids)
             break;
         case 5:
             if (nres != 10) {
-                LOG_ERROR(
-                    "Failed to query kvtag [%s] with rank %d. Expected 10 results, but got %d results. \n",
-                    "intkey=90|~|99", world_rank, nres);
+                LOG_ERROR("Failed to query kvtag [%s]. Expected 10 results, but got %d results. \n",
+                          "intkey=90|~|99", world_rank, nres);
                 step_failed = 5;
             }
             // the result is not in order, so we need to sort the result first
             qsort(pdc_ids, nres, sizeof(uint64_t), compare_uint64);
             for (i = 0; i < nres; i++) {
                 if (pdc_ids[i] != i + 90) {
-                    LOG_ERROR(
-                        "Failed to query kvtag [%s] with rank %d. The %d th result does not match, expect "
-                        "%d but got %" PRIu64 "\n",
-                        "intkey=90|~|99", world_rank, i, i + 90, pdc_ids[i]);
+                    LOG_ERROR("Failed to query kvtag [%s]. The %d th result does not match, expect "
+                              "%d but got %" PRIu64 "\n",
+                              "intkey=90|~|99", world_rank, i, i + 90, pdc_ids[i]);
                     step_failed = 5;
                     break;
                 }
@@ -568,12 +626,15 @@ validate_query_result(int world_rank, int nres, uint64_t *pdc_ids)
         default:
             break;
     }
-    return step_failed;
+
+    FUNC_LEAVE(step_failed);
 }
 
 void
 perform_loop_test(int num_clients, int num_servers)
 {
+    FUNC_ENTER(NULL);
+
     for (int i = 0; i < 1000; i++) {
         client_insert_data(&clients[i % num_clients], i);
     }
@@ -614,11 +675,15 @@ perform_loop_test(int num_clients, int num_servers)
             LOG_ERROR("query [%s] with rank %d failed\n", query, client_rank);
         }
     }
+
+    FUNC_LEAVE_VOID();
 }
 
 int
 main(int argc, char *argv[])
 {
+    FUNC_ENTER(NULL);
+
     // read number of servers from first console argument
     int num_servers = atoi(argv[1]);
     // read number of clients from second console argument
@@ -669,5 +734,5 @@ main(int argc, char *argv[])
     //     }
     // }
 
-    return 0;
+    FUNC_LEAVE(0);
 }

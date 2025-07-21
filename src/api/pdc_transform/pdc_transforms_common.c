@@ -38,18 +38,18 @@ extern hg_thread_pool_t *hg_test_thread_pool_g;
 // transform_ftn_cb(hg_handle_t handle)
 HG_TEST_RPC_CB(transform_ftn, handle)
 {
+    FUNC_ENTER(NULL);
+
     hg_return_t                            ret_value = HG_SUCCESS;
     transform_ftn_in_t                     in;
     transform_ftn_out_t                    out       = {0, 0, 0, -1};
     struct _pdc_region_transform_ftn_info *thisFtn   = NULL;
     void *                                 ftnHandle = NULL;
 
-    FUNC_ENTER(NULL);
-
     HG_Get_input(handle, &in);
 
     if (PDC_get_ftnPtr_(in.ftn_name, in.loadpath, &ftnHandle) >= 0) {
-        thisFtn = malloc(sizeof(struct _pdc_region_transform_ftn_info));
+        thisFtn = PDC_malloc(sizeof(struct _pdc_region_transform_ftn_info));
         if (thisFtn == NULL)
             PGOTO_ERROR(HG_OTHER_ERROR, "transform_ftn_cb: Memory allocation failed");
         /* This sets up the index return for the client!
@@ -86,7 +86,6 @@ HG_TEST_RPC_CB(transform_ftn, handle)
     }
 
 done:
-    fflush(stdout);
     HG_Respond(handle, NULL, NULL, &out);
     HG_Free_input(handle, &in);
     HG_Destroy(handle);
@@ -99,9 +98,9 @@ HG_TEST_THREAD_CB(transform_ftn)
 hg_id_t
 PDC_transform_ftn_register(hg_class_t *hg_class)
 {
-    hg_id_t ret_value;
-
     FUNC_ENTER(NULL);
+
+    hg_id_t ret_value;
 
     ret_value = MERCURY_REGISTER(hg_class, "transform_ftn", transform_ftn_in_t, transform_ftn_out_t,
                                  transform_ftn_cb);

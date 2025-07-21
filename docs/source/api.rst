@@ -6,262 +6,276 @@ API Documentation with Examples
 PDC general APIs
 ---------------------------
 
-* pdcid_t PDCinit(const char *pdc_name)
+.. function:: pdcid_t PDCinit(const char *pdc_name)
 
-	* Input:
-		* pdc_name is the reference for PDC class. Recommended use "pdc"
+   :param pdc_name: Reference name for the PDC class. Recommended: "pdc".
+   :returns: PDC class ID used for future reference.
 
-	* Output:
-		* PDC class ID used for future reference.
+   All PDC client applications must call ``PDCinit`` before using any PDC functionality.  
+   This function sets up connections from clients to servers. A valid PDC server must be running.
 
-	* All PDC client applications must call PDCinit before using it. This function will setup connections from clients to servers. A valid PDC server must be running.
-	* For developers: currently implemented in pdc.c.
+   For developers: currently implemented in `pdc.c`.
 
-* perr_t PDCclose(pdcid_t pdcid)
+.. function:: perr_t PDCclose(pdcid_t pdcid)
 
-	* Input:
-		* PDC class ID returned from PDCinit.
+   :param pdcid: PDC class ID returned from ``PDCinit``.
+   :returns: ``SUCCEED`` if no error; otherwise, ``FAIL``.
 
-	* Output:
-		* SUCCEED if no error, otherwise FAIL.
+   This is the proper way to end a client-server connection for PDC.  
+   Every call to ``PDCinit`` must correspond to a call to ``PDCclose``.
 
-	* This is a proper way to end a client-server connection for PDC. A PDCinit must correspond to one PDCclose.
-	* For developers: currently implemented in pdc.c.
+   For developers: currently implemented in `pdc.c`.
 
-* perr_t PDC_Client_close_all_server()
+.. function:: perr_t PDC_Client_close_all_server()
 
-	* Output:
-		* SUCCEED if no error, otherwise FAIL.
+   :returns: ``SUCCEED`` if no error; otherwise, ``FAIL``.
 
-	* Close all PDC servers that running.
-	* For developers: see PDC_client_connect.c
+   Closes all running PDC servers.
 
+   For developers: see `PDC_client_connect.c`.
 
 ---------------------------
 PDC container APIs
 ---------------------------
 
-* pdcid_t PDCcont_create(const char *cont_name, pdcid_t cont_prop_id)
-	* Input:
-		* cont_name: the name of container. e.g "c1", "c2"
-		* cont_prop_id: property ID for inheriting a PDC property for container.
-	* Output: pdc_id for future referencing of this container, returned from PDC servers.
-	* Create a PDC container for future use.
-	* For developers: currently implemented in pdc_cont.c. This function will send a name to server and receive an container id. This function will allocate necessary memories and initialize properties for a container.
+.. function:: pdcid_t PDCcont_create(const char *cont_name, pdcid_t cont_prop_id)
 
-* pdcid_t PDCcont_create_col(const char *cont_name, pdcid_t cont_prop_id)
-	* Input:
-		* cont_name: the name to be assigned to a container. e.g "c1", "c2"
-		* cont_prop_id: property ID for inheriting a PDC property for container.
-	* Output: pdc_id for future referencing.
-	* Exactly the same as PDCcont_create, except all processes must call this function collectively. Create a PDC container for future use collectively.
-	* For developers: currently implemented in pdc_cont.c.
+   :param cont_name: the name of container. e.g "c1", "c2"
+   :param cont_prop_id: property ID for inheriting a PDC property for container.
+   :returns: pdc_id for future referencing of this container, returned from PDC servers.
 
-* pdcid_t PDCcont_open(const char *cont_name, pdcid_t pdc)
-	* Input:
-		* cont_name: the name of container used for PDCcont_create.
-		* pdc: PDC class ID returned from PDCinit.
-	* Output: 
-		* error code. FAIL OR SUCCEED
-	* Open a container. Must make sure a container named cont_name is properly created (registered by PDCcont_create at remote servers).
-	* For developers: currently implemented in pdc_cont.c. This function will make sure the metadata for a container is returned from servers. For collective operations, rank 0 is going to broadcast this metadata ID to the rest of processes. A struct _pdc_cont_info is created locally for future reference.
+   Create a PDC container for future use.
 
-* perr_t PDCcont_close(pdcid_t id)
-	* Input:
-		* container ID, returned from PDCcont_create.
-		* cont_prop_id: property ID for inheriting a PDC property for container.
-	* Output: 
-		* error code, SUCCEED or FAIL.
+   For developers: currently implemented in `pdc_cont.c`. This function will send a name to server and receive a container id. This function will allocate necessary memories and initialize properties for a container.
 
-	* Correspond to PDCcont_open. Must be called only once when a container is no longer used in the future.
-	* For developers: currently implemented in pdc_cont.c. The reference counter of a container is decremented. When the counter reaches zero, the memory of the container can be freed later.
+.. function:: pdcid_t PDCcont_create_col(const char *cont_name, pdcid_t cont_prop_id)
 
-* struct pdc_cont_info *PDCcont_get_info(const char *cont_name)
-	* Input:
-		* name of the container
-	* Output: 
-		* Pointer to a new structure that contains the container information See container info (Get Container Info link)
-		* Get container information
-		* For developers: See pdc_cont.c. Use name to search for pdc_id first by linked list lookup. Make a copy of the metadata to the newly malloced structure.
+   :param cont_name: the name to be assigned to a container. e.g "c1", "c2"
+   :param cont_prop_id: property ID for inheriting a PDC property for container.
+   :returns: pdc_id for future referencing.
 
-* perr_t PDCcont_persist(pdcid_t cont_id)
-	* Input:
-		* cont_id: container ID, returned from PDCcont_create.
-	* Output: 
-		* error code, SUCCEED or FAIL.
+   Exactly the same as ``PDCcont_create``, except all processes must call this function collectively. Create a PDC container for future use collectively.
 
-	* Make a PDC container persist.
-	* For developers, see pdc_cont.c. Set the container life field PDC_PERSIST.
+   For developers: currently implemented in `pdc_cont.c`.
 
-* perr_t PDCprop_set_cont_lifetime(pdcid_t cont_prop, pdc_lifetime_t cont_lifetime)
-	* Input:
-		* cont_prop: Container property pdc_id
-		* cont_lifetime: See container life time (Get container life time link)
-	* Output: 
-		* error code, SUCCEED or FAIL.
-	* Set container life time for a property.
-	* For developers, see pdc_cont.c.
+.. function:: pdcid_t PDCcont_open(const char *cont_name, pdcid_t pdc)
 
-* pdcid_t PDCcont_get_id(const char *cont_name, pdcid_t pdc_id)
-	* Input:
-		* cont_name: Name of the container
-		* pdc_id: PDC class ID, returned by PDCinit
-	* Output: 
-		* container ID
-	* Get container ID by name. This function is similar to open.
-	* For developers, see pdc_client_connect.c. It will query the servers for container information and create a container structure locally.
+   :param cont_name: the name of container used for PDCcont_create.
+   :param pdc: PDC class ID returned from PDCinit.
+   :returns: error code. FAIL OR SUCCEED
 
-* perr_t PDCcont_del(pdcid_t cont_id)
-	* Input:
-		* cont_id: container ID, returned from PDCcont_create.
-	* Output: 
-		* error code, SUCCEED or FAIL.
-	* Delete a container
-	* For developers: see pdc_client_connect.c. Need to send RPCs to servers for metadata update.
+   Open a container. Must make sure a container named ``cont_name`` is properly created (registered by PDCcont_create at remote servers).
 
-* perr_t PDCcont_put_tag(pdcid_t cont_id, char *tag_name, void *tag_value, psize_t value_size)
-	* Input:
-		* cont_id: Container ID, returned from PDCcont_create.
-		* tag_name: Name of the tag
-		* tag_value: Value to be written under the tag
-		* value_size: Number of bytes for the tag_value (tag_size may be more informative)
-	* Output: 
-		* error code, SUCCEED or FAIL.
-	* Record a tag_value under the name tag_name for the container referenced by cont_id.
-	* For developers: see pdc_client_connect.c. Need to send RPCs to servers for metadata update.
+   For developers: currently implemented in `pdc_cont.c`. This function will make sure the metadata for a container is returned from servers. For collective operations, rank 0 is going to broadcast this metadata ID to the rest of processes. A struct ``_pdc_cont_info`` is created locally for future reference.
 
-* perr_t PDCcont_get_tag(pdcid_t cont_id, char *tag_name, void **tag_value, psize_t *value_size)
-	* Input:
-		* cont_id: Container ID, returned from PDCcont_create.
-		* tag_name: Name of the tag
-		* value_size: Number of bytes for the tag_value (tag_size may be more informative)
-	* Output: 
-		* tag_value: Pointer to the value to be read under the tag
-		* error code, SUCCEED or FAIL.
-	* Retrieve a tag value to the memory space pointed by the tag_value under the name tag_name for the container referenced by cont_id.
-	* For developers: see pdc_client_connect.c. Need to send RPCs to servers for metadata retrival.
+.. function:: perr_t PDCcont_close(pdcid_t id)
 
-* perr_t PDCcont_del_tag(pdcid_t cont_id, char *tag_name)
-	* Input:
-		* cont_id: Container ID, returned from PDCcont_create.
-		* tag_name: Name of the tag
-	* Output: 
-		* error code, SUCCEED or FAIL.
-	* Delete a tag for a container by name
-	* For developers: see pdc_client_connect.c. Need to send RPCs to servers for metadata update.
+   :param id: container ID, returned from PDCcont_create.
+   :returns: error code, SUCCEED or FAIL.
 
-* perr_t PDCcont_put_objids(pdcid_t cont_id, int nobj, pdcid_t *obj_ids)
-	* Input:
-		* cont_id: Container ID, returned from PDCcont_create.
-		* nobj: Number of objects to be written
-		* obj_ids: Pointers to the object IDs
-	* Output: 
-		* error code, SUCCEED or FAIL.
-	* Put an array of objects to a container.
-	* For developers: see pdc_client_connect.c. Need to send RPCs to servers for metadata update.
+   Corresponds to ``PDCcont_open``. Must be called only once when a container is no longer used in the future.
 
-* perr_t PDCcont_get_objids(pdcid_t cont_id ATTRIBUTE(unused), int *nobj ATTRIBUTE(unused), pdcid_t **obj_ids ATTRIBUTE(unused) ) TODO:
+   For developers: currently implemented in `pdc_cont.c`. The reference counter of a container is decremented. When the counter reaches zero, the memory of the container can be freed later.
 
-* perr_t PDCcont_del_objids(pdcid_t cont_id, int nobj, pdcid_t *obj_ids)
-	* Input:
-		* cont_id: Container ID, returned from PDCcont_create.
-		* nobj: Number of objects to be deleted
-		* obj_ids: Pointers to the object IDs
-	* Output: 
-		* error code, SUCCEED or FAIL.
-	* Delete an array of objects to a container.
-	* For developers: see pdc_client_connect.c. Need to send RPCs to servers for metadata update.
+.. function:: struct pdc_cont_info *PDCcont_get_info(const char *cont_name)
 
+   :param cont_name: name of the container
+   :returns: Pointer to a new structure that contains the container information.
 
+   Get container information.
+
+   For developers: See `pdc_cont.c`. Use name to search for pdc_id first by linked list lookup. Make a copy of the metadata to the newly malloced structure.
+
+.. function:: perr_t PDCcont_persist(pdcid_t cont_id)
+
+   :param cont_id: container ID, returned from PDCcont_create.
+   :returns: error code, SUCCEED or FAIL.
+
+   Make a PDC container persist.
+
+   For developers: see `pdc_cont.c`. Set the container life field ``PDC_PERSIST``.
+
+.. function:: perr_t PDCprop_set_cont_lifetime(pdcid_t cont_prop, pdc_lifetime_t cont_lifetime)
+
+   :param cont_prop: Container property pdc_id
+   :param cont_lifetime: See container life time (Get container life time link)
+   :returns: error code, SUCCEED or FAIL.
+
+   Set container life time for a property.
+
+   For developers: see `pdc_cont.c`.
+
+.. function:: pdcid_t PDCcont_get_id(const char *cont_name, pdcid_t pdc_id)
+
+   :param cont_name: Name of the container
+   :param pdc_id: PDC class ID, returned by PDCinit
+   :returns: container ID
+
+   Get container ID by name. This function is similar to open.
+
+   For developers: see `pdc_client_connect.c`. It will query the servers for container information and create a container structure locally.
+
+.. function:: perr_t PDCcont_del(pdcid_t cont_id)
+
+   :param cont_id: container ID, returned from PDCcont_create.
+   :returns: error code, SUCCEED or FAIL.
+
+   Delete a container.
+
+   For developers: see `pdc_client_connect.c`. Need to send RPCs to servers for metadata update.
+
+.. function:: perr_t PDCcont_put_tag(pdcid_t cont_id, char *tag_name, void *tag_value, psize_t value_size)
+
+   :param cont_id: Container ID, returned from PDCcont_create.
+   :param tag_name: Name of the tag
+   :param tag_value: Value to be written under the tag
+   :param value_size: Number of bytes for the tag_value (tag_size may be more informative)
+   :returns: error code, SUCCEED or FAIL.
+
+   Record a tag_value under the name ``tag_name`` for the container referenced by ``cont_id``.
+
+   For developers: see `pdc_client_connect.c`. Need to send RPCs to servers for metadata update.
+
+.. function:: perr_t PDCcont_get_tag(pdcid_t cont_id, char *tag_name, void **tag_value, psize_t *value_size)
+
+   :param cont_id: Container ID, returned from PDCcont_create.
+   :param tag_name: Name of the tag
+   :param value_size: Number of bytes for the tag_value (tag_size may be more informative)
+   :returns: 
+     * tag_value: Pointer to the value to be read under the tag
+     * error code, SUCCEED or FAIL.
+
+   Retrieve a tag value to the memory space pointed by the ``tag_value`` under the name ``tag_name`` for the container referenced by ``cont_id``.
+
+   For developers: see `pdc_client_connect.c`. Need to send RPCs to servers for metadata retrival.
+
+.. function:: perr_t PDCcont_del_tag(pdcid_t cont_id, char *tag_name)
+
+   :param cont_id: Container ID, returned from PDCcont_create.
+   :param tag_name: Name of the tag
+   :returns: error code, SUCCEED or FAIL.
+
+   Delete a tag for a container by name.
+
+   For developers: see `pdc_client_connect.c`. Need to send RPCs to servers for metadata update.
+
+.. function:: perr_t PDCcont_put_objids(pdcid_t cont_id, int nobj, pdcid_t *obj_ids)
+
+   :param cont_id: Container ID, returned from PDCcont_create.
+   :param nobj: Number of objects to be written
+   :param obj_ids: Pointers to the object IDs
+   :returns: error code, SUCCEED or FAIL.
+
+   Put an array of objects to a container.
+
+   For developers: see `pdc_client_connect.c`. Need to send RPCs to servers for metadata update.
+
+.. function:: perr_t PDCcont_get_objids(pdcid_t cont_id ATTRIBUTE(unused), int *nobj ATTRIBUTE(unused), pdcid_t **obj_ids ATTRIBUTE(unused))
+
+   :returns: TODO
+
+.. function:: perr_t PDCcont_del_objids(pdcid_t cont_id, int nobj, pdcid_t *obj_ids)
+
+   :param cont_id: Container ID, returned from PDCcont_create.
+   :param nobj: Number of objects to be deleted
+   :param obj_ids: Pointers to the object IDs
+   :returns: error code, SUCCEED or FAIL.
+
+   Delete an array of objects from a container.
+
+   For developers: see `pdc_client_connect.c`. Need to send RPCs to servers for metadata update.
 
 ---------------------------
 PDC object APIs
 ---------------------------
 
-* pdcid_t PDCobj_create(pdcid_t cont_id, const char *obj_name, pdcid_t obj_prop_id)
-	* Input:
-		* cont_id: Container ID, returned from PDCcont_create.
-		* obj_name: Name of objects to be created
-		* obj_prop_id: Property ID to be inherited from.
-	* Output:
-		* Local object ID
-	* Create a PDC object.
-	* For developers: see pdc_obj.c. This process need to send the name of the object to be created to the servers. Then it will receive an object ID. The object structure will inherit attributes from its container and input object properties.
+.. function:: pdcid_t PDCobj_create(pdcid_t cont_id, const char *obj_name, pdcid_t obj_prop_id)
 
-* PDCobj_create_mpi(pdcid_t cont_id, const char *obj_name, pdcid_t obj_prop_id, int rank_id, MPI_Comm comm)
-	* Input:
-		* cont_id: Container ID, returned from PDCcont_create.
-		* obj_name: Name of objects to be created
-		* rank_id: Which rank ID the object is placed to
-		* comm: MPI communicator for the rank_id
-	* Output:
-		* Local object ID
-	* Create a PDC object at the rank_id in the communicator comm. This function is a colllective operation.
-	* For developers: see pdc_mpi.c. If rank_id equals local process rank, then a local object is created. Otherwise we create a global object. The object metadata ID is broadcasted to all processes if a global object is created using MPI_Bcast.
+   :param cont_id: Container ID, returned from ``PDCcont_create``.
+   :param obj_name: Name of the object to be created.
+   :param obj_prop_id: Property ID to inherit from.
+   :returns: Local object ID.
 
-* pdcid_t PDCobj_open(const char *obj_name, pdcid_t pdc)
-	* Input:
-		* obj_name: Name of objects to be created
-		* pdc: PDC class ID, returned from PDCInit
-	* Output:
-		* Local object ID
-	* Open a PDC ID created previously by name.
-	* For developers: see pdc_obj.c. Need to communicate with servers for metadata of the object.
+   Create a PDC object. This function sends the object name to the servers and receives an object ID in response.
+   The created object inherits attributes from its container and the specified property.
 
-* perr_t PDCobj_close(pdcid_t obj_id)
-	* Input:
-		* obj_id: Local object ID to be closed.
-	* Output:
-		* error code, SUCCEED or FAIL.
-	* Close an object. Must do this after open an object.
-	* For developers: see pdc_obj.c. Dereference an object by reducing its reference counter.
+   For developers: see `pdc_obj.c`.
 
-* struct pdc_obj_info *PDCobj_get_info(pdcid_t obj)
-	* Input:
-		* obj_name: Local object ID
-	* Output:
-		*object information see object information (insert link to object information)
-	* Get a pointer to a structure that describes the object metadata.
-	* For developers: see pdc_obj.c. Pull out local object metadata by ID.
+.. function:: pdcid_t PDCobj_create_mpi(pdcid_t cont_id, const char *obj_name, pdcid_t obj_prop_id, int rank_id, MPI_Comm comm)
 
-* pdcid_t PDCobj_put_data(const char *obj_name, void *data, uint64_t size, pdcid_t cont_id)
-	* Input:
-		* obj_name: Name of object
-		* data: Pointer to data memory
-		* size: Size of data
-		* cont_id: Container ID of this object
-	* Output:
-		* Local object ID created locally with the input name
-	* Write data to an object.
-	* For developers: see pdc_client_connect.c. Nedd to send RPCs to servers for this request. (TODO: change return value to perr_t)
+   :param cont_id: Container ID, returned from ``PDCcont_create``.
+   :param obj_name: Name of the object to be created.
+   :param obj_prop_id: Property ID to inherit from.
+   :param rank_id: Rank ID where the object is placed.
+   :param comm: MPI communicator.
+   :returns: Local object ID.
 
-* perr_t PDCobj_get_data(pdcid_t obj_id, void *data, uint64_t size)
-	* Input:
-		* obj_id: Local object ID
-		* size: Size of data
-	* Output:
-		* data: Pointer to data to be filled
-		* error code, SUCCEED or FAIL.
-	* Read data from an object.
-	* For developers: see pdc_client_connect.c. Use PDC_obj_get_info to retrieve name. Then forward name to servers to fulfill requests.
+   Collective operation to create a PDC object on the specified rank within the communicator.
+   If `rank_id` matches the local rank, a local object is created; otherwise, a global object is created.
+   The object metadata ID is broadcast to all processes using ``MPI_Bcast``.
 
-* perr_t PDCobj_del_data(pdcid_t obj_id)
-	* Input:
-		* obj_id: Local object ID
-	* Output:
-		* error code, SUCCEED or FAIL.
-	* Delete data from an object.
-	* For developers: see pdc_client_connect.c. Use PDC_obj_get_info to retrieve name. Then forward name to servers to fulfill requests.
+   For developers: see `pdc_mpi.c`.
 
----------------------------
-PDC region APIs
----------------------------
+.. function:: pdcid_t PDCobj_open(const char *obj_name, pdcid_t pdc)
 
+   :param obj_name: Name of the object to open.
+   :param pdc: PDC class ID, returned from ``PDCinit``.
+   :returns: Local object ID.
 
----------------------------
-PDC property APIs
----------------------------
+   Open an existing PDC object by name. If the object has already been created or opened, the same ID is returned.
+   Each call to ``PDCobj_open`` must be followed by a corresponding call to ``PDCobj_close``.
 
+   For developers: see `pdc_obj.c`.
+
+.. function:: perr_t PDCobj_close(pdcid_t obj_id)
+
+   :param obj_id: Local object ID to be closed.
+   :returns: Error code, either ``SUCCEED`` or ``FAIL``.
+
+   Close an object and release associated resources. Each open must be matched with a close.
+
+   For developers: see `pdc_obj.c`.
+
+.. function:: struct pdc_obj_info *PDCobj_get_info(pdcid_t obj)
+
+   :param obj: Local object ID.
+   :returns: Pointer to object metadata structure.
+
+   Retrieve metadata information associated with a local object.
+
+   For developers: see `pdc_obj.c`.
+
+.. function:: pdcid_t PDCobj_put_data(const char *obj_name, void *data, uint64_t size, pdcid_t cont_id)
+
+   :param obj_name: Name of the object.
+   :param data: Pointer to the data memory.
+   :param size: Size of the data in bytes.
+   :param cont_id: Container ID of the object.
+   :returns: Local object ID created locally with the input name.
+
+   Write data to a PDC object. The operation sends RPCs to servers to perform the write.
+
+   For developers: see `pdc_client_connect.c`. *(TODO: Change return value to `perr_t`.)*
+
+.. function:: perr_t PDCobj_get_data(pdcid_t obj_id, void *data, uint64_t size)
+
+   :param obj_id: Local object ID.
+   :param size: Size of the data to read.
+   :returns: Error code, either ``SUCCEED`` or ``FAIL``.
+   :param data: Pointer to memory where data will be written.
+
+   Read data from a PDC object.
+
+   For developers: see `pdc_client_connect.c`. Uses ``PDCobj_get_info`` to look up the name, which is then forwarded to the servers to complete the request.
+
+.. function:: perr_t PDCobj_del_data(pdcid_t obj_id)
+
+   :param obj_id: Local object ID.
+   :returns: Error code, either ``SUCCEED`` or ``FAIL``.
+
+   Delete the data associated with a PDC object.
+
+   For developers: see `pdc_client_connect.c`. Uses ``PDCobj_get_info`` to retrieve the object name, then sends the deletion request to the servers.
 
 ---------------------------
 PDC metadata APIs
@@ -280,206 +294,222 @@ Either RocksDB or SQLite can be enabled by turning on the ``PDC_ENABLE_ROCKSDB``
 Users can use the same PDC query APIs when RocksDB or SQLite is enabled.
 
 
-* perr_t PDCobj_put_tag(pdcid_t obj_id, char *tag_name, void *tag_value, psize_t value_size)
-	* Input:
-		* obj_id: Local object ID
-		* tag_name: Name of the tag to be entered
-		* tag_value: Value of the tag
-		* value_size: Number of bytes for the tag_value
-	* Output:
-		* error code, SUCCEED or FAIL.
-	* Set the tag value for a tag
-	* For developers: see pdc_client_connect.c. Need to use PDC_add_kvtag to submit RPCs to the servers for metadata update.
+.. function:: perr_t PDCobj_put_tag(pdcid_t obj_id, char *tag_name, void *tag_value, psize_t value_size)
 
-* perr_t PDCobj_get_tag(pdcid_t obj_id, char *tag_name, void **tag_value, psize_t *value_size)
-	* Input:
-		* obj_id: Local object ID
-		* tag_name: Name of the tag to be entered
-	* Output:
-		* tag_value: Value of the tag
-		* value_size: Number of bytes for the tag_value
-		* error code, SUCCEED or FAIL.
-	* Get the tag value for a tag
-	* For developers: see pdc_client_connect.c. Need to use PDC_get_kvtag to submit RPCs to the servers for metadata update.
+   :param obj_id: Local object ID.
+   :param tag_name: Name of the tag to be set.
+   :param tag_value: Pointer to the value of the tag.
+   :param value_size: Size of the tag value in bytes.
+   :returns: Error code, SUCCEED or FAIL.
 
-* perr_t PDCobj_del_tag(pdcid_t obj_id, char *tag_name)
-	* Input:
-		* obj_id: Local object ID
-		* tag_name: Name of the tag to be entered
-	* Output:
-		* error code, SUCCEED or FAIL.
-	* Delete a tag.
-	* For developers: see pdc_client_connect.c. Need to use PDCtag_delete to submit RPCs to the servers for metadata update.
+   Set the tag value for a given object.
+
+   For developers: see `pdc_client_connect.c`. Uses ``PDC_add_kvtag`` to send RPCs to the servers for metadata updates.
+
+.. function:: perr_t PDCobj_get_tag(pdcid_t obj_id, char *tag_name, void **tag_value, psize_t *value_size)
+
+   :param obj_id: Local object ID.
+   :param tag_name: Name of the tag to be retrieved.
+   :param tag_value: Pointer to the buffer to receive the tag value.
+   :param value_size: Pointer to the size of the tag value in bytes.
+   :returns: Error code, SUCCEED or FAIL.
+
+   Retrieve the value of a tag associated with an object.
+
+   For developers: see `pdc_client_connect.c`. Uses ``PDC_get_kvtag`` to send RPCs to the servers for metadata retrieval.
+
+.. function:: perr_t PDCobj_del_tag(pdcid_t obj_id, char *tag_name)
+
+   :param obj_id: Local object ID.
+   :param tag_name: Name of the tag to be deleted.
+   :returns: Error code, SUCCEED or FAIL.
+
+   Delete a tag associated with an object.
+
+   For developers: see `pdc_client_connect.c`. Uses ``PDCtag_delete`` to send RPCs to the servers for metadata updates.
 
 ---------------------------
 PDC Data query APIs
 ---------------------------
 
-* pdc_query_t *PDCquery_create(pdcid_t obj_id, pdc_query_op_t op, pdc_var_type_t type, void *value)
-	* Input:
-		* obj_id: local PDC object ID
-		* op: one of the followings, see PDC query operators (Insert PDC query operators link)
-		* type: one of PDC basic types, see PDC basic types (Insert PDC basic types link)
-		* value: constraint value
-	* Output:
-		* a new query structure, see PDC query structure (PDC query structure link)
-	* Create a PDC query.
-	* For developers, see pdc_query.c. The constraint field of the new query structure is filled with the input arguments. Need to search for the metadata ID using object ID.
+.. function:: pdc_query_t *PDCquery_create(pdcid_t obj_id, pdc_query_op_t op, pdc_var_type_t type, void *value)
 
-* void PDCquery_free(pdc_query_t *query)
-	* Input:
-		* query: PDC query from PDCquery_create
-	* Free a query structure.
-	* For developers, see pdc_client_server_common.c.
+   :param obj_id: Local PDC object ID.
+   :param op: One of the PDC query operators.
+   :param type: One of the PDC basic types.
+   :param value: Constraint value.
+   :returns: A new query structure.
 
-* void PDCquery_free_all(pdc_query_t *root)
-	* Input:
-		* root: root of queries to be freed
-	* Output:
-		* error code, SUCCEED or FAIL.
-	* Free all queries from a root.
-	* For developers, see pdc_client_server_common.c. Recursively free left and right branches.
+   Create a PDC query.
 
-* pdc_query_t *PDCquery_and(pdc_query_t *q1, pdc_query_t *q2)
-	* Input:
-		* q1: First query
-		* q2: Second query
-	* Output:
-		* A new query after and operator.
-	* Perform the and operator on the two PDC queries.
-	* For developers, see pdc_query.c
+   For developers: see `pdc_query.c`. The constraint field of the new query structure is filled with the input arguments. Searches for the metadata ID using the object ID.
 
-* pdc_query_t *PDCquery_or(pdc_query_t *q1, pdc_query_t *q2)
-	* Input:
-		* q1: First query
-		* q2: Second query
-	* Output:
-		* A new query after or operator.
-	* Perform the or operator on the two PDC queries.
-	* For developers, see pdc_query.c
+.. function:: void PDCquery_free(pdc_query_t *query)
 
-* perr_t PDCquery_sel_region(pdc_query_t *query, struct pdc_region_info *obj_region)
-	* Input:
-		* query: Query to select the region
-		* obj_region: An object region
-	* Output:
-		* error code, SUCCEED or FAIL.
-	* Select a region for a PDC query.
-	* For developers, see pdc_query.c. Set the region pointer of the query structure to the obj_region pointer.
+   :param query: PDC query from `PDCquery_create`.
 
-* perr_t PDCquery_get_selection(pdc_query_t *query, pdc_selection_t *sel)
-	* Input:
-		* query: Query to get the selection
-	* Output:
-		* sel: PDC selection defined as the following. This selection describes the query shape, see PDC selection structure (Insert link to PDC selection structure)
-		* error code, SUCCEED or FAIL.
-	* Get the selection information of a PDC query.
-	* For developers, see pdc_query.c and PDC_send_data_query in pdc_client_connect.c. Copy the selection structure received from servers to the sel pointer.
+   Free a query structure.
 
-* perr_t PDCquery_get_nhits(pdc_query_t *query, uint64_t *n)
-	* Input:
-		* query: Query to calculate the number of hits
-	* Output:
-		* n: number of hits
-		* error code, SUCCEED or FAIL.
-	* Get the number of hits for a PDC query
-	* For developers, see pdc_query.c and PDC_send_data_query in pdc_client_connect.c. Copy the selection structure received from servers to the sel pointer.
+   For developers: see `pdc_client_server_common.c`.
 
-* perr_t PDCquery_get_data(pdcid_t obj_id, pdc_selection_t *sel, void *obj_data)
-	* Input:
-		* obj_id: The object for query
-		* sel: Selection of the query, query_id is inside it.
-	* Output:
-		* obj_data: Pointer to the data memory filled with query data.
-	* Retrieve data from a PDC query for an object.
-	* For developers, see pdc_query.c and PDC_Client_get_sel_data in pdc_client_connect.c.
+.. function:: void PDCquery_free_all(pdc_query_t *root)
 
-* perr_t PDCquery_get_histogram(pdcid_t obj_id)
-	* Input:
-		* obj_id: The object for query
-	* Output:
-		* error code, SUCCEED or FAIL.
-	* Retrieve histogram from a query for a PDC object.
-	* For developers, see pdc_query.c. This is a local operation that does not really do anything.
+   :param root: Root of queries to be freed.
+   :returns: Error code, SUCCEED or FAIL.
 
-* void PDCselection_free(pdc_selection_t *sel)
-	* Input:
-		* sel: Pointer to the selection to be freed.
-	* Output:
-		* None
-	* Free a selection structure.
-	* For developers, see pdc_client_connect.c. Free the coordinates.
+   Free all queries from a root.
 
-* void PDCquery_print(pdc_query_t *query)
-	* Input:
-		* query: the query to be printed
-	* Output:
-		* None
-	* Print the details of a PDC query structure.	
-	* For developers, see pdc_client_server_common.c.
+   For developers: see `pdc_client_server_common.c`. Recursively frees left and right branches.
 
-* void PDCselection_print(pdc_selection_t *sel)
-	* Input:
-		* sel: the PDC selection to be printed
-	* Output:
-		* None
-	* Print the details of a PDC selection structure.	
-	* For developers, see pdc_client_server_common.c.
+.. function:: pdc_query_t *PDCquery_and(pdc_query_t *q1, pdc_query_t *q2)
 
+   :param q1: First query.
+   :param q2: Second query.
+   :returns: A new query after applying the AND operator.
 
+   Perform the AND operation on two PDC queries.
+
+   For developers: see `pdc_query.c`.
+
+.. function:: pdc_query_t *PDCquery_or(pdc_query_t *q1, pdc_query_t *q2)
+
+   :param q1: First query.
+   :param q2: Second query.
+   :returns: A new query after applying the OR operator.
+
+   Perform the OR operation on two PDC queries.
+
+   For developers: see `pdc_query.c`.
+
+.. function:: perr_t PDCquery_sel_region(pdc_query_t *query, struct pdc_region_info *obj_region)
+
+   :param query: Query to select the region.
+   :param obj_region: An object region.
+   :returns: Error code, SUCCEED or FAIL.
+
+   Select a region for a PDC query.
+
+   For developers: see `pdc_query.c`. Sets the region pointer of the query structure to `obj_region`.
+
+.. function:: perr_t PDCquery_get_selection(pdc_query_t *query, pdc_selection_t *sel)
+
+   :param query: Query to get the selection.
+   :param sel: Pointer to PDC selection structure.
+   :returns: Error code, SUCCEED or FAIL.
+
+   Get the selection information of a PDC query.
+
+   For developers: see `pdc_query.c` and `PDC_send_data_query` in `pdc_client_connect.c`. Copies the selection structure received from servers to the `sel` pointer.
+
+.. function:: perr_t PDCquery_get_nhits(pdc_query_t *query, uint64_t *n)
+
+   :param query: Query to calculate the number of hits.
+   :param n: Pointer to number of hits.
+   :returns: Error code, SUCCEED or FAIL.
+
+   Get the number of hits for a PDC query.
+
+   For developers: see `pdc_query.c` and `PDC_send_data_query` in `pdc_client_connect.c`. Uses the same selection mechanism as `PDCquery_get_selection`.
+
+.. function:: perr_t PDCquery_get_data(pdcid_t obj_id, pdc_selection_t *sel, void *obj_data)
+
+   :param obj_id: The object for query.
+   :param sel: Selection of the query (query ID is embedded).
+   :param obj_data: Pointer to memory for storing query data.
+   :returns: Error code, SUCCEED or FAIL.
+
+   Retrieve data from a PDC query for an object.
+
+   For developers: see `pdc_query.c` and `PDC_Client_get_sel_data` in `pdc_client_connect.c`.
+
+.. function:: perr_t PDCquery_get_histogram(pdcid_t obj_id)
+
+   :param obj_id: The object for query.
+   :returns: Error code, SUCCEED or FAIL.
+
+   Retrieve histogram from a query for a PDC object.
+
+   For developers: see `pdc_query.c`. This is a local operation and is currently a no-op.
+
+.. function:: void PDCselection_free(pdc_selection_t *sel)
+
+   :param sel: Pointer to the selection to be freed.
+
+   Free a selection structure.
+
+   For developers: see `pdc_client_connect.c`. Frees the coordinates.
+
+.. function:: void PDCquery_print(pdc_query_t *query)
+
+   :param query: The query to be printed.
+
+   Print the details of a PDC query structure.
+
+   For developers: see `pdc_client_server_common.c`.
+
+.. function:: void PDCselection_print(pdc_selection_t *sel)
+
+   :param sel: The PDC selection to be printed.
+
+   Print the details of a PDC selection structure.
+
+   For developers: see `pdc_client_server_common.c`.
 
 ---------------------------
 PDC hist APIs
 ---------------------------
 
-* pdc_histogram_t *PDC_gen_hist(pdc_var_type_t dtype, uint64_t n, void *data)
-	* Input:
-		* dtype: One of the PDC basic types see PDC basic types (Insert link to PDC basic types)
-		* n: number of values with the basic types.
-		* data: pointer to the data buffer.
+.. function:: pdc_histogram_t *PDC_gen_hist(pdc_var_type_t dtype, uint64_t n, void *data)
 
-	* Output:
-		* a new PDC histogram structure (Insert link to PDC histogram structure)
-	* Generate a PDC histogram from data. This can be used to optimize performance.
-	* For developers, see pdc_hist_pkg.c
+   :param dtype: One of the PDC basic types. See `PDC basic types <#>`_.
+   :param n: Number of values with the basic type.
+   :param data: Pointer to the data buffer.
+   :returns: A new PDC histogram structure. See `PDC histogram structure <#>`_.
 
-* pdc_histogram_t *PDC_dup_hist(pdc_histogram_t *hist)
-	* Input:
-		* hist: PDC histogram structure (Insert link to PDC histogram structure)
+   Generate a PDC histogram from data. This can be used to optimize performance.
 
-	* Output:
-		* a copied PDC histogram structure (Insert link to PDC histogram structure)
-	* For developers, see pdc_hist_pkg.c
-
-* pdc_histogram_t *PDC_merge_hist(int n, pdc_histogram_t **hists)
-	* Input:
-		* hists: an array of PDC histogram structure to be merged (Insert link to PDC histogram structure)
-	* Output: 
-		* A merged PDC histogram structure (Insert link to PDC histogram structure)
-	* Merge multiple PDC histograms into one
-	* For developers, see pdc_hist_pkg.c
-
-* void PDC_free_hist(pdc_histogram_t *hist)
-	* Input: 
-		* hist: the PDC histogram structure to be freed (Link to Histogram structure)
-	* Output:
-		* None
-	* Delete a histogram
-	* For developers, see pdc_hist_pkg.c, free structure's internal arrays.
-
-* void PDC_print_hist(pdc_histogram_t *hist)
-	* Input:
-		* hist: the PDC histogram structure to be printed (Insert link to histogram structure)
-
-	* Output:
-		* None
-	* Print a PDC histogram's information. The counter for every bin is displayed.
-	* For developers, see pdc_hist_pkg.c.
+   For developers: see `pdc_hist_pkg.c`.
 
 
----------------------------
-PDC Data types
----------------------------
+.. function:: pdc_histogram_t *PDC_dup_hist(pdc_histogram_t *hist)
+
+   :param hist: A PDC histogram structure. See `PDC histogram structure <#>`_.
+   :returns: A copied PDC histogram structure. See `PDC histogram structure <#>`_.
+
+   Create a copy of an existing PDC histogram.
+
+   For developers: see `pdc_hist_pkg.c`.
+
+
+.. function:: pdc_histogram_t *PDC_merge_hist(int n, pdc_histogram_t **hists)
+
+   :param n: Number of histograms to merge.
+   :param hists: Array of PDC histogram structures. See `PDC histogram structure <#>`_.
+   :returns: A merged PDC histogram structure. See `PDC histogram structure <#>`_.
+
+   Merge multiple PDC histograms into one.
+
+   For developers: see `pdc_hist_pkg.c`.
+
+
+.. function:: void PDC_free_hist(pdc_histogram_t *hist)
+
+   :param hist: The PDC histogram structure to be freed. See `PDC histogram structure <#>`_.
+   :returns: None.
+
+   Free the memory allocated for a PDC histogram.
+
+   For developers: see `pdc_hist_pkg.c`. Frees the internal arrays of the structure.
+
+
+.. function:: void PDC_print_hist(pdc_histogram_t *hist)
+
+   :param hist: The PDC histogram structure to be printed. See `PDC histogram structure <#>`_.
+   :returns: None.
+
+   Print the contents of a PDC histogram, including bin counters.
+
+   For developers: see `pdc_hist_pkg.c`.
 
 ---------------------------
 Basic types
@@ -511,8 +541,6 @@ Basic types
 		PDC_TYPE_COUNT = 19  /* this is the number of var types and has to be the last         */
 	} pdc_c_var_type_t;
 
-
-
 ---------------------------
 Histogram structure
 ---------------------------
@@ -526,7 +554,6 @@ Histogram structure
 	    double        *range;
 	    uint64_t      *bin;
 	} pdc_histogram_t;
-
 
 ---------------------------
 Container info
@@ -543,8 +570,6 @@ Container info
 	    uint64_t                meta_id;
 	};
 
-
-
 ---------------------------
 Container life time
 ---------------------------
@@ -555,8 +580,6 @@ Container life time
 		PDC_PERSIST,
 		PDC_TRANSIENT
 	} pdc_lifetime_t;
-
-
 
 ---------------------------
 Object property public
@@ -572,7 +595,6 @@ Object property public
 	    uint64_t         *dims;
 	    pdc_var_type_t    type;
 	};
-
 
 ---------------------------
 Object property
@@ -620,8 +642,6 @@ Object property
 	    };
 	};
 
-
-
 ---------------------------
 Object info
 ---------------------------
@@ -641,8 +661,6 @@ Object info
 	    /* Object property. Directly copy from user argument at object creation. */
 	    struct pdc_obj_prop    *obj_pt;
 	};
-
-
 
 ---------------------------
 Object structure
@@ -706,8 +724,6 @@ Region info
 		void                 *buf;
 	};
 
-
-
 ---------------------------
 Access type
 ---------------------------
@@ -715,7 +731,6 @@ Access type
 .. code-block:: c
 
 	typedef enum { PDC_NA=0, PDC_READ=1, PDC_WRITE=2 }
-
 
 ---------------------------
 Query operators
@@ -731,7 +746,6 @@ Query operators
 	    PDC_LTE     = 4, 
 	    PDC_EQ      = 5
 	} pdc_query_op_t;
-
 
 ---------------------------
 Query structures
@@ -764,8 +778,6 @@ Query structures
 	    pdc_selection_t        *sel;
 	} pdc_query_t;
 
-
-
 ---------------------------
 Selection structure
 ---------------------------
@@ -779,7 +791,6 @@ Selection structure
     	uint64_t *coords;
     	uint64_t coords_alloc;
 	} pdc_selection_t;
-
 
 ---------------------------
 Developers notes

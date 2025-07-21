@@ -26,6 +26,7 @@
 #define PDC_TRANSFORMS_COMMON_H
 
 #include "pdc_public.h"
+#include "pdc_timing.h"
 #include "mercury.h"
 #include "mercury_macros.h"
 #include "mercury_proc_string.h"
@@ -65,89 +66,80 @@ typedef struct transform_ftn_out_t {
 static HG_INLINE hg_return_t
 hg_proc_transform_ftn_in_t(hg_proc_t proc, void *data)
 {
+    FUNC_ENTER(NULL);
+
     hg_return_t         ret;
     transform_ftn_in_t *struct_data = (transform_ftn_in_t *)data;
     ret                             = hg_proc_hg_const_string_t(proc, &struct_data->ftn_name);
     if (ret != HG_SUCCESS) {
-        // HG_LOG_ERROR("Proc error");
-        return ret;
+        FUNC_LEAVE(ret);
     }
     ret = hg_proc_hg_const_string_t(proc, &struct_data->loadpath);
     if (ret != HG_SUCCESS) {
-        // HG_LOG_ERROR("Proc error");
-        return ret;
+        FUNC_LEAVE(ret);
     }
     ret = hg_proc_uint64_t(proc, &struct_data->object_id);
     if (ret != HG_SUCCESS) {
-        // HG_LOG_ERROR("Proc error");
-        return ret;
+        FUNC_LEAVE(ret);
     }
     ret = hg_proc_uint64_t(proc, &struct_data->region_id);
     if (ret != HG_SUCCESS) {
-        // HG_LOG_ERROR("Proc error");
-        return ret;
+        FUNC_LEAVE(ret);
     }
     ret = hg_proc_int32_t(proc, &struct_data->client_index);
     if (ret != HG_SUCCESS) {
-        // HG_LOG_ERROR("Proc error");
-        return ret;
+        FUNC_LEAVE(ret);
     }
     ret = hg_proc_int32_t(proc, &struct_data->operation_type);
     if (ret != HG_SUCCESS) {
-        // HG_LOG_ERROR("Proc error");
-        return ret;
+        FUNC_LEAVE(ret);
     }
     ret = hg_proc_int32_t(proc, &struct_data->start_state);
     if (ret != HG_SUCCESS) {
-        // HG_LOG_ERROR("Proc error");
-        return ret;
+        FUNC_LEAVE(ret);
     }
     ret = hg_proc_int32_t(proc, &struct_data->next_state);
     if (ret != HG_SUCCESS) {
-        // HG_LOG_ERROR("Proc error");
-        return ret;
+        FUNC_LEAVE(ret);
     }
     ret = hg_proc_int8_t(proc, &struct_data->op_type);
     if (ret != HG_SUCCESS) {
-        // HG_LOG_ERROR("Proc error");
-        return ret;
+        FUNC_LEAVE(ret);
     }
     ret = hg_proc_int8_t(proc, &struct_data->when);
     if (ret != HG_SUCCESS) {
-        // HG_LOG_ERROR("Proc error");
-        return ret;
+        FUNC_LEAVE(ret);
     }
 
-    return ret;
+    FUNC_LEAVE(ret);
 }
 
 /* Define hg_proc_transform_ftn_out_t */
 static HG_INLINE hg_return_t
 hg_proc_transform_ftn_out_t(hg_proc_t proc, void *data)
 {
+    FUNC_ENTER(NULL);
+
     hg_return_t          ret;
     transform_ftn_out_t *struct_data = (transform_ftn_out_t *)data;
     ret                              = hg_proc_uint64_t(proc, &struct_data->object_id);
     if (ret != HG_SUCCESS) {
-        // HG_LOG_ERROR("Proc error");
-        return ret;
+        FUNC_LEAVE(ret);
     }
     ret = hg_proc_uint64_t(proc, &struct_data->region_id);
     if (ret != HG_SUCCESS) {
-        // HG_LOG_ERROR("Proc error");
-        return ret;
+        FUNC_LEAVE(ret);
     }
     ret = hg_proc_int32_t(proc, &struct_data->client_index);
     if (ret != HG_SUCCESS) {
-        // HG_LOG_ERROR("Proc error");
-        return ret;
+        FUNC_LEAVE(ret);
     }
     ret = hg_proc_int32_t(proc, &struct_data->ret);
     if (ret != HG_SUCCESS) {
-        // HG_LOG_ERROR("Proc error");
-        return ret;
+        FUNC_LEAVE(ret);
     }
-    return ret;
+
+    FUNC_LEAVE(ret);
 }
 
 #endif /* PDC_TRANSFORMS_COMMON_H */

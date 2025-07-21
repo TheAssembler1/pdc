@@ -42,13 +42,13 @@ static hg_return_t client_register_iterator_rpc_cb(const struct hg_cb_info *info
 static hg_return_t client_register_analysis_rpc_cb(const struct hg_cb_info *info);
 static hg_return_t client_register_transform_rpc_cb(const struct hg_cb_info *info);
 
-perr_t PDC_free_obj_info(struct _pdc_obj_info *obj);
-
 /* Client APIs */
 
 perr_t
 PDC_Client_send_iter_recv_id(pdcid_t iter_id, pdcid_t *meta_id)
 {
+    FUNC_ENTER(NULL);
+
     uint64_t                   ret_value = SUCCEED;
     struct _pdc_iterator_info *thisIter  = NULL;
     struct _pdc_my_rpc_state * my_rpc_state_p;
@@ -58,12 +58,11 @@ PDC_Client_send_iter_recv_id(pdcid_t iter_id, pdcid_t *meta_id)
     int                        n_retry   = 0;
     struct _pdc_obj_info *     object_info;
 
-    FUNC_ENTER(NULL);
     if (atomic_work_todo_g == NULL) {
         hg_atomic_init32(atomic_work_todo_g, 0);
     }
 
-    my_rpc_state_p = (struct _pdc_my_rpc_state *)calloc(1, sizeof(struct _pdc_my_rpc_state));
+    my_rpc_state_p = (struct _pdc_my_rpc_state *)PDC_calloc(1, sizeof(struct _pdc_my_rpc_state));
     if (my_rpc_state_p == NULL)
         PGOTO_ERROR(FAIL, "PDC_Client_send_iter_recv_id(): Could not allocate my_rpc_state");
 
@@ -105,7 +104,7 @@ PDC_Client_send_iter_recv_id(pdcid_t iter_id, pdcid_t *meta_id)
         if (n_retry > 0)
             break;
         if (PDC_Client_lookup_server(server_id, 0) != SUCCEED)
-            PGOTO_ERROR(FAIL, "==CLIENT[%d]: ERROR with PDC_Client_lookup_server", pdc_client_mpi_rank_g);
+            PGOTO_ERROR(FAIL, "Error with PDC_Client_lookup_server");
 
         n_retry++;
     }
@@ -128,9 +127,8 @@ PDC_Client_send_iter_recv_id(pdcid_t iter_id, pdcid_t *meta_id)
     *meta_id = my_rpc_state_p->value;
 
 done:
-    fflush(stdout);
     HG_Destroy(my_rpc_state_p->handle);
-    free(my_rpc_state_p);
+    my_rpc_state_p = (struct _pdc_my_rpc_state *)PDC_free(my_rpc_state_p);
 
     FUNC_LEAVE(ret_value);
 }
@@ -140,23 +138,21 @@ done:
 static hg_return_t
 client_register_iterator_rpc_cb(const struct hg_cb_info *info)
 {
+    FUNC_ENTER(NULL);
+
     hg_return_t               ret_value      = HG_SUCCESS;
     struct _pdc_my_rpc_state *my_rpc_state_p = info->arg;
     obj_data_iterator_out_t   output;
 
-    FUNC_ENTER(NULL);
-
     if (info->ret == HG_SUCCESS) {
         ret_value = HG_Get_output(info->info.forward.handle, &output);
         if (ret_value != HG_SUCCESS)
-            PGOTO_ERROR(FAIL,
-                        "PDC_CLIENT: register_iterator_rpc_cb(): Unable to read the server return values");
+            PGOTO_ERROR(FAIL, "Unable to read the server return values");
 
         my_rpc_state_p->value = output.server_iter_id;
     }
 
 done:
-    fflush(stdout);
     hg_atomic_decr32(atomic_work_todo_g);
     HG_Free_output(info->info.forward.handle, &output);
 
@@ -168,6 +164,8 @@ PDC_Client_register_obj_analysis(struct _pdc_region_analysis_ftn_info *thisFtn, 
                                  const char *loadpath, pdcid_t in_local, pdcid_t out_local, pdcid_t in_meta,
                                  pdcid_t out_meta)
 {
+    FUNC_ENTER(NULL);
+
     perr_t                     ret_value = SUCCEED;
     uint32_t                   server_id = 0;
     hg_return_t                hg_ret;
@@ -178,12 +176,11 @@ PDC_Client_register_obj_analysis(struct _pdc_region_analysis_ftn_info *thisFtn, 
     int                        input_server = -1, output_server = -1;
     struct _pdc_obj_info *     obj_prop;
 
-    FUNC_ENTER(NULL);
     if (atomic_work_todo_g == NULL) {
         hg_atomic_init32(atomic_work_todo_g, 0);
     }
 
-    my_rpc_state_p = (struct _pdc_my_rpc_state *)calloc(1, sizeof(struct _pdc_my_rpc_state));
+    my_rpc_state_p = (struct _pdc_my_rpc_state *)PDC_calloc(1, sizeof(struct _pdc_my_rpc_state));
     if (my_rpc_state_p == NULL)
         PGOTO_ERROR(FAIL, "PDC_Client_register_obj_analysis(): Could not allocate my_rpc_state");
 
@@ -219,7 +216,7 @@ PDC_Client_register_obj_analysis(struct _pdc_region_analysis_ftn_info *thisFtn, 
         if (n_retry > 0)
             break;
         if (PDC_Client_lookup_server(server_id, 0) != SUCCEED)
-            PGOTO_ERROR(FAIL, "==CLIENT[%d]: ERROR with PDC_Client_lookup_server", pdc_client_mpi_rank_g);
+            PGOTO_ERROR(FAIL, "Error with PDC_Client_lookup_server");
 
         n_retry++;
     }
@@ -248,9 +245,8 @@ PDC_Client_register_obj_analysis(struct _pdc_region_analysis_ftn_info *thisFtn, 
     thisFtn->meta_index = my_rpc_state_p->value;
 
 done:
-    fflush(stdout);
     HG_Destroy(my_rpc_state_p->handle);
-    free(my_rpc_state_p);
+    my_rpc_state_p = (struct _pdc_my_rpc_state *)PDC_free(my_rpc_state_p);
 
     FUNC_LEAVE(ret_value);
 }
@@ -260,23 +256,21 @@ done:
 static hg_return_t
 client_register_analysis_rpc_cb(const struct hg_cb_info *info)
 {
+    FUNC_ENTER(NULL);
+
     hg_return_t               ret_value      = HG_SUCCESS;
     struct _pdc_my_rpc_state *my_rpc_state_p = info->arg;
     analysis_ftn_out_t        output;
 
-    FUNC_ENTER(NULL);
-
     if (info->ret == HG_SUCCESS) {
         ret_value = HG_Get_output(info->info.forward.handle, &output);
         if (ret_value != HG_SUCCESS)
-            PGOTO_ERROR(ret_value,
-                        "PDC_CLIENT: register_analysis_rpc_cb(): Unable to read the server return values");
+            PGOTO_ERROR(ret_value, "Unable to read the server return values");
 
         my_rpc_state_p->value = output.remote_ftn_id;
     }
 
 done:
-    fflush(stdout);
     hg_atomic_decr32(atomic_work_todo_g);
     HG_Free_output(info->info.forward.handle, &output);
 
@@ -289,6 +283,8 @@ PDC_Client_register_region_transform(const char *func, const char *loadpath,
                                      pdcid_t obj_id, int start_state, int next_state, int op_type, int when,
                                      int client_index)
 {
+    FUNC_ENTER(NULL);
+
     perr_t                    ret_value = SUCCEED;
     uint32_t                  server_id = 0;
     hg_return_t               hg_ret;
@@ -296,12 +292,11 @@ PDC_Client_register_region_transform(const char *func, const char *loadpath,
     struct _pdc_obj_info *    object_info = NULL;
     struct _pdc_my_rpc_state *my_rpc_state_p;
 
-    FUNC_ENTER(NULL);
     if (atomic_work_todo_g == NULL) {
         hg_atomic_init32(atomic_work_todo_g, 0);
     }
 
-    my_rpc_state_p = (struct _pdc_my_rpc_state *)calloc(1, sizeof(struct _pdc_my_rpc_state));
+    my_rpc_state_p = (struct _pdc_my_rpc_state *)PDC_calloc(1, sizeof(struct _pdc_my_rpc_state));
     if (my_rpc_state_p == NULL)
         PGOTO_ERROR(FAIL, "Could not allocate my_rpc_state");
 
@@ -341,11 +336,10 @@ PDC_Client_register_region_transform(const char *func, const char *loadpath,
     // Here, we should update the local registry with the returned valued from my_rpc_state_p;
 
 done:
-    fflush(stdout);
     if (object_info)
         PDC_free_obj_info(object_info);
     HG_Destroy(my_rpc_state_p->handle);
-    free(my_rpc_state_p);
+    my_rpc_state_p = (struct _pdc_my_rpc_state *)PDC_free(my_rpc_state_p);
 
     FUNC_LEAVE(ret_value);
 }
@@ -355,21 +349,20 @@ done:
 static hg_return_t
 client_register_transform_rpc_cb(const struct hg_cb_info *info)
 {
+    FUNC_ENTER(NULL);
+
     hg_return_t         ret_value = HG_SUCCESS;
     transform_ftn_out_t output;
-
-    FUNC_ENTER(NULL);
 
     if (info->ret == HG_SUCCESS) {
         ret_value = HG_Get_output(info->info.forward.handle, &output);
         if (ret_value != HG_SUCCESS)
-            PGOTO_ERROR(ret_value, "PDC_CLIENT: Unable to read the server return values");
+            PGOTO_ERROR(ret_value, "Unable to read the server return values");
 
         PDC_update_transform_server_meta_index(output.client_index, output.ret);
     }
 
 done:
-    fflush(stdout);
     hg_atomic_decr32(atomic_work_todo_g);
     HG_Free_output(info->info.forward.handle, &output);
 

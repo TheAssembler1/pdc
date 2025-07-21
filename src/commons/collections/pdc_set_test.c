@@ -2,6 +2,8 @@
 #include "pdc_compare.h"
 #include "pdc_hash.h"
 #include "pdc_logger.h"
+#include "pdc_timing.h"
+#include "pdc_malloc.h"
 #include <inttypes.h>
 #include <stdlib.h>
 #include <string.h>
@@ -11,25 +13,31 @@
 void
 set_value_free(SetValue value)
 {
-    free((void *)value);
+    FUNC_ENTER(NULL);
+
+    value = (SetValue)PDC_free((void *)value);
+
+    FUNC_LEAVE_VOID();
 }
 
 int
 main(int argc, char **argv)
 {
+    FUNC_ENTER(NULL);
+
     // read the max id from the command line
     char *   endptr;
     uint64_t max_id = strtoull(argv[1], &endptr, 10);
     if (*endptr != '\0') {
         LOG_ERROR("Invalid number: %s\n", argv[1]);
-        return 1;
+        FUNC_LEAVE(1);
     }
 
     Set *set = set_new(ui64_hash, ui64_equal);
     set_register_free_function(set, set_value_free);
 
     for (uint64_t i = 0; i < max_id; i++) {
-        uint64_t *value = malloc(sizeof(uint64_t));
+        uint64_t *value = PDC_malloc(sizeof(uint64_t));
         *value          = i;
         set_insert(set, value);
     }
@@ -38,16 +46,16 @@ main(int argc, char **argv)
 
     if (set_num_entries(set) != (unsigned int)max_id) {
         LOG_ERROR("Error: set size is not correct\n");
-        return 1;
+        FUNC_LEAVE(1);
     }
 
     // retrieve all values from the set
     for (uint64_t i = 0; i < max_id; i++) {
-        uint64_t *value = malloc(sizeof(uint64_t));
+        uint64_t *value = PDC_malloc(sizeof(uint64_t));
         *value          = i;
         if (!set_query(set, value)) {
             LOG_ERROR("Error: value %" PRIu64 " not found in the set\n", i);
-            return 1;
+            FUNC_LEAVE(1);
         }
     }
 
@@ -58,10 +66,10 @@ main(int argc, char **argv)
         uint64_t *value = set_iter_next(it);
         if (!set_query(set, value)) {
             LOG_ERROR("Error: value %" PRIu64 " not found in the set\n", *value);
-            return 1;
+            FUNC_LEAVE(1);
         }
     }
 
     set_free(set);
-    return 0;
+    FUNC_LEAVE(0);
 }

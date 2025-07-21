@@ -10,6 +10,7 @@ extern "C" {
 #include <string.h>
 #include <stdio.h>
 #include "pdc_generic.h"
+#include "pdc_timing.h"
 
 /**
  * @brief Callback that, if provided, will be used to compare node keys.
@@ -39,7 +40,7 @@ typedef int (*libhl_cmp_callback_t)(void *k1, size_t k1size, void *k2, size_t k2
     {                                                                                                        \
         _type _k1i = *((_type *)_k1);                                                                        \
         int   rst  = (int)_k1i;                                                                              \
-        return rst >= 0 ? rst : -rst;                                                                        \
+        FUNC_LEAVE(rst >= 0 ? rst : -rst);                                                                   \
     }
 
 #define LIBHL_CMP_KEYS_TYPE(_type, _k1, _k1s, _k2, _k2s)                                                     \
@@ -48,75 +49,84 @@ typedef int (*libhl_cmp_callback_t)(void *k1, size_t k1size, void *k2, size_t k2
             return _k1s - _k2s;                                                                              \
         _type _k1i = *((_type *)_k1);                                                                        \
         _type _k2i = *((_type *)_k2);                                                                        \
-        return _k1i - _k2i;                                                                                  \
+        FUNC_LEAVE(_k1i - _k2i);                                                                             \
     }
 
 #define LIBHL_CMP_KEYS_NO_TYPE(_type, _k1, _k1s, _k2, _k2s)                                                  \
     {                                                                                                        \
         if (_k1 == NULL && _k2 == NULL)                                                                      \
-            return 0;                                                                                        \
+            FUNC_LEAVE(0);                                                                                   \
         if (_k1 == NULL)                                                                                     \
-            return -1;                                                                                       \
+            FUNC_LEAVE(-1);                                                                                  \
         if (_k2 == NULL)                                                                                     \
-            return 1;                                                                                        \
+            FUNC_LEAVE(1);                                                                                   \
         _type _k1i = *((_type *)_k1);                                                                        \
         _type _k2i = *((_type *)_k2);                                                                        \
-        return _k1i - _k2i;                                                                                  \
+        FUNC_LEAVE(_k1i - _k2i);                                                                             \
     }
 
 static int
 libhl_cast_any_to_int(void *k1, size_t k1size, void *k2, size_t k2size)
 {
+    FUNC_ENTER(NULL);
     int rst = *(int *)k1;
-    return rst >= 0 ? rst : -rst;
+    FUNC_LEAVE(rst >= 0 ? rst : -rst);
 }
 
 static int
 libhl_cast_int_to_int(void *k1, size_t k1size, void *k2, size_t k2size)
 {
+    FUNC_ENTER(NULL);
     LIBHL_CAST_KEYS(int, k1);
 }
 
 static int
 libhl_cast_long_to_int(void *k1, size_t k1size, void *k2, size_t k2size)
 {
+    FUNC_ENTER(NULL);
     LIBHL_CAST_KEYS(long, k1);
 }
 
 static int
 libhl_cast_int16_to_int(void *k1, size_t k1size, void *k2, size_t k2size)
 {
+    FUNC_ENTER(NULL);
     LIBHL_CAST_KEYS(int16_t, k1);
 }
 
 static int
 libhl_cast_int32_to_int(void *k1, size_t k1size, void *k2, size_t k2size)
 {
+    FUNC_ENTER(NULL);
     LIBHL_CAST_KEYS(int32_t, k1);
 }
 
 static int
 libhl_cast_int64_to_int(void *k1, size_t k1size, void *k2, size_t k2size)
 {
+    FUNC_ENTER(NULL);
     LIBHL_CAST_KEYS(int64_t, k1);
 }
 
 static int
 libhl_cast_float_to_int(void *k1, size_t k1size, void *k2, size_t k2size)
 {
+    FUNC_ENTER(NULL);
     LIBHL_CAST_KEYS(float, k1);
 }
 
 static int
 libhl_cast_double_to_int(void *k1, size_t k1size, void *k2, size_t k2size)
 {
+    FUNC_ENTER(NULL);
     LIBHL_CAST_KEYS(double, k1);
 }
 
 static int
 libhl_cmp_keys_string(void *k1, size_t k1size, void *k2, size_t k2size)
 {
-    return strcmp((const char *)k1, (const char *)k2);
+    FUNC_ENTER(NULL);
+    FUNC_LEAVE(strcmp((const char *)k1, (const char *)k2));
 }
 
 /**
@@ -125,6 +135,7 @@ libhl_cmp_keys_string(void *k1, size_t k1size, void *k2, size_t k2size)
 static int
 libhl_cmp_keys_int(void *k1, size_t k1size, void *k2, size_t k2size)
 {
+    FUNC_ENTER(NULL);
     LIBHL_CMP_KEYS_NO_TYPE(int, k1, k1size, k2, k2size);
 }
 
@@ -134,6 +145,7 @@ libhl_cmp_keys_int(void *k1, size_t k1size, void *k2, size_t k2size)
 static int
 libhl_cmp_keys_long(void *k1, size_t k1size, void *k2, size_t k2size)
 {
+    FUNC_ENTER(NULL);
     LIBHL_CMP_KEYS_NO_TYPE(long, k1, k1size, k2, k2size);
 }
 
@@ -143,6 +155,7 @@ libhl_cmp_keys_long(void *k1, size_t k1size, void *k2, size_t k2size)
 static int
 libhl_cmp_keys_int16(void *k1, size_t k1size, void *k2, size_t k2size)
 {
+    FUNC_ENTER(NULL);
     LIBHL_CMP_KEYS_NO_TYPE(int16_t, k1, k1size, k2, k2size);
 }
 
@@ -152,6 +165,7 @@ libhl_cmp_keys_int16(void *k1, size_t k1size, void *k2, size_t k2size)
 static int
 libhl_cmp_keys_int32(void *k1, size_t k1size, void *k2, size_t k2size)
 {
+    FUNC_ENTER(NULL);
     LIBHL_CMP_KEYS_NO_TYPE(int32_t, k1, k1size, k2, k2size);
 }
 
@@ -161,6 +175,7 @@ libhl_cmp_keys_int32(void *k1, size_t k1size, void *k2, size_t k2size)
 static int
 libhl_cmp_keys_int64(void *k1, size_t k1size, void *k2, size_t k2size)
 {
+    FUNC_ENTER(NULL);
     LIBHL_CMP_KEYS_NO_TYPE(int64_t, k1, k1size, k2, k2size);
 }
 
@@ -170,6 +185,7 @@ libhl_cmp_keys_int64(void *k1, size_t k1size, void *k2, size_t k2size)
 static int
 libhl_cmp_keys_uint16(void *k1, size_t k1size, void *k2, size_t k2size)
 {
+    FUNC_ENTER(NULL);
     LIBHL_CMP_KEYS_NO_TYPE(uint16_t, k1, k1size, k2, k2size);
 }
 
@@ -179,6 +195,7 @@ libhl_cmp_keys_uint16(void *k1, size_t k1size, void *k2, size_t k2size)
 static int
 libhl_cmp_keys_uint32(void *k1, size_t k1size, void *k2, size_t k2size)
 {
+    FUNC_ENTER(NULL);
     LIBHL_CMP_KEYS_NO_TYPE(uint32_t, k1, k1size, k2, k2size);
 }
 
@@ -188,6 +205,7 @@ libhl_cmp_keys_uint32(void *k1, size_t k1size, void *k2, size_t k2size)
 static int
 libhl_cmp_keys_uint64(void *k1, size_t k1size, void *k2, size_t k2size)
 {
+    FUNC_ENTER(NULL);
     LIBHL_CMP_KEYS_NO_TYPE(uint64_t, k1, k1size, k2, k2size);
 }
 
@@ -197,6 +215,7 @@ libhl_cmp_keys_uint64(void *k1, size_t k1size, void *k2, size_t k2size)
 static int
 libhl_cmp_keys_float(void *k1, size_t k1size, void *k2, size_t k2size)
 {
+    FUNC_ENTER(NULL);
     LIBHL_CMP_KEYS_NO_TYPE(float, k1, k1size, k2, k2size);
 }
 
@@ -206,6 +225,7 @@ libhl_cmp_keys_float(void *k1, size_t k1size, void *k2, size_t k2size)
 static int
 libhl_cmp_keys_double(void *k1, size_t k1size, void *k2, size_t k2size)
 {
+    FUNC_ENTER(NULL);
     LIBHL_CMP_KEYS_NO_TYPE(double, k1, k1size, k2, k2size);
 }
 

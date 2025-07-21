@@ -1,21 +1,31 @@
 #include "query_utils.h"
+#include "pdc_logger.h"
+#include "pdc_timing.h"
+#include "pdc_malloc.h"
 
 void
 print_query_output(query_gen_output_t *output)
 {
-    println("key query: %s, len: %lu", output->key_query, output->key_query_len);
-    println("value query: %s, len: %lu", output->value_query, output->value_query_len);
+    FUNC_ENTER(NULL);
+
+    LOG_JUST_PRINT("key query: %s, len: %lu\n", output->key_query, output->key_query_len);
+    LOG_JUST_PRINT("value query: %s, len: %lu\n", output->value_query, output->value_query_len);
+
     char *final_query_str = gen_query_str(output);
-    println("final query: %s, len: %lu", final_query_str, strlen(final_query_str));
-    free(final_query_str);
+    LOG_JUST_PRINT("final query: %s, len: %lu", final_query_str, strlen(final_query_str));
+    final_query_str = (char *)PDC_free(final_query_str);
+
+    FUNC_LEAVE_VOID();
 }
 
 int
 main(int argc, char *argv[])
 {
+    FUNC_ENTER(NULL);
+
     int          affix_length = atoi(argv[1]);
     pdc_kvtag_t *base_string_tag;
-    base_string_tag        = (pdc_kvtag_t *)calloc(1, sizeof(pdc_kvtag_t));
+    base_string_tag        = (pdc_kvtag_t *)PDC_calloc(1, sizeof(pdc_kvtag_t));
     base_string_tag->name  = "testname";
     base_string_tag->type  = PDC_STRING;
     base_string_tag->value = "testvalue";
@@ -36,10 +46,10 @@ main(int argc, char *argv[])
 
     pdc_kvtag_t *base_int_tag;
     int          int_value          = 234;
-    base_int_tag                    = (pdc_kvtag_t *)calloc(1, sizeof(pdc_kvtag_t));
+    base_int_tag                    = (pdc_kvtag_t *)PDC_calloc(1, sizeof(pdc_kvtag_t));
     base_int_tag->name              = "testname";
     base_int_tag->type              = PDC_INT;
-    base_int_tag->value             = (void *)calloc(1, sizeof(int));
+    base_int_tag->value             = (void *)PDC_calloc(1, sizeof(int));
     ((int *)base_int_tag->value)[0] = int_value;
 
     for (int i = 4; i < 6; i++) {
@@ -60,5 +70,5 @@ main(int argc, char *argv[])
         free_query_output(&output);
     }
 
-    return 0;
+    FUNC_LEAVE(0);
 }

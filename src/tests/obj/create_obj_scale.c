@@ -1,0 +1,235 @@
+/*
+ * Copyright Notice for
+ * Proactive Data Containers (PDC) Software Library and Utilities
+ * -----------------------------------------------------------------------------
+
+ *** Copyright Notice ***
+
+ * Proactive Data Containers (PDC) Copyright (c) 2017, The Regents of the
+ * University of California, through Lawrence Berkeley National Laboratory,
+ * UChicago Argonne, LLC, operator of Argonne National Laboratory, and The HDF
+ * Group (subject to receipt of any required approvals from the U.S. Dept. of
+ * Energy).  All rights reserved.
+
+ * If you have questions about your rights to use or distribute this software,
+ * please contact Berkeley Lab's Innovation & Partnerships Office at  IPO@lbl.gov.
+
+ * NOTICE.  This Software was developed under funding from the U.S. Department of
+ * Energy and the U.S. Government consequently retains certain rights. As such, the
+ * U.S. Government has been granted for itself and others acting on its behalf a
+ * paid-up, nonexclusive, irrevocable, worldwide license in the Software to
+ * reproduce, distribute copies to the public, prepare derivative works, and
+ * perform publicly and display publicly, and to permit other to do so.
+ */
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
+#include <getopt.h>
+#include <time.h>
+#include <sys/time.h>
+#include <ctype.h>
+#include "pdc.h"
+#include "pdc_client_connect.h"
+#include "test_helper.h"
+
+static char *
+rand_string(char *str, size_t size)
+{
+    size_t     n;
+    const char charset[] = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    if (size) {
+        --size;
+        for (n = 0; n < size; n++) {
+            int key = rand() % (int)(sizeof(charset) - 1);
+            str[n]  = charset[key];
+        }
+        str[size] = '\0';
+    }
+    return str;
+}
+
+void
+print_usage()
+{
+    LOG_JUST_PRINT("Usage: srun -n ./creat_obj -r num_of_obj_per_rank\n");
+}
+
+int
+main(int argc, char **argv)
+{
+    int      rank = 0, size = 1;
+    int      count = -1;
+    int      i;
+    pdcid_t  pdc, cont_prop, cont, obj_prop;
+    uint64_t dims[3]   = {100, 200, 700};
+    pdcid_t  test_obj  = -1;
+    int      use_name  = -1;
+    int      ret_value = TSUCCEED;
+    perr_t   err;
+
+    struct timeval ht_total_start;
+    struct timeval ht_total_end;
+    long long      ht_total_elapsed;
+    double         ht_total_sec;
+
+    char *env_str;
+    char  obj_name[512];
+    char  obj_prefix[4][10] = {"x", "y", "z", "energy"};
+    char  tmp_str[128];
+    char  name_mode[6][32] = {"Random Obj Names", "INVALID!", "One Obj Name",
+                             "INVALID!",         "INVALID!", "Four Obj Names"};
+
+#ifdef ENABLE_MPI
+    MPI_Init(&argc, &argv);
+    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+    MPI_Comm_size(MPI_COMM_WORLD, &size);
+#endif
+
+    while ((i = getopt(argc, argv, "r:")) != EOF)
+        switch (i) {
+            case 'r':
+                count = atoi(optarg);
+                break;
+            case '?':
+                if (optopt == 'r')
+                    LOG_ERROR("Option -%c requires an argument.\n", i);
+                else if (isprint(i))
+                    LOG_ERROR("Unknown option `-%c'.\n", i);
+                else
+                    LOG_ERROR("Unknown option character `\\x%x'.\n", i);
+                TGOTO_DONE(FAIL);
+                break;
+            default:
+                print_usage();
+                TGOTO_DONE(TFAIL);
+                break;
+        }
+
+    if (count == -1) {
+        print_usage();
+        TGOTO_DONE(TFAIL);
+    }
+
+    count /= size;
+
+    if (rank == 0)
+        LOG_INFO("Creating %d objects per MPI rank\n", count);
+
+    // create a pdc
+    TASSERT((pdc = PDCinit("pdc")) != 0, "Call to PDCinit succeeded", "Call to PDCinit failed");
+    // create a container property
+    TASSERT((cont_prop = PDCprop_create(PDC_CONT_CREATE, pdc)) != 0, "Call to PDCprop_create succeeded",
+            "Call to PDCprop_create failed");
+    // create a container
+    TASSERT((cont = PDCcont_create_col("c1", cont_prop)) != 0, "Call to PDCcont_create_col succeeded",
+            "Call to PDCcont_create_col failed");
+
+    char *cont_tags = "cont_tags0=123";
+    if (rank == 0) {
+        TASSERT(PDC_Client_add_tags_to_container(cont, cont_tags) >= 0,
+                "Call to PDC_Client_add_tags_to_container succeeded",
+                "Call to PDC_Client_add_tags_to_container failed");
+    }
+
+    // create an object property
+    TASSERT((obj_prop = PDCprop_create(PDC_OBJ_CREATE, pdc)) != 0, "Call to PDCprop_create succeeded",
+            "Call to PDCprop_create failed");
+    TASSERT(PDCprop_set_obj_type(obj_prop, PDC_INT) >= 0, "Call to PDCprop_set_obj_type succeeded",
+            "Call to PDCprop_set_obj_type failed");
+    TASSERT(PDCprop_set_obj_dims(obj_prop, 3, dims) >= 0, "Call to PDCprop_set_obj_dims succeeded",
+            "Call to PDCprop_set_obj_dims failed");
+
+    env_str = getenv("PDC_OBJ_NAME");
+    if (env_str != NULL) {
+        use_name = atoi(env_str);
+    }
+    if (rank == 0) {
+        LOG_INFO("Using %s\n", name_mode[use_name + 1]);
+    }
+
+    srand(rank + 1);
+
+#ifdef ENABLE_MPI
+    MPI_Barrier(MPI_COMM_WORLD);
+#endif
+
+    gettimeofday(&ht_total_start, 0);
+
+    for (i = 0; i < count; i++) {
+
+        if (use_name == -1) {
+            sprintf(obj_name, "%s", rand_string(tmp_str, 16));
+            TASSERT(PDCprop_set_obj_time_step(obj_prop, rank) >= 0,
+                    "Call to PDCprop_set_obj_time_step succeeded",
+                    "Call to PDCprop_set_obj_time_step failed");
+        }
+        else if (use_name == 1) {
+            sprintf(obj_name, "%s", obj_prefix[0]);
+            TASSERT(PDCprop_set_obj_time_step(obj_prop, i + rank * count) >= 0,
+                    "Call to PDCprop_set_obj_time_step succeeded",
+                    "Call to PDCprop_set_obj_time_step failed");
+        }
+        else if (use_name == 4) {
+            sprintf(obj_name, "%s", obj_prefix[i % 4]);
+            TASSERT(PDCprop_set_obj_time_step(obj_prop, i / 4 + rank * count) >= 0,
+                    "Call to PDCprop_set_obj_time_step succeeded",
+                    "Call to PDCprop_set_obj_time_step failed");
+        }
+        else
+            TGOTO_ERROR(TFAIL, "Unsupported name choice");
+
+        TASSERT(PDCprop_set_obj_user_id(obj_prop, getuid()) >= 0, "Call to PDCprop_set_obj_user_id succeeded",
+                "Call to PDCprop_set_obj_user_id failed");
+        TASSERT(PDCprop_set_obj_app_name(obj_prop, "test_app") >= 0,
+                "Call to PDCprop_set_obj_app_name succeeded", "Call to PDCprop_set_obj_app_name failed");
+        TASSERT(PDCprop_set_obj_tags(obj_prop, "tag0=1") >= 0, "Call to PDCprop_set_obj_tags succeeded",
+                "Call to PDCprop_set_obj_tags failed");
+
+        if (count < 20) {
+            LOG_INFO("[%d] create obj with name %s\n", rank, obj_name);
+        }
+        TASSERT((test_obj = PDCobj_create(cont, obj_name, obj_prop)) != 0, "Call to PDCobj_create succeeded",
+                "Call to PDCobj_create failed");
+
+        // Print progress
+        int progress_factor = count < 10 ? 1 : 10;
+        if (i > 0 && i % (count / progress_factor) == 0) {
+            gettimeofday(&ht_total_end, 0);
+            ht_total_elapsed = (ht_total_end.tv_sec - ht_total_start.tv_sec) * 1000000LL +
+                               ht_total_end.tv_usec - ht_total_start.tv_usec;
+            ht_total_sec = ht_total_elapsed / 1000000.0;
+            if (rank == 0)
+                LOG_INFO("%10d created ... %.5e s\n", i * size, ht_total_sec);
+#ifdef ENABLE_MPI
+            MPI_Barrier(MPI_COMM_WORLD);
+#endif
+        }
+    }
+#ifdef ENABLE_MPI
+    MPI_Barrier(MPI_COMM_WORLD);
+#endif
+
+    gettimeofday(&ht_total_end, 0);
+    ht_total_elapsed = (ht_total_end.tv_sec - ht_total_start.tv_sec) * 1000000LL + ht_total_end.tv_usec -
+                       ht_total_start.tv_usec;
+    ht_total_sec = ht_total_elapsed / 1000000.0;
+    if (rank == 0)
+        LOG_INFO("Time to create %d obj/rank with %d ranks: %.5e\n", count, size, ht_total_sec);
+
+    // close object
+    TASSERT(PDCobj_close(test_obj) >= 0, "Call to PDCobj_close succeeded", "Call to PDCobj_close failed");
+    // close a container
+    TASSERT(PDCcont_close(cont) >= 0, "Call to PDCcont_close succeeded", "Call to PDCcont_close failed");
+    // close a container property
+    TASSERT(PDCprop_close(cont_prop) >= 0, "Call to PDCprop_close succeeded", "Call to PDCprop_close failed");
+    TASSERT(PDCclose(pdc) >= 0, "Call to PDCclose succeeded", "Call to PDCclose failed");
+
+done:
+#ifdef ENABLE_MPI
+    MPI_Finalize();
+#endif
+
+    return ret_value;
+}

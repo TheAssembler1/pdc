@@ -138,55 +138,16 @@ extern pbool_t err_occurred;
 #define PGOTO_ERROR(ret_val, ...)                                                                            \
     do {                                                                                                     \
         LOG_ERROR(__VA_ARGS__);                                                                              \
+        LOG_JUST_PRINT("\n");                                                                                \
         PGOTO_DONE(ret_val);                                                                                 \
     } while (0)
 
 #define PGOTO_ERROR_VOID(...)                                                                                \
     do {                                                                                                     \
         LOG_ERROR(__VA_ARGS__);                                                                              \
+        LOG_JUST_PRINT("\n");                                                                                \
         PGOTO_DONE_VOID;                                                                                     \
     } while (0)
-
-/* Include a basic profiling interface */
-#ifdef ENABLE_PROFILING
-#include "pdc_stack_ops.h"
-
-#define FUNC_ENTER(X)                                                                                        \
-    do {                                                                                                     \
-        if (enableProfiling)                                                                                 \
-            push(__func__, (X));                                                                             \
-    } while (0)
-
-#define FUNC_LEAVE(ret_value)                                                                                \
-    do {                                                                                                     \
-        if (enableProfiling)                                                                                 \
-            pop();                                                                                           \
-        return (ret_value);                                                                                  \
-    } while (0)
-
-#define FUNC_LEAVE_VOID                                                                                      \
-    do {                                                                                                     \
-        if (enableProfiling)                                                                                 \
-            pop();                                                                                           \
-        return;                                                                                              \
-    } while (0)
-
-#else
-
-#define FUNC_ENTER(X)                                                                                        \
-    do {                                                                                                     \
-    } while (0)
-
-#define FUNC_LEAVE(ret_value)                                                                                \
-    do {                                                                                                     \
-        return (ret_value);                                                                                  \
-    } while (0)
-
-#define FUNC_LEAVE_VOID                                                                                      \
-    do {                                                                                                     \
-        return;                                                                                              \
-    } while (0)
-#endif
 
 #if defined(IS_PDC_SERVER) && defined(ENABLE_MULTITHREAD)
 
