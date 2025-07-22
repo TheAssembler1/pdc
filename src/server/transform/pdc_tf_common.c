@@ -125,8 +125,9 @@ done:
     FUNC_LEAVE(ret_value);
 }
 
-bool PDCtf_should_exec_graph(struct _pdc_obj_info *obj_info, pdcid_t *region_exec_graph_id, int client_ndim,
-                  uint8_t client_unit, uint64_t *client_offset, uint64_t *client_dims)
+bool
+PDCtf_should_exec_graph(struct _pdc_obj_info *obj_info, pdcid_t *region_exec_graph_id, int client_ndim,
+                        uint8_t client_unit, uint64_t *client_offset, uint64_t *client_dims)
 {
     bool ret_value = false;
 
@@ -155,7 +156,6 @@ done:
     FUNC_LEAVE(ret_value);
 }
 
-
 size_t
 PDCtf_get_pdc_region_t_elements(pdc_tf_region_t reg)
 {
@@ -181,4 +181,3 @@ PDCtf_log_pdc_region_t(pdc_tf_region_t reg)
         LOG_INFO("\tdim %d = %lu\n", i + 1, reg.dims[0]);
     LOG_INFO("region bytes: %zu\n", PDCtf_get_pdc_region_t_bytes(reg));
 }
-

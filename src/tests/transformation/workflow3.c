@@ -104,7 +104,7 @@ workflow1(pdcid_t pdc, pdcid_t cont)
     LOG_INFO("======================================================================\n");
     LOG_INFO("=================CLIENT TRANFORM OPERATION SEPERATION=================\n");
     LOG_INFO("======================================================================\n");
-    
+
     // read transfer
     LOG_INFO("Starting region transfer read\n");
     TASSERT((transfer_id = PDCregion_transfer_create(data_read, PDC_READ, obj_id, reg, reg)) != 0,

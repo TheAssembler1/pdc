@@ -142,10 +142,10 @@ perr_t PDCtf_exec_graph(pdcid_t dg_id, pdcid_t current_state_id, pdcid_t desired
 perr_t PDCtf_init_builtin_funcs();
 perr_t PDCtf_add_builtin_func(char *func_name, c_func_t c_func);
 perr_t PDCtf_link_builtin_func(char *func_name, func *f);
-bool PDCtf_should_exec_graph(struct _pdc_obj_info *obj_info, pdcid_t *region_exec_graph_id, int client_ndim,
-                  uint8_t client_unit, uint64_t *client_offset, uint64_t *client_dims);
+bool   PDCtf_should_exec_graph(struct _pdc_obj_info *obj_info, pdcid_t *region_exec_graph_id, int client_ndim,
+                               uint8_t client_unit, uint64_t *client_offset, uint64_t *client_dims);
 
 size_t PDCtf_get_pdc_region_t_elements(pdc_tf_region_t reg);
 size_t PDCtf_get_pdc_region_t_bytes(pdc_tf_region_t reg);
-void PDCtf_log_pdc_region_t(pdc_tf_region_t reg);
+void   PDCtf_log_pdc_region_t(pdc_tf_region_t reg);
 #endif // PDC_TF_COMMON_H

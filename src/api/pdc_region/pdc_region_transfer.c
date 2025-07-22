@@ -1553,15 +1553,15 @@ check_exec_tf_graph(pdcid_t transfer_request_id, bool *should_run_region_transfe
 {
     FUNC_ENTER(NULL);
 
-    struct _pdc_id_info * id_info               = NULL;
-    struct _pdc_obj_info *obj_info              = NULL;
-    pdcid_t               region_id             = 0;
-    pdc_transfer_request *transfer_request      = NULL;
-    bool                  has_attached_graph    = false;
-    perr_t                ret_value             = SUCCEED;
-    pdc_tf_region_info *      region_info       = NULL;
-    pdc_tf_absolute_region_t *abs_remote_region = NULL;
-    pdc_tf_region_t input_region, output_region;
+    struct _pdc_id_info *     id_info            = NULL;
+    struct _pdc_obj_info *    obj_info           = NULL;
+    pdcid_t                   region_id          = 0;
+    pdc_transfer_request *    transfer_request   = NULL;
+    bool                      has_attached_graph = false;
+    perr_t                    ret_value          = SUCCEED;
+    pdc_tf_region_info *      region_info        = NULL;
+    pdc_tf_absolute_region_t *abs_remote_region  = NULL;
+    pdc_tf_region_t           input_region, output_region;
 
     // get transfer request information
     if ((id_info = PDC_find_id(transfer_request_id)) == NULL)
@@ -1574,7 +1574,7 @@ check_exec_tf_graph(pdcid_t transfer_request_id, bool *should_run_region_transfe
 
     has_attached_graph =
         PDCtf_should_exec_graph(obj_info, &region_id, transfer_request->obj_ndim, transfer_request->unit,
-                          transfer_request->remote_region_offset, transfer_request->remote_region_size);
+                                transfer_request->remote_region_offset, transfer_request->remote_region_size);
 
     if (!has_attached_graph)
         LOG_INFO("Not attached graph for region transfer\n");
@@ -1630,10 +1630,11 @@ check_exec_tf_graph(pdcid_t transfer_request_id, bool *should_run_region_transfe
         transfer_request->unit               = output_region.unit;
         memcpy(transfer_request->remote_region_size, output_region.dims,
                output_region.ndim * sizeof(uint64_t));
-    } else {
+    }
+    else {
         /**
          * we need to update bulk transfer to mapped remote properties
-         * the actual data transfer and graph execution has to 
+         * the actual data transfer and graph execution has to
          * happen in the region transfer wait as we don't actually
          * have the data at this point we are only performing the data
          * transfer.
@@ -1780,9 +1781,9 @@ PDCregion_transfer_start_common(pdcid_t transfer_request_id,
     perr_t ret_value                 = SUCCEED;
     bool   should_run_transfer_start = false;
 
-    if(check_exec_tf_graph(transfer_request_id, &should_run_transfer_start) != SUCCEED)
+    if (check_exec_tf_graph(transfer_request_id, &should_run_transfer_start) != SUCCEED)
         PGOTO_ERROR(FAIL, "Failed to check_exec_tf_graph");
-    if(should_run_transfer_start)
+    if (should_run_transfer_start)
         PGOTO_DONE(region_transfer_start_common_helper(transfer_request_id, comm));
 
 done:
