@@ -124,3 +124,61 @@ PDCtf_init_builtin_funcs()
 done:
     FUNC_LEAVE(ret_value);
 }
+
+bool PDCtf_should_exec_graph(struct _pdc_obj_info *obj_info, pdcid_t *region_exec_graph_id, int client_ndim,
+                  uint8_t client_unit, uint64_t *client_offset, uint64_t *client_dims)
+{
+    bool ret_value = false;
+
+    /**
+     * loop through attached graphs
+     * if this is NULL then no graphs are attached to the object
+     */
+    if (obj_info->pdc_tf_obj != NULL) {
+        for (*region_exec_graph_id = 0; *region_exec_graph_id < obj_info->pdc_tf_obj->num_regions;
+             (*region_exec_graph_id)++) {
+            pdc_tf_absolute_region_t abs_reg = obj_info->pdc_tf_obj->client_regions[*region_exec_graph_id];
+
+            // check if client ndim, offset, dims, unit match
+            bool ndim_matches = abs_reg.ndim == client_ndim;
+            bool unit_matches = abs_reg.unit == client_unit;
+            // note these return 0 on match so ! is needed
+            bool offset_matches = !memcmp(abs_reg.offset, client_offset, client_ndim * sizeof(uint64_t));
+            bool dims_matches   = !memcmp(abs_reg.dims, client_dims, client_ndim * sizeof(uint64_t));
+
+            if (ndim_matches && offset_matches && dims_matches && unit_matches)
+                PGOTO_DONE(true);
+        }
+    }
+
+done:
+    FUNC_LEAVE(ret_value);
+}
+
+
+size_t
+PDCtf_get_pdc_region_t_elements(pdc_tf_region_t reg)
+{
+    size_t num_elements = 1;
+    for (int i = 0; i < reg.ndim; ++i) {
+        num_elements *= reg.dims[i];
+    }
+    return num_elements;
+}
+
+size_t
+PDCtf_get_pdc_region_t_bytes(pdc_tf_region_t reg)
+{
+    return PDCtf_get_pdc_region_t_elements(reg) * reg.unit;
+}
+
+void
+PDCtf_log_pdc_region_t(pdc_tf_region_t reg)
+{
+    LOG_INFO("region ndim: %lu\n", reg.ndim);
+    LOG_INFO("region unit: %lu\n", reg.unit);
+    for (int i = 0; i < reg.ndim; i++)
+        LOG_INFO("\tdim %d = %lu\n", i + 1, reg.dims[0]);
+    LOG_INFO("region bytes: %zu\n", PDCtf_get_pdc_region_t_bytes(reg));
+}
+

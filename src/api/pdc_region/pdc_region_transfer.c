@@ -475,7 +475,7 @@ remove_local_transfer_request(struct _pdc_obj_info *p, pdcid_t transfer_request_
 }
 
 /*
- * Input: Ojbect dimensions + a region
+ * Input: Object dimensions + a region
  * Output: Data servers that the region will access with a static region partition. As well as overlapping
  * regions.
  */
@@ -487,6 +487,8 @@ static_region_partition(char *buf, int ndim, uint64_t unit, pdc_access_t access_
                         uint64_t ***output_sizes, char ***output_buf)
 {
     FUNC_ENTER(NULL);
+
+    LOG_INFO("WE ARE HERE\n");
 
     perr_t   ret_value = SUCCEED;
     int      i, j;
@@ -1539,41 +1541,10 @@ PDCregion_transfer_start_all_mpi(pdcid_t *transfer_request_id, int size, MPI_Com
 }
 #endif
 
-static bool
-should_exec_graph(struct _pdc_obj_info *obj_info, pdcid_t *region_exec_graph_id, int client_ndim,
-                  uint8_t client_unit, uint64_t *client_offset, uint64_t *client_dims)
-{
-    bool ret_value = false;
-
-    /**
-     * loop through attached graphs
-     * if this is NULL then no graphs are attached to the object
-     */
-    if (obj_info->pdc_tf_obj != NULL) {
-        for (*region_exec_graph_id = 0; *region_exec_graph_id < obj_info->pdc_tf_obj->num_regions;
-             (*region_exec_graph_id)++) {
-            pdc_tf_absolute_region_t abs_reg = obj_info->pdc_tf_obj->client_regions[*region_exec_graph_id];
-
-            // check if client ndim, offset, dims, unit match
-            bool ndim_matches = abs_reg.ndim == client_ndim;
-            bool unit_matches = abs_reg.unit == client_unit;
-            // note these return 0 on match so ! is needed
-            bool offset_matches = !memcmp(abs_reg.offset, client_offset, client_ndim * sizeof(uint64_t));
-            bool dims_matches   = !memcmp(abs_reg.dims, client_dims, client_ndim * sizeof(uint64_t));
-
-            if (ndim_matches && offset_matches && dims_matches && unit_matches)
-                PGOTO_DONE(true);
-        }
-    }
-
-done:
-    FUNC_LEAVE(ret_value);
-}
-
 /**
  * If the graph execution runs on the client side for a PDC write this function will
- * internally call region_transfer_start_common_helper within a separate thread so
- * that the region start is asynchronous. This meeans the calling code no longer needs to call
+ * internally call region_transfer_start_common_helper on a separate thread so
+ * that the region start is asynchronous. This means the calling code no longer needs to call
  * region_transfer_start_common_helper. The parameter should_run_region_transfer
  * is used to indicate whether the calling code needs to call the region transfer start.
  */
@@ -1582,12 +1553,15 @@ check_exec_tf_graph(pdcid_t transfer_request_id, bool *should_run_region_transfe
 {
     FUNC_ENTER(NULL);
 
-    struct _pdc_id_info * id_info            = NULL;
-    struct _pdc_obj_info *obj_info           = NULL;
-    pdcid_t               region_id          = 0;
-    pdc_transfer_request *transfer_request   = NULL;
-    bool                  has_attached_graph = false;
-    perr_t                ret_value          = SUCCEED;
+    struct _pdc_id_info * id_info               = NULL;
+    struct _pdc_obj_info *obj_info              = NULL;
+    pdcid_t               region_id             = 0;
+    pdc_transfer_request *transfer_request      = NULL;
+    bool                  has_attached_graph    = false;
+    perr_t                ret_value             = SUCCEED;
+    pdc_tf_region_info *      region_info       = NULL;
+    pdc_tf_absolute_region_t *abs_remote_region = NULL;
+    pdc_tf_region_t input_region, output_region;
 
     // get transfer request information
     if ((id_info = PDC_find_id(transfer_request_id)) == NULL)
@@ -1599,17 +1573,15 @@ check_exec_tf_graph(pdcid_t transfer_request_id, bool *should_run_region_transfe
         PGOTO_ERROR(FAIL, "obj_info pointer was NULL");
 
     has_attached_graph =
-        should_exec_graph(obj_info, &region_id, transfer_request->obj_ndim, transfer_request->unit,
+        PDCtf_should_exec_graph(obj_info, &region_id, transfer_request->obj_ndim, transfer_request->unit,
                           transfer_request->remote_region_offset, transfer_request->remote_region_size);
 
     if (!has_attached_graph)
         LOG_INFO("Not attached graph for region transfer\n");
 
     if (has_attached_graph && transfer_request->access_type == PDC_WRITE) {
-        pdc_tf_region_info *      region_info       = &obj_info->pdc_tf_obj->tf_regions_info[region_id];
-        pdc_tf_absolute_region_t *abs_remote_region = &obj_info->pdc_tf_obj->remote_regions[region_id];
-
-        pdc_tf_region_t input_region, output_region;
+        region_info       = &obj_info->pdc_tf_obj->tf_regions_info[region_id];
+        abs_remote_region = &obj_info->pdc_tf_obj->remote_regions[region_id];
 
         // initialize input_region
         input_region.unit = transfer_request->unit;
@@ -1641,7 +1613,12 @@ check_exec_tf_graph(pdcid_t transfer_request_id, bool *should_run_region_transfe
          * The client region and remote region are the same at this point after the graph execution
          * offset of the client region is now zero as we have packed it already (before graph execution)
          */
-        // update the remote region properties
+
+        // log final output region size
+        LOG_INFO("Final output region:\n");
+        PDCtf_log_pdc_region_t(output_region);
+
+        // update the local region properties
         transfer_request->local_region_ndim = output_region.ndim;
         transfer_request->unit              = output_region.unit;
         memcpy(transfer_request->local_region_size, output_region.dims,
@@ -1653,6 +1630,21 @@ check_exec_tf_graph(pdcid_t transfer_request_id, bool *should_run_region_transfe
         transfer_request->unit               = output_region.unit;
         memcpy(transfer_request->remote_region_size, output_region.dims,
                output_region.ndim * sizeof(uint64_t));
+    } else {
+        /**
+         * we need to update bulk transfer to mapped remote properties
+         * the actual data transfer and graph execution has to 
+         * happen in the region transfer wait as we don't actually
+         * have the data at this point we are only performing the data
+         * transfer.
+         */
+        abs_remote_region = &obj_info->pdc_tf_obj->remote_regions[region_id];
+
+        // update the remote region properties
+        transfer_request->remote_region_ndim = abs_remote_region->ndim;
+        transfer_request->unit               = abs_remote_region->unit;
+        memcpy(transfer_request->remote_region_size, abs_remote_region->dims,
+               abs_remote_region->ndim * sizeof(uint64_t));
     }
 
     // FIXME: launch region start in seperate thread for async
@@ -1788,8 +1780,10 @@ PDCregion_transfer_start_common(pdcid_t transfer_request_id,
     perr_t ret_value                 = SUCCEED;
     bool   should_run_transfer_start = false;
 
-    check_exec_tf_graph(transfer_request_id, &should_run_transfer_start);
-    ret_value = region_transfer_start_common_helper(transfer_request_id, comm);
+    if(check_exec_tf_graph(transfer_request_id, &should_run_transfer_start) != SUCCEED)
+        PGOTO_ERROR(FAIL, "Failed to check_exec_tf_graph");
+    if(should_run_transfer_start)
+        PGOTO_DONE(region_transfer_start_common_helper(transfer_request_id, comm));
 
 done:
     FUNC_LEAVE(ret_value);
@@ -1878,7 +1872,6 @@ PDCregion_transfer_status(pdcid_t transfer_request_id, pdc_transfer_status_t *co
         *completed = PDC_TRANSFER_STATUS_COMPLETE;
         PGOTO_DONE(ret_value);
     }
-
     transfer_request = (pdc_transfer_request *)(transferinfo->obj_ptr);
     if (transfer_request->metadata_id != NULL) {
         unit = transfer_request->unit;
@@ -1908,6 +1901,7 @@ PDCregion_transfer_status(pdcid_t transfer_request_id, pdc_transfer_status_t *co
                 transfer_request->output_offsets[i] =
                     (uint64_t *)PDC_free(transfer_request->output_offsets[i]);
             }
+
             // Copy read data from a contiguous buffer back to the user buffer using local data information.
             release_region_buffer(
                 transfer_request->buf, transfer_request->obj_dims, transfer_request->local_region_ndim,
@@ -2254,7 +2248,7 @@ PDCregion_transfer_wait(pdcid_t transfer_request_id)
                 transfer_request->output_buf = (char **)PDC_free(transfer_request->output_buf);
             transfer_request->obj_servers = (uint32_t *)PDC_free(transfer_request->obj_servers);
         }
-        else if (transfer_request->region_partition == PDC_OBJ_STATIC) { // FIXME: NOAH exec graph
+        else if (transfer_request->region_partition == PDC_OBJ_STATIC) {
             ret_value = PDC_Client_transfer_request_wait(transfer_request->metadata_id[0],
                                                          transfer_request->data_server_id,
                                                          transfer_request->access_type);

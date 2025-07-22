@@ -1,6 +1,7 @@
 #include <stdint.h>
 
 #include "pdc_tf_builtin_common.h"
+#include "pdc_tf_common.h"
 
 #ifdef ENABLE_TF_ZFP_COMPRESSION
 #include <zfp.h>
@@ -8,46 +9,20 @@
 
 #include "pdc_logger.h"
 
-static size_t
-get_pdc_region_t_elements(pdc_tf_region_t input_reg)
-{
-    size_t num_elements = 1;
-    for (int i = 0; i < input_reg.ndim; ++i) {
-        num_elements *= input_reg.dims[i];
-    }
-    return num_elements;
-}
-
-static size_t
-get_pdc_region_t_bytes(pdc_tf_region_t input_reg)
-{
-    return get_pdc_region_t_elements(input_reg) * input_reg.unit;
-}
-
-static void
-log_pdc_region_t(pdc_tf_region_t input_reg)
-{
-    LOG_INFO("input region ndim: %lu\n", input_reg.ndim);
-    LOG_INFO("input region unit: %lu\n", input_reg.unit);
-    for (int i = 0; i < input_reg.ndim; i++)
-        LOG_INFO("\tdim %d = %lu\n", i + 1, input_reg.dims[0]);
-    LOG_INFO("Total input region bytes: %zu\n", get_pdc_region_t_bytes(input_reg));
-}
-
 bool
 pdc_tf_builtin_double_to_float(void *params, void **region_data, pdc_tf_region_t input_reg,
                                pdc_tf_region_t *output_reg)
 {
     LOG_INFO("pdc_tf_builtin_double_to_float was called\n");
 
-    log_pdc_region_t(input_reg);
-    size_t num_elements = get_pdc_region_t_elements(input_reg);
+    PDCtf_log_pdc_region_t(input_reg);
+    size_t num_elements = PDCtf_get_pdc_region_t_elements(input_reg);
 
     double *buf = *((double **)region_data);
 
     // copy into new buffer
-    float *new_buf = (float *)malloc(get_pdc_region_t_bytes(input_reg));
-    for (int i = 0; i < get_pdc_region_t_elements(input_reg); i++)
+    float *new_buf = (float *)malloc(PDCtf_get_pdc_region_t_bytes(input_reg));
+    for (int i = 0; i < PDCtf_get_pdc_region_t_elements(input_reg); i++)
         new_buf[i] = (float)buf[i];
 
     *region_data = new_buf;
@@ -63,7 +38,7 @@ pdc_tf_builtin_float_to_double(void *params, void **region_data, pdc_tf_region_t
                                pdc_tf_region_t *output_reg)
 {
     LOG_INFO("pdc_tf_builtin_float_to_double was called\n");
-    log_pdc_region_t(input_reg);
+    PDCtf_log_pdc_region_t(input_reg);
     return true;
 }
 
@@ -74,7 +49,7 @@ pdc_tf_builtin_zfp_compress(void *params, void **region_data, pdc_tf_region_t in
 {
     LOG_INFO("pdc_tf_builtin_zfp_compress was called\n");
 
-    log_pdc_region_t(input_reg);
+    PDCtf_log_pdc_region_t(input_reg);
 
     /**
      * FIXME: we can get the zfp type through the *params for now hardcoding
@@ -189,7 +164,7 @@ pdc_tf_builtin_zfp_decompress(void *params, void **region_data, pdc_tf_region_t 
 {
     LOG_INFO("pdc_tf_builtin_zfp_decompress was called\n");
 
-    log_pdc_region_t(input_reg);
+    PDCtf_log_pdc_region_t(input_reg);
 
     // Hardcoded for now to match compress path
     zfp_type z_type = zfp_type_float;

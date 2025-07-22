@@ -308,27 +308,95 @@ Both create and close functions are local memory operations, so no mercury modul
 Region Transfer Request Start
 ---------------------------------------------
 
-Starting a region transfer request function will trigger the I/O operation. Data will be transferred from client to server using the        ``pdc_client_connect`` module. ``pdc_client_connect`` module is a middleware layer that transfers client data to a designated server and triggers a corresponding RPC at the server side. In addition, the RPC transfer also allows data transfer by argument. Variables transferred by argument are fixed-sized. For variable-sized variables, mercury bulk transfer is used to transfer a contiguous memory buffer. Region transfer request start APIs: To transfer metadata and data with the pdc_client_connect module, the ``region_transfer_request.c`` file contains mechanisms to wrap request data into a contiguous buffer. There are two ways to start a transfer request. The first prototype is ``PDCregion_transfer_start(pdcid_t transfer_request_id)``. This function starts a single transfer request specified by its ID. The second way is to use the aggregated prototype ``PDCregion_transfer_start_all(pdcid_t *transfer_request_id, int size)``. This function can start multiple transfer requests. It is recommended to use the aggregated version when multiple requests can start together because it allows both client and server to aggregate the requests and achieve better performance.
+Starting a region transfer request function will trigger the I/O operation. Data will be 
+transferred from client to server using the        ``pdc_client_connect`` module. 
+``pdc_client_connect`` module is a middleware layer that transfers client data to a 
+designated server and triggers a corresponding RPC at the server side. In addition, the 
+RPC transfer also allows data transfer by argument. Variables transferred by argument are 
+fixed-sized. For variable-sized variables, mercury bulk transfer is used to transfer a 
+contiguous memory buffer. Region transfer request start APIs: To transfer metadata and 
+data with the pdc_client_connect module, the ``region_transfer_request.c`` file contains 
+mechanisms to wrap request data into a contiguous buffer. There are two ways to start a 
+transfer request. The first prototype is ``PDCregion_transfer_start(pdcid_t transfer_request_id)``. 
+This function starts a single transfer request specified by its ID. The second way is to use 
+the aggregated prototype ``PDCregion_transfer_start_all(pdcid_t *transfer_request_id, int size)``. 
+This function can start multiple transfer requests. It is recommended to use the aggregated 
+version when multiple requests can start together because it allows both client and server 
+to aggregate the requests and achieve better performance.
 
-For the 1D local region, ``PDCregion_transfer_start`` passes the pointer pointing to the ``offset[0] * unit`` location of the input buffer to the ``pdc_client_connect`` module. User data will be copied to a new contiguous buffer for higher dimensions using subregion copy based on local region shape. This implementation is in the static function ``pack_region_buffer``. The new memory buffer will be passed to the ``pdc_client_conenct`` module.
+For the 1D local region, ``PDCregion_transfer_start`` passes the pointer pointing to the 
+``offset[0] * unit`` location of the input buffer to the ``pdc_client_connect`` module. 
+User data will be copied to a new contiguous buffer for higher dimensions using subregion 
+copy based on local region shape. This implementation is in the static function ``pack_region_buffer``. 
+The new memory buffer will be passed to the ``pdc_client_connect`` module.
 
-This memory buffer passed to the ``pdc_client_connect`` module is registered with mercury bulk transfer. If it is a read operation, the bulk transfer is a pull operation. Otherwise, it is a push operation. Remote region information and some other relevant metadata are transferred using mercury RPC arguments. Once the ``pdc_client_connect`` module receives a return code and remote transfer request ID from the designated data server, ``PDCregion_transfer_start`` will cache the remote transfer request ID and exit.
+This memory buffer passed to the ``pdc_client_connect`` module is registered with mercury bulk 
+transfer. If it is a read operation, the bulk transfer is a pull operation. Otherwise, it is 
+a push operation. Remote region information and some other relevant metadata are transferred 
+using mercury RPC arguments. Once the ``pdc_client_connect`` module receives a return code and 
+remote transfer request ID from the designated data server, ``PDCregion_transfer_start`` will 
+cache the remote transfer request ID and exit.
 
-``PDCregion_transfer_start`` can be interpreted as ``PDCregion_transfer_start_all`` with the size argument set to 1, though the implementation is optimized. ``PDCregion_transfer_start_all`` performs aggregation of mercury bulk transfer whenever it is possible. Firstly, the function splits the read and write requests. Write requests are handled before the read requests. Wrapping region transfer requests to internal transfer packages: For each of the write requests, it is converted into one or more instances of the structure described by ``pdc_transfer_request_start_all_pkg`` defined in ``pdc_region_transfer.c``. This structure contains the data buffer to be transferred, remote region shapes, and a data server rank to be transferred to. ``PDCregion_transfer_start_all`` implements the package translation in the static function ``prepare_start_all_requests``.
+``PDCregion_transfer_start`` can be interpreted as ``PDCregion_transfer_start_all`` with the 
+size argument set to 1, though the implementation is optimized. ``PDCregion_transfer_start_all`` 
+performs aggregation of mercury bulk transfer whenever it is possible. Firstly, the function 
+splits the read and write requests. Write requests are handled before the read requests. Wrapping 
+region transfer requests to internal transfer packages: For each of the write requests, it is 
+converted into one or more instances of the structure described by ``pdc_transfer_request_start_all_pkg`` 
+defined in ``pdc_region_transfer.c``. This structure contains the data buffer to be transferred, 
+remote region shapes, and a data server rank to be transferred to. ``PDCregion_transfer_start_all`` 
+implements the package translation in the static function ``prepare_start_all_requests``.
 
-As mentioned earlier in the metadata implementation, an abstract region for an object can be partitioned in different ways. There are four types of partitions: Object static partitioning, region static partitioning, region dynamic partitioning, and node-local region placement. ``PDCprop_set_obj_transfer_region_type(pdcid_t obj_prop, pdc_region_partition_t region_partition)`` allows users to set the partition method before creating an object on the client side. Different partitioning strategies have differences in the target data server rank when a transfer request is packed into ``pdc_transfer_request_start_all_pkg`` (s). We describe them separately.
+As mentioned earlier, an abstract region for an object can be partitioned in 
+different ways. There are four types of partitions: Object static partitioning, region static partitioning, 
+region dynamic partitioning, and node-local region placement. 
+``PDCprop_set_obj_transfer_region_type(pdcid_t obj_prop, pdc_region_partition_t region_partition)`` 
+allows users to set the partition method before creating an object on the client side. Different partitioning 
+strategies have differences in the target data server rank when a transfer request is packed into 
+``pdc_transfer_request_start_all_pkg`` (s). We describe them separately.
 
-For the object static partitioning strategy, the input transfer request is directly packed into ``pdc_transfer_request_start_all_pkg`` using a one-to-one mapping. The data server rank is determined at the object create/open time.
+For the object static partitioning strategy, the input transfer request is directly 
+packed into ``pdc_transfer_request_start_all_pkg`` using a one-to-one mapping. 
+The data server rank is determined at the object create/open time.
 
-For dynamic region partitioning or node-local placement, the static function ``static perr_t register_metadata`` (in ``pdc_region_transfer.c``) contacts the metadata server. The metadata server dynamically selects a data server for the input region transfer request based on the current system status. If local region placement is selected, metadata servers choose the data server on the same node (or as close as possible) of the client rank that transferred this request. If dynamic region partitioning is selected, the metadata server picks the data server currently holding the minimum number of bytes of data. The metadata server holds the region to data server mapping in its metadata region query system ``pdc_server_region_transfer_metadata_query.c``. Metadata held by this module will be permanently stored in the file system as part of the metadata checkpoint file at the PDC server close time. After retrieving the correct data server ID, one ``pdc_transfer_request_start_all_pkg`` is created. The only difference in creating ``pdc_transfer_request_start_all_pkg`` compared with the object static partitioning strategy is how the data server ID is retrieved.
+For dynamic region partitioning or node-local placement, the static 
+function ``static perr_t register_metadata`` (in ``pdc_region_transfer.c``) contacts 
+the metadata server. The metadata server dynamically selects a data server for the input 
+region transfer request based on the current system status. If local region placement is 
+selected, metadata servers choose the data server on the same node (or as close as possible) 
+of the client rank that transferred this request. If dynamic region partitioning is selected, 
+the metadata server picks the data server currently holding the minimum number of bytes of data. 
+The metadata server holds the region to data server mapping in its metadata region query 
+system ``pdc_server_region_transfer_metadata_query.c``. Metadata held by this module will 
+be permanently stored in the file system as part of the metadata checkpoint file at the 
+PDC server close time. After retrieving the correct data server ID, one ``pdc_transfer_request_start_all_pkg`` 
+is created. The only difference in creating ``pdc_transfer_request_start_all_pkg`` 
+compared with the object static partitioning strategy is how the data server ID is retrieved.
 
-For the static region partitioning strategy, a region is equally partitioned across all data servers. As a result, one region transfer request generates the number of ``pdc_transfer_request_start_all_pkg`` equal to the total number of PDC servers. This implementation is in the static function ``static_region_partition`` in the ``pdc_region_transfer_request.c`` file.
+For the static region partitioning strategy, a region is equally partitioned across all 
+data servers. As a result, one region transfer request generates the number of 
+``pdc_transfer_request_start_all_pkg`` equal to the total number of PDC servers. 
+This implementation is in the static function ``static_region_partition`` in the 
+``pdc_region_transfer_request.c`` file.
 
-Sending internal transfer request packages from client to server: For an aggregated region transfer request start all function call, two arrays of ``pdc_transfer_request_start_all_pkg`` are created as described in the previous subsection depending on the partitioning strategies. One is for ``PDC_WRITE``, and the other is for ``PDC_READ``. This section describes how ``pdc_region_transfer_request.c`` implements the communication from client to transfer. The core implementation is in the static function ``PDC_Client_start_all_requests``.
+Sending internal transfer request packages from client to server: For an aggregated 
+region transfer request start all function call, two arrays of ``pdc_transfer_request_start_all_pkg`` 
+are created as described in the previous subsection depending on the partitioning strategies. 
+One is for ``PDC_WRITE``, and the other is for ``PDC_READ``. This section describes how 
+``pdc_region_transfer_request.c`` implements the communication from client to transfer. 
+The core implementation is in the static function ``PDC_Client_start_all_requests``.
 
-Firstly, an array of ``pdc_transfer_request_start_all_pkg`` is sorted based on the target data server ID. Then, dor adjacent ``pdc_transfer_request_start_all_pkg`` that sends to the same data server ID, these packages are packed into a single contiguous memory buffer using the static function ``PDC_Client_pack_all_requests``. This memory buffer is passed to the ``pdc_client_connect`` layer for mercury transfer.
+Firstly, an array of ``pdc_transfer_request_start_all_pkg`` is sorted based on the target 
+data server ID. Then, dor adjacent ``pdc_transfer_request_start_all_pkg`` that sends to the 
+same data server ID, these packages are packed into a single contiguous memory buffer 
+using the static function ``PDC_Client_pack_all_requests``. This memory buffer is passed 
+to the ``pdc_client_connect`` layer for mercury transfer.
 
-Region transfer request wait: Region transfer request start does not guarantee the finish of data communication or I/O at the server by default. To make sure the input memory buffer is reusable or deletable, a wait function can be used. The wait function is also called implicitly when the object is closed, or special POSIX semantics is set ahead of time when the object is created.
+Region transfer request wait: Region transfer request start does not guarantee the finish 
+of data communication or I/O at the server by default. To make sure the input memory buffer 
+is reusable or deletable, a wait function can be used. The wait function is also called 
+implicitly when the object is closed, or special POSIX semantics is set ahead of time when 
+the object is created.
 
 Region Transfer Request Wait
 ---------------------------------------------
