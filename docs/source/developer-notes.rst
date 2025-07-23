@@ -43,31 +43,47 @@ PDC metadata is held in server memories. When servers are closed, metadata will 
 
 PDC metadata consists of three major parts at the moment:
 
-- Metadata stored in the hash tables at the metadata server: stores persistent properties for PDC containers and PDC objects. When objects are created, these metadata are registered at the metadata server using mercury RPCs. 
+- Metadata stored in the hash tables at the metadata server: stores persistent properties for PDC containers and PDC objects. 
+When objects are created, these metadata are registered at the metadata server using mercury RPCs. 
 
-- Metadata query class at the metadata server: maps an object region to a data server, so clients can query for this information to access the corresponding data server. It is only used by dynamic region partition strategy
+- Metadata query class at the metadata server: maps an object region to a data server, so clients can 
+query for this information to access the corresponding data server. It is only used by dynamic region partition strategy
 
-- Object regions stored at the data server: this includes file names and region chunking information inside the object file on the file system.
+- Object regions stored at the data server: this includes file names and region chunking information 
+inside the object file on the file system.
 
 ---------------------------------------------
 Metadata Operations at Client Side
 ---------------------------------------------
 
-In general, PDC object metadata is initialized when an object is created. The metadata stored at the metadata server is permanent. When clients create the objects, a PDC property is used as one of the arguments for the object creation function. Metadata for the object is set by using PDC property APIs. Most of the metadata are not subject to any changes. Currently, we support setting/getting object dimensions using object API. 
+In general, PDC object metadata is initialized when an object is created. The metadata stored at 
+the metadata server is permanent. When clients create the objects, a PDC property is used as one of 
+the arguments for the object creation function. Metadata for the object is set by using PDC property 
+APIs. Most of the metadata are not subject to any changes. Currently, we support setting/getting object 
+dimensions using object API. 
 
 ---------------------------------------------
 PDC Metadata Management Strategy
 ---------------------------------------------
 
-This section discusses the metadata management approaches of PDC. First, we briefly summarize how PDC managed metadata in the past. Then, we propose new infrastructures for metadata management.
+This section discusses the metadata management approaches of PDC. First, we briefly summarize how P
+DC managed metadata in the past. Then, we propose new infrastructures for metadata management.
 
 
 Managing Metadata and Data by the Same Server
 ---------------------------------------------
 
-Historically, a PDC server manages both metadata and data for objects it is responsible for. A client forwards I/O requests to the server computed based on MPI ranks statically. If a server is located on the same node as the client, the server will be chosen with a higher priority. This design can achieve high I/O parallelism if the I/O workloads from all clients are well-balanced. In addition, communication contention is minimized because servers are dedicated to serving disjoint subsets of clients.
+Historically, a PDC server manages both metadata and data for objects it is responsible for. A client 
+forwards I/O requests to the server computed based on MPI ranks statically. If a server is located on the same 
+node as the client, the server will be chosen with a higher priority. This design can achieve high I/O parallelism 
+if the I/O workloads from all clients are well-balanced. In addition, communication contention is minimized because 
+servers are dedicated to serving disjoint subsets of clients.
 
-However, this design has two potential drawbacks. The first disadvantage is supporting general I/O access. For clients served by different PDC servers, accessing overlapping regions is infeasible. Therefore, this design is specialized in applications with a non-overlapping I/O pattern. The second disadvantage is a lack of dynamic load-balancing mechanisms. For example, some applications use a subset of processes for processing I/O. A subset of servers may stay idle because the clients mapped to them are not sending I/O requests.
+However, this design has two potential drawbacks. The first disadvantage is supporting general I/O access. 
+For clients served by different PDC servers, accessing overlapping regions is infeasible. Therefore, 
+this design is specialized in applications with a non-overlapping I/O pattern. The second disadvantage 
+is a lack of dynamic load-balancing mechanisms. For example, some applications use a subset of processes
+ for processing I/O. A subset of servers may stay idle because the clients mapped to them are not sending I/O requests.
 
 
 Separate Metadata Server from Data Server
@@ -120,19 +136,32 @@ The second piece of local metadata, denoted as object public property, is stored
 Metadata at Data Server
 ---------------------------------------------
 
-Details about the data server will not be discussed in this section. In general, a data server takes inputs (both metadata and data for an object) from clients and processes them accordingly. It is not supposed to store metadata information for objects. However, it is responsible for storing the locations of data in the file system, including path and offset for regions.
+Details about the data server will not be discussed in this section. In general, a data server takes inputs 
+(both metadata and data for an object) from clients and processes them accordingly. It is not supposed to store 
+metadata information for objects. However, it is responsible for storing the locations of data in the file system, 
+including path and offset for regions.
 
 If server cache is enabled, object dimension is stored by the server cache infrastructure when an object is registered for the first time. Object dimension is not used anywhere unless the I/O mode is set to be canonical file order storage. Currently, this mode does not allow clients to change object dimension, so it is not subject to metadata update, which is discussed in the following subsection.
 
 Object Metadata Update
 ---------------------------------------------
 
-Object metadata is defined before creating an object. At the early stage of PDC, we did not plan to change any of the metadata after an object was created. However, it may be necessary to do this in the future. For example, sometimes applications want to change the sizes of PDC objects along different dimensions. An example is implemented as ``perr_t PDCobj_set_dims(pdcid_t obj_id, int ndim, uint64_t *dims)``. This function can change object dimensions in runtime. As mentioned earlier, we need to update the metadata in three places. Two places are at the client side, and the other place is at the metadata server.
+Object metadata is defined before creating an object. At the early stage of PDC, we did not plan 
+to change any of the metadata after an object was created. However, it may be necessary to do this 
+in the future. For example, sometimes applications want to change the sizes of PDC objects along 
+different dimensions. An example is implemented as ``perr_t PDCobj_set_dims(pdcid_t obj_id, int ndim, uint64_t *dims)``. 
+This function can change object dimensions in runtime. As mentioned earlier, we need to update the metadata in three places. 
+Two places are at the client side, and the other place is at the metadata server.
 
 Object Region Metadata
 ---------------------------------------------
 
-Region metadata is required for dynamic region partitioning. Dynamic region partitioning strategy at the metadata server assigns data server IDs for regions in runtime. The file ``pdc_server_region_transfer_metadata_query.c`` implements the assignments of data server ID for individual regions. For dynamic region partition and local region partition strategies, a metadata server receives client region transfer requests. The metadata server returns a data server ID to the client so the client can send data to the corresponding data server. Details about how the client connects to the metadata server will be discussed in the implementation of the region transfer request.
+Region metadata is required for dynamic region partitioning. Dynamic region partitioning strategy 
+at the metadata server assigns data server IDs for regions in runtime. The file ``pdc_server_region_transfer_metadata_query.c`` 
+implements the assignments of data server ID for individual regions. For dynamic region partition and local region 
+partition strategies, a metadata server receives client region transfer requests. The metadata server returns a 
+data server ID to the client so the client can send data to the corresponding data server. Details about how the 
+client connects to the metadata server will be discussed in the implementation of the region transfer request.
 
 Metadata Checkpoint
 ---------------------------------------------
@@ -178,7 +207,8 @@ For index-facilitated approach, here are the APIs you can call for different com
     * PDC_Client_search_obj_ref_through_dart (point-to-point)
     * PDC_Client_search_obj_ref_through_dart_mpi (collective)
 
-Before using these APIs, you need to create your index first, so please remember to call `PDC_Client_insert_obj_ref_into_dart` right after a successful function call of `PDCobj_put_tag`.
+Before using these APIs, you need to create your index first, so please remember to call 
+`PDC_Client_insert_obj_ref_into_dart` right after a successful function call of `PDCobj_put_tag`.
 
 Note for the query string: 
 
@@ -240,9 +270,12 @@ This section discusses how PDC manages objects and regions.
 Static Object Region Mappings
 ---------------------------------------------
 
-A metadata server can partition the object space evenly among all data servers. For high-dimensional objects, it is possible to define block partitioning methods similar to HDF5s's chunking strategies.
+A metadata server can partition the object space evenly among all data servers. For high-dimensional objects, 
+it is possible to define block partitioning methods similar to HDF5s's chunking strategies.
 
-The static object region partitioning can theoretically achieve optimal parallel performance for applications with a balanced workload. In addition, static partitioning determines the mapping from object regions to data servers at object create/open time. No additional metadata management is required.
+The static object region partitioning can theoretically achieve optimal parallel performance for applications 
+with a balanced workload. In addition, static partitioning determines the mapping from object regions to data 
+servers at object create/open time. No additional metadata management is required.
 
 ---------------------------------------------
 Dynamic Object Region Mappings
@@ -290,9 +323,15 @@ Region Transfer Request at Client
 ---------------------------------------------
 !!!!!
 
-This section describes how the region transfer request module in PDC works. The region transfer request module is the core of PDC I/O. From the client's point of view, some data is written to regions of objects through transfer request APIs. PDC region transfer request module arranges how data is transferred from clients to servers and how data is stored at servers. 
+This section describes how the region transfer request module in PDC works. The region transfer request module is 
+the core of PDC I/O. From the client's point of view, some data is written to regions of objects through transfer 
+request APIs. PDC region transfer request module arranges how data is transferred from clients to servers and 
+how data is stored at servers. 
 
-PDC region: A PDC object abstracts a multi-dimensional array. The current implementation supports up to 3D. A PDC region can be used to access a subarray of the object. A PDC region describes the offsets and lengths to access a multi-dimensional array. Its prototype for creation is ``PDCregion_create(psize_t ndims, uint64_t *offset, uint64_t *size)``. The input values to this create function will be copied into PDC internal memories, so it is safe to free the pointers later.
+PDC region: A PDC object abstracts a multi-dimensional array. The current implementation supports up to 3D. 
+A PDC region can be used to access a subarray of the object. A PDC region describes the offsets and lengths 
+to access a multi-dimensional array. Its prototype for creation is ``PDCregion_create(psize_t ndims, uint64_t *offset, uint64_t *size)``. 
+The input values to this create function will be copied into PDC internal memories, so it is safe to free the pointers later.
 
 Region Transfer Request Create and Close
 ---------------------------------------------
