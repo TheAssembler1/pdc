@@ -202,8 +202,6 @@ pdc_tf_builtin_zfp_decompress(void *params, void **region_data, pdc_tf_region_t 
     for (int i = 0; i < ndim; ++i)
         total_elems *= dims[i];
 
-    LOG_INFO("EXPECTED TOTAL ELEMENTS: %lu\n", total_elems);
-
     float *decompressed_data = (float *)malloc(total_elems * sizeof(float));
     if (!decompressed_data) {
         LOG_ERROR("Failed to allocate memory for decompressed data\n");
@@ -253,13 +251,6 @@ pdc_tf_builtin_zfp_decompress(void *params, void **region_data, pdc_tf_region_t 
         stream_close(stream);
         return false;
     }
-
-    for (int i = 0; i < 400; i++) {
-        LOG_JUST_PRINT("%.1f ", decompressed_data[i]);
-        if (i != 0 && (i + 1) % 20 == 0)
-            LOG_JUST_PRINT("\n");
-    }
-    LOG_JUST_PRINT("\n");
 
     // Set output region unit and dims (same as input)
     output_reg->unit = 4;
