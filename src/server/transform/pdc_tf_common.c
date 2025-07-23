@@ -126,8 +126,8 @@ done:
 }
 
 bool
-PDCtf_should_exec_graph(struct _pdc_obj_info *obj_info, pdcid_t *region_exec_graph_id, int ndim,
-                        uint8_t unit, uint64_t *offset, uint64_t *dims, bool check_client)
+PDCtf_should_exec_graph(struct _pdc_obj_info *obj_info, pdcid_t *region_exec_graph_id, int ndim, uint8_t unit,
+                        uint64_t *offset, uint64_t *dims, bool check_client)
 {
     bool ret_value = false;
 
@@ -139,10 +139,10 @@ PDCtf_should_exec_graph(struct _pdc_obj_info *obj_info, pdcid_t *region_exec_gra
         for (*region_exec_graph_id = 0; *region_exec_graph_id < obj_info->pdc_tf_obj->num_regions;
              (*region_exec_graph_id)++) {
             pdc_tf_absolute_region_t abs_reg;
-            
-            if(check_client)
+
+            if (check_client)
                 abs_reg = obj_info->pdc_tf_obj->client_regions[*region_exec_graph_id];
-            else 
+            else
                 abs_reg = obj_info->pdc_tf_obj->remote_regions[*region_exec_graph_id];
 
             // check if client ndim, offset, dims, unit match
@@ -153,17 +153,18 @@ PDCtf_should_exec_graph(struct _pdc_obj_info *obj_info, pdcid_t *region_exec_gra
             bool dims_matches   = !memcmp(abs_reg.dims, dims, ndim * sizeof(uint64_t));
 
             // debug logging for matching
-            if(check_client)
+            if (check_client)
                 LOG_INFO("Checking against client regions\n");
-            else 
+            else
                 LOG_INFO("Checking against remote regions\n");
-            
+
             LOG_INFO("\tpassed ndim %d, checked ndim %d\n", abs_reg.ndim, ndim);
             LOG_INFO("\tpassed unit %d, checked unit %d\n", abs_reg.unit, unit);
-            for(int i = 0; i < ndim; i++)
+            for (int i = 0; i < ndim; i++)
                 LOG_INFO("\tpassed dims[%d]=%d, checked dims[%d]=%d\n", i, abs_reg.dims[i], i, dims[i]);
-            for(int i = 0; i < ndim; i++)
-                LOG_INFO("\tpassed offset[%d]=%d, checked offset[%d]=%d\n", i, abs_reg.offset[i], i, offset[i]);
+            for (int i = 0; i < ndim; i++)
+                LOG_INFO("\tpassed offset[%d]=%d, checked offset[%d]=%d\n", i, abs_reg.offset[i], i,
+                         offset[i]);
 
             if (ndim_matches && offset_matches && dims_matches && unit_matches)
                 PGOTO_DONE(true);

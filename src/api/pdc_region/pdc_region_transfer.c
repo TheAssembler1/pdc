@@ -1570,13 +1570,13 @@ check_exec_tf_graph(pdcid_t transfer_request_id, bool *should_run_region_transfe
     if (obj_info == NULL)
         PGOTO_ERROR(FAIL, "obj_info pointer was NULL");
 
-    has_attached_graph =
-        PDCtf_should_exec_graph(obj_info, &region_id, transfer_request->obj_ndim, transfer_request->unit,
-                                transfer_request->remote_region_offset, transfer_request->remote_region_size, true);
+    has_attached_graph = PDCtf_should_exec_graph(
+        obj_info, &region_id, transfer_request->obj_ndim, transfer_request->unit,
+        transfer_request->remote_region_offset, transfer_request->remote_region_size, true);
 
     if (!has_attached_graph)
         LOG_INFO("No attached graph for region transfer\n");
-    else 
+    else
         LOG_INFO("Found attached graph for region id: %d\n", region_id);
 
     if (has_attached_graph && transfer_request->access_type == PDC_WRITE) {
@@ -2194,19 +2194,19 @@ PDCregion_transfer_wait(pdcid_t transfer_request_id)
 {
     FUNC_ENTER(NULL);
 
-    perr_t                ret_value = SUCCEED;
-    struct _pdc_id_info * transferinfo = NULL;
+    perr_t                ret_value        = SUCCEED;
+    struct _pdc_id_info * transferinfo     = NULL;
     pdc_transfer_request *transfer_request = NULL;
     size_t                unit;
     int                   i;
-    pdcid_t               region_id = 0;
-    struct _pdc_obj_info *obj_info = NULL;
-    bool has_attached_graph = false;
+    pdcid_t               region_id          = 0;
+    struct _pdc_obj_info *obj_info           = NULL;
+    bool                  has_attached_graph = false;
 
     if ((transferinfo = PDC_find_id(transfer_request_id)) == NULL)
         PGOTO_DONE(ret_value);
     transfer_request = (pdc_transfer_request *)(transferinfo->obj_ptr);
-    obj_info = transfer_request->obj_pointer;
+    obj_info         = transfer_request->obj_pointer;
 
     if (transfer_request->metadata_id != NULL) {
         // For region dynamic case, it is implemented in the aggregated version for portability.
@@ -2272,36 +2272,36 @@ PDCregion_transfer_wait(pdcid_t transfer_request_id)
         ret_value = SUCCEED;
     }
 
-    if(transfer_request->access_type == PDC_READ) {
+    if (transfer_request->access_type == PDC_READ) {
         has_attached_graph = PDCtf_should_exec_graph(
             transfer_request->obj_pointer, &region_id, transfer_request->remote_region_ndim,
-            transfer_request->unit, transfer_request->remote_region_offset, transfer_request->remote_region_size,
-            false
-        );
+            transfer_request->unit, transfer_request->remote_region_offset,
+            transfer_request->remote_region_size, false);
     }
 
-    if(!has_attached_graph)
+    if (!has_attached_graph)
         LOG_INFO("No graph to execute on region transfer wait\n");
     else {
         LOG_INFO("Found attached graph for region id: %d\n", region_id);
 
-        pdc_tf_region_info* region_info   = &obj_info->pdc_tf_obj->tf_regions_info[region_id];
-        pdc_tf_absolute_region_t* remote_region = &obj_info->pdc_tf_obj->remote_regions[region_id];
+        pdc_tf_region_info *      region_info   = &obj_info->pdc_tf_obj->tf_regions_info[region_id];
+        pdc_tf_absolute_region_t *remote_region = &obj_info->pdc_tf_obj->remote_regions[region_id];
 
         // setup input region information
         pdc_tf_region_t input_region;
         input_region.unit = transfer_request->unit;
         input_region.ndim = transfer_request->local_region_ndim;
-        memcpy(input_region.dims, transfer_request->local_region_size, transfer_request->local_region_ndim * sizeof(uint64_t));
+        memcpy(input_region.dims, transfer_request->local_region_size,
+               transfer_request->local_region_ndim * sizeof(uint64_t));
 
         pdc_tf_region_t output_region;
 
-        if(region_info == NULL)
+        if (region_info == NULL)
             LOG_INFO("1\n");
-        if(transfer_request == NULL)
+        if (transfer_request == NULL)
             LOG_INFO("2\n");
-        if(PDCtf_exec_graph(region_info->dg_id, region_info->server_state_id, region_info->client_state_id,
-            input_region, &output_region, (void**)&transfer_request->buf) != SUCCEED) {
+        if (PDCtf_exec_graph(region_info->dg_id, region_info->server_state_id, region_info->client_state_id,
+                             input_region, &output_region, (void **)&transfer_request->buf) != SUCCEED) {
             PGOTO_ERROR(FAIL, "Failed to PDCtf_exec_graph");
         }
 
