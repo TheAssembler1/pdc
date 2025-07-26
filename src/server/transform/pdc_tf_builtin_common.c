@@ -200,7 +200,7 @@ pdc_tf_builtin_zfp_decompress(void *params, void **region_data, pdc_tf_region_t 
     // Allocate uncompressed buffer
     size_t total_elems = 1;
     for (int i = 0; i < ndim; ++i)
-        total_elems *= dims[i];
+        total_elems *= input_reg.dims[i];
 
     float *decompressed_data = (float *)malloc(total_elems * sizeof(float));
     if (!decompressed_data) {
