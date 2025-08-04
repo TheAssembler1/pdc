@@ -16,7 +16,6 @@
  *  11. PDC_TF_MAX_FUNC_NAME_LEN maybe should be dynamic?
  *  12. PDC_TF_MAX_BUILTIN_FUNCS should definitely by dynamic
  */
-
 #include "pdc_public.h"
 #include "pdc_dg.h"
 #include "pdc_tf_common.h"

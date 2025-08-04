@@ -1,0 +1,37 @@
+{
+    "states": [
+      { "name": "decompressed_floats", "granularity": "element" },
+      { "name": "compressed_floats", "granularity": "region" },
+      { "name": "decompressed_doubles", "granularity": "element" }
+    ],
+    "functions": [
+      {
+        "device": "CPU",
+        "input_state": "decompressed_doubles",
+        "output_state": "decompressed_floats",
+        "function_location": "builtin",
+        "function_name": "double_to_float"
+      },
+      {
+        "device": "CPU",
+        "input_state": "decompressed_floats",
+        "output_state": "decompressed_doubles",
+        "function_location": "builtin",
+        "function_name": "float_to_double"
+      },
+      {
+        "device": "CPU",
+        "input_state": "decompressed_floats",
+        "output_state": "compressed_floats",
+        "function_location": "builtin",
+        "function_name": "zfp_compress"
+      },
+      {
+        "device": "CPU",
+        "input_state": "compressed_floats",
+        "output_state": "decompressed_floats",
+        "function_location": "builtin",
+        "function_name": "zfp_decompress"
+      }
+    ]
+}
