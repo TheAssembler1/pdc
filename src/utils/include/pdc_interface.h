@@ -57,8 +57,8 @@ typedef enum {
     PDC_REGION           = 6,  /* type ID for region                          */
     PDC_TRANSFER_REQUEST = 7,  /* type ID for region transfer                 */
     // FIXME: NOAH DOCS
-    PDC_TF_DG       = 10,
-    PDC_NTYPES      = 11 /* number of library types, MUST BE LAST!      */
+    PDC_TF_DG  = 10,
+    PDC_NTYPES = 11 /* number of library types, MUST BE LAST!      */
 } PDC_type_t;
 
 /***************************/

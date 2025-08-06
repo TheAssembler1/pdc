@@ -95,7 +95,7 @@ int read_line(FILE *fp, char *buffer, size_t size);
  * \param file_size Pointer to be updated with filesize.
  * \return 0 if the file_size was retrieved successfully, non-zero value otherwise.
  */
-int get_file_size(FILE* fp, size_t* file_size);
+int get_file_size(FILE *fp, size_t *file_size);
 
 /**
  * \fn int get_input(char *buffer, size_t size)

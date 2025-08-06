@@ -9,18 +9,20 @@
 #include "pdc_timing.h"
 #include "pdc_malloc.h"
 
-int get_file_size(FILE *fp, size_t* file_size) {
+int
+get_file_size(FILE *fp, size_t *file_size)
+{
 
     FUNC_ENTER(NULL);
 
     long current = ftell(fp);
-    errno = 0;
-    if((*file_size = fseek(fp, 0, SEEK_END)) != 0) {
+    errno        = 0;
+    if ((*file_size = fseek(fp, 0, SEEK_END)) != 0) {
         LOG_ERROR("%s\n", strerror(errno));
         FUNC_LEAVE(-1);
     }
     errno = 0;
-    if(fseek(fp, current, SEEK_SET) != 0) {
+    if (fseek(fp, current, SEEK_SET) != 0) {
         LOG_ERROR("%s\n", strerror(errno));
         FUNC_LEAVE(-1);
     }

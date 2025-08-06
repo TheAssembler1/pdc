@@ -15,13 +15,15 @@
 // FIXME: just a temp way of generating id's...
 static pdcid_t tf_cur_graph_id = 100;
 
-pdcid_t PDCtf_load_dg_json(char* file_path) {
+pdcid_t
+PDCtf_load_dg_json(char *file_path)
+{
     FUNC_ENTER(NULL);
 
-    pdcid_t ret_value = tf_cur_graph_id;
-    pdc_dg_t* dg;
+    pdcid_t   ret_value = tf_cur_graph_id;
+    pdc_dg_t *dg;
 
-    if(PDCtf_load_dg_json_common(file_path, &dg) != SUCCEED)
+    if (PDCtf_load_dg_json_common(file_path, &dg) != SUCCEED)
         PGOTO_ERROR(0, "Failed to load JSON at path %s\n", file_path);
 
     pdc_tf_graphs[ret_value] = dg;
@@ -155,7 +157,7 @@ PDCtf_print_dg(pdcid_t dg_id, bool write_to_file)
     int stdout_fd;
     int file_fd;
 
-    if(write_to_file) {
+    if (write_to_file) {
         stdout_fd = dup(STDOUT_FILENO);
         if (stdout_fd == -1) {
             perror("dup");
@@ -216,14 +218,13 @@ PDCtf_print_dg(pdcid_t dg_id, bool write_to_file)
 
         const char *color = (edge_func->dev == PDC_TF_CPU_DEVICE) ? "blue" : "red";
 
-        LOG_JUST_PRINT("\t\"%s\" -> \"%s\" [label=\"%s\", color=%s];\n",
-                       input_state->name, output_state->name, edge_func->name,
-                       color);
+        LOG_JUST_PRINT("\t\"%s\" -> \"%s\" [label=\"%s\", color=%s];\n", input_state->name,
+                       output_state->name, edge_func->name, color);
     }
 
     LOG_JUST_PRINT("}\n");
 
-    if(write_to_file) {
+    if (write_to_file) {
         // --- End printing graph ---
         fflush(stdout);
 
@@ -236,14 +237,15 @@ PDCtf_print_dg(pdcid_t dg_id, bool write_to_file)
 }
 
 // print execution path
-void PDCtf_print_exec_path(pdcid_t dg_id, char* cur_state, char* desired_state)
+void
+PDCtf_print_exec_path(pdcid_t dg_id, char *cur_state, char *desired_state)
 {
-    pdc_tf_state_t         tf_cur_state;
-    pdc_tf_state_t         tf_desired_state;
+    pdc_tf_state_t tf_cur_state;
+    pdc_tf_state_t tf_desired_state;
     pdc_dg_edge_t *edges_out;
     uint32_t       num_edges;
 
-    tf_cur_state.name = cur_state;
+    tf_cur_state.name     = cur_state;
     tf_desired_state.name = desired_state;
 
     if (PDCdg_shortest_path(pdc_tf_graphs[dg_id], &tf_cur_state, &tf_desired_state, &edges_out, &num_edges)) {

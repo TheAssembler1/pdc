@@ -60,9 +60,9 @@ perr_t PDCtf_init();
 void PDCtf_print_dg(pdcid_t dg_id, bool write_to_file);
 
 // print execution path
-void PDCtf_print_exec_path(pdcid_t dg_id, char* cur_state, char* desired_state);
+void PDCtf_print_exec_path(pdcid_t dg_id, char *cur_state, char *desired_state);
 
 // load JSON file describing directed graph
-pdcid_t PDCtf_load_dg_json(char* file_path);
+pdcid_t PDCtf_load_dg_json(char *file_path);
 
 #endif /* PDC_TF_H */

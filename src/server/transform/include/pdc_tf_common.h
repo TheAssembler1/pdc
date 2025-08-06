@@ -88,10 +88,10 @@ typedef enum pdc_tf_granularities_t {
     PDC_TF_REGION_GRANULARITY,
     PDC_TF_NUM_GRANULARITIES
 } pdc_tf_granularities_t;
-extern char* pdc_tf_granularity_strs[];
+extern char *pdc_tf_granularity_strs[];
 
 typedef struct pdc_tf_state_t {
-    char*  name;
+    char *                 name;
     pdc_tf_granularities_t granularity;
 } pdc_tf_state_t;
 
@@ -115,28 +115,20 @@ typedef bool (*c_func_t)(void *params, void **region_data, pdc_tf_region_t input
 /**
  * what device the function can run on
  */
-typedef enum pdc_tf_dev_t { 
-    PDC_TF_CPU_DEVICE, 
-    PDC_TF_GPU_DEVICE, 
-    PDC_TF_NUM_DEVICES 
-} pdc_tf_dev_t;
-extern char* pdc_tf_dev_strs[];
+typedef enum pdc_tf_dev_t { PDC_TF_CPU_DEVICE, PDC_TF_GPU_DEVICE, PDC_TF_NUM_DEVICES } pdc_tf_dev_t;
+extern char *pdc_tf_dev_strs[];
 
 /**
  * Is this an internal or external function.
  */
-typedef enum pdc_tf_location_t { 
-    PDC_TF_BUILTIN,
-    PDC_TF_EXTERNAL,
-    PDC_TF_NUM_LOCATIONS
-} pdc_tf_location_t;
-extern char* pdc_tf_location_strs[];
+typedef enum pdc_tf_location_t { PDC_TF_BUILTIN, PDC_TF_EXTERNAL, PDC_TF_NUM_LOCATIONS } pdc_tf_location_t;
+extern char *pdc_tf_location_strs[];
 
 typedef struct pdc_tf_func_t {
-    pdc_tf_dev_t dev;
+    pdc_tf_dev_t      dev;
     pdc_tf_location_t location;
-    char*       name;
-    c_func_t    c_func;
+    char *            name;
+    c_func_t          c_func;
 } pdc_tf_func_t;
 
 // FIXME: we could store this in a dynamically allocated buf
@@ -161,7 +153,7 @@ extern uint32_t              pdc_tf_builtin_cur_func_g;
 
 extern pdc_dg_t *pdc_tf_graphs[200];
 
-perr_t PDCtf_load_dg_json_common(char* filepath, pdc_dg_t** dg);
+perr_t PDCtf_load_dg_json_common(char *filepath, pdc_dg_t **dg);
 perr_t PDCtf_exec_graph(pdcid_t dg_id, pdcid_t current_state_id, pdcid_t desired_state_id,
                         pdc_tf_region_t input_region, pdc_tf_region_t *output_region, void **input);
 perr_t PDCtf_init_builtin_funcs();
