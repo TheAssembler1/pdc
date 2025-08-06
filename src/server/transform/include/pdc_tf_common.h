@@ -83,10 +83,17 @@ typedef struct pdc_tf_region_t {
     uint32_t unit;
 } pdc_tf_region_t;
 
-typedef struct state {
-    pdcid_t id;
-    char *  name;
-} state;
+typedef enum pdc_tf_granularities_t {
+    PDC_TF_ELEMENT_GRANULARITY,
+    PDC_TF_REGION_GRANULARITY,
+    PDC_TF_NUM_GRANULARITIES
+} pdc_tf_granularities_t;
+extern char* pdc_tf_granularity_strs[];
+
+typedef struct pdc_tf_state_t {
+    char*  name;
+    pdc_tf_granularities_t granularity;
+} pdc_tf_state_t;
 
 /**
  * Prototype for region transformation functions
@@ -108,20 +115,38 @@ typedef bool (*c_func_t)(void *params, void **region_data, pdc_tf_region_t input
 /**
  * what device the function can run on
  */
-typedef enum pdc_tf_dev_t { PDC_TF_GPU_DEVICE, PDC_TF_CPU_DEVICE } pdc_tf_dev_t;
+typedef enum pdc_tf_dev_t { 
+    PDC_TF_CPU_DEVICE, 
+    PDC_TF_GPU_DEVICE, 
+    PDC_TF_NUM_DEVICES 
+} pdc_tf_dev_t;
+extern char* pdc_tf_dev_strs[];
 
-typedef struct func {
+/**
+ * Is this an internal or external function.
+ */
+typedef enum pdc_tf_location_t { 
+    PDC_TF_BUILTIN,
+    PDC_TF_EXTERNAL,
+    PDC_TF_NUM_LOCATIONS
+} pdc_tf_location_t;
+extern char* pdc_tf_location_strs[];
+
+typedef struct pdc_tf_func_t {
     pdc_tf_dev_t dev;
-    char *       type_func_name;
-    // could be NULL if a GPU function
-    c_func_t c_func;
-} func;
+    pdc_tf_location_t location;
+    char*       name;
+    c_func_t    c_func;
+} pdc_tf_func_t;
 
 // FIXME: we could store this in a dynamically allocated buf
 #define PDC_TF_MAX_FUNC_NAME_LEN 100
 #define PDC_TF_MAX_BUILTIN_FUNCS 100
 #define PDC_TF_MAPPINGS          100
-// FIXME: this could just happen on client/server init
+/**
+ * This could just happen on client/server init
+ * Currently happens in PDCtf_load_dg_json_common
+ */
 extern bool pdc_tf_has_init_g;
 
 // this structure used to store our builtin functions
@@ -135,13 +160,13 @@ extern pdc_tf_builtin_func_t pdc_tf_builtin_funcs_g[PDC_TF_MAX_BUILTIN_FUNCS];
 extern uint32_t              pdc_tf_builtin_cur_func_g;
 
 extern pdc_dg_t *pdc_tf_graphs[200];
-extern state *   pdc_tf_states[200];
 
+perr_t PDCtf_load_dg_json_common(char* filepath, pdc_dg_t** dg);
 perr_t PDCtf_exec_graph(pdcid_t dg_id, pdcid_t current_state_id, pdcid_t desired_state_id,
                         pdc_tf_region_t input_region, pdc_tf_region_t *output_region, void **input);
 perr_t PDCtf_init_builtin_funcs();
 perr_t PDCtf_add_builtin_func(char *func_name, c_func_t c_func);
-perr_t PDCtf_link_builtin_func(char *func_name, func *f);
+perr_t PDCtf_link_builtin_func(char *func_name, pdc_tf_func_t *f);
 bool   PDCtf_should_exec_graph(struct _pdc_obj_info *obj_info, pdcid_t *region_exec_graph_id, int client_ndim,
                                uint8_t client_unit, uint64_t *client_offset, uint64_t *client_dims,
                                bool check_client);

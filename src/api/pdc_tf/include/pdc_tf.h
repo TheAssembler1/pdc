@@ -29,27 +29,6 @@ typedef enum pdc_tf_output_mode_t {
     PDC_TF_CREATE,
 } pdc_tf_output_mode_t;
 
-// creates a new directed graph and returns ID
-pdcid_t PDCtf_create_dg(char *dg_name);
-
-#define PDC_TF_MAX_TYPE_LEN         100
-#define PDC_TF_TYPE_FUNC_NAME_DELIM ':'
-
-/**
- * creates a new function and returns ID
- * \param type_func_name type:func_name specifies how to access function
- *        the type can either be, "builtin" | "library_path"
- */
-perr_t PDCtf_add_func(pdcid_t dg_id, char *type_func_name, pdc_tf_dev_t dev, pdcid_t input_state_id,
-                      pdcid_t output_state_id);
-
-/**
- * creates a new data state and returns ID
- * the state_name is used when attaching the directed graph to a PDC resources
- * to specify the source state and the destination state.
- */
-pdcid_t PDCtf_create_state(char *state_name);
-
 /**
  * specifies how the output of a transformation function should be handled
  * the default is PDC_TF_OVERWRITE if this function is not called
@@ -78,9 +57,12 @@ perr_t PDCtf_attach_to_objs(pdcid_t dg_id, pdcid_t *obj_ids, int num_ids, pdcid_
 perr_t PDCtf_init();
 
 // print graph in readable format
-void PDCtf_print_dg(pdcid_t dg_id);
+void PDCtf_print_dg(pdcid_t dg_id, bool write_to_file);
 
 // print execution path
 void PDCtf_print_exec_path(pdcid_t dg_id, pdcid_t client_state_id, pdcid_t server_state_id);
+
+// load JSON file describing directed graph
+pdcid_t PDCtf_load_dg_json(char* file_path);
 
 #endif /* PDC_TF_H */

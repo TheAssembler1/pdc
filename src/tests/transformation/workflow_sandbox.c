@@ -33,50 +33,10 @@ workflow1(pdcid_t pdc, pdcid_t cont)
     int *data = (int *)malloc(total_particles * sizeof(int));
     set_buf(data, INIT_VAL, total_particles);
 
-#define NUM_STATES 10
+    pdcid_t dg_id = PDCtf_load_dg_json("/home/ta1/src/workspace/source/pdc/tf_graphs/test.json");
+    PDCtf_print_dg(dg_id, false);
 
-    pdcid_t dg_id = PDCtf_create_dg("example_dg");
-
-    pdcid_t states[NUM_STATES];
-    char    state_name[64];
-    char    func_name[64];
-
-    // Seed RNG once
-    srand(time(NULL));
-
-    // Create states
-    for (int i = 0; i < NUM_STATES; i++) {
-        snprintf(state_name, sizeof(state_name), "state_%02d", i);
-        states[i] = PDCtf_create_state(state_name);
-    }
-
-    // Add a randomly chosen 50% of edges between pairs of states
-    for (int from = 0; from < NUM_STATES; from++) {
-        for (int to = 0; to < NUM_STATES; to++) {
-            if (from == to)
-                continue;
-
-            if (rand() % 5 != 0)
-                continue;
-
-            snprintf(func_name, sizeof(func_name), "func_%02d_%02d", from, to);
-            PDCtf_add_func(dg_id, func_name, PDC_TF_CPU_DEVICE, states[from], states[to]);
-        }
-    }
-
-    // Print the graph
-    PDCtf_print_dg(dg_id);
-
-    // Print all possible paths (they may not all exist)
-    for (int i = 0; i < NUM_STATES; i++) {
-        for (int j = 0; j < NUM_STATES; j++) {
-            if (i == j)
-                continue;
-
-            printf("=== Path from state_%02d to state_%02d ===\n", i, j);
-            PDCtf_print_exec_path(dg_id, states[i], states[j]);
-        }
-    }
+    exit(0);
 
     TASSERT((obj_prop = PDCprop_create(PDC_OBJ_CREATE, pdc)) != 0, "obj_prop_create succeeded",
             "obj_prop_create failed");

@@ -9,29 +9,30 @@
         "device": "CPU",
         "input_state": "decompressed_doubles",
         "output_state": "decompressed_floats",
-        "function_location": "builtin",
-        "function_name": "double_to_float"
+        "location": "builtin",
+        "name": "double_to_float"
       },
       {
         "device": "CPU",
         "input_state": "decompressed_floats",
         "output_state": "decompressed_doubles",
-        "function_location": "builtin",
-        "function_name": "float_to_double"
+        "location": "builtin",
+        "name": "float_to_double"
       },
       {
         "device": "CPU",
         "input_state": "decompressed_floats",
         "output_state": "compressed_floats",
-        "function_location": "builtin",
-        "function_name": "zfp_compress"
+        "location": "builtin",
+        "name": "zfp_compress"
       },
       {
         "device": "CPU",
         "input_state": "compressed_floats",
         "output_state": "decompressed_floats",
-        "function_location": "builtin",
-        "function_name": "zfp_decompress"
+        "location": "builtin",
+        "name": "zfp_decompress"
       }
-    ]
+    ],
+    "name": "ZFP_compression"
 }

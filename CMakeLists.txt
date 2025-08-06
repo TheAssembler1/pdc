@@ -22,21 +22,22 @@ foreach(p
   endif()
 endforeach()
 
+# ZFP for ease
 find_path(ZFP_INCLUDE_DIR NAMES zfp.h PATHS /usr/include)
 find_library(ZFP_LIBRARY NAMES zfp PATHS /usr/lib/x86_64-linux-gnu)
-
 if(NOT ZFP_INCLUDE_DIR)
   message(FATAL_ERROR "Could not find ZFP headers")
 endif()
 if(NOT ZFP_LIBRARY)
   message(FATAL_ERROR "Could not find ZFP library")
 endif()
-
 include_directories(${ZFP_INCLUDE_DIR})
-
-# When linking your executable target, do this:
 link_libraries(${ZFP_LIBRARY})
-
+# JSON-C 
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(JSONC REQUIRED json-c)
+include_directories(${JSONC_INCLUDE_DIRS})
+link_libraries(${JSONC_LIBRARIES})
 
 # Set a consistent MACOSX_RPATH default across all CMake versions.
 # checks if the variable CMAKE_MACOSX_RPATH is not defined and sets it to 0 if it is not defined.

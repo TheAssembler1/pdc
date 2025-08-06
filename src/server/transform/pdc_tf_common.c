@@ -1,10 +1,15 @@
+#include <unistd.h>
+#include <errno.h>
+
+#include "common_io.h"
+#include "pdc_malloc.h"
 #include "pdc_tf_common.h"
 #include "pdc_tf_builtin_common.h"
 #include "pdc_tf.h"
 #include "pdc_timing.h"
+#include "json-c/json.h"
 
 pdc_dg_t *pdc_tf_graphs[200];
-state *   pdc_tf_states[200];
 
 pdc_tf_builtin_func_t pdc_tf_builtin_funcs_g[PDC_TF_MAX_BUILTIN_FUNCS];
 uint32_t              pdc_tf_builtin_cur_func_g = 0;
@@ -15,7 +20,7 @@ perr_t
 PDCtf_exec_graph(pdcid_t dg_id, pdcid_t current_state_id, pdcid_t desired_state_id,
                  pdc_tf_region_t input_region, pdc_tf_region_t *output_region, void **input)
 {
-    FUNC_ENTER(NULL);
+    /*FUNC_ENTER(NULL);
 
     int ret_value = SUCCEED;
 
@@ -52,7 +57,8 @@ PDCtf_exec_graph(pdcid_t dg_id, pdcid_t current_state_id, pdcid_t desired_state_
         PGOTO_ERROR(FAIL, "No path to desired states");
 
 done:
-    FUNC_LEAVE(ret_value);
+    FUNC_LEAVE(ret_value);*/
+    return SUCCEED;
 }
 
 perr_t
@@ -77,7 +83,7 @@ done:
 }
 
 perr_t
-PDCtf_link_builtin_func(char *func_name, func *f)
+PDCtf_link_builtin_func(char *func_name, pdc_tf_func_t *f)
 {
     FUNC_ENTER(NULL);
 
@@ -135,43 +141,322 @@ PDCtf_should_exec_graph(struct _pdc_obj_info *obj_info, pdcid_t *region_exec_gra
      * loop through attached graphs
      * if this is NULL then no graphs are attached to the object
      */
-    if (obj_info->pdc_tf_obj != NULL) {
-        for (*region_exec_graph_id = 0; *region_exec_graph_id < obj_info->pdc_tf_obj->num_regions;
-             (*region_exec_graph_id)++) {
-            pdc_tf_absolute_region_t abs_reg;
+    if (obj_info->pdc_tf_obj != NULL)
+        PGOTO_DONE(false);
 
-            if (check_client)
-                abs_reg = obj_info->pdc_tf_obj->client_regions[*region_exec_graph_id];
-            else
-                abs_reg = obj_info->pdc_tf_obj->remote_regions[*region_exec_graph_id];
+    for (*region_exec_graph_id = 0; *region_exec_graph_id < obj_info->pdc_tf_obj->num_regions;
+            (*region_exec_graph_id)++) {
+        pdc_tf_absolute_region_t abs_reg;
 
-            // check if client ndim, offset, dims, unit match
-            bool ndim_matches = abs_reg.ndim == ndim;
-            bool unit_matches = abs_reg.unit == unit;
-            // note these return 0 on match so ! is needed
-            bool offset_matches = !memcmp(abs_reg.offset, offset, ndim * sizeof(uint64_t));
-            bool dims_matches   = !memcmp(abs_reg.dims, dims, ndim * sizeof(uint64_t));
+        if (check_client)
+            abs_reg = obj_info->pdc_tf_obj->client_regions[*region_exec_graph_id];
+        else
+            abs_reg = obj_info->pdc_tf_obj->remote_regions[*region_exec_graph_id];
 
-            // debug logging for matching
-            if (check_client)
-                LOG_INFO("Checking against client regions\n");
-            else
-                LOG_INFO("Checking against remote regions\n");
+        // check if client ndim, offset, dims, unit match
+        bool ndim_matches = abs_reg.ndim == ndim;
+        bool unit_matches = abs_reg.unit == unit;
+        // note these return 0 on match so ! is needed
+        bool offset_matches = !memcmp(abs_reg.offset, offset, ndim * sizeof(uint64_t));
+        bool dims_matches   = !memcmp(abs_reg.dims, dims, ndim * sizeof(uint64_t));
 
-            LOG_INFO("\tpassed ndim %d, checked ndim %d\n", abs_reg.ndim, ndim);
-            LOG_INFO("\tpassed unit %d, checked unit %d\n", abs_reg.unit, unit);
-            for (int i = 0; i < ndim; i++)
-                LOG_INFO("\tpassed dims[%d]=%d, checked dims[%d]=%d\n", i, abs_reg.dims[i], i, dims[i]);
-            for (int i = 0; i < ndim; i++)
-                LOG_INFO("\tpassed offset[%d]=%d, checked offset[%d]=%d\n", i, abs_reg.offset[i], i,
-                         offset[i]);
+        // debug logging for matching
+        if (check_client)
+            LOG_INFO("Checking against client regions\n");
+        else
+            LOG_INFO("Checking against remote regions\n");
 
-            if (ndim_matches && offset_matches && dims_matches && unit_matches)
-                PGOTO_DONE(true);
-        }
+        LOG_INFO("\tpassed ndim %d, checked ndim %d\n", abs_reg.ndim, ndim);
+        LOG_INFO("\tpassed unit %d, checked unit %d\n", abs_reg.unit, unit);
+        for (int i = 0; i < ndim; i++)
+            LOG_INFO("\tpassed dims[%d]=%d, checked dims[%d]=%d\n", i, abs_reg.dims[i], i, dims[i]);
+        for (int i = 0; i < ndim; i++)
+            LOG_INFO("\tpassed offset[%d]=%d, checked offset[%d]=%d\n", i, abs_reg.offset[i], i,
+                        offset[i]);
+
+        if (ndim_matches && offset_matches && dims_matches && unit_matches)
+            PGOTO_DONE(true);
     }
 
 done:
+    FUNC_LEAVE(ret_value);
+}
+
+static struct array_list *get_json_array(struct json_object *json_obj, char *arr_name) {
+    FUNC_ENTER(NULL);
+
+    struct json_object *ret_value = NULL;
+
+    if(json_object_object_get_ex(json_obj, arr_name, &ret_value) == 0)
+        PGOTO_ERROR(NULL, "%s was not found", arr_name);
+    if(json_object_get_type(ret_value) != json_type_array)
+        PGOTO_ERROR(NULL, "%s was not an array", arr_name);
+
+done:
+    if(ret_value == NULL)
+        FUNC_LEAVE(NULL);
+    FUNC_LEAVE(json_object_get_array(ret_value));
+}
+
+static const char *get_json_string(struct json_object *json_obj,
+                                        char *str_name) {
+    struct json_object *str_json_obj = NULL;
+    const char *ret_value = NULL;
+
+    if(!json_object_object_get_ex(json_obj, str_name, &str_json_obj))
+        PGOTO_ERROR(NULL, "%s was not found", str_name);
+    if(json_object_get_type(str_json_obj) != json_type_string)
+        PGOTO_ERROR(NULL, "%s was not a string\n", str_json_obj);
+    ret_value = json_object_get_string(str_json_obj);
+
+done:
+    if(ret_value == NULL)
+        FUNC_LEAVE(ret_value);
+    FUNC_LEAVE(json_object_get_string(str_json_obj));
+}
+
+/**
+ * {
+ *   "states": [
+ *     {
+ *       "name": "string",
+ *       "granularity": "element | region"
+ *     },
+ *     ...
+ *   ],
+ *   "functions": [
+ *     {
+ *       "device": "CPU | GPU",
+ *       "input_state": "states[i].name",
+ *       "output_state": "states[j].name",
+ *       "location": "built-in | external",
+ *       "name": "string"
+ *     },
+ *     ...
+ *   ],
+ *   "name": "string"
+ * }
+ */
+
+// NOTE: These must match the order of the enum in the header
+char* pdc_tf_dev_strs[] = {"CPU", "GPU"};
+char* pdc_tf_granularity_strs[] = {"element", "region"};
+char* pdc_tf_location_strs[] = {"builtin", "external"};
+
+bool
+vertices_are_equal(void *v1, void *v2)
+{
+    pdc_tf_state_t *s1 = (pdc_tf_state_t *)v1;
+    pdc_tf_state_t *s2 = (pdc_tf_state_t *)v2;
+
+    if (s1 == NULL || s2 == NULL)
+        return false;
+
+    return !strcmp(s1->name, s2->name);
+}
+
+static void
+edge_free(void *data)
+{
+    FUNC_ENTER(NULL);
+
+    LOG_INFO("edge_free called\n");
+
+    pdc_tf_func_t *f           = (pdc_tf_func_t *)data;
+    f->name = PDC_free(f->name);
+    f       = PDC_free(f);
+
+    FUNC_LEAVE_VOID();
+}
+
+static void
+vertex_free(void *data)
+{
+    FUNC_ENTER(NULL);
+
+    LOG_INFO("vertex_free called\n");
+
+    pdc_tf_state_t *s = (pdc_tf_state_t *)data;
+    s->name  = PDC_free(s->name);
+    s        = PDC_free(s);
+
+    FUNC_LEAVE_VOID();
+}
+
+perr_t PDCtf_load_dg_json_common(char* filepath, pdc_dg_t** dg) {
+    FUNC_ENTER(NULL);
+
+    perr_t ret_value = SUCCEED;
+    FILE* fp = NULL;
+    struct json_object* json_obj = NULL;
+    io_buffer_t io_buffer;
+    memset(&io_buffer, 0, sizeof(io_buffer_t));
+    *dg = NULL;
+
+    if(!pdc_tf_has_init_g) {
+        if(PDCtf_init_builtin_funcs() == FAIL)
+            PGOTO_ERROR(FAIL, "Failed to initialialize builtin functions");
+        pdc_tf_has_init_g = true;
+    }
+
+    // Open and read JSON file into buffer
+    if((fp = open_file(filepath, IO_MODE_READ)) == NULL)
+        PGOTO_ERROR(FAIL, "Failed to open_file");
+    if(read_file(fp, &io_buffer) != 0)
+        PGOTO_ERROR(FAIL, "Failed to read_file");
+    
+    LOG_INFO("File size was %ld bytes\n", io_buffer.size);
+
+    // Parse and pretty print JSON
+    if((json_obj = json_tokener_parse(io_buffer.buffer)) == NULL)
+        PGOTO_ERROR(FAIL, "Failed to parse JSON");
+    printf("%s\n", json_object_to_json_string_ext(
+                            json_obj, JSON_C_TO_STRING_PRETTY));
+    
+    LOG_INFO("================START loading JSON into PDC===================\n");
+
+    // Get directed graph name
+    const char* dg_name = get_json_string(json_obj, "name");
+    if(dg_name == NULL)
+        PGOTO_ERROR(FAIL, "Failed to find graph name");
+    LOG_INFO("Directed graph name: %s\n", dg_name);
+
+    // Actually create directed graph data structure
+    *dg = PDCdg_create(NULL, vertices_are_equal, NULL, edge_free, vertex_free);
+
+    // Parse and pretty print JSON
+    struct array_list* states = get_json_array(json_obj, "states");
+    struct array_list* functions = get_json_array(json_obj, "functions");
+    if(states == NULL || functions == NULL)
+        PGOTO_DONE(FAIL);
+
+    /**
+     * Extract states
+     * FIXME: Need to validate all this
+     */
+    int states_length = array_list_length(states);
+    for(int i = 0; i < states_length; i++) {
+        struct json_object *s = array_list_get_idx(states, i);
+
+        const char* s_name = get_json_string(s, "name");
+        const char* s_granularity = get_json_string(s, "granularity");
+
+        if(s_name == NULL || s_granularity == NULL)
+            PGOTO_DONE(FAIL);
+        
+        LOG_INFO("Found state: %s\n", s_name);
+        LOG_INFO("\tGranularity: %s\n", s_granularity);
+
+        // Validate and set granularity
+        pdc_tf_granularities_t granularity;
+        bool found_granularity = false;
+        for(int j = 0; j < PDC_TF_NUM_GRANULARITIES; j++) {
+            if(!strcmp(s_granularity, pdc_tf_granularity_strs[j])) {
+                found_granularity = true;
+                granularity = j;
+                break;
+            }
+        }
+        if(!found_granularity)
+            PGOTO_ERROR(FAIL, "Invalid granularity %s\n", s_granularity);
+
+        // Add vertex to the directed graph data structure
+        pdc_tf_state_t* dg_state = PDC_malloc(sizeof(pdc_tf_state_t));
+
+        dg_state->name = strdup(s_name);
+        dg_state->granularity = granularity;
+
+        if(PDCdg_add_vertex(*dg, dg_state) == PDC_DG_INVALID_VERTEX)
+            PGOTO_ERROR(FAIL, "Failed to add vertex to directed graph\n");
+    }
+    
+    /**
+     * Extract functions
+     * FIXME: Need to validate all this
+     */
+    int functions_length = array_list_length(functions);
+    for(int i = 0; i < functions_length; i++) {
+        struct json_object *f = array_list_get_idx(functions, i);
+
+        const char* f_name = get_json_string(f, "name");
+        const char* f_device = get_json_string(f, "device");
+        const char* f_input_state = get_json_string(f, "input_state");
+        const char* f_output_state = get_json_string(f, "output_state");
+        const char* f_location = get_json_string(f, "location");
+
+        if(f_name == NULL || f_input_state == NULL || f_output_state == NULL || f_location == NULL)
+            PGOTO_DONE(FAIL);
+        
+        LOG_INFO("Found function: %s\n", f_name);
+        LOG_INFO("\tDevice: %s\n", f_device);
+        LOG_INFO("\tInput state: %s\n", f_input_state);
+        LOG_INFO("\tOutput state: %s\n", f_output_state);
+        LOG_INFO("\tLocation: %s\n", f_location);
+
+        pdc_tf_func_t* dg_func = PDC_malloc(sizeof(pdc_tf_func_t));
+
+        // Validate device
+        pdc_tf_dev_t dev;
+        bool found_device = false;
+        for(int j = 0; j < PDC_TF_NUM_DEVICES; j++) {
+            if(!strcmp(f_device, pdc_tf_dev_strs[j])) {
+                found_device = true;
+                dev = j;
+                break;
+            }
+        }
+        if(!found_device)
+            PGOTO_ERROR(FAIL, "Invalid device %s\n", f_device);
+
+        // Validate location
+        pdc_tf_location_t location;
+        bool found_location = false;
+        for(int j = 0; j < PDC_TF_NUM_LOCATIONS; j++) {
+            if(!strcmp(f_location, pdc_tf_location_strs[j])) {
+                found_location = true;
+                location = j;
+                break;
+            }
+        }
+        if(!found_location)
+            PGOTO_ERROR(FAIL, "Invalid location %s\n", f_location);
+
+        // FIXME: Currently on support CPU devices and built-in functions
+        if(dev != PDC_TF_CPU_DEVICE)
+            PGOTO_ERROR(FAIL, "Currently, only support CPU functions");
+        if(location != PDC_TF_BUILTIN)
+            PGOTO_ERROR(FAIL, "Currently, only support builtin functions");
+
+        dg_func->dev = dev;
+        dg_func->location = location;
+        if (PDCtf_link_builtin_func(f_name, dg_func) != SUCCEED)
+            PGOTO_ERROR(FAIL, "Failed to link to builtin function");
+        dg_func->name = strdup(f_name);
+
+        /**
+         * Construct input/output dg states
+         * NOTE: the compare function is based only on the name string
+         */
+        pdc_tf_state_t i_state;
+        pdc_tf_state_t o_state;
+        i_state.name = f_input_state;
+        o_state.name = f_output_state;
+
+        if(PDCdg_add_edge(*dg, &i_state, &o_state, dg_func) == PDC_DG_INVALID_EDGE)
+            PGOTO_ERROR(FAIL, "Failed to add edge to directed graph\n");
+    }
+    
+    LOG_INFO("================DONE loading JSON into PDC===================\n");
+done:
+    if(fp != NULL)
+        close_file(fp);
+    if(io_buffer.buffer != NULL)
+        PDC_free(io_buffer.buffer);
+    if(json_obj != NULL)
+        json_object_put(json_obj);
+    if(ret_value == FAIL)
+        PDCdg_destroy(*dg);
+
     FUNC_LEAVE(ret_value);
 }
 
