@@ -7,20 +7,6 @@
     "functions": [
       {
         "device": "CPU",
-        "input_state": "decompressed_doubles",
-        "output_state": "decompressed_floats",
-        "location": "builtin",
-        "name": "double_to_float"
-      },
-      {
-        "device": "CPU",
-        "input_state": "decompressed_floats",
-        "output_state": "decompressed_doubles",
-        "location": "builtin",
-        "name": "float_to_double"
-      },
-      {
-        "device": "CPU",
         "input_state": "decompressed_floats",
         "output_state": "compressed_floats",
         "location": "builtin",

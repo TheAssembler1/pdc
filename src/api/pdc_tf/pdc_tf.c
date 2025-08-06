@@ -236,26 +236,27 @@ PDCtf_print_dg(pdcid_t dg_id, bool write_to_file)
 }
 
 // print execution path
-void
-PDCtf_print_exec_path(pdcid_t dg_id, pdcid_t client_state_id, pdcid_t server_state_id)
+void PDCtf_print_exec_path(pdcid_t dg_id, char* cur_state, char* desired_state)
 {
-    /*void *         input_state  = pdc_tf_states[client_state_id];
-    void *         output_state = pdc_tf_states[server_state_id];
+    pdc_tf_state_t         tf_cur_state;
+    pdc_tf_state_t         tf_desired_state;
     pdc_dg_edge_t *edges_out;
     uint32_t       num_edges;
 
-    if (PDCdg_shortest_path(pdc_tf_graphs[dg_id], input_state, output_state, &edges_out, &num_edges)) {
+    tf_cur_state.name = cur_state;
+    tf_desired_state.name = desired_state;
+
+    if (PDCdg_shortest_path(pdc_tf_graphs[dg_id], &tf_cur_state, &tf_desired_state, &edges_out, &num_edges)) {
         LOG_INFO("Path was found:\n");
         for (uint32_t j = 0; j < num_edges; j++) {
             pdc_dg_edge_t e = edges_out[j];
 
-            state *v1 = (state *)(pdc_tf_graphs[dg_id]->vertices[e.v1_id]->data);
-            state *v2 = (state *)(pdc_tf_graphs[dg_id]->vertices[e.v2_id]->data);
+            pdc_tf_state_t *v1 = (pdc_tf_state_t *)(pdc_tf_graphs[dg_id]->vertices[e.v1_id]->data);
+            pdc_tf_state_t *v2 = (pdc_tf_state_t *)(pdc_tf_graphs[dg_id]->vertices[e.v2_id]->data);
 
-            LOG_INFO("%d: %s(%s) = %s\n", j + 1, ((func *)(e.data))->type_func_name, v1->name, v2->name);
+            LOG_INFO("%d: %s(%s) = %s\n", j + 1, ((pdc_tf_func_t *)(e.data))->name, v1->name, v2->name);
         }
     }
-    else {
+    else
         LOG_INFO("No path found\n");
-    }*/
 }

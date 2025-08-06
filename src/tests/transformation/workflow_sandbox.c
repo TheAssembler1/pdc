@@ -35,6 +35,7 @@ workflow1(pdcid_t pdc, pdcid_t cont)
 
     pdcid_t dg_id = PDCtf_load_dg_json("/home/ta1/src/workspace/source/pdc/tf_graphs/test.json");
     PDCtf_print_dg(dg_id, false);
+    PDCtf_print_exec_path(dg_id, "decompressed_floats", "compressed_floats");
 
     exit(0);
 
