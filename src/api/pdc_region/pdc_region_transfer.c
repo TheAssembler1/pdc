@@ -1780,9 +1780,9 @@ PDCregion_transfer_start_common(pdcid_t transfer_request_id,
     perr_t ret_value                 = SUCCEED;
     bool   should_run_transfer_start = false;
 
-    if (check_exec_tf_graph(transfer_request_id, &should_run_transfer_start) != SUCCEED)
-        PGOTO_ERROR(FAIL, "Failed to check_exec_tf_graph");
-    if (should_run_transfer_start)
+    //if (check_exec_tf_graph(transfer_request_id, &should_run_transfer_start) != SUCCEED)
+    //    PGOTO_ERROR(FAIL, "Failed to check_exec_tf_graph");
+    //if (should_run_transfer_start)
         PGOTO_DONE(region_transfer_start_common_helper(transfer_request_id, comm));
 
 done:
