@@ -1622,7 +1622,8 @@ HG_TEST_RPC_CB(obj_reset_dims, handle)
     // Decode input
     HG_Get_input(handle, &in);
 
-    if (!try_reset_dims()) {
+    if (!can_reset_dims()) {
+        LOG_WARNING("Cannot resize object dims due to storage strategy\n");
         out.ret = 0;
         PGOTO_DONE(ret_value);
     }

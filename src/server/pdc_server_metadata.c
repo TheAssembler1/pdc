@@ -1866,7 +1866,7 @@ PDC_Server_search_with_name_timestep(const char *obj_name, uint32_t hash_key, ui
         // lookup
         lookup_value = hash_table_lookup(metadata_hash_table_g, &hash_key);
 
-        // Is this hash value exist in the Hash table?
+        // Does this hash value exist in the Hash table?
         if (lookup_value != NULL) {
             *out = find_identical_metadata(lookup_value, &metadata);
             if (*out == NULL)

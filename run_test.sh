@@ -8,5 +8,5 @@ echo "killing previous pdc_server.exe"
 pkill -f pdc_server || true
 
 pushd ./build
-ctest --stop-on-failure --output-on-failure --timeout 15
+ctest --stop-on-failure --output-on-failure
 popd

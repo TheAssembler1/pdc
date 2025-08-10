@@ -4,12 +4,12 @@
 #include "pdc_logger.h"
 #include "pdc_malloc.h"
 
-static int io_by_region_g = 1;
+static pdc_region_writeout_strategy storage_strategy_g = STORE_FLATTENED_SINGLE_FILE;
 
 int
-try_reset_dims()
+can_reset_dims()
 {
-    return io_by_region_g;
+    return storage_strategy_g == STORE_REGION_BY_REGION_SINGLE_FILE;
 }
 
 perr_t
@@ -257,13 +257,18 @@ PDC_transfer_request_id_register()
         }                                                                                                    \
     }
 
-perr_t
-PDC_Server_transfer_request_io(uint64_t obj_id, int obj_ndim, const uint64_t *obj_dims,
-                               struct pdc_region_info *region_info, void *buf, size_t unit, int is_write)
+static perr_t PDC_Server_data_io_flattened(
+    uint64_t obj_id, 
+    int obj_ndim, 
+    const uint64_t *obj_dims,
+    struct pdc_region_info *region_info, 
+    void *buf,
+    size_t unit, 
+    int is_write) 
 {
     FUNC_ENTER(NULL);
 
-    perr_t   ret_value = SUCCEED;
+    perr_t ret_value = SUCCEED;
     int      fd;
     char *   data_path                = NULL;
     char *   user_specified_data_path = NULL;
@@ -271,15 +276,6 @@ PDC_Server_transfer_request_io(uint64_t obj_id, int obj_ndim, const uint64_t *ob
     ssize_t  io_size;
     uint64_t i, j;
 
-    if (io_by_region_g || obj_ndim == 0) {
-        if (is_write) {
-            PDC_Server_data_write_out(obj_id, region_info, buf, unit);
-        }
-        else {
-            PDC_Server_data_read_from(obj_id, region_info, buf, unit);
-        }
-        PGOTO_DONE(ret_value);
-    }
     if (obj_ndim != (int)region_info->ndim)
         PGOTO_ERROR(FAIL, "Obj dim does not match obj dim\n");
 
@@ -359,6 +355,34 @@ PDC_Server_transfer_request_io(uint64_t obj_id, int obj_ndim, const uint64_t *ob
         }
     }
     close(fd);
+
+done:
+    FUNC_LEAVE(ret_value);
+}
+
+perr_t
+PDC_Server_transfer_request_io(uint64_t obj_id, int obj_ndim, const uint64_t *obj_dims,
+                               struct pdc_region_info *region_info, void *buf, size_t unit, int is_write)
+{
+    FUNC_ENTER(NULL);
+
+    perr_t ret_value = SUCCEED;
+
+    /**
+     * Switch between storage strategies and hand off to correct handler
+     */
+    if (storage_strategy_g == STORE_REGION_BY_REGION_SINGLE_FILE || obj_ndim == 0) {
+        if (is_write)
+            PGOTO_DONE(PDC_Server_data_write_out(obj_id, region_info, buf, unit));
+        else
+            PGOTO_DONE(PDC_Server_data_read_from(obj_id, region_info, buf, unit));
+    } else if (storage_strategy_g == STORE_FLATTENED_SINGLE_FILE) {
+        PDC_Server_data_io_flattened(obj_id, obj_ndim, obj_dims, region_info, buf, unit, is_write);
+    } else if (storage_strategy_g == STORE_FLATTENED_REGION_PER_FILE) {
+        PGOTO_ERROR(FAIL, "STORE_FLATTENED_REGION_PER_FILE is currently unsupported");
+    } else {
+        PGOTO_ERROR(FAIL, "Invalid storage strategy");
+    }
 
 done:
     FUNC_LEAVE(ret_value);

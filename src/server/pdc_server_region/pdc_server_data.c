@@ -4075,8 +4075,6 @@ PDC_Server_data_write_out(uint64_t obj_id, struct pdc_region_info *region_info, 
     region = PDC_Server_get_obj_region(obj_id);
     PDC_Server_register_obj_region_by_pointer(&region, obj_id, 0);
 
-    LOG_INFO("POSIX WRITE OUT SIZE: %lu\n", write_size);
-
     region_list_t *request_region = (region_list_t *)PDC_calloc(1, sizeof(region_list_t));
     for (i = 0; i < region_info->ndim; i++) {
         request_region->start[i] = region_info->offset[i];
@@ -4406,8 +4404,6 @@ PDC_Server_data_read_from(uint64_t obj_id, struct pdc_region_info *region_info, 
     for (i = 0; i < region_info->ndim; i++) {
         request_bytes *= region_info->size[i];
     }
-
-    LOG_INFO("POSIX READ FROM SIZE: %lu\n", request_bytes);
 
 #ifdef ENABLE_TIMING
     struct timeval pdc_timer_start, pdc_timer_end;

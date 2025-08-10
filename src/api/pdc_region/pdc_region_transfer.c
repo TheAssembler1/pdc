@@ -2206,7 +2206,7 @@ PDCregion_transfer_wait(pdcid_t transfer_request_id)
     if ((transferinfo = PDC_find_id(transfer_request_id)) == NULL)
         PGOTO_DONE(ret_value);
     transfer_request = (pdc_transfer_request *)(transferinfo->obj_ptr);
-    obj_info         = transfer_request->obj_pointer;
+    //obj_info         = transfer_request->obj_pointer;
 
     if (transfer_request->metadata_id != NULL) {
         // For region dynamic case, it is implemented in the aggregated version for portability.
@@ -2272,7 +2272,7 @@ PDCregion_transfer_wait(pdcid_t transfer_request_id)
         ret_value = SUCCEED;
     }
 
-    if (transfer_request->access_type == PDC_READ) {
+    /*if (transfer_request->access_type == PDC_READ) {
         has_attached_graph = PDCtf_should_exec_graph(
             transfer_request->obj_pointer, &region_id, transfer_request->remote_region_ndim,
             transfer_request->unit, transfer_request->remote_region_offset,
@@ -2306,7 +2306,7 @@ PDCregion_transfer_wait(pdcid_t transfer_request_id)
         }
 
         PDCtf_log_pdc_region_t(output_region);
-    }
+    }*/
 
 done:
     FUNC_LEAVE(ret_value);
