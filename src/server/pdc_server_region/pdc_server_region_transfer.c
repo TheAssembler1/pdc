@@ -431,7 +431,7 @@ done:
  * Converts a multi-dimensional index into a single linear index
  * based on the provided dimensions.
  * This function is used to map N-dimensional coordinates to a 1D index
- * suitable for accessing flattened arrays or buffers.
+ * suitable for accessing flattened arrays
  */
 static uint64_t
 flatten_index(uint64_t *indices, uint64_t *dims, int ndim)
@@ -460,6 +460,7 @@ PDC_Server_data_io_region_per_file(uint64_t obj_id, int obj_ndim, const uint64_t
 {
     int      ret_value = 0;
     char   **temp_bufs = NULL;
+    int     *fds       = NULL;
     uint64_t dims[obj_ndim];
     uint64_t indices[obj_ndim];
     uint64_t temp_bufs_array[obj_ndim][2];
@@ -499,13 +500,14 @@ PDC_Server_data_io_region_per_file(uint64_t obj_id, int obj_ndim, const uint64_t
         if (temp_bufs[i] == NULL)
             PGOTO_ERROR(FAIL, "Failed to allocate %lu bytes for temp_bufs[%lu]", file_chunk_bytes, i);
     }
+    fds = PDC_calloc(total_files, sizeof(int));
 
     // Prepare indices at start of file index spans
     for (i = 0; i < (uint64_t)obj_ndim; i++)
         indices[i] = temp_bufs_array[i][FILE_START];
 
     // === READ PHASE: pre-read full file chunks into temp buffers (if reading) ===
-    while (1) {
+    for (;;) {
         char *storage_location = get_storage_location_region_per_file(obj_id, obj_ndim, indices);
 
         uint64_t local_indices[obj_ndim];
@@ -513,10 +515,10 @@ PDC_Server_data_io_region_per_file(uint64_t obj_id, int obj_ndim, const uint64_t
             local_indices[d] = indices[d] - temp_bufs_array[d][FILE_START];
         uint64_t buf_idx = flatten_index(local_indices, dims, obj_ndim);
         assert(buf_idx < total_files);
-        errno  = 0;
-        int fd = open(storage_location, O_RDONLY);
+        errno        = 0;
+        fds[buf_idx] = open(storage_location, O_RDWR | O_CREAT, 0644);
 
-        if (fd < 0) {
+        if (fds[buf_idx] < 0) {
             if (errno == ENOENT) {
                 // File doesn't exist yet - zero-fill buffer
                 memset(temp_bufs[buf_idx], 0, file_chunk_bytes);
@@ -526,22 +528,16 @@ PDC_Server_data_io_region_per_file(uint64_t obj_id, int obj_ndim, const uint64_t
         }
         else {
             size_t bytes_read = 0;
-            char  *buf_ptr    = temp_bufs[buf_idx];
             while (bytes_read < file_chunk_bytes) {
-                errno       = 0;
-                ssize_t ret = read(fd, buf_ptr + bytes_read, file_chunk_bytes - bytes_read);
+                errno = 0;
+                ssize_t ret =
+                    read(fds[buf_idx], temp_bufs[buf_idx] + bytes_read, file_chunk_bytes - bytes_read);
                 if (ret < 0) {
-                    close(fd);
+                    close(fds[buf_idx]);
                     PGOTO_ERROR(FAIL, "Failed to read from file %s: %s", storage_location, strerror(errno));
-                }
-                if (ret == 0) { // EOF
-                    // zero-fill remainder
-                    memset(buf_ptr + bytes_read, 0, file_chunk_bytes - bytes_read);
-                    break;
                 }
                 bytes_read += ret;
             }
-            close(fd);
         }
 
         storage_location = PDC_free(storage_location);
@@ -580,18 +576,14 @@ PDC_Server_data_io_region_per_file(uint64_t obj_id, int obj_ndim, const uint64_t
 
         // Local coordinate inside file chunk
         uint64_t local_coords[obj_ndim];
-        for (int d = 0; d < obj_ndim; d++) {
+        for (int d = 0; d < obj_ndim; d++)
             local_coords[d] = coords[d] % file_dims[d];
-            assert(local_coords[d] < file_dims[d]);
-        }
 
         uint64_t file_indices_abs[obj_ndim];   // absolute file index
         uint64_t file_indices_local[obj_ndim]; // local (0-based in span)
 
         for (int d = 0; d < obj_ndim; d++) {
-            file_indices_abs[d] = coords[d] / file_dims[d];
-            assert(file_indices_abs[d] >= temp_bufs_array[d][FILE_START] &&
-                   file_indices_abs[d] <= temp_bufs_array[d][FILE_END]);
+            file_indices_abs[d]   = coords[d] / file_dims[d];
             file_indices_local[d] = file_indices_abs[d] - temp_bufs_array[d][FILE_START];
         }
 
@@ -605,14 +597,10 @@ PDC_Server_data_io_region_per_file(uint64_t obj_id, int obj_ndim, const uint64_t
             local_element_idx += local_coords[d] * multiplier;
             multiplier *= file_dims[d];
         }
-        assert(local_element_idx < file_chunk_elements);
 
         // Copy one element (unit bytes) from/to buffer
         char *temp_buf_ptr = temp_bufs[buf_idx] + local_element_idx * unit;
         char *user_buf_ptr = (char *)buf + elem_idx * unit;
-
-        assert(buf_idx < total_files);
-        assert(temp_bufs[buf_idx] != NULL);
 
         if (is_write)
             memcpy(temp_buf_ptr, user_buf_ptr, unit);
@@ -626,21 +614,14 @@ PDC_Server_data_io_region_per_file(uint64_t obj_id, int obj_ndim, const uint64_t
         for (i = 0; i < (uint64_t)obj_ndim; i++)
             indices[i] = temp_bufs_array[i][FILE_START];
         while (1) {
-            char *storage_location = get_storage_location_region_per_file(obj_id, obj_ndim, indices);
-
             uint64_t local_indices[obj_ndim];
             for (int d = 0; d < obj_ndim; d++)
                 local_indices[d] = indices[d] - temp_bufs_array[d][FILE_START];
             uint64_t buf_idx = flatten_index(local_indices, dims, obj_ndim);
 
-            errno  = 0;
-            int fd = open(storage_location, O_WRONLY | O_CREAT | O_TRUNC, 0644);
-            if (fd < 0)
-                PGOTO_ERROR(FAIL, "Failed to open file %s: %s", storage_location, strerror(errno));
-            PDC_POSIX_IO(fd, temp_bufs[buf_idx], file_chunk_bytes, 1);
-            close(fd);
-
-            storage_location = PDC_free(storage_location);
+            lseek(fds[buf_idx], 0, SEEK_SET);
+            PDC_POSIX_IO(fds[buf_idx], temp_bufs[buf_idx], file_chunk_bytes, 1);
+            close(fds[buf_idx]);
 
             // Increment indices
             int dim = obj_ndim - 1;
@@ -663,6 +644,215 @@ done:
         }
         temp_bufs = PDC_free(temp_bufs);
     }
+    if (fds != NULL)
+        fds = PDC_free(fds);
+
+    return ret_value;
+}
+
+static int
+PDC_Server_data_io_region_per_file_fast(uint64_t obj_id, int obj_ndim, const uint64_t *obj_dims,
+                                        const uint64_t *file_dims, struct pdc_region_info *region_info,
+                                        void *buf, size_t unit, int is_write)
+{
+    int      ret_value = 0;
+    char   **temp_bufs = NULL;
+    int     *fds       = NULL;
+    uint64_t dims[obj_ndim];
+    uint64_t temp_bufs_array[obj_ndim][2];
+    uint64_t indices[obj_ndim];
+    uint64_t i;
+
+    if (obj_ndim != (int)region_info->ndim)
+        PGOTO_ERROR(FAIL, "Obj dim does not match region dim");
+
+    for (i = 0; i < (uint64_t)obj_ndim; i++) {
+        if (file_dims[i] == 0)
+            PGOTO_ERROR(FAIL, "File dimension %d is zero", i);
+    }
+
+    // Compute file index spans
+    for (i = 0; i < (uint64_t)obj_ndim; i++) {
+        temp_bufs_array[i][FILE_START] = region_info->offset[i] / file_dims[i];
+        temp_bufs_array[i][FILE_END]   = (region_info->offset[i] + region_info->size[i] - 1) / file_dims[i];
+    }
+
+    uint64_t total_files = 1;
+    for (i = 0; i < (uint64_t)obj_ndim; i++) {
+        dims[i] = temp_bufs_array[i][FILE_END] - temp_bufs_array[i][FILE_START] + 1;
+        total_files *= dims[i];
+    }
+
+    uint64_t file_chunk_elements = PDC_get_region_desc_size(file_dims, obj_ndim);
+    size_t   file_chunk_bytes    = file_chunk_elements * unit;
+
+    // Allocate contiguous temp buffer
+    char *all_temp_bufs = PDC_calloc(total_files, file_chunk_bytes);
+    if (!all_temp_bufs)
+        PGOTO_ERROR(FAIL, "Failed to allocate contiguous temp buffers");
+
+    temp_bufs = PDC_calloc(total_files, sizeof(char *));
+    if (!temp_bufs) {
+        PDC_free(all_temp_bufs);
+        PGOTO_ERROR(FAIL, "Failed to allocate temp_buf pointers");
+    }
+    for (i = 0; i < total_files; i++)
+        temp_bufs[i] = all_temp_bufs + i * file_chunk_bytes;
+
+    fds = PDC_calloc(total_files, sizeof(int));
+    if (!fds) {
+        PDC_free(all_temp_bufs);
+        PDC_free(temp_bufs);
+        PGOTO_ERROR(FAIL, "Failed to allocate file descriptor array");
+    }
+
+    // Open files and read contents (pread avoids need for lseek)
+    for (i = 0; i < (uint64_t)obj_ndim; i++)
+        indices[i] = temp_bufs_array[i][FILE_START];
+
+    for (;;) {
+        char *storage_location = get_storage_location_region_per_file(obj_id, obj_ndim, indices);
+
+        uint64_t local_indices[obj_ndim];
+        for (int d = 0; d < obj_ndim; d++)
+            local_indices[d] = indices[d] - temp_bufs_array[d][FILE_START];
+        uint64_t buf_idx = flatten_index(local_indices, dims, obj_ndim);
+        assert(buf_idx < total_files);
+
+        errno        = 0;
+        fds[buf_idx] = open(storage_location, O_RDWR | O_CREAT, 0644);
+        if (fds[buf_idx] < 0) {
+            if (errno == ENOENT) {
+                memset(temp_bufs[buf_idx], 0, file_chunk_bytes);
+            }
+            else {
+                PDC_free(storage_location);
+                PGOTO_ERROR(FAIL, "Failed to open file %s: %s", storage_location, strerror(errno));
+            }
+        }
+        else {
+            ssize_t bytes_read = 0;
+            while ((size_t)bytes_read < file_chunk_bytes) {
+                ssize_t ret = pread(fds[buf_idx], temp_bufs[buf_idx] + bytes_read,
+                                    file_chunk_bytes - bytes_read, bytes_read);
+                if (ret < 0) {
+                    close(fds[buf_idx]);
+                    PDC_free(storage_location);
+                    PGOTO_ERROR(FAIL, "Failed to read file %s: %s", storage_location, strerror(errno));
+                }
+                if (ret == 0)
+                    break; // EOF
+                bytes_read += ret;
+            }
+            // zero-fill remainder if any
+            if ((size_t)bytes_read < file_chunk_bytes)
+                memset(temp_bufs[buf_idx] + bytes_read, 0, file_chunk_bytes - bytes_read);
+        }
+
+        PDC_free(storage_location);
+
+        // Increment indices multi-dimensionally
+        int dim = obj_ndim - 1;
+        while (dim >= 0) {
+            if (++indices[dim] <= temp_bufs_array[dim][FILE_END])
+                break;
+            indices[dim] = temp_bufs_array[dim][FILE_START];
+            dim--;
+        }
+        if (dim < 0)
+            break;
+    }
+
+    // Precompute mappings for element-wise phase
+    uint64_t total_elements = 1;
+    for (i = 0; i < (uint64_t)obj_ndim; i++)
+        total_elements *= region_info->size[i];
+
+    // Allocate maps
+    uint64_t *elem_to_buf_idx   = PDC_malloc(total_elements * sizeof(uint64_t));
+    uint64_t *elem_to_local_idx = PDC_malloc(total_elements * sizeof(uint64_t));
+
+    for (uint64_t e = 0; e < total_elements; e++) {
+        uint64_t remainder = e;
+        uint64_t coords[obj_ndim];
+        for (int d = obj_ndim - 1; d >= 0; d--) {
+            coords[d] = remainder % region_info->size[d];
+            remainder /= region_info->size[d];
+            coords[d] += region_info->offset[d];
+        }
+        uint64_t file_indices_local[obj_ndim];
+        uint64_t local_coords[obj_ndim];
+        for (int d = 0; d < obj_ndim; d++) {
+            file_indices_local[d] = (coords[d] / file_dims[d]) - temp_bufs_array[d][FILE_START];
+            local_coords[d]       = coords[d] % file_dims[d];
+        }
+        elem_to_buf_idx[e]   = flatten_index(file_indices_local, dims, obj_ndim);
+        elem_to_local_idx[e] = flatten_index(local_coords, file_dims, obj_ndim);
+    }
+
+    // Copy data
+    for (uint64_t e = 0; e < total_elements; e++) {
+        uint64_t buf_idx      = elem_to_buf_idx[e];
+        uint64_t local_idx    = elem_to_local_idx[e];
+        char    *temp_buf_ptr = temp_bufs[buf_idx] + local_idx * unit;
+        char    *user_buf_ptr = (char *)buf + e * unit;
+        if (is_write)
+            memcpy(temp_buf_ptr, user_buf_ptr, unit);
+        else
+            memcpy(user_buf_ptr, temp_buf_ptr, unit);
+    }
+
+    // Write back files if writing
+    if (is_write) {
+        // Reset indices
+        for (i = 0; i < (uint64_t)obj_ndim; i++)
+            indices[i] = temp_bufs_array[i][FILE_START];
+
+        for (;;) {
+            uint64_t local_indices[obj_ndim];
+            for (int d = 0; d < obj_ndim; d++)
+                local_indices[d] = indices[d] - temp_bufs_array[d][FILE_START];
+            uint64_t buf_idx = flatten_index(local_indices, dims, obj_ndim);
+
+            // Write entire buffer at once
+            ssize_t bytes_written = 0;
+            while ((size_t)bytes_written < file_chunk_bytes) {
+                ssize_t ret = pwrite(fds[buf_idx], temp_bufs[buf_idx] + bytes_written,
+                                     file_chunk_bytes - bytes_written, bytes_written);
+                if (ret < 0) {
+                    close(fds[buf_idx]);
+                    PGOTO_ERROR(FAIL, "Failed to write file descriptor %d: %s", fds[buf_idx],
+                                strerror(errno));
+                }
+                bytes_written += ret;
+            }
+            close(fds[buf_idx]);
+
+            // Increment indices multi-dimensionally
+            int dim = obj_ndim - 1;
+            while (dim >= 0) {
+                if (++indices[dim] <= temp_bufs_array[dim][FILE_END])
+                    break;
+                indices[dim] = temp_bufs_array[dim][FILE_START];
+                dim--;
+            }
+            if (dim < 0)
+                break;
+        }
+    }
+
+done:
+    if (temp_bufs) {
+        if (temp_bufs[0])
+            PDC_free(temp_bufs[0]); // free all_temp_bufs block
+        PDC_free(temp_bufs);
+    }
+    if (fds)
+        PDC_free(fds);
+    if (elem_to_buf_idx)
+        PDC_free(elem_to_buf_idx);
+    if (elem_to_local_idx)
+        PDC_free(elem_to_local_idx);
 
     return ret_value;
 }
@@ -694,8 +884,7 @@ PDC_Server_transfer_request_io(uint64_t obj_id, int obj_ndim, const uint64_t *ob
             temp_file_dims[i] = obj_dims[i];
         }
 
-        // 32 MB
-        uint64_t max_bytes_per_file = 4096 * 4096 * 2;
+        uint64_t max_bytes_per_file = 4096 * 4096 * 8;
 
         while (PDC_get_region_desc_size_bytes(temp_file_dims, unit, obj_ndim) > max_bytes_per_file) {
             // Reduce the largest dimension by half
