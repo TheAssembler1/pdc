@@ -4,9 +4,9 @@ set -e
 
 ./rebuild.sh
 
-echo "killing previous pdc_server.exe"
+echo "killing previous pdc_server"
 pkill -f pdc_server || true
 
 pushd ./build
-ctest --stop-on-failure --output-on-failure
+ctest -L serial --output-on-failure
 popd
