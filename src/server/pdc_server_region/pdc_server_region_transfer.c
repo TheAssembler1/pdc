@@ -446,173 +446,68 @@ static perr_t PDC_Server_data_io_region_per_file(
 
     perr_t ret_value = SUCCEED;
     char* storage_location = NULL;
+    uint64_t i;
 
-    int d;
-    uint64_t i, rem;
-    uint64_t total_elements = 0;
-    uint64_t blocks_per_dim[DIM_MAX];  // assuming DIM_MAX defined >= obj_ndim
-    uint64_t start_blocks[DIM_MAX];
-    uint64_t total_blocks = 1;
-    size_t file_block_elems = 1;
-    size_t file_block_size_bytes = 0;
-
-    char **buffers = NULL;
-
-    uint64_t coords[DIM_MAX];
-    uint64_t file_block_coords[DIM_MAX];
-    uint64_t block_coords_relative[DIM_MAX];
-    uint64_t block_coords[DIM_MAX];
-    uint64_t local_coords[DIM_MAX];
-
-    uint64_t multiplier;
-    uint64_t local_linear_idx;
-    uint64_t buf_idx;
-
-    // Validate dimensions
+    // Validate region_dims
     if (obj_ndim != (int)region_info->ndim)
         PGOTO_ERROR(FAIL, "Obj dim does not match region dim\n");
 
-    for (d = 0; d < obj_ndim; d++) {
-        if (file_dims[d] == 0)
-            PGOTO_ERROR(FAIL, "file_dims[%d] must be > 0\n", d);
+    // Validate file_dims 
+    for(i = 0; i < (uint64_t)obj_ndim; i++) {
+        if(file_dims[i] == 0)
+            PGOTO_ERROR(FAIL, "file_dims[%d]=%lu must be greater than 0", i, file_dims[i]);
     }
 
-    // Compute total elements in region
-    total_elements = PDC_get_region_desc_size(region_info->size, obj_ndim);
+    // Get total number of elements to be written
+    uint64_t total_elements = PDC_get_region_desc_size(region_info->size, obj_ndim);
     LOG_INFO("Region total elements %lu\n", total_elements);
 
-    // Calculate blocks touched per dimension
-    for (d = 0; d < obj_ndim; d++) {
-        start_blocks[d] = region_info->offset[d] / file_dims[d];
-        uint64_t region_end = region_info->offset[d] + region_info->size[d] - 1;
-        uint64_t end_block = region_end / file_dims[d];
-        blocks_per_dim[d] = end_block - start_blocks[d] + 1;
-        total_blocks *= blocks_per_dim[d];
-    }
-
-    // Compute file block buffer size (in bytes)
-    for (d = 0; d < obj_ndim; d++)
-        file_block_elems *= file_dims[d];
-    file_block_size_bytes = file_block_elems * unit;
-
-    // Allocate array of buffers (one per file block)
-    buffers = (char **)malloc(total_blocks * sizeof(char *));
-    if (!buffers)
-        PGOTO_ERROR(FAIL, "Failed to allocate buffers array\n");
-
-    for (i = 0; i < total_blocks; i++)
-        buffers[i] = NULL;
-
-    // Helper to flatten multi-dim index to 1D index
-    uint64_t flatten_idx(const uint64_t *idx) {
-        uint64_t flat = 0;
-        uint64_t mul = 1;
-        for (d = obj_ndim - 1; d >= 0; d--) {
-            flat += idx[d] * mul;
-            mul *= blocks_per_dim[d];
-        }
-        return flat;
-    }
-
-    // Allocate and pre-read each buffer if writing
-    for (i = 0; i < total_blocks; i++) {
-        rem = i;
-        for (d = obj_ndim - 1; d >= 0; d--) {
-            block_coords[d] = rem % blocks_per_dim[d];
-            rem /= blocks_per_dim[d];
-        }
-
-        // Absolute file block coords
-        for (d = 0; d < obj_ndim; d++) {
-            file_block_coords[d] = start_blocks[d] + block_coords[d];
-        }
-
-        buffers[i] = malloc(file_block_size_bytes);
-        if (!buffers[i])
-            PGOTO_ERROR(FAIL, "Failed to allocate buffer %lu\n", i);
-        memset(buffers[i], 0, file_block_size_bytes);
-
-        if (is_write) {
-            storage_location = get_storage_location_region_per_file(obj_id, obj_ndim, file_block_coords, file_dims);
-            int fd = open(storage_location, O_RDONLY);
-            if (fd >= 0) {
-                ssize_t read_bytes = read(fd, buffers[i], file_block_size_bytes);
-                if (read_bytes < 0)
-                    LOG_WARN("Failed to read full buffer from %s\n", storage_location);
-                close(fd);
-            }
-            storage_location = PDC_free(storage_location);
-        }
-    }
-
-    // Copy data from buf to appropriate buffer & offset
+    /**
+     * FIXME: Very temporary strategy just get the file of each element 
+     * then write that element and close the file
+     */
     for (i = 0; i < total_elements; i++) {
+        uint64_t coords[obj_ndim];
+
+        // Convert linear index i -> multidimensional coordinates
         uint64_t remainder = i;
-        for (d = obj_ndim - 1; d >= 0; d--) {
+        for (int d = obj_ndim - 1; d >= 0; d--) {
             coords[d] = remainder % region_info->size[d];
             remainder /= region_info->size[d];
-            coords[d] += region_info->offset[d];
+            coords[d] += region_info->offset[d]; // add region start offset
         }
 
-        // Compute file block coords relative to start_blocks
-        for (d = 0; d < obj_ndim; d++) {
-            file_block_coords[d] = coords[d] / file_dims[d];
-            block_coords_relative[d] = file_block_coords[d] - start_blocks[d];
-        }
+        // Calculate byte offset into buf
+        uint64_t current_offset_bytes = i * unit;
 
-        buf_idx = flatten_idx(block_coords_relative);
-
-        // Local coords inside this file block
-        for (d = 0; d < obj_ndim; d++) {
-            local_coords[d] = coords[d] % file_dims[d];
-        }
-
-        // Compute linear local offset in buffer
-        local_linear_idx = 0;
-        multiplier = 1;
-        for (d = obj_ndim - 1; d >= 0; d--) {
-            local_linear_idx += local_coords[d] * multiplier;
-            multiplier *= file_dims[d];
-        }
-
-        memcpy(buffers[buf_idx] + local_linear_idx * unit, (char*)buf + i * unit, unit);
-    }
-
-    // Flush buffers to disk
-    for (i = 0; i < total_blocks; i++) {
-        rem = i;
-        for (d = obj_ndim - 1; d >= 0; d--) {
-            block_coords[d] = rem % blocks_per_dim[d];
-            rem /= blocks_per_dim[d];
-        }
-
-        for (d = 0; d < obj_ndim; d++) {
-            file_block_coords[d] = start_blocks[d] + block_coords[d];
-        }
-
-        storage_location = get_storage_location_region_per_file(obj_id, obj_ndim, file_block_coords, file_dims);
+        // Create/open file based on current element's coordinates
+        storage_location = get_storage_location_region_per_file(obj_id, obj_ndim, coords, file_dims);
         PDC_mkdir(storage_location);
 
-        int fd = open(storage_location, O_WRONLY | O_CREAT, 0644);
-        if (fd < 0) {
-            PGOTO_ERROR(FAIL, "Failed to open file %s\n", storage_location);
+        // Compute local offset within current file
+        uint64_t local_element_index = 0;
+        for (int d = 0; d < obj_ndim; d++) {
+            uint64_t local_coord = coords[d] % file_dims[d];
+            uint64_t multiplier = 1;
+            for (int dd = d + 1; dd < obj_ndim; dd++)
+                multiplier *= file_dims[dd];
+            local_element_index += local_coord * multiplier;
         }
+        uint64_t local_offset_bytes = local_element_index * unit;
 
-        ssize_t written = write(fd, buffers[i], file_block_size_bytes);
-        if ((size_t)written != file_block_size_bytes) {
-            close(fd);
-            PGOTO_ERROR(FAIL, "Failed to write full buffer to %s\n", storage_location);
-        }
+        // I/O single element
+        int fd = is_write ?
+            open(storage_location, O_WRONLY | O_CREAT, 0644) :
+            open(storage_location, O_RDONLY);
+        lseek(fd, local_offset_bytes, SEEK_SET);
+        PDC_POSIX_IO(fd, (char *)buf + current_offset_bytes, unit, is_write);
         close(fd);
 
         storage_location = PDC_free(storage_location);
-        free(buffers[i]);
     }
 
-    free(buffers);
-
 done:
-    if (storage_location != NULL)
+    if(storage_location != NULL)
         storage_location = PDC_free(storage_location);
 
     FUNC_LEAVE(ret_value);
