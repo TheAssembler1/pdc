@@ -8,80 +8,38 @@
 
 #define MAX_REGIONS 10
 
-/**
- * Since the transfer request doesn't store the
- * region id we have to identify the region
- * by its dimensions using the following attributes
- */
-typedef struct pdc_tf_absolute_region_t {
-    size_t   ndim;
-    uint8_t  unit;
-    uint64_t offset[DIM_MAX];
-    uint64_t dims[DIM_MAX];
-} pdc_tf_absolute_region_t;
-
-/**
- * Keeps track of the state of a region as it
- * progresses to the server_state_id or
- * the client_state_id
- */
-typedef struct pdc_tf_region_info {
-    pdcid_t dg_id;
-    pdcid_t current_state_id;
-    pdcid_t client_state_id;
-    pdcid_t server_state_id;
-} pdc_tf_region_info;
-
-/**
- * Used as a  field in _pdc_obj_info see pdc_obj_pkh.h
- * When a user attaches a graph to an object(s)/region
- * it is appended the array of regions here.
- *
- * Each appended region has an associated tf_region_info
- * in the tf_regions_info array. This has information
- * such as the current state of the region and the associated
- * graph.
- *
- * If the graph is attached to an object we simply
- * create a region that spans the entire object and
- * tie the graph to that.
- *
- * Maps the user's conceptual region to the actual (possibly transformed) region
- * stored on the data server.
- *
- * Example:
- *   - A user performs a PDC_WRITE of 20 elements at offset 10.
- *   - This data is compressed and stored as 5 elements at offset 10 on the server.
- *   - When the user later performs a PDC_READ for 20 elements at offset 10,
- *     this mapping is used to determine the current server-side region
- *     (i.e., 5 elements at offset 10).
- *   - The decompression transformation uses this information to decompress
- *     the correct region before returning 20 elements to the user.
- *
- * This mapping is essential for inverse transformations like decompression
- * that need to know the actual server-side size and offset of the data.
- */
-typedef struct pdc_tf_obj_t {
-    // this is the client's perspective of the remote region
-    pdc_tf_absolute_region_t client_regions[MAX_REGIONS];
-    // this is the actual remote region
-    pdc_tf_absolute_region_t remote_regions[MAX_REGIONS];
-    // this tracks state of the region
-    pdc_tf_region_info tf_regions_info[MAX_REGIONS];
-    uint32_t           num_regions;
-} pdc_obj_tf_t;
-
-/**
- * used as input and output region for transformations
- * ndim: number of dimensions
- * dims: array of dimensions
- * unit: bytes/element
- */
 typedef struct pdc_tf_region_t {
     size_t   ndim;
-    uint64_t dims[DIM_MAX];
-    uint32_t unit;
+    uint8_t  unit;
+    uint64_t size[DIM_MAX];
 } pdc_tf_region_t;
+
+typedef struct pdc_tf_region_state_t {
+    pdcid_t dg_id;
+    char   *cur_state;
+    char   *desired_state;
+} pdc_tf_region_state_t;
+
+typedef struct pdc_tf_region_mapping_t {
+    pdc_tf_region_state_t region_state;
+    pdc_tf_region_t       conceptual_region;
+    uint64_t              conceptual_offset[DIM_MAX];
+    pdc_tf_region_t       actual_region;
+} pdc_tf_region_mapping_t;
+
+/**
+ * This is a field in _pdc_obj_info that enables transformations
+ * This is a mapping between conceptual and actual regions
+ * Example: Conceptual region is the region before compression,
+ *          actual region is the region after compression.
+ *          The conceptual region is used to define the transformation,
+ *          while the actual region is used to store the data.
+ * The num_region is the number of regions with attached graphs.
+ */
+typedef struct pdc_tf_obj_t {
+    pdc_tf_region_mapping_t region_mappings[MAX_REGIONS];
+    uint32_t                num_region_mappings;
+} pdc_obj_tf_t;
 
 typedef enum pdc_tf_granularities_t {
     PDC_TF_ELEMENT_GRANULARITY,
@@ -91,7 +49,7 @@ typedef enum pdc_tf_granularities_t {
 extern char *pdc_tf_granularity_strs[];
 
 typedef struct pdc_tf_state_t {
-    char *                 name;
+    char                  *name;
     pdc_tf_granularities_t granularity;
 } pdc_tf_state_t;
 
@@ -127,7 +85,7 @@ extern char *pdc_tf_location_strs[];
 typedef struct pdc_tf_func_t {
     pdc_tf_dev_t      dev;
     pdc_tf_location_t location;
-    char *            name;
+    char             *name;
     c_func_t          c_func;
 } pdc_tf_func_t;
 
@@ -135,6 +93,7 @@ typedef struct pdc_tf_func_t {
 #define PDC_TF_MAX_FUNC_NAME_LEN 100
 #define PDC_TF_MAX_BUILTIN_FUNCS 100
 #define PDC_TF_MAPPINGS          100
+
 /**
  * This could just happen on client/server init
  * Currently happens in PDCtf_load_dg_json_common
@@ -154,15 +113,13 @@ extern uint32_t              pdc_tf_builtin_cur_func_g;
 extern pdc_dg_t *pdc_tf_graphs[200];
 
 perr_t PDCtf_load_dg_json_common(char *filepath, pdc_dg_t **dg);
-perr_t PDCtf_exec_graph(pdcid_t dg_id, pdcid_t current_state_id, pdcid_t desired_state_id,
-                        pdc_tf_region_t input_region, pdc_tf_region_t *output_region, void **input);
+perr_t PDCtf_exec_graph(pdcid_t dg_id, char *cur_state, char *desired_state, pdc_tf_region_t input_region,
+                        pdc_tf_region_t *output_region, void **input);
 perr_t PDCtf_init_builtin_funcs();
 perr_t PDCtf_add_builtin_func(char *func_name, c_func_t c_func);
 perr_t PDCtf_link_builtin_func(char *func_name, pdc_tf_func_t *f);
-bool   PDCtf_should_exec_graph(struct _pdc_obj_info *obj_info, pdcid_t *region_exec_graph_id, int client_ndim,
-                               uint8_t client_unit, uint64_t *client_offset, uint64_t *client_dims,
-                               bool check_client);
-
+bool PDCtf_region_has_attached_graph(struct _pdc_obj_info *obj_info, int ndim, uint8_t unit, uint64_t *offset,
+                                     uint64_t *size, pdc_tf_region_mapping_t **region_mapping);
 size_t PDCtf_get_pdc_region_t_elements(pdc_tf_region_t reg);
 size_t PDCtf_get_pdc_region_t_bytes(pdc_tf_region_t reg);
 void   PDCtf_log_pdc_region_t(pdc_tf_region_t reg);

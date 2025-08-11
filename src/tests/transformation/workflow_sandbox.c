@@ -37,8 +37,6 @@ workflow1(pdcid_t pdc, pdcid_t cont)
     PDCtf_print_dg(dg_id, true);
     PDCtf_print_exec_path(dg_id, "decompressed_floats", "compressed_floats");
 
-    exit(0);
-
     TASSERT((obj_prop = PDCprop_create(PDC_OBJ_CREATE, pdc)) != 0, "obj_prop_create succeeded",
             "obj_prop_create failed");
     uint64_t dims[NUM_DIMS];
@@ -59,6 +57,9 @@ workflow1(pdcid_t pdc, pdcid_t cont)
             "region_create failed");
     TASSERT((reg_global = PDCregion_create(NUM_DIMS, offset, dims)) != 0, "region_create succeeded",
             "region_create failed");
+
+    // attach grraph to object region
+    PDCtf_attach_to_region(dg_id, obj_id, reg_global, "decompressed_floats", "compressed_floats");
 
     // write transfer
     LOG_INFO("Starting region transfer write\n");

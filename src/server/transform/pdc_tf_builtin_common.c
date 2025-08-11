@@ -65,17 +65,17 @@ pdc_tf_builtin_zfp_compress(void *params, void **region_data, pdc_tf_region_t in
 
     switch (input_reg.ndim) {
         case 1:
-            field = zfp_field_1d(buf, z_type, input_reg.dims[0]);
+            field = zfp_field_1d(buf, z_type, input_reg.size[0]);
             break;
         case 2:
-            field = zfp_field_2d(buf, z_type, input_reg.dims[0], input_reg.dims[1]);
+            field = zfp_field_2d(buf, z_type, input_reg.size[0], input_reg.size[1]);
             break;
         case 3:
-            field = zfp_field_3d(buf, z_type, input_reg.dims[0], input_reg.dims[1], input_reg.dims[2]);
+            field = zfp_field_3d(buf, z_type, input_reg.size[0], input_reg.size[1], input_reg.size[2]);
             break;
         case 4:
-            field = zfp_field_4d(buf, z_type, input_reg.dims[0], input_reg.dims[1], input_reg.dims[2],
-                                 input_reg.dims[3]);
+            field = zfp_field_4d(buf, z_type, input_reg.size[0], input_reg.size[1], input_reg.size[2],
+                                 input_reg.size[3]);
             break;
         case 0:
             LOG_ERROR("ZFP compression not supported for 0 dimensions\n");
@@ -108,7 +108,7 @@ pdc_tf_builtin_zfp_compress(void *params, void **region_data, pdc_tf_region_t in
 
     // Allocate buffer for compressed data
     size_t bufsize           = zfp_stream_maximum_size(zfp, field);
-    void * compressed_buffer = malloc(bufsize);
+    void  *compressed_buffer = malloc(bufsize);
     if (!compressed_buffer) {
         LOG_ERROR("Failed to allocate memory for compressed data\n");
         zfp_field_free(field);
@@ -146,7 +146,7 @@ pdc_tf_builtin_zfp_compress(void *params, void **region_data, pdc_tf_region_t in
     // Update output region dims to reflect compressed data size (1D)
     output_reg->ndim    = 1;
     output_reg->unit    = 1;
-    output_reg->dims[0] = compressed_size;
+    output_reg->size[0] = compressed_size;
 
     // Free zfp structures
     zfp_field_free(field);
@@ -171,8 +171,8 @@ pdc_tf_builtin_zfp_decompress(void *params, void **region_data, pdc_tf_region_t 
     uint8_t  align  = 0;
 
     // Compressed buffer from input
-    void * compressed_buffer = *region_data;
-    size_t compressed_size   = input_reg.dims[0];
+    void  *compressed_buffer = *region_data;
+    size_t compressed_size   = input_reg.size[0];
 
     // Create bitstream from compressed data
     bitstream *stream = stream_open(compressed_buffer, compressed_size);
@@ -200,7 +200,7 @@ pdc_tf_builtin_zfp_decompress(void *params, void **region_data, pdc_tf_region_t 
     // Allocate uncompressed buffer
     size_t total_elems = 1;
     for (int i = 0; i < ndim; ++i)
-        total_elems *= input_reg.dims[i];
+        total_elems *= input_reg.size[i];
 
     float *decompressed_data = (float *)malloc(total_elems * sizeof(float));
     if (!decompressed_data) {
@@ -255,7 +255,7 @@ pdc_tf_builtin_zfp_decompress(void *params, void **region_data, pdc_tf_region_t 
     // Set output region unit and dims (same as input)
     output_reg->unit = 4;
     output_reg->ndim = 1;
-    memcpy(output_reg->dims, dims, ndim * sizeof(uint64_t));
+    memcpy(output_reg->size, dims, ndim * sizeof(uint64_t));
 
     // Update region_data to point to decompressed buffer
     *region_data = decompressed_data;

@@ -1,5 +1,6 @@
 #include <unistd.h>
 #include <errno.h>
+#include <assert.h>
 
 #include "common_io.h"
 #include "pdc_malloc.h"
@@ -17,8 +18,8 @@ uint32_t              pdc_tf_builtin_cur_func_g = 0;
 bool pdc_tf_has_init_g = false;
 
 perr_t
-PDCtf_exec_graph(pdcid_t dg_id, pdcid_t current_state_id, pdcid_t desired_state_id,
-                 pdc_tf_region_t input_region, pdc_tf_region_t *output_region, void **input)
+PDCtf_exec_graph(pdcid_t dg_id, char *cur_state, char *desired_state, pdc_tf_region_t input_region,
+                 pdc_tf_region_t *output_region, void **input)
 {
     /*FUNC_ENTER(NULL);
 
@@ -132,49 +133,35 @@ done:
 }
 
 bool
-PDCtf_should_exec_graph(struct _pdc_obj_info *obj_info, pdcid_t *region_exec_graph_id, int ndim, uint8_t unit,
-                        uint64_t *offset, uint64_t *dims, bool check_client)
+PDCtf_region_has_attached_graph(struct _pdc_obj_info *obj_info, int ndim, uint8_t unit, uint64_t *offset,
+                                uint64_t *size, pdc_tf_region_mapping_t **region_mapping)
 {
-    bool ret_value = false;
+    bool ret_value  = false;
+    *region_mapping = NULL;
 
-    /**
-     * loop through attached graphs
-     * if this is NULL then no graphs are attached to the object
-     */
-    if (obj_info->pdc_tf_obj != NULL)
-        PGOTO_DONE(false);
+    assert(obj_info != NULL);
+    assert(obj_info->pdc_tf_obj != NULL);
 
-    for (*region_exec_graph_id = 0; *region_exec_graph_id < obj_info->pdc_tf_obj->num_regions;
-         (*region_exec_graph_id)++) {
-        pdc_tf_absolute_region_t abs_reg;
+    LOG_INFO("num_region_mappings: %d\n", obj_info->pdc_tf_obj->num_region_mappings);
 
-        if (check_client)
-            abs_reg = obj_info->pdc_tf_obj->client_regions[*region_exec_graph_id];
-        else
-            abs_reg = obj_info->pdc_tf_obj->remote_regions[*region_exec_graph_id];
+    for (int i = 0; i < obj_info->pdc_tf_obj->num_region_mappings; i++) {
+        *region_mapping                    = &obj_info->pdc_tf_obj->region_mappings[i];
+        pdc_tf_region_t *coneptual_region  = &((*region_mapping)->conceptual_region);
+        uint64_t        *conceptual_offset = (*region_mapping)->conceptual_offset;
 
         // check if client ndim, offset, dims, unit match
-        bool ndim_matches = abs_reg.ndim == ndim;
-        bool unit_matches = abs_reg.unit == unit;
+        bool ndim_matches = coneptual_region->ndim == ndim;
+        bool unit_matches = coneptual_region->unit == unit;
         // note these return 0 on match so ! is needed
-        bool offset_matches = !memcmp(abs_reg.offset, offset, ndim * sizeof(uint64_t));
-        bool dims_matches   = !memcmp(abs_reg.dims, dims, ndim * sizeof(uint64_t));
+        bool offset_matches = !memcmp(conceptual_offset, offset, ndim * sizeof(uint64_t));
+        bool size_matches   = !memcmp(coneptual_region->size, size, ndim * sizeof(uint64_t));
 
-        // debug logging for matching
-        if (check_client)
-            LOG_INFO("Checking against client regions\n");
-        else
-            LOG_INFO("Checking against remote regions\n");
+        LOG_INFO("ndim_matches: %d, unit_matches: %d, offset_matches: %d, size_matches: %d\n", ndim_matches,
+                 unit_matches, offset_matches, size_matches);
 
-        LOG_INFO("\tpassed ndim %d, checked ndim %d\n", abs_reg.ndim, ndim);
-        LOG_INFO("\tpassed unit %d, checked unit %d\n", abs_reg.unit, unit);
-        for (int i = 0; i < ndim; i++)
-            LOG_INFO("\tpassed dims[%d]=%d, checked dims[%d]=%d\n", i, abs_reg.dims[i], i, dims[i]);
-        for (int i = 0; i < ndim; i++)
-            LOG_INFO("\tpassed offset[%d]=%d, checked offset[%d]=%d\n", i, abs_reg.offset[i], i, offset[i]);
-
-        if (ndim_matches && offset_matches && dims_matches && unit_matches)
+        if (ndim_matches && offset_matches && size_matches && unit_matches) {
             PGOTO_DONE(true);
+        }
     }
 
 done:
@@ -203,7 +190,7 @@ static const char *
 get_json_string(struct json_object *json_obj, char *str_name)
 {
     struct json_object *str_json_obj = NULL;
-    const char *        ret_value    = NULL;
+    const char         *ret_value    = NULL;
 
     if (!json_object_object_get_ex(json_obj, str_name, &str_json_obj))
         PGOTO_ERROR(NULL, "%s was not found", str_name);
@@ -291,7 +278,7 @@ PDCtf_load_dg_json_common(char *filepath, pdc_dg_t **dg)
     FUNC_ENTER(NULL);
 
     perr_t              ret_value = SUCCEED;
-    FILE *              fp        = NULL;
+    FILE               *fp        = NULL;
     struct json_object *json_obj  = NULL;
     io_buffer_t         io_buffer;
     memset(&io_buffer, 0, sizeof(io_buffer_t));
@@ -468,7 +455,7 @@ PDCtf_get_pdc_region_t_elements(pdc_tf_region_t reg)
 {
     size_t num_elements = 1;
     for (int i = 0; i < reg.ndim; ++i) {
-        num_elements *= reg.dims[i];
+        num_elements *= reg.size[i];
     }
     return num_elements;
 }
@@ -485,6 +472,6 @@ PDCtf_log_pdc_region_t(pdc_tf_region_t reg)
     LOG_INFO("region ndim: %lu\n", reg.ndim);
     LOG_INFO("region unit: %lu\n", reg.unit);
     for (int i = 0; i < reg.ndim; i++)
-        LOG_INFO("\tdim %d = %lu\n", i + 1, reg.dims[0]);
+        LOG_INFO("\tsize[%d] = %lu\n", i + 1, reg.size[0]);
     LOG_INFO("region bytes: %zu\n", PDCtf_get_pdc_region_t_bytes(reg));
 }

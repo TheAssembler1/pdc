@@ -5,6 +5,7 @@
 #include "pdc_tf.h"
 #include "pdc_timing.h"
 #include "pdc_interface.h"
+#include "pdc_prop.h"
 #include "pdc_obj_pkg.h"
 #include "pdc_dg.h"
 #include "pdc_malloc.h"
@@ -57,8 +58,8 @@ PDCtf_set_output_mode(pdcid_t dg_id, pdc_tf_output_mode_t mode, pdcid_t *obj_ids
 
 // region transfer to/from the specified obj_id, remote_reg_id follow DG
 perr_t
-PDCtf_attach_to_region(pdcid_t dg_id, pdcid_t obj_id, pdcid_t remote_reg_id, pdcid_t client_state_id,
-                       pdc_var_type_t client_var_type, pdcid_t server_state_id)
+PDCtf_attach_to_region(pdcid_t dg_id, pdcid_t obj_id, pdcid_t remote_reg, char *client_state,
+                       char *stored_state)
 {
     FUNC_ENTER(NULL);
 
@@ -73,30 +74,33 @@ PDCtf_attach_to_region(pdcid_t dg_id, pdcid_t obj_id, pdcid_t remote_reg_id, pdc
     const struct _pdc_obj_info *obj_info = obj_id_info->obj_ptr;
 
     // pull out pdc obj transform information
-    struct pdc_tf_obj_t *pdc_tf_obj        = obj_info->pdc_tf_obj;
-    const uint32_t       cur_remote_region = pdc_tf_obj->num_regions;
+    struct pdc_tf_obj_t *pdc_tf_obj     = obj_info->pdc_tf_obj;
+    const uint32_t       cur_region_map = pdc_tf_obj->num_region_mappings;
 
-    // add remote region information
-    struct _pdc_id_info *region_id_info = PDC_find_id(remote_reg_id);
+    // get region information
+    struct _pdc_id_info *region_id_info = PDC_find_id(remote_reg);
     if (region_id_info == NULL)
         PGOTO_ERROR(FAIL, "Cannot locate remote region ID");
-    struct pdc_region_info *region_info                = region_id_info->obj_ptr;
-    pdc_tf_obj->client_regions[cur_remote_region].ndim = region_info->ndim;
-    memcpy(pdc_tf_obj->client_regions[cur_remote_region].offset, region_info->offset,
-           region_info->ndim * sizeof(uint64_t));
-    memcpy(pdc_tf_obj->client_regions[cur_remote_region].dims, region_info->size,
-           region_info->ndim * sizeof(uint64_t));
-    pdc_tf_obj->client_regions[cur_remote_region].unit = PDC_get_var_type_size(client_var_type);
+    struct pdc_region_info *region_info = region_id_info->obj_ptr;
 
-    // since this in on the client side the current state is the client_state_id
-    pdc_tf_obj->tf_regions_info[cur_remote_region].current_state_id = client_state_id;
-    pdc_tf_obj->tf_regions_info[cur_remote_region].client_state_id  = client_state_id;
-    pdc_tf_obj->tf_regions_info[cur_remote_region].server_state_id  = server_state_id;
-    // finally attach the graph to the region
-    pdc_tf_obj->tf_regions_info[cur_remote_region].dg_id = dg_id;
+    // get region mapping fields from object
+    pdc_tf_region_mapping_t *region_mapping    = &pdc_tf_obj->region_mappings[cur_region_map];
+    pdc_tf_region_t         *conceptual_region = &region_mapping->conceptual_region;
+    uint64_t                *coneptual_offset  = region_mapping->conceptual_offset;
 
-    // increase the current region
-    pdc_tf_obj->num_regions++;
+    // copy region information into conceptual region
+    conceptual_region->ndim = region_info->ndim;
+    conceptual_region->unit = PDC_get_var_type_size(obj_info->obj_pt->obj_prop_pub->type);
+    memcpy(coneptual_offset, region_info->offset, region_info->ndim * sizeof(uint64_t));
+    memcpy(conceptual_region->size, region_info->size, region_info->ndim * sizeof(uint64_t));
+
+    // FIXME: need to free these strings later
+    pdc_tf_obj->region_mappings[cur_region_map].region_state.cur_state     = strdup(client_state);
+    pdc_tf_obj->region_mappings[cur_region_map].region_state.desired_state = strdup(stored_state);
+    region_mapping->region_state.dg_id                                     = dg_id;
+
+    // increase the current region mapping
+    pdc_tf_obj->num_region_mappings++;
 done:
     FUNC_LEAVE(ret_value);
 }
