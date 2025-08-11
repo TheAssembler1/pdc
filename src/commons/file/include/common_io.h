@@ -32,7 +32,7 @@
  * \brief Data structure for input/output operations.
  */
 typedef struct {
-    char  *buffer; /**< Pointer to the buffer data */
+    char * buffer; /**< Pointer to the buffer data */
     size_t size;   /**< Size of the buffer */
 } io_buffer_t;
 

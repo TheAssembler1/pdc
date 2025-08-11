@@ -108,7 +108,7 @@ pdc_tf_builtin_zfp_compress(void *params, void **region_data, pdc_tf_region_t in
 
     // Allocate buffer for compressed data
     size_t bufsize           = zfp_stream_maximum_size(zfp, field);
-    void  *compressed_buffer = malloc(bufsize);
+    void * compressed_buffer = malloc(bufsize);
     if (!compressed_buffer) {
         LOG_ERROR("Failed to allocate memory for compressed data\n");
         zfp_field_free(field);
@@ -171,7 +171,7 @@ pdc_tf_builtin_zfp_decompress(void *params, void **region_data, pdc_tf_region_t 
     uint8_t  align  = 0;
 
     // Compressed buffer from input
-    void  *compressed_buffer = *region_data;
+    void * compressed_buffer = *region_data;
     size_t compressed_size   = input_reg.size[0];
 
     // Create bitstream from compressed data

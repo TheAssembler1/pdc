@@ -8,9 +8,9 @@
 #include "cjson/cJSON.h"
 
 typedef struct {
-    void    *processor_args; // pdc_importer_args_t
-    void    *arg1;           // unused
-    void    *arg2;           // unused
+    void *   processor_args; // pdc_importer_args_t
+    void *   arg1;           // unused
+    void *   arg2;           // unused
     int      current_file_count;
     int      processed_file_count;
     int      mpi_size;

@@ -27,7 +27,7 @@ main(int argc, char **argv)
     uint64_t pdc_dims[3], pdc_offset[3], pdc_size[3], pdc_local_offset[3], pdc_local_size[3];
     uint32_t value_size;
     // 12x, 32x, 32x
-    char   *fname, *dname = "vel_0 ijk layout", tag_name[128];
+    char *  fname, *dname = "vel_0 ijk layout", tag_name[128];
     double *data = NULL, t0, t1, t2, data_max, data_min, *ssi_data = NULL, *rec_data = NULL,
            *opensees_data = NULL, tag_value[4];
 

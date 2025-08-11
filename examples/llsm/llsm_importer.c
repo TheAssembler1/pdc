@@ -18,7 +18,7 @@
 #include <libgen.h>
 
 typedef struct llsm_importer_args_t {
-    char         *directory_path;
+    char *        directory_path;
     csv_header_t *csv_header;
 } llsm_importer_args_t;
 
@@ -267,12 +267,12 @@ main(int argc, char *argv[])
     MPI_Comm_size(MPI_COMM_WORLD, &size);
 #endif
 
-    char                 *file_name    = NULL;
-    PDC_LIST             *list         = pdc_list_new();
-    char                 *csv_line     = NULL;
+    char *                file_name    = NULL;
+    PDC_LIST *            list         = pdc_list_new();
+    char *                csv_line     = NULL;
     int                   num_row_read = 0;
-    csv_header_t         *csv_header   = NULL;
-    csv_row_t            *csv_row      = NULL;
+    csv_header_t *        csv_header   = NULL;
+    csv_row_t *           csv_row      = NULL;
     llsm_importer_args_t *llsm_args    = NULL;
     int                   bcast_count  = 512;
     double                duration = 0, start = 0;
@@ -352,7 +352,7 @@ main(int argc, char *argv[])
     MPI_Barrier(MPI_COMM_WORLD);
     start = MPI_Wtime();
 #else
-    start = getDoubleTimestamp();
+    start    = getDoubleTimestamp();
 #endif
     // go through the csv table
     csv_row_t *current_row = csv_table->first_row;

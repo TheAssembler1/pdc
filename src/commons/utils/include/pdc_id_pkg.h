@@ -48,14 +48,14 @@
 #define PDC_TYPE(a) ((PDC_type_t)(((pdcid_t)(a) >> ID_BITS) & TYPE_MASK))
 
 struct _pdc_class {
-    char   *name;
+    char *  name;
     pdcid_t local_id;
 };
 
 struct _pdc_id_info {
     pdcid_t           id;      /* ID for this info                 */
     hg_atomic_int32_t count;   /* ref. count for this atom         */
-    void             *obj_ptr; /* pointer associated with the atom */
+    void *            obj_ptr; /* pointer associated with the atom */
     PDC_LIST_ENTRY(_pdc_id_info) entry;
 };
 

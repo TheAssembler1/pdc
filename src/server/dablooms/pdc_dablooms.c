@@ -458,7 +458,7 @@ new_scaling_bloom(unsigned int capacity, double error_rate)
 {
     FUNC_ENTER(NULL);
 
-    scaling_bloom_t  *bloom;
+    scaling_bloom_t * bloom;
     counting_bloom_t *cur_bloom;
 
     bloom = scaling_bloom_init(capacity, error_rate);

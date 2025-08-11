@@ -72,7 +72,7 @@ typedef struct {
 typedef struct {
     art_node      n;
     unsigned char keys[4];
-    art_node     *children[4];
+    art_node *    children[4];
 } art_node4;
 
 /**
@@ -81,7 +81,7 @@ typedef struct {
 typedef struct {
     art_node      n;
     unsigned char keys[16];
-    art_node     *children[16];
+    art_node *    children[16];
 } art_node16;
 
 /**
@@ -91,7 +91,7 @@ typedef struct {
 typedef struct {
     art_node      n;
     unsigned char keys[256];
-    art_node     *children[48];
+    art_node *    children[48];
 } art_node48;
 
 /**
@@ -107,7 +107,7 @@ typedef struct {
  * of arbitrary size, as they include the key.
  */
 typedef struct {
-    void         *value;
+    void *        value;
     uint32_t      key_len;
     unsigned char key[];
 } art_leaf;

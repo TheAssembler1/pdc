@@ -396,15 +396,15 @@ int
 main(int argc, char *argv[])
 {
     pdcid_t     pdc, cont_prop, cont, obj_prop;
-    pdcid_t    *obj_ids;
+    pdcid_t *   obj_ids;
     int         n_obj, my_csv_rows, num_columns;
     int         proc_num, my_rank, i, v, iter, round, csv_expand_factor, is_using_dart, query_type, comm_type;
     double      stime, total_time;
     pdc_kvtag_t kvtag;
-    uint64_t   *pdc_ids;
+    uint64_t *  pdc_ids;
     int         nres, ntotal;
-    int        *my_cnt_round;
-    int        *total_cnt_round;
+    int *       my_cnt_round;
+    int *       total_cnt_round;
     int         ret_value = SUCCEED;
 
 #ifdef ENABLE_MPI
@@ -435,7 +435,7 @@ main(int argc, char *argv[])
         PGOTO_ERROR(FAIL, "Failed to prepare container");
 
     // ********************** Read and Broadcast first few rows of CSV file **********************
-    char  *data      = NULL;
+    char * data      = NULL;
     size_t data_size = 0;
 
     if (my_rank == 0) {
@@ -464,7 +464,7 @@ main(int argc, char *argv[])
 
     // ********************** Parse these rows of CSV file **********************
     // read the CSV file and parse into data
-    char  **csv_header = (char **)calloc(MAX_COLUMNS, sizeof(char *));
+    char ** csv_header = (char **)calloc(MAX_COLUMNS, sizeof(char *));
     char ***csv_data   = NULL;
     my_csv_rows =
         read_csv_from_buffer(data, &csv_header, &csv_data, &num_columns, rows_to_read, my_rank, proc_num);
@@ -485,7 +485,7 @@ main(int argc, char *argv[])
         LOG_INFO("[Object Creation] Rank %d/%d: Created %d objects, time: %.5f ms\n", my_rank, proc_num,
                  obj_created, total_time * 1000.0);
 
-    // ********************** Add tags to objects **********************
+        // ********************** Add tags to objects **********************
 #ifdef ENABLE_MPI
     MPI_Barrier(MPI_COMM_WORLD);
     stime = MPI_Wtime();
@@ -551,7 +551,7 @@ main(int argc, char *argv[])
             }
 #endif
         } // end query type
-    } // end comm type
+    }     // end comm type
 
     if (my_rank == 0) {
         LOG_INFO("Rank %d: All queries are done\n", my_rank);

@@ -48,15 +48,15 @@ main(int argc, char **argv)
     dart_object_ref_type_t ref_type  = REF_PRIMARY_ID;
     dart_hash_algo_t       hash_algo = DART_HASH;
 
-    char    *key   = "abcd";
-    char    *value = "1234";
+    char *   key   = "abcd";
+    char *   value = "1234";
     uint64_t data  = 12341234;
     // if (rank == 0) {
     PDC_Client_insert_obj_ref_into_dart(hash_algo, key, value, strlen(value), PDC_STRING, ref_type, data);
     LOG_INFO("[Client_Side_Insert] Insert '%s=%s' for ref %llu\n", key, value, data);
 
     // This is for testing exact search
-    char     *exact_query = "abcd=1234";
+    char *    exact_query = "abcd=1234";
     uint64_t *out1;
     int       rest_count1 = 0;
     PDC_Client_search_obj_ref_through_dart(hash_algo, exact_query, ref_type, &rest_count1, &out1);
@@ -65,7 +65,7 @@ main(int argc, char **argv)
              out1[0]);
 
     // This function test is for testing the prefix search
-    char     *prefix_query = "ab*=12*";
+    char *    prefix_query = "ab*=12*";
     uint64_t *out2;
     int       rest_count2 = 0;
     PDC_Client_search_obj_ref_through_dart(hash_algo, prefix_query, ref_type, &rest_count2, &out2);
@@ -74,7 +74,7 @@ main(int argc, char **argv)
              out2[0]);
 
     // This function test is for testing the suffix search.
-    char     *suffix_query = "*cd=*34";
+    char *    suffix_query = "*cd=*34";
     uint64_t *out3;
     int       rest_count3 = 0;
     PDC_Client_search_obj_ref_through_dart(hash_algo, suffix_query, ref_type, &rest_count3, &out3);
@@ -83,7 +83,7 @@ main(int argc, char **argv)
              out3[0]);
 
     // This is for testing infix search.
-    char     *infix_query = "*bc*=*23*";
+    char *    infix_query = "*bc*=*23*";
     uint64_t *out4;
     int       rest_count4 = 0;
     PDC_Client_search_obj_ref_through_dart(hash_algo, infix_query, ref_type, &rest_count4, &out4);
@@ -99,7 +99,7 @@ main(int argc, char **argv)
 
     if (PDCclose(pdc) < 0)
         LOG_ERROR("Failed to close PDC\n");
-    // }
+        // }
 #ifdef ENABLE_MPI
     MPI_Finalize();
 #endif

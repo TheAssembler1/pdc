@@ -56,9 +56,9 @@ run_jl_function(const char *mod_name, const char *fun_name, jl_fn_args_t *args)
 {
     char module_eval_cmd[strlen(mod_name) + 15];
     sprintf(module_eval_cmd, "Main.%s", mod_name);
-    jl_module_t   *JuliaModule = (jl_module_t *)jl_eval_string(module_eval_cmd);
+    jl_module_t *  JuliaModule = (jl_module_t *)jl_eval_string(module_eval_cmd);
     jl_function_t *jl_func     = jl_get_function(JuliaModule, fun_name);
-    jl_value_t    *result      = jl_call(jl_func, args->args, args->nargs);
+    jl_value_t *   result      = jl_call(jl_func, args->args, args->nargs);
     LOG_INFO("[PDC_JL_HELPER] Function called: %s.%s\n", mod_name, fun_name);
     return result;
 }
@@ -70,7 +70,7 @@ run_jl_get_int64_array(const char *mod_name, const char *fun_name, jl_fn_args_t 
     jl_value_t *ret = run_jl_function(mod_name, fun_name, args);
     JL_GC_PUSH1(&ret);
     jl_array_t *ret_array = (jl_array_t *)ret;
-    int64_t    *data      = (int64_t *)jl_array_data(ret_array);
+    int64_t *   data      = (int64_t *)jl_array_data(ret_array);
     *arr_ptr              = data;
     *arr_len              = jl_array_len(ret_array);
     JL_GC_POP();
@@ -83,7 +83,7 @@ run_jl_get_float64_array(const char *mod_name, const char *fun_name, jl_fn_args_
     jl_value_t *ret = run_jl_function(mod_name, fun_name, args);
     JL_GC_PUSH1(&ret);
     jl_array_t *ret_array = (jl_array_t *)ret;
-    double     *data      = (double *)jl_array_data(ret_array);
+    double *    data      = (double *)jl_array_data(ret_array);
     *arr_ptr              = data;
     *arr_len              = jl_array_len(ret_array);
     JL_GC_POP();
@@ -97,7 +97,7 @@ run_jl_get_string_array(const char *mod_name, const char *fun_name, jl_fn_args_t
     JL_GC_PUSH1(&ret);
     jl_array_t *ret_array = (jl_array_t *)ret;
     size_t      length    = jl_array_len(ret);
-    char      **strings   = malloc(length * sizeof(char *));
+    char **     strings   = malloc(length * sizeof(char *));
 
     for (size_t i = 0; i < length; ++i) {
         jl_value_t *julia_str    = jl_arrayref(ret_array, i);

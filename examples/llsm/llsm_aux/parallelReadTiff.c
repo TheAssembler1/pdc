@@ -112,7 +112,7 @@ readTiffParallel(uint64_t x, uint64_t y, uint64_t z, const char *fileName, void 
     LOG_INFO("numWorkers %d\n", numWorkers);
 
     uint16_t compressed = 1;
-    TIFF    *tif        = TIFFOpen(fileName, "r");
+    TIFF *   tif        = TIFFOpen(fileName, "r");
     TIFFGetField(tif, TIFFTAG_COMPRESSION, &compressed);
 
     int32_t w;
@@ -127,7 +127,7 @@ readTiffParallel(uint64_t x, uint64_t y, uint64_t z, const char *fileName, void 
         for (w = 0; w < numWorkers; w++) {
 
             uint8_t outCounter = 0;
-            TIFF   *tif        = TIFFOpen(fileName, "r");
+            TIFF *  tif        = TIFFOpen(fileName, "r");
             while (!tif) {
                 tif = TIFFOpen(fileName, "r");
                 if (outCounter == 3) {
@@ -279,7 +279,7 @@ readTiffParallel(uint64_t x, uint64_t y, uint64_t z, const char *fileName, void 
         }
         close(fd);
         uint64_t size  = x * y * z * (bits / 8);
-        void    *tiffC = malloc(size);
+        void *   tiffC = malloc(size);
         memcpy(tiffC, tiff, size);
 #ifdef ENABLE_OPENMP
 #pragma omp parallel for
@@ -419,7 +419,7 @@ readTiffParallel2D(uint64_t x, uint64_t y, uint64_t z, const char *fileName, voi
     for (w = 0; w < numWorkers; w++) {
 
         uint8_t outCounter = 0;
-        TIFF   *tif        = TIFFOpen(fileName, "r");
+        TIFF *  tif        = TIFFOpen(fileName, "r");
         while (!tif) {
             tif = TIFFOpen(fileName, "r");
             if (outCounter == 3) {
@@ -618,7 +618,7 @@ readTiffParallelImageJ(uint64_t x, uint64_t y, uint64_t z, const char *fileName,
     // Find a way to do this in-place without making a copy
     if (flipXY) {
         uint64_t size  = x * y * z * (bits / 8);
-        void    *tiffC = malloc(size);
+        void *   tiffC = malloc(size);
         memcpy(tiffC, tiff, size);
 #ifdef ENABLE_OPENMP
 #pragma omp parallel for

@@ -20,9 +20,9 @@ main(int argc, char **argv)
     uint64_t pdc_dims[3], pdc_offset[3], pdc_size[3], pdc_local_offset[3], pdc_local_size[3];
     psize_t  value_size;
     // 12x, 32x, 32x
-    char    *fname, tag_name[128];
+    char *   fname, tag_name[128];
     uint64_t dims[4] = {4634, 19201, 12801, 1}, chunk_size[4] = {400, 600, 400, 1};
-    double  *data = NULL, t0, t1, t2, data_max, data_min, *ssi_data = NULL, *rec_data = NULL,
+    double * data = NULL, t0, t1, t2, data_max, data_min, *ssi_data = NULL, *rec_data = NULL,
            *opensees_data = NULL, *tag_value = NULL;
     pdc_var_type_t value_type;
 

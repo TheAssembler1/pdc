@@ -228,7 +228,7 @@ PDCdg_shortest_path(pdc_dg_t *dg, void *v1_data, void *v2_data, pdc_dg_edge_t **
     LOG_INFO("PDCdg_shortest_path was called\n");
 
     bool                ret_value = false;
-    bool               *visited   = NULL;
+    bool *              visited   = NULL;
     pdc_dg_vertex_id_t *prev      = NULL;
     pdc_dg_vertex_id_t *queue     = NULL;
     pdc_dg_vertex_id_t *path      = NULL;

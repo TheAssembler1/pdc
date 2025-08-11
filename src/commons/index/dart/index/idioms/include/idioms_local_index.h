@@ -25,7 +25,7 @@
 typedef struct {
     art_tree *art_key_prefix_tree_g;
     art_tree *art_key_suffix_tree_g;
-    DART     *dart_info_g;
+    DART *    dart_info_g;
     uint32_t  server_id_g;
     uint32_t  num_servers_g;
     int64_t   index_record_count_g;
@@ -38,12 +38,12 @@ typedef struct {
 } IDIOMS_t;
 
 typedef struct {
-    char            *key;
+    char *           key;
     int8_t           is_key_suffix;
     uint64_t         virtual_node_id;
     pdc_c_var_type_t type;
     // int              simple_value_type; // 0: uint64_t, 1: int64_t, 2: double, 3: char*
-    void     *value;
+    void *    value;
     size_t    value_len;
     uint64_t *obj_ids;
     size_t    num_obj_ids;
@@ -60,18 +60,18 @@ typedef struct {
     // Also, for key lookup ART, we also maintain the pointer to the value tree
     art_tree *primary_trie;
     art_tree *secondary_trie;
-    rbt_t    *primary_rbt;
-    rbt_t    *secondary_rbt;
+    rbt_t *   primary_rbt;
+    rbt_t *   secondary_rbt;
     uint8_t   val_idx_dtype; // 0: uint64_t, 1: int64_t, 2: double
 } key_index_leaf_content_t;
 
 typedef struct {
-    Set   *obj_id_set;
+    Set *  obj_id_set;
     size_t indexed_item_count;
 } value_index_leaf_content_t;
 
 typedef struct {
-    void     *value;
+    void *    value;
     size_t    value_len;
     uint64_t *obj_ids;
     size_t    num_obj_ids;
@@ -80,12 +80,12 @@ typedef struct {
 typedef struct {
     value_index_record_t *value_idx_record;
     uint64_t              num_value_idx_record;
-    char                 *key;
+    char *                key;
     uint64_t              virtual_node_id;
 } key_index_record_t;
 
 typedef struct {
-    void  *buffer;
+    void * buffer;
     size_t buffer_size;
     size_t buffer_capacity;
     size_t num_keys;

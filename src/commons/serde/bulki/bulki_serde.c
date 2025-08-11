@@ -123,7 +123,7 @@ BULKI_Entity_serialize(BULKI_Entity *entity, size_t *size)
     FUNC_ENTER(NULL);
 
     size_t estimated_size = get_BULKI_Entity_size(entity);
-    void  *buffer         = PDC_calloc(1, estimated_size);
+    void * buffer         = PDC_calloc(1, estimated_size);
     size_t offset         = 0;
     BULKI_Entity_serialize_to_buffer(entity, buffer, &offset);
     if (offset < estimated_size) {
@@ -181,7 +181,7 @@ BULKI_serialize(BULKI *data, size_t *size)
     FUNC_ENTER(NULL);
 
     size_t estimated_size = get_BULKI_size(data);
-    void  *buffer         = PDC_calloc(1, estimated_size);
+    void * buffer         = PDC_calloc(1, estimated_size);
     size_t offset         = 0;
     BULKI_serialize_to_buffer(data, buffer, &offset);
     if (offset < estimated_size) {
@@ -201,7 +201,7 @@ BULKI_Entity_serialize_to_file(BULKI_Entity *entity, FILE *fp)
     FUNC_ENTER(NULL);
 
     size_t size;
-    void  *buffer = BULKI_Entity_serialize(entity, &size);
+    void * buffer = BULKI_Entity_serialize(entity, &size);
     fwrite(buffer, size, 1, fp);
     buffer = (void *)PDC_free(buffer);
     fclose(fp);
@@ -215,7 +215,7 @@ BULKI_serialize_to_file(BULKI *bulki, FILE *fp)
     FUNC_ENTER(NULL);
 
     size_t size   = 0;
-    void  *buffer = BULKI_serialize(bulki, &size);
+    void * buffer = BULKI_serialize(bulki, &size);
     fwrite(buffer, size, 1, fp);
     buffer = (void *)PDC_free(buffer);
     fclose(fp);

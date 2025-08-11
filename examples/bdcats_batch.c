@@ -66,7 +66,7 @@ main(int argc, char **argv)
     char   obj_name[128];
     float *x, *y, *z;
     float *px, *py, *pz;
-    int   *id1, *id2;
+    int *  id1, *id2;
     //    int       x_dim = 64;
     //    int       y_dim = 64;
     //    int       z_dim = 64;
@@ -177,7 +177,7 @@ main(int argc, char **argv)
 #ifdef ENABLE_MPI
         obj_xx[i] = PDCobj_open_col(obj_name, pdc_id);
 #else
-        obj_xx[i] = PDCobj_open(obj_name, pdc_id);
+        obj_xx[i]   = PDCobj_open(obj_name, pdc_id);
 #endif
         if (obj_xx[i] == 0) {
             LOG_ERROR("Error getting an object id of %s from server, exit...\n", "obj-var-xx");
@@ -187,7 +187,7 @@ main(int argc, char **argv)
 #ifdef ENABLE_MPI
         obj_yy[i] = PDCobj_open_col(obj_name, pdc_id);
 #else
-        obj_yy[i] = PDCobj_open(obj_name, pdc_id);
+        obj_yy[i]   = PDCobj_open(obj_name, pdc_id);
 #endif
         if (obj_yy[i] == 0) {
             LOG_ERROR("Error getting an object id of %s from server, exit...\n", "obj-var-yy");
@@ -197,7 +197,7 @@ main(int argc, char **argv)
 #ifdef ENABLE_MPI
         obj_zz[i] = PDCobj_open_col(obj_name, pdc_id);
 #else
-        obj_zz[i] = PDCobj_open(obj_name, pdc_id);
+        obj_zz[i]   = PDCobj_open(obj_name, pdc_id);
 #endif
         if (obj_zz[i] == 0) {
             LOG_ERROR("Error getting an object id of %s from server, exit...\n", "obj-var-zz");
@@ -207,7 +207,7 @@ main(int argc, char **argv)
 #ifdef ENABLE_MPI
         obj_pxx[i] = PDCobj_open_col(obj_name, pdc_id);
 #else
-        obj_pxx[i] = PDCobj_open(obj_name, pdc_id);
+        obj_pxx[i]  = PDCobj_open(obj_name, pdc_id);
 #endif
         if (obj_pxx[i] == 0) {
             LOG_ERROR("Error getting an object id of %s from server, exit...\n", "obj-var-pxx");
@@ -217,7 +217,7 @@ main(int argc, char **argv)
 #ifdef ENABLE_MPI
         obj_pyy[i] = PDCobj_open_col(obj_name, pdc_id);
 #else
-        obj_pyy[i] = PDCobj_open(obj_name, pdc_id);
+        obj_pyy[i]  = PDCobj_open(obj_name, pdc_id);
 #endif
         if (obj_pyy[i] == 0) {
             LOG_ERROR("Error getting an object id of %s from server, exit...\n", "obj-var-pyy");
@@ -227,7 +227,7 @@ main(int argc, char **argv)
 #ifdef ENABLE_MPI
         obj_pzz[i] = PDCobj_open_col(obj_name, pdc_id);
 #else
-        obj_pzz[i] = PDCobj_open(obj_name, pdc_id);
+        obj_pzz[i]  = PDCobj_open(obj_name, pdc_id);
 #endif
         if (obj_pzz[i] == 0) {
             LOG_ERROR("Error getting an object id of %s from server, exit...\n", "obj-var-pzz");

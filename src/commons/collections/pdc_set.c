@@ -38,7 +38,7 @@ struct _SetEntry {
 };
 
 struct _Set {
-    SetEntry   **table;
+    SetEntry **  table;
     unsigned int entries;
     unsigned int table_size;
     unsigned int prime_index;
@@ -139,8 +139,8 @@ set_free(Set *set)
 {
     FUNC_ENTER(NULL);
 
-    SetEntry    *rover;
-    SetEntry    *next;
+    SetEntry *   rover;
+    SetEntry *   next;
     unsigned int i;
 
     /* Free all entries in all chains */
@@ -185,9 +185,9 @@ set_enlarge(Set *set)
 {
     FUNC_ENTER(NULL);
 
-    SetEntry    *rover;
-    SetEntry    *next;
-    SetEntry   **old_table;
+    SetEntry *   rover;
+    SetEntry *   next;
+    SetEntry **  old_table;
     unsigned int old_table_size;
     unsigned int old_prime_index;
     unsigned int index;
@@ -250,8 +250,8 @@ set_insert(Set *set, SetValue data)
 {
     FUNC_ENTER(NULL);
 
-    SetEntry    *newentry;
-    SetEntry    *rover;
+    SetEntry *   newentry;
+    SetEntry *   rover;
     unsigned int index;
 
     /* The hash table becomes less efficient as the number of entries
@@ -320,8 +320,8 @@ set_remove(Set *set, SetValue data)
 {
     FUNC_ENTER(NULL);
 
-    SetEntry   **rover;
-    SetEntry    *entry;
+    SetEntry **  rover;
+    SetEntry *   entry;
     unsigned int index;
 
     /* Look up the data by its hash key */
@@ -369,7 +369,7 @@ set_query(Set *set, SetValue data)
 {
     FUNC_ENTER(NULL);
 
-    SetEntry    *rover;
+    SetEntry *   rover;
     unsigned int index;
 
     /* Look up the data by its hash key */
@@ -410,10 +410,10 @@ set_to_array(Set *set)
 {
     FUNC_ENTER(NULL);
 
-    SetValue    *array;
+    SetValue *   array;
     int          array_counter;
     unsigned int i;
-    SetEntry    *rover;
+    SetEntry *   rover;
 
     /* Create an array to hold the set entries */
 
@@ -453,7 +453,7 @@ set_union(Set *set1, Set *set2)
     FUNC_ENTER(NULL);
 
     SetIterator iterator;
-    Set        *new_set;
+    Set *       new_set;
     SetValue    value;
 
     new_set = set_new(set1->hash_func, set1->equal_func);
@@ -515,7 +515,7 @@ set_intersection(Set *set1, Set *set2)
 {
     FUNC_ENTER(NULL);
 
-    Set        *new_set;
+    Set *       new_set;
     SetIterator iterator;
     SetValue    value;
 
@@ -586,9 +586,9 @@ set_iter_next(SetIterator *iterator)
 {
     FUNC_ENTER(NULL);
 
-    Set         *set;
+    Set *        set;
     SetValue     result;
-    SetEntry    *current_entry;
+    SetEntry *   current_entry;
     unsigned int chain;
 
     set = iterator->set;

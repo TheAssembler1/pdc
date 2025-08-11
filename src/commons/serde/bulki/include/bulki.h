@@ -20,7 +20,7 @@ typedef struct {
     pdc_c_var_type_t  pdc_type;  /**< Data type of the value */
     uint64_t          count;     /**< Number of elements in the array */
     uint64_t          size;      // size in byte of the data.
-    void             *data;      /**< Pointer to the value data */
+    void *            data;      /**< Pointer to the value data */
 } BULKI_Entity;
 
 typedef struct {
@@ -35,7 +35,7 @@ typedef struct {
 
 typedef struct {
     BULKI_Header *header;    /**< Pointer to the header */
-    BULKI_Data   *data;      /**< Pointer to the data */
+    BULKI_Data *  data;      /**< Pointer to the data */
     uint64_t      totalSize; /**< Total size of the serialized data */
     uint64_t      numKeys;   /**< Actual Number of keys in the header*/
     uint64_t capacity; /**< The predefined number of keys in Bulki. If numKeys >= capacity, array expansion is
@@ -46,7 +46,7 @@ typedef struct {
     BULKI_Entity *entity_array;   // Points to the array being iterated
     uint64_t      current_idx;    // Current index in the array
     uint64_t      total_size;     // Total number of elements in the array
-    void         *bent_filter;    // Optional filter to apply during iteration, it can be NULL/an insteance of
+    void *        bent_filter;    // Optional filter to apply during iteration, it can be NULL/an insteance of
                                   // BULKI/an instance of BULKI_Entity
     pdc_c_var_type_t filter_type; // The type of the filter
 } BULKI_Entity_Iterator;
@@ -57,7 +57,7 @@ typedef struct {
 } BULKI_KV_Pair;
 
 typedef struct {
-    BULKI   *bulki;
+    BULKI *  bulki;
     uint64_t current_idx;
     uint64_t total_size;
 } BULKI_KV_Pair_Iterator;

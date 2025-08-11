@@ -83,8 +83,8 @@ typedef void *SetValue;
  */
 
 struct _SetIterator {
-    Set         *set;
-    SetEntry    *next_entry;
+    Set *        set;
+    SetEntry *   next_entry;
     unsigned int next_chain;
 };
 

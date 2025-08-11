@@ -86,7 +86,7 @@ PDC_finish_request(uint64_t transfer_request_id)
 {
     FUNC_ENTER(NULL);
 
-    pdc_transfer_request_status    *ptr, *tmp = NULL;
+    pdc_transfer_request_status *   ptr, *tmp = NULL;
     perr_t                          ret_value = SUCCEED;
     transfer_request_wait_out_t     out;
     transfer_request_wait_all_out_t out_all;
@@ -293,7 +293,7 @@ PDC_Server_data_io_flattened(uint64_t obj_id, int obj_ndim, const uint64_t *obj_
 
     perr_t   ret_value = SUCCEED;
     int      fd;
-    char    *data_path = NULL;
+    char *   data_path = NULL;
     char     storage_location[ADDR_MAX];
     ssize_t  io_size;
     uint64_t i, j;
@@ -453,8 +453,8 @@ PDC_Server_data_io_region_per_file(uint64_t obj_id, int obj_ndim, const uint64_t
                                    size_t unit, int is_write)
 {
     int      ret_value = 0;
-    char   **temp_bufs = NULL;
-    int     *fds       = NULL;
+    char **  temp_bufs = NULL;
+    int *    fds       = NULL;
     uint64_t dims[obj_ndim];
     uint64_t indices[obj_ndim];
     uint64_t temp_bufs_array[obj_ndim][2];
@@ -909,7 +909,7 @@ parse_bulk_data(void *buf, transfer_request_all_data *request_data, pdc_access_t
 {
     FUNC_ENTER(NULL);
 
-    char    *ptr = (char *)buf;
+    char *   ptr = (char *)buf;
     int      i, j;
     uint64_t data_size;
 
