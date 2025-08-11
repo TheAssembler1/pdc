@@ -33,7 +33,7 @@ workflow1(pdcid_t pdc, pdcid_t cont)
     int *data = (int *)malloc(total_particles * sizeof(int));
     set_buf(data, INIT_VAL, total_particles);
 
-    pdcid_t dg_id = PDCtf_load_dg_json("/home/ta1/src/workspace/source/pdc/tf_graphs/test.json");
+    pdcid_t dg_id = PDCtf_open_dg_json("/home/ta1/src/workspace/source/pdc/tf_graphs/test.json");
     PDCtf_print_dg(dg_id, true);
     PDCtf_print_exec_path(dg_id, "decompressed_floats", "compressed_floats");
 

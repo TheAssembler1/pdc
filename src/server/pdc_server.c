@@ -1301,7 +1301,7 @@ PDC_Server_checkpoint()
         } // End for metadata entry linked list
     }     // End for hash table metadata entry
 
-    // Note data server region are managed by data server instead of metadata server
+    // Note data server region is managed by data server instead of metadata server
     data_server_region_t *region = NULL;
     DL_COUNT(dataserver_region_g, region, n_objs);
     fwrite(&n_objs, sizeof(int), 1, file);

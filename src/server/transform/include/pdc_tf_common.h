@@ -16,8 +16,8 @@ typedef struct pdc_tf_region_t {
 
 typedef struct pdc_tf_region_state_t {
     pdcid_t dg_id;
-    char *  cur_state;
-    char *  desired_state;
+    char   *cur_state;
+    char   *desired_state;
 } pdc_tf_region_state_t;
 
 typedef struct pdc_tf_region_mapping_t {
@@ -49,7 +49,7 @@ typedef enum pdc_tf_granularities_t {
 extern char *pdc_tf_granularity_strs[];
 
 typedef struct pdc_tf_state_t {
-    char *                 name;
+    char                  *name;
     pdc_tf_granularities_t granularity;
 } pdc_tf_state_t;
 
@@ -85,7 +85,7 @@ extern char *pdc_tf_location_strs[];
 typedef struct pdc_tf_func_t {
     pdc_tf_dev_t      dev;
     pdc_tf_location_t location;
-    char *            name;
+    char             *name;
     c_func_t          c_func;
 } pdc_tf_func_t;
 
@@ -96,7 +96,7 @@ typedef struct pdc_tf_func_t {
 
 /**
  * This could just happen on client/server init
- * Currently happens in PDCtf_load_dg_json_common
+ * Currently happens in PDCtf_open_dg_json_common
  */
 extern bool pdc_tf_has_init_g;
 
@@ -112,12 +112,12 @@ extern uint32_t              pdc_tf_builtin_cur_func_g;
 
 extern pdc_dg_t *pdc_tf_graphs[200];
 
-perr_t PDCtf_load_dg_json_common(char *filepath, pdc_dg_t **dg);
-perr_t PDCtf_exec_graph(pdcid_t dg_id, char *cur_state, char *desired_state, pdc_tf_region_t input_region,
-                        pdc_tf_region_t *output_region, void **input);
-perr_t PDCtf_init_builtin_funcs();
-perr_t PDCtf_add_builtin_func(char *func_name, c_func_t c_func);
-perr_t PDCtf_link_builtin_func(char *func_name, pdc_tf_func_t *f);
+pdcid_t PDCtf_open_dg_json_common(char *filepath);
+perr_t  PDCtf_exec_graph(pdcid_t dg_id, char *cur_state, char *desired_state, pdc_tf_region_t input_region,
+                         pdc_tf_region_t *output_region, void **input);
+perr_t  PDCtf_init_builtin_funcs();
+perr_t  PDCtf_add_builtin_func(char *func_name, c_func_t c_func);
+perr_t  PDCtf_link_builtin_func(char *func_name, pdc_tf_func_t *f);
 bool PDCtf_region_has_attached_graph(struct _pdc_obj_info *obj_info, int ndim, uint8_t unit, uint64_t *offset,
                                      uint64_t *size, pdc_tf_region_mapping_t **region_mapping);
 size_t PDCtf_get_pdc_region_t_elements(pdc_tf_region_t reg);

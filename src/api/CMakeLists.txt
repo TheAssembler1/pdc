@@ -79,6 +79,7 @@ set(PDC_SRCS
   ${PDC_SOURCE_DIR}/src/api/pdc_region/pdc_region_transfer.c
   ${PDC_SOURCE_DIR}/src/api/pdc_tf/pdc_tf.c
   ${PDC_SOURCE_DIR}/src/server/pdc_client_server_common.c
+  ${PDC_SOURCE_DIR}/src/server/transform/pdc_tf_server.c
   ${PDC_SOURCE_DIR}/src/server/transform/pdc_tf_common.c
   ${PDC_SOURCE_DIR}/src/server/transform/pdc_tf_builtin_common.c
   ${PDC_SOURCE_DIR}/src/server/pdc_server_region/pdc_server_region_transfer.c

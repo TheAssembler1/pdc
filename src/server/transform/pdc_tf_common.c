@@ -153,7 +153,7 @@ PDCtf_region_has_attached_graph(struct _pdc_obj_info *obj_info, int ndim, uint8_
     for (int i = 0; i < obj_info->pdc_tf_obj->num_region_mappings; i++) {
         *region_mapping                    = &obj_info->pdc_tf_obj->region_mappings[i];
         pdc_tf_region_t *coneptual_region  = &((*region_mapping)->conceptual_region);
-        uint64_t *       conceptual_offset = (*region_mapping)->conceptual_offset;
+        uint64_t        *conceptual_offset = (*region_mapping)->conceptual_offset;
 
         // check if client ndim, offset, dims, unit match
         bool ndim_matches = coneptual_region->ndim == ndim;
@@ -196,7 +196,7 @@ static const char *
 get_json_string(struct json_object *json_obj, char *str_name)
 {
     struct json_object *str_json_obj = NULL;
-    const char *        ret_value    = NULL;
+    const char         *ret_value    = NULL;
 
     if (!json_object_object_get_ex(json_obj, str_name, &str_json_obj))
         PGOTO_ERROR(NULL, "%s was not found", str_name);
@@ -251,6 +251,19 @@ vertices_are_equal(void *v1, void *v2)
 }
 
 static void
+graph_free(void *data)
+{
+    FUNC_ENTER(NULL);
+
+    LOG_INFO("graph_free called\n");
+
+    char *json_filepath = (char *)data;
+    json_filepath       = PDC_free(data);
+
+    FUNC_LEAVE_VOID();
+}
+
+static void
 edge_free(void *data)
 {
     FUNC_ENTER(NULL);
@@ -278,35 +291,41 @@ vertex_free(void *data)
     FUNC_LEAVE_VOID();
 }
 
-perr_t
-PDCtf_load_dg_json_common(char *filepath, pdc_dg_t **dg)
+// FIXME: just a temp way of generating id's...
+/**
+ * Need to start at 1 since pdcid_t is used as a failure indicator
+ */
+static pdcid_t tf_cur_graph_id = 1;
+
+pdcid_t
+PDCtf_open_dg_json_common(char *filepath)
 {
     FUNC_ENTER(NULL);
 
-    perr_t              ret_value = SUCCEED;
-    FILE *              fp        = NULL;
+    pdcid_t             ret_value = tf_cur_graph_id;
+    FILE               *fp        = NULL;
     struct json_object *json_obj  = NULL;
     io_buffer_t         io_buffer;
     memset(&io_buffer, 0, sizeof(io_buffer_t));
-    *dg = NULL;
+    pdc_dg_t *dg = NULL;
 
     if (!pdc_tf_has_init_g) {
         if (PDCtf_init_builtin_funcs() == FAIL)
-            PGOTO_ERROR(FAIL, "Failed to initialialize builtin functions");
+            PGOTO_ERROR(0, "Failed to initialialize builtin functions");
         pdc_tf_has_init_g = true;
     }
 
     // Open and read JSON file into buffer
     if ((fp = open_file(filepath, IO_MODE_READ)) == NULL)
-        PGOTO_ERROR(FAIL, "Failed to open_file");
+        PGOTO_ERROR(0, "Failed to open_file: %s\n", filepath);
     if (read_file(fp, &io_buffer) != 0)
-        PGOTO_ERROR(FAIL, "Failed to read_file");
+        PGOTO_ERROR(0, "Failed to read_file");
 
     LOG_INFO("File size was %ld bytes\n", io_buffer.size);
 
     // Parse and pretty print JSON
     if ((json_obj = json_tokener_parse(io_buffer.buffer)) == NULL)
-        PGOTO_ERROR(FAIL, "Failed to parse JSON");
+        PGOTO_ERROR(0, "Failed to parse JSON");
     printf("%s\n", json_object_to_json_string_ext(json_obj, JSON_C_TO_STRING_PRETTY));
 
     LOG_INFO("================START loading JSON into PDC===================\n");
@@ -314,17 +333,18 @@ PDCtf_load_dg_json_common(char *filepath, pdc_dg_t **dg)
     // Get directed graph name
     const char *dg_name = get_json_string(json_obj, "name");
     if (dg_name == NULL)
-        PGOTO_ERROR(FAIL, "Failed to find graph name");
+        PGOTO_ERROR(0, "Failed to find graph name");
     LOG_INFO("Directed graph name: %s\n", dg_name);
 
     // Actually create directed graph data structure
-    *dg = PDCdg_create(NULL, vertices_are_equal, NULL, edge_free, vertex_free);
+    dg         = PDCdg_create(graph_free, vertices_are_equal, NULL, edge_free, vertex_free);
+    (dg)->data = strdup(filepath);
 
     // Parse and pretty print JSON
     struct array_list *states    = get_json_array(json_obj, "states");
     struct array_list *functions = get_json_array(json_obj, "functions");
     if (states == NULL || functions == NULL)
-        PGOTO_DONE(FAIL);
+        PGOTO_DONE(0);
 
     /**
      * Extract states
@@ -338,7 +358,7 @@ PDCtf_load_dg_json_common(char *filepath, pdc_dg_t **dg)
         const char *s_granularity = get_json_string(s, "granularity");
 
         if (s_name == NULL || s_granularity == NULL)
-            PGOTO_DONE(FAIL);
+            PGOTO_DONE(0);
 
         LOG_INFO("Found state: %s\n", s_name);
         LOG_INFO("\tGranularity: %s\n", s_granularity);
@@ -354,7 +374,7 @@ PDCtf_load_dg_json_common(char *filepath, pdc_dg_t **dg)
             }
         }
         if (!found_granularity)
-            PGOTO_ERROR(FAIL, "Invalid granularity %s\n", s_granularity);
+            PGOTO_ERROR(0, "Invalid granularity %s\n", s_granularity);
 
         // Add vertex to the directed graph data structure
         pdc_tf_state_t *dg_state = PDC_malloc(sizeof(pdc_tf_state_t));
@@ -362,8 +382,8 @@ PDCtf_load_dg_json_common(char *filepath, pdc_dg_t **dg)
         dg_state->name        = strdup(s_name);
         dg_state->granularity = granularity;
 
-        if (PDCdg_add_vertex(*dg, dg_state) == PDC_DG_INVALID_VERTEX)
-            PGOTO_ERROR(FAIL, "Failed to add vertex to directed graph\n");
+        if (PDCdg_add_vertex(dg, dg_state) == PDC_DG_INVALID_VERTEX)
+            PGOTO_ERROR(0, "Failed to add vertex to directed graph\n");
     }
 
     /**
@@ -381,7 +401,7 @@ PDCtf_load_dg_json_common(char *filepath, pdc_dg_t **dg)
         const char *f_location     = get_json_string(f, "location");
 
         if (f_name == NULL || f_input_state == NULL || f_output_state == NULL || f_location == NULL)
-            PGOTO_DONE(FAIL);
+            PGOTO_DONE(0);
 
         LOG_INFO("Found function: %s\n", f_name);
         LOG_INFO("\tDevice: %s\n", f_device);
@@ -402,7 +422,7 @@ PDCtf_load_dg_json_common(char *filepath, pdc_dg_t **dg)
             }
         }
         if (!found_device)
-            PGOTO_ERROR(FAIL, "Invalid device %s\n", f_device);
+            PGOTO_ERROR(0, "Invalid device %s\n", f_device);
 
         // Validate location
         pdc_tf_location_t location;
@@ -415,18 +435,18 @@ PDCtf_load_dg_json_common(char *filepath, pdc_dg_t **dg)
             }
         }
         if (!found_location)
-            PGOTO_ERROR(FAIL, "Invalid location %s\n", f_location);
+            PGOTO_ERROR(0, "Invalid location %s\n", f_location);
 
         // FIXME: Currently on support CPU devices and built-in functions
         if (dev != PDC_TF_CPU_DEVICE)
-            PGOTO_ERROR(FAIL, "Currently, only support CPU functions");
+            PGOTO_ERROR(0, "Currently, only support CPU functions");
         if (location != PDC_TF_BUILTIN)
-            PGOTO_ERROR(FAIL, "Currently, only support builtin functions");
+            PGOTO_ERROR(0, "Currently, only support builtin functions");
 
         dg_func->dev      = dev;
         dg_func->location = location;
         if (PDCtf_link_builtin_func(f_name, dg_func) != SUCCEED)
-            PGOTO_ERROR(FAIL, "Failed to link to builtin function");
+            PGOTO_ERROR(0, "Failed to link to builtin function");
         dg_func->name = strdup(f_name);
 
         /**
@@ -438,7 +458,7 @@ PDCtf_load_dg_json_common(char *filepath, pdc_dg_t **dg)
         i_state.name = f_input_state;
         o_state.name = f_output_state;
 
-        if (PDCdg_add_edge(*dg, &i_state, &o_state, dg_func) == PDC_DG_INVALID_EDGE)
+        if (PDCdg_add_edge(dg, &i_state, &o_state, dg_func) == PDC_DG_INVALID_EDGE)
             PGOTO_ERROR(FAIL, "Failed to add edge to directed graph\n");
     }
 
@@ -450,8 +470,12 @@ done:
         PDC_free(io_buffer.buffer);
     if (json_obj != NULL)
         json_object_put(json_obj);
-    if (ret_value == FAIL)
-        PDCdg_destroy(*dg);
+    if (ret_value == 0)
+        PDCdg_destroy(dg);
+    else {
+        pdc_tf_graphs[ret_value] = dg;
+        tf_cur_graph_id++;
+    }
 
     FUNC_LEAVE(ret_value);
 }

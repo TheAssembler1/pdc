@@ -86,7 +86,7 @@ PDC_finish_request(uint64_t transfer_request_id)
 {
     FUNC_ENTER(NULL);
 
-    pdc_transfer_request_status *   ptr, *tmp = NULL;
+    pdc_transfer_request_status    *ptr, *tmp = NULL;
     perr_t                          ret_value = SUCCEED;
     transfer_request_wait_out_t     out;
     transfer_request_wait_all_out_t out_all;
@@ -293,7 +293,7 @@ PDC_Server_data_io_flattened(uint64_t obj_id, int obj_ndim, const uint64_t *obj_
 
     perr_t   ret_value = SUCCEED;
     int      fd;
-    char *   data_path = NULL;
+    char    *data_path = NULL;
     char     storage_location[ADDR_MAX];
     ssize_t  io_size;
     uint64_t i, j;
@@ -439,215 +439,10 @@ flatten_index(const uint64_t *indices, const uint64_t *dims, int ndim)
     return idx;
 }
 
-/*
- * Handles reading and writing of multi-dimensional data regions
- * across multiple files segmented by specified file chunk dimensions.
- * It pre-reads relevant file chunks into temporary buffers,
- * performs element-wise data transfer between user buffers and temp buffers,
- * and writes modified chunks back to files when writing.
- * This supports partial I/O on large datasets split across multiple files.
- */
-static int
+static perr_t
 PDC_Server_data_io_region_per_file(uint64_t obj_id, int obj_ndim, const uint64_t *obj_dims,
                                    const uint64_t *file_dims, struct pdc_region_info *region_info, void *buf,
                                    size_t unit, int is_write)
-{
-    int      ret_value = 0;
-    char **  temp_bufs = NULL;
-    int *    fds       = NULL;
-    uint64_t dims[obj_ndim];
-    uint64_t indices[obj_ndim];
-    uint64_t temp_bufs_array[obj_ndim][2];
-    uint64_t i;
-
-    // Validate region dims match obj dims
-    if (obj_ndim != (int)region_info->ndim)
-        PGOTO_ERROR(FAIL, "Obj dim does not match region dim");
-
-    // Validate file dims non-zero
-    for (i = 0; i < (uint64_t)obj_ndim; i++) {
-        if (file_dims[i] == 0)
-            PGOTO_ERROR(FAIL, "File dimension %d is zero", i);
-    }
-
-    // Compute file index spans for each dimension
-    for (i = 0; i < (uint64_t)obj_ndim; i++) {
-        temp_bufs_array[i][FILE_START] = region_info->offset[i] / file_dims[i];
-        temp_bufs_array[i][FILE_END]   = (region_info->offset[i] + region_info->size[i] - 1) / file_dims[i];
-    }
-
-    // Compute how many files spanned per dimension & total number of files
-    uint64_t total_files = 1;
-    for (i = 0; i < (uint64_t)obj_ndim; i++) {
-        dims[i] = temp_bufs_array[i][FILE_END] - temp_bufs_array[i][FILE_START] + 1;
-        total_files *= dims[i];
-    }
-
-    // Allocate temp buffers for each file chunk
-    temp_bufs = PDC_calloc(total_files, sizeof(char *));
-
-    uint64_t file_chunk_elements = PDC_get_region_desc_size(file_dims, obj_ndim);
-    size_t   file_chunk_bytes    = file_chunk_elements * unit;
-
-    for (i = 0; i < total_files; i++) {
-        temp_bufs[i] = PDC_calloc(1, file_chunk_bytes);
-        if (temp_bufs[i] == NULL)
-            PGOTO_ERROR(FAIL, "Failed to allocate %lu bytes for temp_bufs[%lu]", file_chunk_bytes, i);
-    }
-    fds = PDC_calloc(total_files, sizeof(int));
-
-    // Prepare indices at start of file index spans
-    for (i = 0; i < (uint64_t)obj_ndim; i++)
-        indices[i] = temp_bufs_array[i][FILE_START];
-
-    // === READ PHASE: pre-read full file chunks into temp buffers (if reading) ===
-    for (;;) {
-        char *storage_location = get_storage_location_region_per_file(obj_id, obj_ndim, indices);
-
-        uint64_t local_indices[obj_ndim];
-        for (int d = 0; d < obj_ndim; d++)
-            local_indices[d] = indices[d] - temp_bufs_array[d][FILE_START];
-        uint64_t buf_idx = flatten_index(local_indices, dims, obj_ndim);
-        assert(buf_idx < total_files);
-        errno        = 0;
-        fds[buf_idx] = open(storage_location, O_RDWR | O_CREAT, 0644);
-
-        if (fds[buf_idx] < 0) {
-            if (errno == ENOENT) {
-                // File doesn't exist yet - zero-fill buffer
-                memset(temp_bufs[buf_idx], 0, file_chunk_bytes);
-            }
-            else
-                PGOTO_ERROR(FAIL, "Failed to open file %s: %s", storage_location, strerror(errno));
-        }
-        else {
-            size_t bytes_read = 0;
-            while (bytes_read < file_chunk_bytes) {
-                errno = 0;
-                ssize_t ret =
-                    read(fds[buf_idx], temp_bufs[buf_idx] + bytes_read, file_chunk_bytes - bytes_read);
-                if (ret < 0) {
-                    close(fds[buf_idx]);
-                    PGOTO_ERROR(FAIL, "Failed to read from file %s: %s", storage_location, strerror(errno));
-                }
-                bytes_read += ret;
-            }
-        }
-
-        storage_location = PDC_free(storage_location);
-
-        // Increment indices
-        int dim = obj_ndim - 1;
-        while (dim >= 0) {
-            if (++indices[dim] <= temp_bufs_array[dim][FILE_END])
-                break;
-            indices[dim] = temp_bufs_array[dim][FILE_START];
-            dim--;
-        }
-        if (dim < 0)
-            break;
-    }
-
-    // Reset indices for write or element phase below
-    for (i = 0; i < (uint64_t)obj_ndim; i++)
-        indices[i] = temp_bufs_array[i][FILE_START];
-
-    // === ELEMENT-WISE PHASE: Copy data from/to buffers ===
-    uint64_t total_elements = 1;
-    for (i = 0; i < (uint64_t)obj_ndim; i++)
-        total_elements *= region_info->size[i];
-
-    for (uint64_t elem_idx = 0; elem_idx < total_elements; elem_idx++) {
-        uint64_t coords[obj_ndim];
-        uint64_t remainder = elem_idx;
-
-        // Calculate element coords in region and add offset
-        for (int d = obj_ndim - 1; d >= 0; d--) {
-            coords[d] = remainder % region_info->size[d];
-            remainder /= region_info->size[d];
-            coords[d] += region_info->offset[d];
-        }
-
-        // Local coordinate inside file chunk
-        uint64_t local_coords[obj_ndim];
-        for (int d = 0; d < obj_ndim; d++)
-            local_coords[d] = coords[d] % file_dims[d];
-
-        uint64_t file_indices_abs[obj_ndim];   // absolute file index
-        uint64_t file_indices_local[obj_ndim]; // local (0-based in span)
-
-        for (int d = 0; d < obj_ndim; d++) {
-            file_indices_abs[d]   = coords[d] / file_dims[d];
-            file_indices_local[d] = file_indices_abs[d] - temp_bufs_array[d][FILE_START];
-        }
-
-        // use file_indices_local for flattening
-        uint64_t buf_idx = flatten_index(file_indices_local, dims, obj_ndim);
-
-        // Flatten local coords to get offset in file chunk buffer
-        uint64_t local_element_idx = 0;
-        uint64_t multiplier        = 1;
-        for (int d = obj_ndim - 1; d >= 0; d--) {
-            local_element_idx += local_coords[d] * multiplier;
-            multiplier *= file_dims[d];
-        }
-
-        // Copy one element (unit bytes) from/to buffer
-        char *temp_buf_ptr = temp_bufs[buf_idx] + local_element_idx * unit;
-        char *user_buf_ptr = (char *)buf + elem_idx * unit;
-
-        if (is_write)
-            memcpy(temp_buf_ptr, user_buf_ptr, unit);
-        else
-            memcpy(user_buf_ptr, temp_buf_ptr, unit);
-    }
-
-    // === WRITE PHASE: Write back modified temp buffers to files (if writing) ===
-    if (is_write) {
-        // Reset indices to file start spans
-        for (i = 0; i < (uint64_t)obj_ndim; i++)
-            indices[i] = temp_bufs_array[i][FILE_START];
-        for (;;) {
-            uint64_t local_indices[obj_ndim];
-            for (int d = 0; d < obj_ndim; d++)
-                local_indices[d] = indices[d] - temp_bufs_array[d][FILE_START];
-            uint64_t buf_idx = flatten_index(local_indices, dims, obj_ndim);
-
-            lseek(fds[buf_idx], 0, SEEK_SET);
-            PDC_POSIX_IO(fds[buf_idx], temp_bufs[buf_idx], file_chunk_bytes, 1);
-            close(fds[buf_idx]);
-
-            // Increment indices
-            int dim = obj_ndim - 1;
-            while (dim >= 0) {
-                if (++indices[dim] <= temp_bufs_array[dim][FILE_END])
-                    break;
-                indices[dim] = temp_bufs_array[dim][FILE_START];
-                dim--;
-            }
-            if (dim < 0)
-                break;
-        }
-    }
-
-done:
-    if (temp_bufs != NULL) {
-        for (i = 0; i < total_files; i++) {
-            if (temp_bufs[i] != NULL)
-                temp_bufs[i] = PDC_free(temp_bufs[i]);
-        }
-        temp_bufs = PDC_free(temp_bufs);
-    }
-    if (fds != NULL)
-        fds = PDC_free(fds);
-
-    return ret_value;
-}
-
-static perr_t
-PDC_Server_data_io_region_per_file_fast(uint64_t obj_id, int obj_ndim, const uint64_t *obj_dims,
-                                        const uint64_t *file_dims, struct pdc_region_info *region_info,
-                                        void *buf, size_t unit, int is_write)
 {
     FUNC_ENTER(NULL);
 
@@ -878,8 +673,8 @@ PDC_Server_transfer_request_io(uint64_t obj_id, int obj_ndim, const uint64_t *ob
             temp_file_dims[max_dim] /= 2;
         }
 
-        PGOTO_DONE(PDC_Server_data_io_region_per_file_fast(obj_id, obj_ndim, obj_dims, temp_file_dims,
-                                                           region_info, buf, unit, is_write));
+        PGOTO_DONE(PDC_Server_data_io_region_per_file(obj_id, obj_ndim, obj_dims, temp_file_dims, region_info,
+                                                      buf, unit, is_write));
     }
     else {
         PGOTO_ERROR(FAIL, "Invalid storage strategy");
@@ -909,7 +704,7 @@ parse_bulk_data(void *buf, transfer_request_all_data *request_data, pdc_access_t
 {
     FUNC_ENTER(NULL);
 
-    char *   ptr = (char *)buf;
+    char    *ptr = (char *)buf;
     int      i, j;
     uint64_t data_size;
 

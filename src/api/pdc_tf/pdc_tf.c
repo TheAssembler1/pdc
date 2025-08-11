@@ -13,25 +13,11 @@
 #include "pdc_tf_common.h"
 #include "pdc_client_server_common.h"
 
-// FIXME: just a temp way of generating id's...
-static pdcid_t tf_cur_graph_id = 100;
-
 pdcid_t
-PDCtf_load_dg_json(char *file_path)
+PDCtf_open_dg_json(char *json_filepath)
 {
     FUNC_ENTER(NULL);
-
-    pdcid_t   ret_value = tf_cur_graph_id;
-    pdc_dg_t *dg;
-
-    if (PDCtf_load_dg_json_common(file_path, &dg) != SUCCEED)
-        PGOTO_ERROR(0, "Failed to load JSON at path %s\n", file_path);
-
-    pdc_tf_graphs[ret_value] = dg;
-    tf_cur_graph_id++;
-
-done:
-    FUNC_LEAVE(ret_value);
+    FUNC_LEAVE(PDCtf_open_dg_json_common(json_filepath));
 }
 
 perr_t
@@ -71,9 +57,11 @@ PDCtf_attach_to_region(pdcid_t dg_id, pdcid_t obj_id, pdcid_t remote_reg, char *
     const struct _pdc_id_info *obj_id_info = PDC_find_id(obj_id);
     if (obj_id_info == NULL)
         PGOTO_ERROR(FAIL, "Failed to find object using pdcid");
-    const struct _pdc_obj_info *obj_info = obj_id_info->obj_ptr;
+    struct _pdc_obj_info *obj_info = obj_id_info->obj_ptr;
 
-    // pull out pdc obj transform information
+    // pull out pdc obj transform information and allocate first if NULL
+    if (obj_info->pdc_tf_obj == NULL)
+        obj_info->pdc_tf_obj = PDC_calloc(1, sizeof(struct pdc_tf_obj_t));
     struct pdc_tf_obj_t *pdc_tf_obj     = obj_info->pdc_tf_obj;
     const uint32_t       cur_region_map = pdc_tf_obj->num_region_mappings;
 
@@ -85,19 +73,19 @@ PDCtf_attach_to_region(pdcid_t dg_id, pdcid_t obj_id, pdcid_t remote_reg, char *
 
     // get region mapping fields from object
     pdc_tf_region_mapping_t *region_mapping    = &pdc_tf_obj->region_mappings[cur_region_map];
-    pdc_tf_region_t *        conceptual_region = &region_mapping->conceptual_region;
-    uint64_t *               coneptual_offset  = region_mapping->conceptual_offset;
+    pdc_tf_region_t         *conceptual_region = &region_mapping->conceptual_region;
+    uint64_t                *conceptual_offset = region_mapping->conceptual_offset;
 
     // copy region information into conceptual region
     conceptual_region->ndim = region_info->ndim;
     conceptual_region->unit = PDC_get_var_type_size(obj_info->obj_pt->obj_prop_pub->type);
-    memcpy(coneptual_offset, region_info->offset, region_info->ndim * sizeof(uint64_t));
+    memcpy(conceptual_offset, region_info->offset, region_info->ndim * sizeof(uint64_t));
     memcpy(conceptual_region->size, region_info->size, region_info->ndim * sizeof(uint64_t));
 
     // FIXME: need to free these strings later
-    pdc_tf_obj->region_mappings[cur_region_map].region_state.cur_state     = strdup(client_state);
-    pdc_tf_obj->region_mappings[cur_region_map].region_state.desired_state = strdup(stored_state);
-    region_mapping->region_state.dg_id                                     = dg_id;
+    region_mapping->region_state.cur_state     = strdup(client_state);
+    region_mapping->region_state.desired_state = strdup(stored_state);
+    region_mapping->region_state.dg_id         = dg_id;
 
     // increase the current region mapping
     pdc_tf_obj->num_region_mappings++;
