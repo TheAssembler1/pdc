@@ -62,8 +62,8 @@ collect_dir(const char *dir_path, int (*filter)(const struct dirent *),
         }
         while (cmp_nl(v, end) && (topk > 0 ? count < topk : 1)) {
             struct dirent *entry = namelist[v];
-            char *         path  = (char *)calloc(1024, sizeof(char));
-            char *         name  = (char *)calloc(1024, sizeof(char));
+            char          *path  = (char *)calloc(1024, sizeof(char));
+            char          *name  = (char *)calloc(1024, sizeof(char));
             snprintf(name, 1023, "%s", entry->d_name);
             snprintf(path, 1023, "%s/%s", dir_path, entry->d_name);
             if (pre_op) {

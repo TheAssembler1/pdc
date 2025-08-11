@@ -100,7 +100,7 @@ typedef struct _HashTablePair {
  */
 
 struct _HashTableIterator {
-    HashTable *     hash_table;
+    HashTable      *hash_table;
     HashTableEntry *next_entry;
     unsigned int    next_chain;
 };

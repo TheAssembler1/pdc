@@ -207,8 +207,8 @@ int
 show_profile_info(void **ht_live_entry, void *extraInfo ATTRIBUTE(unused))
 {
     static int count     = 0;
-    char *     LineBreak = "------------------------------------------------------------------------------";
-    char *     header    = " item  calls Time/call [Sec,nSec]\tftn_name";
+    char      *LineBreak = "------------------------------------------------------------------------------";
+    char      *header    = " item  calls Time/call [Sec,nSec]\tftn_name";
     const profileEntry_t *thisEntry = *(const profileEntry_t **)ht_live_entry;
 
     if (thisEntry) {
@@ -245,7 +245,8 @@ toggle_profile_enable()
  * The profile_fini should probably be used to dump the contents of the profile
  * hashtable.
  */
-void __attribute__((constructor)) profile_init(void)
+void __attribute__((constructor))
+profile_init(void)
 {
     int   default_HashtableSize = 128;
     char *size_override         = NULL;
@@ -276,7 +277,8 @@ void __attribute__((constructor)) profile_init(void)
     initialize_profile(&hashtable, default_HashtableSize);
 }
 
-void __attribute__((destructor)) finalize_profile(void)
+void __attribute__((destructor))
+finalize_profile(void)
 {
     int count = 1;
     if (thisHashTable != NULL) {

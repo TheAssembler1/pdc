@@ -136,11 +136,17 @@ bool
 PDCtf_region_has_attached_graph(struct _pdc_obj_info *obj_info, int ndim, uint8_t unit, uint64_t *offset,
                                 uint64_t *size, pdc_tf_region_mapping_t **region_mapping)
 {
-    bool ret_value  = false;
-    *region_mapping = NULL;
+    FUNC_ENTER(NULL);
 
-    assert(obj_info != NULL);
-    assert(obj_info->pdc_tf_obj != NULL);
+    bool ret_value = false;
+
+    if (obj_info == NULL)
+        PGOTO_DONE(false);
+    if (obj_info->pdc_tf_obj == NULL)
+        PGOTO_DONE(false);
+
+    LOG_INFO("obj_info p: %p\n", obj_info);
+    LOG_INFO("obj_info->pdc_tf_obj p: %p\n", obj_info->pdc_tf_obj);
 
     LOG_INFO("num_region_mappings: %d\n", obj_info->pdc_tf_obj->num_region_mappings);
 

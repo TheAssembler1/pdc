@@ -23,7 +23,7 @@ main(int argc, char **argv)
     hsize_t offset[4], size[4], stride[4], data_i;
     hsize_t dims[4] = {4634, 19201, 12801, 1}, chunk_size[4] = {400, 600, 400, 1};
     // dims is 12x, 32x, 32x of chunk size
-    char *  fname, *dname = "vel_0 ijk layout";
+    char   *fname, *dname = "vel_0 ijk layout";
     double *data = NULL, t0, t1, t2, data_max, data_min, *ssi_data = NULL, *rec_data = NULL,
            *opensees_data = NULL, meta_value[4];
 

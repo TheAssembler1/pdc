@@ -33,16 +33,16 @@ typedef enum {
 
 typedef struct _rbt_node_s {
     rbt_color_t         color;
-    void *              key;
+    void               *key;
     size_t              klen;
-    void *              value;
+    void               *value;
     struct _rbt_node_s *left;
     struct _rbt_node_s *right;
     struct _rbt_node_s *parent;
 } rbt_node_t;
 
 struct _rbt_s {
-    rbt_node_t *              root;
+    rbt_node_t               *root;
     uint64_t                  size;
     pdc_c_var_type_t          dtype;
     libhl_cmp_callback_t      cmp_keys_cb;

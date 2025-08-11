@@ -128,15 +128,15 @@ int
 main(int argc, char *argv[])
 {
     pdcid_t     pdc, cont_prop, cont, obj_prop;
-    pdcid_t *   obj_ids;
+    pdcid_t    *obj_ids;
     int         n_obj, my_obj, my_obj_s;
     int         proc_num, my_rank, i, v, iter, round, selectivity, is_using_dart, query_type, comm_type;
     double      stime, total_time;
     pdc_kvtag_t kvtag;
-    uint64_t *  pdc_ids;
+    uint64_t   *pdc_ids;
     int         nres, ntotal;
-    int *       my_cnt_round;
-    int *       total_cnt_round;
+    int        *my_cnt_round;
+    int        *total_cnt_round;
     int         ret_value = SUCCEED;
 
 #ifdef ENABLE_MPI
@@ -277,7 +277,7 @@ main(int argc, char *argv[])
                     stime = MPI_Wtime();
                 }
 #endif
-                char *   attr_name = (char *)calloc(64, sizeof(char));
+                char    *attr_name = (char *)calloc(64, sizeof(char));
                 int64_t *tag_value;
                 snprintf(attr_name, 63, "attr_name");
                 tag_value    = malloc(sizeof(int64_t));
@@ -356,7 +356,7 @@ main(int argc, char *argv[])
             }
 #endif
         } // end query type
-    }     // end comm type
+    } // end comm type
 
     if (my_rank == 0) {
         LOG_JUST_PRINT("Rank %d: All queries are done\n", my_rank);

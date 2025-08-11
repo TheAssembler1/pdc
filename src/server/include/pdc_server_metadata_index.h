@@ -35,7 +35,7 @@ perr_t PDC_Server_dart_get_server_info(dart_get_server_info_in_t *in, dart_get_s
  * @param out [OUT] Output parameters for the DART operation
  * @return perr_t SUCCESS on success, FAIL on failure
  */
-perr_t PDC_Server_dart_perform_one_server(dart_perform_one_server_in_t * in,
+perr_t PDC_Server_dart_perform_one_server(dart_perform_one_server_in_t  *in,
                                           dart_perform_one_server_out_t *out, uint64_t *n_obj_ids_ptr,
                                           uint64_t **buf_ptrs);
 /**

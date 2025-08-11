@@ -141,7 +141,7 @@ import_object_property(cJSON *name, cJSON *type, cJSON *cls, cJSON *value, MD_JS
         goto end;
     }
     pdc_var_type_t pdc_type            = PDC_UNKNOWN;
-    void *         property_value      = NULL;
+    void          *property_value      = NULL;
     size_t         property_value_size = 0;
     if (strcmp(type->valuestring, "int") == 0) {
         pdc_type            = PDC_INT;

@@ -48,10 +48,7 @@
 #include "mercury_thread_mutex.h"
 #include <string.h>
 
-#define PDC_LIST_HEAD_INITIALIZER(name)                                                                      \
-    {                                                                                                        \
-        NULL                                                                                                 \
-    }
+#define PDC_LIST_HEAD_INITIALIZER(name) {NULL}
 
 #define PDC_LIST_HEAD_INIT(struct_head_name, var_name)                                                       \
     struct struct_head_name var_name = PDC_LIST_HEAD_INITIALIZER(var_name)
@@ -69,7 +66,7 @@
 
 #define PDC_LIST_ENTRY(struct_entry_name)                                                                    \
     struct {                                                                                                 \
-        struct struct_entry_name * next;                                                                     \
+        struct struct_entry_name  *next;                                                                     \
         struct struct_entry_name **prev;                                                                     \
     }
 

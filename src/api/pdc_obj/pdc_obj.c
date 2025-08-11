@@ -125,14 +125,13 @@ PDC_obj_create(pdcid_t cont_id, const char *obj_name, pdcid_t obj_prop_id, _pdc_
     size_t                 i;
     perr_t                 ret = SUCCEED;
 
-    p = (struct _pdc_obj_info *)PDC_malloc(sizeof(struct _pdc_obj_info));
+    p = (struct _pdc_obj_info *)PDC_calloc(1, sizeof(struct _pdc_obj_info));
     if (!p)
         PGOTO_ERROR(0, "PDC object memory allocation failed");
-    p->metadata                        = NULL;
-    p->location                        = location;
-    p->region_list_head                = NULL;
-    p->pdc_tf_obj                      = (struct pdc_tf_obj_t *)PDC_malloc(sizeof(struct pdc_tf_obj_t));
-    p->pdc_tf_obj->num_region_mappings = 0;
+    p->metadata         = NULL;
+    p->location         = location;
+    p->region_list_head = NULL;
+    p->pdc_tf_obj       = NULL;
 
     if (cont_id == 0) {
         meta_id = 0;
@@ -424,7 +423,7 @@ PDCobj_open_common(const char *obj_name, pdcid_t pdc, int is_col)
         PGOTO_DONE(info->local_id);
     }
 
-    p = (struct _pdc_obj_info *)PDC_malloc(sizeof(struct _pdc_obj_info));
+    p = (struct _pdc_obj_info *)PDC_calloc(1, sizeof(struct _pdc_obj_info));
     if (!p)
         PGOTO_ERROR(0, "PDC object memory allocation failed");
     p->cont = (struct _pdc_cont_info *)PDC_calloc(1, sizeof(struct _pdc_cont_info));
@@ -1081,9 +1080,6 @@ PDCobj_get_info(pdcid_t obj_id)
 
     struct pdc_obj_info  *ret_value = NULL;
     struct _pdc_obj_info *tmp       = NULL;
-    /* pdcid_t obj_id; */
-
-    /* obj_id = PDC_find_byname(PDC_OBJ, obj_name); */
 
     tmp = PDC_obj_get_info(obj_id);
     if (NULL == tmp)

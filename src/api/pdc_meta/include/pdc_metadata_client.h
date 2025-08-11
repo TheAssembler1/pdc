@@ -7,7 +7,7 @@
 typedef struct {
     int       n_res;
     uint64_t *out;
-    char *    condition;
+    char     *condition;
 } separate_query_result_t;
 
 size_t PDC_metadata_multi_condition_query(char *queryString, uint64_t **object_id_list, uint64_t *count);

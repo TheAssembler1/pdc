@@ -19,9 +19,9 @@ typedef struct query_gen_input {
 } query_gen_input_t;
 
 typedef struct query_gen_output {
-    char * key_query;
+    char  *key_query;
     size_t key_query_len;
-    char * value_query;
+    char  *value_query;
     size_t value_query_len;
 } query_gen_output_t;
 

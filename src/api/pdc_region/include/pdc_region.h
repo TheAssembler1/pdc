@@ -41,11 +41,11 @@ struct pdc_region_info {
     pdcid_t               local_id;
     struct _pdc_obj_info *obj;
     size_t                ndim;
-    uint64_t *            offset;
-    uint64_t *            size;
+    uint64_t             *offset;
+    uint64_t             *size;
     bool                  mapping;
     int                   registered_op;
-    void *                buf;
+    void                 *buf;
     size_t                unit;
 };
 
@@ -288,7 +288,7 @@ pbool_t PDC_region_info_transfer_t_is_equal(const region_info_transfer_t *reg1,
  * @return Non-negative on success, negative on failure.
  */
 perr_t PDC_copy_region_info_transfer_t(const region_info_transfer_t *src_reg,
-                                       region_info_transfer_t *      dest_reg);
+                                       region_info_transfer_t       *dest_reg);
 
 /**
  * @brief Calculate the size of a region descriptor in bytes.

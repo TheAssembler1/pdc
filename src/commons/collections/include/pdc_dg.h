@@ -28,7 +28,7 @@ typedef int pdc_dg_edge_id_t;
  */
 typedef struct pdc_dg_vertex_t {
     pdc_dg_vertex_id_t vertex_id;
-    void *             data;
+    void              *data;
 } pdc_dg_vertex_t;
 
 /**
@@ -43,7 +43,7 @@ typedef struct pdc_dg_edge_t {
     pdc_dg_edge_id_t   edge_id;
     pdc_dg_vertex_id_t v1_id;
     pdc_dg_vertex_id_t v2_id;
-    void *             data;
+    void              *data;
 } pdc_dg_edge_t;
 
 /**
@@ -68,7 +68,7 @@ typedef struct pdc_dg_edge_t {
  * \param vertex_data_free Function to free vertex-level user data.
  */
 typedef struct pdc_dg_t {
-    pdc_dg_edge_t **  edges;
+    pdc_dg_edge_t   **edges;
     pdc_dg_vertex_t **vertices;
 
     uint32_t edge_count;

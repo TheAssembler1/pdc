@@ -234,8 +234,8 @@ int list_foreach_value(linked_list_t *list, item_handler_t item_handler, void *u
  * a pointer to a tagged_value_t structure.
  */
 typedef struct _tagged_value_s {
-    char * tag;
-    void * value;
+    char  *tag;
+    void  *value;
     size_t vlen;
     char   type;
 #define TV_TYPE_STRING 0
