@@ -82,10 +82,12 @@ PDCtf_exec_graph(pdcid_t dg_id, char *cur_state, char *desired_state, pdc_tf_reg
             tf_params.output_params_size = 0;
 
             // run the transformation
+            LOG_JUST_PRINT("--------------------------TRANSFORM_START--------------------------\n");
             if (f->c_func(&tf_params, input, input_region, output_region) == false)
                 PGOTO_ERROR(FAIL, "Error when running transformation, %s", f->name);
             else
                 LOG_INFO("Transformation %s(%s) = %s ran successfully\n", f->name, v1->name, v2->name);
+            LOG_JUST_PRINT("--------------------------TRANSFORM_DONE--------------------------\n");
 
             // set output state params for next transformation
             v2->params      = tf_params.output_params;

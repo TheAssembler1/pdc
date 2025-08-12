@@ -639,8 +639,7 @@ PDC_Server_transfer_request_io(uint64_t obj_id, int obj_ndim, const uint64_t *ob
 {
     FUNC_ENTER(NULL);
 
-    void *cpy_buf = buf;
-
+    void  *cpy_buf   = buf;
     perr_t ret_value = SUCCEED;
 
     /**
@@ -667,7 +666,6 @@ PDC_Server_transfer_request_io(uint64_t obj_id, int obj_ndim, const uint64_t *ob
 
         // check if the obj has transformations
         bool ran_transformation = false;
-        int  obj_index          = 0;
         for (int i = 0; i < num_tf_obj_with_obj_ids_g; i++) {
             if (obj_id == pdc_tf_obj_with_obj_ids[i].obj_id) {
                 struct pdc_tf_obj_t     *tf_obj = &pdc_tf_obj_with_obj_ids[i].pdc_tf_obj_t;
@@ -676,7 +674,6 @@ PDC_Server_transfer_request_io(uint64_t obj_id, int obj_ndim, const uint64_t *ob
                 if (PDCtf_region_has_attached_graph(tf_obj, region_info->ndim, unit, region_info->offset,
                                                     region_info->size, &region_mapping)) {
 
-                    // FIXME: ad hoc way to init transformations
                     if (!pdc_tf_has_init_g) {
                         if (PDCtf_init_builtin_funcs() != SUCCEED)
                             PGOTO_ERROR(FAIL, "Failed to PDCtf_init_builtin_funcs");
@@ -696,15 +693,8 @@ PDC_Server_transfer_request_io(uint64_t obj_id, int obj_ndim, const uint64_t *ob
                     }
 
                     char *desired_state;
-                    if (is_write) {
+                    if (is_write)
                         desired_state = region_mapping->region_state.store_state;
-
-                        // print 4 bytes in write buffer
-                        LOG_INFO("Write buffer: ");
-                        for (int j = 0; j < 4 && j < input_region.size[0] * input_region.unit; j++)
-                            LOG_JUST_PRINT("%02x ", ((unsigned char *)buf)[j]);
-                        LOG_INFO("\n");
-                    }
                     else {
                         desired_state = region_mapping->region_state.client_state;
 
@@ -712,12 +702,18 @@ PDC_Server_transfer_request_io(uint64_t obj_id, int obj_ndim, const uint64_t *ob
                         char *storage_location =
                             get_storage_location_region_per_file(obj_id, obj_ndim, region_info->offset);
                         LOG_INFO("Storage location: %s\n", storage_location);
-                        int      fd            = open(storage_location, O_RDONLY);
+                        int fd = open(storage_location, O_RDONLY);
+                        assert(fd != -1 && "Failed to open file for reading");
                         uint64_t bytes_to_read = PDC_get_region_desc_size_bytes(
                             input_region.size, input_region.unit, input_region.ndim);
                         LOG_INFO("Reading %lu bytes\n", bytes_to_read);
-                        pread(fd, buf, bytes_to_read, 0);
-                        close(fd);
+                        ssize_t read_bytes = pread(fd, buf, bytes_to_read, 0);
+                        assert(read_bytes == bytes_to_read && "Failed to read full data");
+                        LOG_INFO("AFTER READ\n");
+                        for (int j = 0; j < 189; j++)
+                            LOG_JUST_PRINT("%02x ", ((char *)buf)[j]);
+                        LOG_JUST_PRINT("\n");
+                        assert(close(fd) == 0 && "Failed to close file after writing");
                     }
 
                     // We can now execute the directed graph
@@ -727,43 +723,34 @@ PDC_Server_transfer_request_io(uint64_t obj_id, int obj_ndim, const uint64_t *ob
                         PGOTO_ERROR(FAIL, "Error with PDCtf_exec_graph");
                     }
                     else {
-                        LOG_INFO("Successfully ran graph\n");
-                        char *storage_location =
-                            get_storage_location_region_per_file(obj_id, obj_ndim, region_info->offset);
-                        LOG_INFO("Storage location: %s\n", storage_location);
+                        ran_transformation = true;
 
+                        LOG_INFO("Successfully ran graph\n");
                         if (is_write) {
-                            int      fd             = open(storage_location, O_CREAT | O_WRONLY, 0644);
+                            char *storage_location =
+                                get_storage_location_region_per_file(obj_id, obj_ndim, region_info->offset);
+                            LOG_INFO("Storage location: %s\n", storage_location);
+                            int fd = open(storage_location, O_CREAT | O_WRONLY | O_TRUNC, 0644);
+                            assert(fd != -1 && "Failed to open file for writing");
                             uint64_t bytes_to_write = PDC_get_region_desc_size_bytes(
                                 output_region.size, output_region.unit, output_region.ndim);
                             LOG_INFO("Writing %lu bytes\n", bytes_to_write);
-                            // print 10 bytes of the buffer
-                            LOG_INFO("Read Buffer: ");
-                            for (int j = 0; j < 10 && j < bytes_to_write; j++)
-                                LOG_JUST_PRINT("%02x ", ((unsigned char *)buf)[j]);
-                            LOG_INFO("\n");
-
-                            pwrite(fd, buf, bytes_to_write, 0);
-                            close(fd);
-
+                            LOG_INFO("BEFORE WRITE\n");
+                            for (int j = 0; j < 189; j++)
+                                LOG_JUST_PRINT("%02x ", ((char *)buf)[j]);
+                            LOG_JUST_PRINT("\n");
+                            ssize_t written = pwrite(fd, buf, bytes_to_write, 0);
+                            assert(written == bytes_to_write && "Failed to write full data");
+                            assert(close(fd) == 0 && "Failed to close file after writing");
                             // update actual region mapping
                             PDCtf_copy_tf_region_t(&output_region, &region_mapping->actual_region);
                         }
-                        else {
-                            // print output read buffer
-                            LOG_INFO("Output buffer: ");
-                            for (int j = 0; j < 10 && j < output_region.size[0] * output_region.unit; j++)
-                                LOG_JUST_PRINT("%02x ", ((unsigned char *)buf)[j]);
-                            LOG_INFO("\n");
-
+                        else
                             memcpy(cpy_buf, buf, PDCtf_get_pdc_region_t_bytes(output_region));
-                        }
 
                         // updating state to desired state
                         region_mapping->region_state.cur_state = desired_state;
                     }
-
-                    ran_transformation = true;
                 }
             }
         }
@@ -774,6 +761,8 @@ PDC_Server_transfer_request_io(uint64_t obj_id, int obj_ndim, const uint64_t *ob
         }
         else
             LOG_INFO("Did not run transform\n");
+
+        abort();
 
         uint64_t temp_file_dims[DIM_MAX];
         for (int i = 0; i < obj_ndim; i++) {

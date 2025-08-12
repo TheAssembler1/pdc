@@ -105,7 +105,7 @@ set(PROGRAMS
   region/region_transfer_set_dims_3D
   query/query_data
   misc/producer_waitall
-  transformation/workflow_sandbox
+  transformation/region_transfer_transform
 )
 
 # TODO: Check if import_vpic.c is needed. If yes, we have to add the following :

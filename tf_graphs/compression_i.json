@@ -1,0 +1,25 @@
+{
+    "states": [
+      { "name": "decompressed", "granularity": "element" },
+      { "name": "compressed", "granularity": "region" }
+    ],
+    "functions": [
+      {
+        "device": "CPU",
+        "input_state": "decompressed",
+        "output_state": "compressed",
+        "location": "builtin",
+        "name": "zfp_compress",
+        "params": "i"
+      },
+      {
+        "device": "CPU",
+        "input_state": "compressed",
+        "output_state": "decompressed",
+        "location": "builtin",
+        "name": "zfp_decompress",
+        "params": "i"
+      }
+    ],
+    "name": "ZFP_compression"
+}

@@ -4,8 +4,5 @@
 
 pushd ./build/bin || exit 1  # Exit if cd fails
 export PDC_DEBUG=1
-$1 "./workflow_sandbox"
+$1 "./region_transfer_transform"
 popd
-
-echo "Running dot on graph"
-dot -Tpng ./build/bin/graph.txt -o graph.png
