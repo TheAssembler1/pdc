@@ -88,11 +88,6 @@ typedef struct pdc_tf_func_t {
     pdc_tf_location_t location;
     char             *name;
     c_func_t          c_func;
-
-    pdc_tf_region_t last_input_tf_region;
-    pdc_tf_region_t last_output_tf_region;
-
-    void *output_param;
 } pdc_tf_func_t;
 
 // FIXME: we could store this in a dynamically allocated buf
