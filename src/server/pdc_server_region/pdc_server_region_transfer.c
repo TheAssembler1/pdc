@@ -6,6 +6,8 @@
 #include "pdc_timing.h"
 #include "pdc_logger.h"
 #include "pdc_malloc.h"
+#include "pdc_tf_server.h"
+#include "pdc_tf_common.h"
 
 static pdc_region_writeout_strategy storage_strategy_g = STORE_FLATTENED_REGION_PER_FILE;
 // static pdc_region_writeout_strategy storage_strategy_g = STORE_REGION_BY_REGION_SINGLE_FILE;
@@ -653,6 +655,78 @@ PDC_Server_transfer_request_io(uint64_t obj_id, int obj_ndim, const uint64_t *ob
             PDC_Server_data_io_flattened(obj_id, obj_ndim, obj_dims, region_info, buf, unit, is_write));
     }
     else if (storage_strategy_g == STORE_FLATTENED_REGION_PER_FILE) {
+        // FIXME: ad hoc way to init transformations
+        if (!pdc_tf_has_init_g) {
+            if (PDCtf_init_builtin_funcs() != SUCCEED)
+                PGOTO_ERROR(FAIL, "Failed to PDCtf_init_builtin_funcs");
+
+            pdc_tf_has_init_g = true;
+        }
+
+        /**
+         * FIMXE: If running transformation need to validate that
+         * region info size and offset is flush with file_dims and
+         * has the same size as file_dimes.
+         *
+         * In addition, need a way for user's to set the file_dims
+         */
+
+        // check if the obj has transformations
+        bool ran_transformation = false;
+        int  obj_index          = 0;
+        if (is_write) {
+            for (int i = 0; i < num_tf_obj_with_obj_ids_g; i++) {
+                if (obj_id == pdc_tf_obj_with_obj_ids[i].obj_id) {
+                    struct pdc_tf_obj_t     *tf_obj = &pdc_tf_obj_with_obj_ids[i].pdc_tf_obj_t;
+                    pdc_tf_region_mapping_t *region_mapping;
+                    pdc_tf_region_t          output_region;
+
+                    // setup input region
+                    pdc_tf_region_t input_region;
+                    input_region.ndim = region_info->ndim;
+                    input_region.unit = unit;
+                    memcpy(input_region.size, region_info->size, input_region.ndim * sizeof(uint64_t));
+
+                    if (PDCtf_region_has_attached_graph(tf_obj, region_info->ndim, unit, region_info->offset,
+                                                        region_info->size, &region_mapping)) {
+                        // We can now execute the directed graph
+                        if (PDCtf_exec_graph(region_mapping->region_state.dg_id,
+                                             region_mapping->region_state.cur_state,
+                                             region_mapping->region_state.desired_state, input_region,
+                                             &output_region, &buf) != SUCCEED) {
+                            PGOTO_ERROR(FAIL, "Error with PDCtf_exec_graph");
+                        }
+                        else {
+                            LOG_INFO("Successfully ran graph\n");
+                            char *storage_location =
+                                get_storage_location_region_per_file(obj_id, obj_ndim, region_info->offset);
+                            LOG_INFO("Storage location: %s\n", storage_location);
+
+                            int      fd             = open(storage_location, O_CREAT | O_WRONLY, 0644);
+                            uint64_t bytes_to_write = PDC_get_region_desc_size_bytes(
+                                output_region.size, output_region.unit, output_region.ndim);
+                            LOG_INFO("Writing %lu bytes\n", bytes_to_write);
+                            pwrite(fd, buf, bytes_to_write, 0);
+                            close(fd);
+
+                            // updating state to desired state
+                            region_mapping->region_state.desired_state =
+                                region_mapping->region_state.cur_state;
+                        }
+
+                        ran_transformation = true;
+                    }
+                }
+            }
+        }
+
+        if (ran_transformation) {
+            LOG_INFO("Ran transformation succesfully\n");
+            PGOTO_DONE(SUCCEED);
+        }
+        else
+            LOG_INFO("Did not run transform\n");
+
         uint64_t temp_file_dims[DIM_MAX];
         for (int i = 0; i < obj_ndim; i++) {
             temp_file_dims[i] = obj_dims[i];

@@ -12,16 +12,15 @@
  * object id. We need to keep track of it on the server side.
  * Hence the extra obj_id field here.
  */
-typedef struct pdc_tf_server_obj_info_t {
-    pdcid_t                 obj_id;
-    pdc_tf_region_mapping_t region_mappings[MAX_REGIONS];
-    uint32_t                num_region_mappings;
-} pdc_tf_server_obj_info_t;
-static uint32_t num_tf_server_obj_infos = 0;
+typedef struct pdc_tf_obj_with_obj_id_t {
+    pdcid_t             obj_id;
+    struct pdc_tf_obj_t pdc_tf_obj_t;
+} pdc_tf_obj_with_obj_id_t;
+extern uint32_t num_tf_obj_with_obj_ids_g;
 
-#define MAX_NUM_TF_SERVER_OBJ_INFOS 100
+#define MAX_NUM_TF_OBJ_WITH_OBJ_IDS 100
 
-pdc_tf_server_obj_info_t pdc_tf_server_obj_info[MAX_NUM_TF_SERVER_OBJ_INFOS];
+pdc_tf_obj_with_obj_id_t pdc_tf_obj_with_obj_ids[MAX_NUM_TF_OBJ_WITH_OBJ_IDS];
 
 /**
  * These functions should only be used on the
@@ -38,7 +37,7 @@ pdc_tf_server_obj_info_t pdc_tf_server_obj_info[MAX_NUM_TF_SERVER_OBJ_INFOS];
  *       set after the transformations have been run when writing to the data server
  *       and before transformations have been run when reading from the data server
  */
-perr_t PDCtf_store_json_mapping(char *json_filepath, char *cur_state, char *store_state, uint64_t *offset,
-                                uint64_t *size, uint8_t ndim, uint8_t unit);
+perr_t PDCtf_store_json_mapping(pdcid_t obj_id, char *json_filepath, char *cur_state, char *store_state,
+                                uint64_t *offset, uint64_t *size, uint8_t ndim, uint8_t unit);
 
 #endif

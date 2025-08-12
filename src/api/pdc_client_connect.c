@@ -3315,9 +3315,10 @@ PDC_Client_transfer_request(hg_bulk_t *bulk_handle, void *buf, pdcid_t obj_id, u
         PGOTO_ERROR(FAIL, "Error with PDC_Client_try_lookup_server");
 
     // Checked for transformations associated with region
-    if (access_type == PDC_WRITE &&
-        PDCtf_region_has_attached_graph(obj_pointer, remote_ndim, unit, remote_offset, remote_size,
-                                        &region_mapping)) {
+    if (access_type == PDC_WRITE && obj_pointer != NULL && obj_pointer->pdc_tf_obj != NULL &&
+        PDCtf_region_has_attached_graph(obj_pointer->pdc_tf_obj, remote_ndim, unit, remote_offset,
+                                        remote_size, &region_mapping)) {
+
         LOG_INFO("Region transfer as an attached graph\n");
         pdcid_t dg_id = region_mapping->region_state.dg_id;
 

@@ -10,25 +10,32 @@
 #include "pdc_timing.h"
 #include "json-c/json.h"
 
-pdc_dg_t *pdc_tf_graphs[200];
-
+pdc_dg_t             *pdc_tf_graphs[200];
 pdc_tf_builtin_func_t pdc_tf_builtin_funcs_g[PDC_TF_MAX_BUILTIN_FUNCS];
 uint32_t              pdc_tf_builtin_cur_func_g = 0;
-
-bool pdc_tf_has_init_g = false;
+bool                  pdc_tf_has_init_g         = false;
 
 perr_t
 PDCtf_exec_graph(pdcid_t dg_id, char *cur_state, char *desired_state, pdc_tf_region_t input_region,
                  pdc_tf_region_t *output_region, void **input)
 {
-    /*FUNC_ENTER(NULL);
+    FUNC_ENTER(NULL);
 
-    int ret_value = SUCCEED;
+    perr_t ret_value = SUCCEED;
 
     LOG_INFO("PDCtf_exec_graph was called\n");
 
-    void *         input_state  = pdc_tf_states[current_state_id];
-    void *         output_state = pdc_tf_states[desired_state_id];
+    /**
+     * Setup input and output states
+     * NOTE: the vertices are check for equality based on the name alone
+     */
+    pdc_tf_state_t tf_input_state;
+    pdc_tf_state_t tf_output_state;
+    tf_input_state.name  = cur_state;
+    tf_output_state.name = desired_state;
+    void *input_state    = (void *)&tf_input_state;
+    void *output_state   = (void *)&tf_output_state;
+
     pdc_dg_edge_t *edges_out;
     uint32_t       num_edges;
 
@@ -37,29 +44,29 @@ PDCtf_exec_graph(pdcid_t dg_id, char *cur_state, char *desired_state, pdc_tf_reg
     if (PDCdg_shortest_path(pdc_tf_graphs[dg_id], input_state, output_state, &edges_out, &num_edges)) {
         LOG_INFO("Path was found:\n");
         for (uint32_t j = 0; j < num_edges; j++) {
-            pdc_dg_edge_t e  = edges_out[j];
-            state *       v1 = (state *)(pdc_tf_graphs[dg_id]->vertices[e.v1_id]->data);
-            state *       v2 = (state *)(pdc_tf_graphs[dg_id]->vertices[e.v2_id]->data);
-            func *        f  = (func *)(e.data);
+            pdc_dg_edge_t   e  = edges_out[j];
+            pdc_tf_state_t *v1 = (pdc_tf_state_t *)(pdc_tf_graphs[dg_id]->vertices[e.v1_id]->data);
+            pdc_tf_state_t *v2 = (pdc_tf_state_t *)(pdc_tf_graphs[dg_id]->vertices[e.v2_id]->data);
+            pdc_tf_func_t  *f  = (pdc_tf_func_t *)(e.data);
 
             // run the transformation
             if (f->c_func(NULL, input, input_region, output_region) == false)
-                PGOTO_ERROR(FAIL, "Error when running transformation, %s", f->type_func_name);
+                PGOTO_ERROR(FAIL, "Error when running transformation, %s", f->name);
             else
-                LOG_INFO("Transformation %s(%s) = %s ran successfully\n", f->type_func_name, v1->name,
-                         v2->name);
+                LOG_INFO("Transformation %s(%s) = %s ran successfully\n", f->name, v1->name, v2->name);
 
             // set previous output region as input region for next transformation
             if (j + 1 != num_edges)
                 memcpy(&input_region, output_region, sizeof(pdc_tf_region_t));
         }
+
+        LOG_INFO("Done running transformations\n");
     }
     else
         PGOTO_ERROR(FAIL, "No path to desired states");
 
 done:
-    FUNC_LEAVE(ret_value);*/
-    return SUCCEED;
+    FUNC_LEAVE(ret_value);
 }
 
 perr_t
@@ -133,25 +140,17 @@ done:
 }
 
 bool
-PDCtf_region_has_attached_graph(struct _pdc_obj_info *obj_info, int ndim, uint8_t unit, uint64_t *offset,
+PDCtf_region_has_attached_graph(struct pdc_tf_obj_t *tf_obj, int ndim, uint8_t unit, uint64_t *offset,
                                 uint64_t *size, pdc_tf_region_mapping_t **region_mapping)
 {
     FUNC_ENTER(NULL);
 
     bool ret_value = false;
 
-    if (obj_info == NULL)
-        PGOTO_DONE(false);
-    if (obj_info->pdc_tf_obj == NULL)
-        PGOTO_DONE(false);
+    LOG_INFO("num_region_mappings: %d\n", tf_obj->num_region_mappings);
 
-    LOG_INFO("obj_info p: %p\n", obj_info);
-    LOG_INFO("obj_info->pdc_tf_obj p: %p\n", obj_info->pdc_tf_obj);
-
-    LOG_INFO("num_region_mappings: %d\n", obj_info->pdc_tf_obj->num_region_mappings);
-
-    for (int i = 0; i < obj_info->pdc_tf_obj->num_region_mappings; i++) {
-        *region_mapping                    = &obj_info->pdc_tf_obj->region_mappings[i];
+    for (int i = 0; i < tf_obj->num_region_mappings; i++) {
+        *region_mapping                    = &tf_obj->region_mappings[i];
         pdc_tf_region_t *coneptual_region  = &((*region_mapping)->conceptual_region);
         uint64_t        *conceptual_offset = (*region_mapping)->conceptual_offset;
 

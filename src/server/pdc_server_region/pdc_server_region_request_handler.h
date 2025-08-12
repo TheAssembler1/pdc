@@ -788,7 +788,7 @@ HG_TEST_RPC_CB(transfer_request, handle)
             LOG_INFO("Region transfer current state: %s\n", in.cur_state);
             LOG_INFO("Region transfer desired state: %s\n", in.stored_state);
 
-            if (PDCtf_store_json_mapping(in.json_filepath, in.cur_state, in.stored_state,
+            if (PDCtf_store_json_mapping(in.obj_id, in.json_filepath, in.cur_state, in.stored_state,
                                          in.remote_region.start, in.remote_region.count,
                                          in.remote_region.ndim, in.remote_unit) != SUCCEED) {
                 LOG_ERROR("Failed to PDCtf_store_json_mapping\n");
