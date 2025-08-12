@@ -16,9 +16,9 @@ typedef struct pdc_tf_region_t {
 
 typedef struct pdc_tf_region_state_t {
     pdcid_t dg_id;
-    char   *cur_state;
-    char   *client_state;
-    char   *store_state;
+    char *  cur_state;
+    char *  client_state;
+    char *  store_state;
 } pdc_tf_region_state_t;
 
 typedef struct pdc_tf_region_mapping_t {
@@ -50,18 +50,18 @@ typedef enum pdc_tf_granularities_t {
 extern char *pdc_tf_granularity_strs[];
 
 typedef struct pdc_tf_state_t {
-    char                  *name;
-    void                  *params;
+    char *                 name;
+    void *                 params;
     uint64_t               params_size;
     pdc_tf_granularities_t granularity;
 } pdc_tf_state_t;
 
 typedef struct pdc_tf_params_t {
-    char    *params_str;
-    void    *input_params;
+    char *   params_str;
+    void *   input_params;
     uint64_t input_params_size;
 
-    void    *output_params;
+    void *   output_params;
     uint64_t output_params_size;
 } pdc_tf_params_t;
 
@@ -97,8 +97,8 @@ extern char *pdc_tf_location_strs[];
 typedef struct pdc_tf_func_t {
     pdc_tf_dev_t      dev;
     pdc_tf_location_t location;
-    char             *name;
-    char             *params_str;
+    char *            name;
+    char *            params_str;
     c_func_t          c_func;
 } pdc_tf_func_t;
 

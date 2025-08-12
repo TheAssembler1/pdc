@@ -10,7 +10,7 @@
 #include "pdc_timing.h"
 #include "json-c/json.h"
 
-pdc_dg_t             *pdc_tf_graphs[200];
+pdc_dg_t *            pdc_tf_graphs[200];
 pdc_tf_builtin_func_t pdc_tf_builtin_funcs_g[PDC_TF_MAX_BUILTIN_FUNCS];
 uint32_t              pdc_tf_builtin_cur_func_g = 0;
 bool                  pdc_tf_has_init_g         = false;
@@ -71,7 +71,7 @@ PDCtf_exec_graph(pdcid_t dg_id, char *cur_state, char *desired_state, pdc_tf_reg
             pdc_dg_edge_t   e  = edges_out[j];
             pdc_tf_state_t *v1 = (pdc_tf_state_t *)(pdc_tf_graphs[dg_id]->vertices[e.v1_id]->data);
             pdc_tf_state_t *v2 = (pdc_tf_state_t *)(pdc_tf_graphs[dg_id]->vertices[e.v2_id]->data);
-            pdc_tf_func_t  *f  = (pdc_tf_func_t *)(e.data);
+            pdc_tf_func_t * f  = (pdc_tf_func_t *)(e.data);
 
             // setup input and output parameters
             pdc_tf_params_t tf_params;
@@ -190,7 +190,7 @@ PDCtf_region_has_attached_graph(struct pdc_tf_obj_t *tf_obj, int ndim, uint8_t u
     for (int i = 0; i < tf_obj->num_region_mappings; i++) {
         *region_mapping                    = &tf_obj->region_mappings[i];
         pdc_tf_region_t *coneptual_region  = &((*region_mapping)->conceptual_region);
-        uint64_t        *conceptual_offset = (*region_mapping)->conceptual_offset;
+        uint64_t *       conceptual_offset = (*region_mapping)->conceptual_offset;
 
         // check if client ndim, offset, dims, unit match
         bool ndim_matches = coneptual_region->ndim == ndim;
@@ -233,7 +233,7 @@ static const char *
 get_json_string(struct json_object *json_obj, char *str_name, bool expect_string)
 {
     struct json_object *str_json_obj = NULL;
-    const char         *ret_value    = NULL;
+    const char *        ret_value    = NULL;
 
     if (!json_object_object_get_ex(json_obj, str_name, &str_json_obj)) {
         if (expect_string)
@@ -344,7 +344,7 @@ PDCtf_open_dg_json_common(char *filepath)
     FUNC_ENTER(NULL);
 
     pdcid_t             ret_value = tf_cur_graph_id;
-    FILE               *fp        = NULL;
+    FILE *              fp        = NULL;
     struct json_object *json_obj  = NULL;
     io_buffer_t         io_buffer;
     memset(&io_buffer, 0, sizeof(io_buffer_t));
