@@ -106,6 +106,8 @@ set(PROGRAMS
   query/query_data
   misc/producer_waitall
   transformation/region_transfer_transform
+  transformation/region_transfer_transform_2D
+  transformation/region_transfer_transform_3D
 )
 
 # TODO: Check if import_vpic.c is needed. If yes, we have to add the following :

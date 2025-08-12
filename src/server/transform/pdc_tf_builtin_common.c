@@ -145,9 +145,6 @@ pdc_tf_builtin_zfp_compress(pdc_tf_params_t *tf_params, void **region_data, pdc_
         return false;
     }
 
-    // double tolerance = 1e-9;
-    zfp_stream_set_reversible(zfp);
-
     // Allocate buffer for compressed data
     size_t bufsize           = zfp_stream_maximum_size(zfp, field);
     void  *compressed_buffer = malloc(bufsize);
@@ -168,6 +165,7 @@ pdc_tf_builtin_zfp_compress(pdc_tf_params_t *tf_params, void **region_data, pdc_
         return false;
     }
 
+    zfp_stream_set_reversible(zfp);
     zfp_stream_set_bit_stream(zfp, stream);
     zfp_stream_rewind(zfp);
 

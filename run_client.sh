@@ -4,5 +4,5 @@
 
 pushd ./build/bin || exit 1  # Exit if cd fails
 export PDC_DEBUG=1
-$1 "./region_transfer_transform"
+$1 "./region_transfer_transform_3D"
 popd
