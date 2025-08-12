@@ -88,7 +88,7 @@ PDC_finish_request(uint64_t transfer_request_id)
 {
     FUNC_ENTER(NULL);
 
-    pdc_transfer_request_status *   ptr, *tmp = NULL;
+    pdc_transfer_request_status    *ptr, *tmp = NULL;
     perr_t                          ret_value = SUCCEED;
     transfer_request_wait_out_t     out;
     transfer_request_wait_all_out_t out_all;
@@ -295,7 +295,7 @@ PDC_Server_data_io_flattened(uint64_t obj_id, int obj_ndim, const uint64_t *obj_
 
     perr_t   ret_value = SUCCEED;
     int      fd;
-    char *   data_path = NULL;
+    char    *data_path = NULL;
     char     storage_location[ADDR_MAX];
     ssize_t  io_size;
     uint64_t i, j;
@@ -674,34 +674,60 @@ PDC_Server_transfer_request_io(uint64_t obj_id, int obj_ndim, const uint64_t *ob
         // check if the obj has transformations
         bool ran_transformation = false;
         int  obj_index          = 0;
-        if (is_write) {
-            for (int i = 0; i < num_tf_obj_with_obj_ids_g; i++) {
-                if (obj_id == pdc_tf_obj_with_obj_ids[i].obj_id) {
-                    struct pdc_tf_obj_t *    tf_obj = &pdc_tf_obj_with_obj_ids[i].pdc_tf_obj_t;
-                    pdc_tf_region_mapping_t *region_mapping;
-                    pdc_tf_region_t          output_region;
+        for (int i = 0; i < num_tf_obj_with_obj_ids_g; i++) {
+            if (obj_id == pdc_tf_obj_with_obj_ids[i].obj_id) {
+                struct pdc_tf_obj_t     *tf_obj = &pdc_tf_obj_with_obj_ids[i].pdc_tf_obj_t;
+                pdc_tf_region_mapping_t *region_mapping;
+
+                if (PDCtf_region_has_attached_graph(tf_obj, region_info->ndim, unit, region_info->offset,
+                                                    region_info->size, &region_mapping)) {
+                    pdc_tf_region_t output_region;
 
                     // setup input region
                     pdc_tf_region_t input_region;
-                    input_region.ndim = region_info->ndim;
-                    input_region.unit = unit;
-                    memcpy(input_region.size, region_info->size, input_region.ndim * sizeof(uint64_t));
+                    if (is_write) {
+                        input_region.ndim = region_info->ndim;
+                        input_region.unit = unit;
+                        memcpy(input_region.size, region_info->size, input_region.ndim * sizeof(uint64_t));
+                    }
+                    else {
+                        input_region.ndim = region_mapping->actual_region.ndim;
+                        input_region.unit = region_mapping->actual_region.unit;
+                        memcpy(input_region.size, region_mapping->actual_region.size,
+                               input_region.ndim * sizeof(uint64_t));
+                    }
 
-                    if (PDCtf_region_has_attached_graph(tf_obj, region_info->ndim, unit, region_info->offset,
-                                                        region_info->size, &region_mapping)) {
-                        // We can now execute the directed graph
-                        if (PDCtf_exec_graph(region_mapping->region_state.dg_id,
-                                             region_mapping->region_state.cur_state,
-                                             region_mapping->region_state.desired_state, input_region,
-                                             &output_region, &buf) != SUCCEED) {
-                            PGOTO_ERROR(FAIL, "Error with PDCtf_exec_graph");
-                        }
-                        else {
-                            LOG_INFO("Successfully ran graph\n");
-                            char *storage_location =
-                                get_storage_location_region_per_file(obj_id, obj_ndim, region_info->offset);
-                            LOG_INFO("Storage location: %s\n", storage_location);
+                    char *desired_state;
+                    if (is_write)
+                        desired_state = region_mapping->region_state.store_state;
+                    else {
+                        desired_state = region_mapping->region_state.client_state;
 
+                        // read in data for transformation
+                        char *storage_location =
+                            get_storage_location_region_per_file(obj_id, obj_ndim, region_info->offset);
+                        LOG_INFO("Storage location: %s\n", storage_location);
+                        int      fd            = open(storage_location, O_RDONLY);
+                        uint64_t bytes_to_read = PDC_get_region_desc_size_bytes(
+                            input_region.size, input_region.unit, input_region.ndim);
+                        LOG_INFO("Writing %lu bytes\n", bytes_to_read);
+                        pwrite(fd, buf, bytes_to_read, 0);
+                        close(fd);
+                    }
+
+                    // We can now execute the directed graph
+                    if (PDCtf_exec_graph(region_mapping->region_state.dg_id,
+                                         region_mapping->region_state.cur_state, desired_state, input_region,
+                                         &output_region, &buf) != SUCCEED) {
+                        PGOTO_ERROR(FAIL, "Error with PDCtf_exec_graph");
+                    }
+                    else {
+                        LOG_INFO("Successfully ran graph\n");
+                        char *storage_location =
+                            get_storage_location_region_per_file(obj_id, obj_ndim, region_info->offset);
+                        LOG_INFO("Storage location: %s\n", storage_location);
+
+                        if (is_write) {
                             int      fd             = open(storage_location, O_CREAT | O_WRONLY, 0644);
                             uint64_t bytes_to_write = PDC_get_region_desc_size_bytes(
                                 output_region.size, output_region.unit, output_region.ndim);
@@ -709,13 +735,18 @@ PDC_Server_transfer_request_io(uint64_t obj_id, int obj_ndim, const uint64_t *ob
                             pwrite(fd, buf, bytes_to_write, 0);
                             close(fd);
 
-                            // updating state to desired state
-                            region_mapping->region_state.desired_state =
-                                region_mapping->region_state.cur_state;
+                            // update actual region mapping
+                            region_mapping->actual_region.ndim = output_region.ndim;
+                            region_mapping->actual_region.unit = output_region.unit;
+                            memcpy(region_mapping->actual_region.size, output_region.size,
+                                   output_region.ndim * sizeof(uint64_t));
                         }
 
-                        ran_transformation = true;
+                        // updating state to desired state
+                        region_mapping->region_state.cur_state = desired_state;
                     }
+
+                    ran_transformation = true;
                 }
             }
         }
@@ -778,7 +809,7 @@ parse_bulk_data(void *buf, transfer_request_all_data *request_data, pdc_access_t
 {
     FUNC_ENTER(NULL);
 
-    char *   ptr = (char *)buf;
+    char    *ptr = (char *)buf;
     int      i, j;
     uint64_t data_size;
 

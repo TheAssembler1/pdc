@@ -37,7 +37,8 @@ pdc_tf_obj_with_obj_id_t pdc_tf_obj_with_obj_ids[MAX_NUM_TF_OBJ_WITH_OBJ_IDS];
  *       set after the transformations have been run when writing to the data server
  *       and before transformations have been run when reading from the data server
  */
-perr_t PDCtf_store_json_mapping(pdcid_t obj_id, char *json_filepath, char *cur_state, char *store_state,
-                                uint64_t *offset, uint64_t *size, uint8_t ndim, uint8_t unit);
+perr_t PDCtf_store_json_mapping(pdcid_t obj_id, char *json_filepath, char *cur_state, char *client_state,
+                                char *store_state, uint64_t *offset, uint64_t *size, uint8_t ndim,
+                                uint8_t unit);
 
 #endif

@@ -45,7 +45,7 @@ PDCtf_set_output_mode(pdcid_t dg_id, pdc_tf_output_mode_t mode, pdcid_t *obj_ids
 // region transfer to/from the specified obj_id, remote_reg_id follow DG
 perr_t
 PDCtf_attach_to_region(pdcid_t dg_id, pdcid_t obj_id, pdcid_t remote_reg, char *client_state,
-                       char *stored_state)
+                       char *store_state)
 {
     FUNC_ENTER(NULL);
 
@@ -73,8 +73,8 @@ PDCtf_attach_to_region(pdcid_t dg_id, pdcid_t obj_id, pdcid_t remote_reg, char *
 
     // get region mapping fields from object
     pdc_tf_region_mapping_t *region_mapping    = &pdc_tf_obj->region_mappings[cur_region_map];
-    pdc_tf_region_t *        conceptual_region = &region_mapping->conceptual_region;
-    uint64_t *               conceptual_offset = region_mapping->conceptual_offset;
+    pdc_tf_region_t         *conceptual_region = &region_mapping->conceptual_region;
+    uint64_t                *conceptual_offset = region_mapping->conceptual_offset;
 
     // copy region information into conceptual region
     conceptual_region->ndim = region_info->ndim;
@@ -83,9 +83,10 @@ PDCtf_attach_to_region(pdcid_t dg_id, pdcid_t obj_id, pdcid_t remote_reg, char *
     memcpy(conceptual_region->size, region_info->size, region_info->ndim * sizeof(uint64_t));
 
     // FIXME: need to free these strings later
-    region_mapping->region_state.cur_state     = strdup(client_state);
-    region_mapping->region_state.desired_state = strdup(stored_state);
-    region_mapping->region_state.dg_id         = dg_id;
+    region_mapping->region_state.client_state = strdup(client_state);
+    region_mapping->region_state.cur_state    = strdup(client_state);
+    region_mapping->region_state.store_state  = strdup(store_state);
+    region_mapping->region_state.dg_id        = dg_id;
 
     // increase the current region mapping
     pdc_tf_obj->num_region_mappings++;

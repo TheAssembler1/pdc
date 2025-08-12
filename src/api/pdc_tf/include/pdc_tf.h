@@ -44,7 +44,7 @@ perr_t PDCtf_close_dg(pdcid_t dg_id);
 
 // region transfer to/from the specified obj_id, global_reg_id follow DG
 perr_t PDCtf_attach_to_region(pdcid_t dg_id, pdcid_t obj_id, pdcid_t remote_reg, char *client_state,
-                              char *stored_state);
+                              char *store_state);
 
 // all region transfers for obj_id follow DG
 perr_t PDCtf_attach_to_obj(pdcid_t dg_id, pdcid_t obj_id, pdcid_t client_state_id, pdcid_t server_state_id);

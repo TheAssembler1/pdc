@@ -4,16 +4,16 @@ uint32_t num_tf_obj_with_obj_ids_g = 0;
 
 #ifndef IS_PDC_SERVER
 perr_t
-PDCtf_store_json_mapping(pdcid_t obj_id, char *json_filepath, char *cur_state, char *store_state,
-                         uint64_t *offset, uint64_t *size, uint8_t ndim, uint8_t unit)
+PDCtf_store_json_mapping(pdcid_t obj_id, char *json_filepath, char *cur_state, char *client_state,
+                         char *store_state, uint64_t *offset, uint64_t *size, uint8_t ndim, uint8_t unit)
 {
     FUNC_ENTER(NULL);
     FUNC_LEAVE(SUCCEED);
 }
 #else
 perr_t
-PDCtf_store_json_mapping(pdcid_t obj_id, char *json_filepath, char *cur_state, char *store_state,
-                         uint64_t *offset, uint64_t *size, uint8_t ndim, uint8_t unit)
+PDCtf_store_json_mapping(pdcid_t obj_id, char *json_filepath, char *cur_state, char *client_state,
+                         char *store_state, uint64_t *offset, uint64_t *size, uint8_t ndim, uint8_t unit)
 {
     FUNC_ENTER(NULL);
 
@@ -37,7 +37,7 @@ PDCtf_store_json_mapping(pdcid_t obj_id, char *json_filepath, char *cur_state, c
     pdc_tf_region_mapping_t *region_mapping =
         &cur_tf_server_obj_info->pdc_tf_obj_t.region_mappings[cur_region_map];
     pdc_tf_region_t *conceptual_region = &region_mapping->conceptual_region;
-    uint64_t *       conceptual_offset = region_mapping->conceptual_offset;
+    uint64_t        *conceptual_offset = region_mapping->conceptual_offset;
 
     // copy region information into conceptual region
     conceptual_region->ndim = ndim;
@@ -46,9 +46,10 @@ PDCtf_store_json_mapping(pdcid_t obj_id, char *json_filepath, char *cur_state, c
     memcpy(conceptual_region->size, size, ndim * sizeof(uint64_t));
 
     // FIXME: need to free these strings later
-    region_mapping->region_state.cur_state     = strdup(cur_state);
-    region_mapping->region_state.desired_state = strdup(store_state);
-    region_mapping->region_state.dg_id         = dg_id;
+    region_mapping->region_state.cur_state    = strdup(cur_state);
+    region_mapping->region_state.client_state = strdup(client_state);
+    region_mapping->region_state.store_state  = strdup(store_state);
+    region_mapping->region_state.dg_id        = dg_id;
 
     // increase the current region mapping
     cur_tf_server_obj_info->pdc_tf_obj_t.num_region_mappings++;

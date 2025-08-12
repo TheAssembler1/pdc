@@ -36,6 +36,7 @@ workflow1(pdcid_t pdc, pdcid_t cont)
     pdcid_t dg_id = PDCtf_open_dg_json("/home/ta1/src/workspace/source/pdc/tf_graphs/test.json");
     PDCtf_print_dg(dg_id, true);
     PDCtf_print_exec_path(dg_id, "decompressed_floats", "compressed_floats");
+    PDCtf_print_exec_path(dg_id, "compressed_floats", "decompressed_floats");
 
     TASSERT((obj_prop = PDCprop_create(PDC_OBJ_CREATE, pdc)) != 0, "obj_prop_create succeeded",
             "obj_prop_create failed");
@@ -59,6 +60,7 @@ workflow1(pdcid_t pdc, pdcid_t cont)
             "region_create failed");
 
     // attach grraph to object region
+    // FIXME: the cur state of the client mappings won't match the server information currently
     PDCtf_attach_to_region(dg_id, obj_id, reg_global, "decompressed_floats", "compressed_floats");
 
     // write transfer
@@ -77,7 +79,7 @@ workflow1(pdcid_t pdc, pdcid_t cont)
 
     // read transfer
     LOG_INFO("Starting region transfer read\n");
-    /*TASSERT((transfer_id = PDCregion_transfer_create(data, PDC_READ, obj_id, reg, reg)) != 0,
+    TASSERT((transfer_id = PDCregion_transfer_create(data, PDC_READ, obj_id, reg, reg)) != 0,
             "region_transfer_create succeeded", "region_transfer_create failed");
     TASSERT(PDCregion_transfer_start(transfer_id) >= 0, "region_transfer_start succeeded",
             "region_transfer_start failed");
@@ -92,7 +94,7 @@ workflow1(pdcid_t pdc, pdcid_t cont)
             TGOTO_ERROR(FAIL, "Data validation failed at index %d: expected %d, got %d\n", i, FINAL_VAL,
                         data[i]);
     }
-    LOG_INFO("Data buffer had expected values\n");*/
+    LOG_INFO("Data buffer had expected values\n");
 
     PDCtf_close_dg(dg_id);
     TASSERT(PDCregion_close(reg) >= 0, "Call to PDCregion_close succeeded", "Call to PDCregion_close failed");
