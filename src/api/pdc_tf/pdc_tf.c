@@ -77,10 +77,9 @@ PDCtf_attach_to_region(pdcid_t dg_id, pdcid_t obj_id, pdcid_t remote_reg, char *
     uint64_t                *conceptual_offset = region_mapping->conceptual_offset;
 
     // copy region information into conceptual region
-    conceptual_region->ndim = region_info->ndim;
-    conceptual_region->unit = PDC_get_var_type_size(obj_info->obj_pt->obj_prop_pub->type);
+    PDCtf_set_tf_region_t(conceptual_region, region_info->ndim,
+                          PDC_get_var_type_size(obj_info->obj_pt->obj_prop_pub->type), region_info->size);
     memcpy(conceptual_offset, region_info->offset, region_info->ndim * sizeof(uint64_t));
-    memcpy(conceptual_region->size, region_info->size, region_info->ndim * sizeof(uint64_t));
 
     // FIXME: need to free these strings later
     region_mapping->region_state.client_state = strdup(client_state);

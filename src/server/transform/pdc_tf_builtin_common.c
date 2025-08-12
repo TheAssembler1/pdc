@@ -55,7 +55,7 @@ pdc_tf_builtin_zfp_compress(void *params, void **region_data, pdc_tf_region_t in
      * FIXME: we can get the zfp type through the *params for now hardcoding
      * we can also get the compression rate and align parameters
      */
-    zfp_type z_type    = zfp_type_float;
+    zfp_type z_type    = zfp_type_int32;
     uint8_t  comp_rate = 16;
     uint8_t  align     = 0;
 
@@ -172,7 +172,7 @@ pdc_tf_builtin_zfp_decompress(void *params, void **region_data, pdc_tf_region_t 
     PDCtf_log_pdc_region_t(input_reg);
 
     // Hardcoded for now to match compress path
-    zfp_type z_type = zfp_type_float;
+    zfp_type z_type = zfp_type_int32;
     uint8_t  align  = 0;
 
     // Compressed buffer from input
@@ -214,7 +214,7 @@ pdc_tf_builtin_zfp_decompress(void *params, void **region_data, pdc_tf_region_t 
     zfp_field *field = NULL;
     switch (input_reg.ndim) {
         case 1:
-            field = zfp_field_1d(decompressed_data, z_type, 10);
+            field = zfp_field_1d(decompressed_data, z_type, input_reg.size[0]);
             break;
         case 2:
             field = zfp_field_2d(decompressed_data, z_type, input_reg.size[0], input_reg.size[1]);

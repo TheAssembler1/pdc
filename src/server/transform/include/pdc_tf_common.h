@@ -68,7 +68,7 @@ typedef struct pdc_tf_state_t {
  * If a new data buffer is assigned to `*region_data`, it must be heap-allocated
  * so that PDC can free it. The original pointer should NOT be freed.
  */
-typedef bool (*c_func_t)(void *params, void **region_data, pdc_tf_region_t input_state,
+typedef bool (*c_func_t)(void *param, void **region_data, pdc_tf_region_t input_state,
                          pdc_tf_region_t *output_state);
 
 /**
@@ -88,6 +88,11 @@ typedef struct pdc_tf_func_t {
     pdc_tf_location_t location;
     char             *name;
     c_func_t          c_func;
+
+    pdc_tf_region_t last_input_tf_region;
+    pdc_tf_region_t last_output_tf_region;
+
+    void *output_param;
 } pdc_tf_func_t;
 
 // FIXME: we could store this in a dynamically allocated buf
@@ -113,6 +118,8 @@ extern uint32_t              pdc_tf_builtin_cur_func_g;
 
 extern pdc_dg_t *pdc_tf_graphs[200];
 
+perr_t  PDCtf_set_tf_region_t(pdc_tf_region_t *dest, uint8_t ndim, uint8_t unit, uint64_t *size);
+perr_t  PDCtf_copy_tf_region_t(pdc_tf_region_t *src, pdc_tf_region_t *dest);
 pdcid_t PDCtf_open_dg_json_common(char *filepath);
 perr_t  PDCtf_exec_graph(pdcid_t dg_id, char *cur_state, char *desired_state, pdc_tf_region_t input_region,
                          pdc_tf_region_t *output_region, void **input);

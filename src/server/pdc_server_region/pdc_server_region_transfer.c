@@ -685,16 +685,12 @@ PDC_Server_transfer_request_io(uint64_t obj_id, int obj_ndim, const uint64_t *ob
 
                     // setup input region
                     pdc_tf_region_t input_region;
-                    if (is_write) {
-                        input_region.ndim = region_info->ndim;
-                        input_region.unit = unit;
-                        memcpy(input_region.size, region_info->size, input_region.ndim * sizeof(uint64_t));
-                    }
+                    if (is_write)
+                        PDCtf_set_tf_region_t(&input_region, region_info->ndim, unit, region_info->size);
                     else {
-                        input_region.ndim = region_mapping->actual_region.ndim;
-                        input_region.unit = region_mapping->actual_region.unit;
-                        memcpy(input_region.size, region_mapping->actual_region.size,
-                               input_region.ndim * sizeof(uint64_t));
+                        PDCtf_set_tf_region_t(&input_region, region_mapping->actual_region.ndim,
+                                              region_mapping->actual_region.unit,
+                                              region_mapping->actual_region.size);
                     }
 
                     char *desired_state;
@@ -736,10 +732,7 @@ PDC_Server_transfer_request_io(uint64_t obj_id, int obj_ndim, const uint64_t *ob
                             close(fd);
 
                             // update actual region mapping
-                            region_mapping->actual_region.ndim = output_region.ndim;
-                            region_mapping->actual_region.unit = output_region.unit;
-                            memcpy(region_mapping->actual_region.size, output_region.size,
-                                   output_region.ndim * sizeof(uint64_t));
+                            PDCtf_copy_tf_region_t(&output_region, &region_mapping->actual_region);
                         }
 
                         // updating state to desired state
