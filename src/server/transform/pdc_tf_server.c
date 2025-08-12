@@ -37,7 +37,7 @@ PDCtf_store_json_mapping(pdcid_t obj_id, char *json_filepath, char *cur_state, c
     pdc_tf_region_mapping_t *region_mapping =
         &cur_tf_server_obj_info->pdc_tf_obj_t.region_mappings[cur_region_map];
     pdc_tf_region_t *conceptual_region = &region_mapping->conceptual_region;
-    uint64_t        *conceptual_offset = region_mapping->conceptual_offset;
+    uint64_t *       conceptual_offset = region_mapping->conceptual_offset;
 
     // copy region information into conceptual region
     conceptual_region->ndim = ndim;
