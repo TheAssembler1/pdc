@@ -88,7 +88,7 @@ PDC_finish_request(uint64_t transfer_request_id)
 {
     FUNC_ENTER(NULL);
 
-    pdc_transfer_request_status *   ptr, *tmp = NULL;
+    pdc_transfer_request_status    *ptr, *tmp = NULL;
     perr_t                          ret_value = SUCCEED;
     transfer_request_wait_out_t     out;
     transfer_request_wait_all_out_t out_all;
@@ -295,7 +295,7 @@ PDC_Server_data_io_flattened(uint64_t obj_id, int obj_ndim, const uint64_t *obj_
 
     perr_t   ret_value = SUCCEED;
     int      fd;
-    char *   data_path = NULL;
+    char    *data_path = NULL;
     char     storage_location[ADDR_MAX];
     ssize_t  io_size;
     uint64_t i, j;
@@ -639,6 +639,8 @@ PDC_Server_transfer_request_io(uint64_t obj_id, int obj_ndim, const uint64_t *ob
 {
     FUNC_ENTER(NULL);
 
+    void *cpy_buf = buf;
+
     perr_t ret_value = SUCCEED;
 
     /**
@@ -676,7 +678,7 @@ PDC_Server_transfer_request_io(uint64_t obj_id, int obj_ndim, const uint64_t *ob
         int  obj_index          = 0;
         for (int i = 0; i < num_tf_obj_with_obj_ids_g; i++) {
             if (obj_id == pdc_tf_obj_with_obj_ids[i].obj_id) {
-                struct pdc_tf_obj_t *    tf_obj = &pdc_tf_obj_with_obj_ids[i].pdc_tf_obj_t;
+                struct pdc_tf_obj_t     *tf_obj = &pdc_tf_obj_with_obj_ids[i].pdc_tf_obj_t;
                 pdc_tf_region_mapping_t *region_mapping;
 
                 if (PDCtf_region_has_attached_graph(tf_obj, region_info->ndim, unit, region_info->offset,
@@ -694,8 +696,15 @@ PDC_Server_transfer_request_io(uint64_t obj_id, int obj_ndim, const uint64_t *ob
                     }
 
                     char *desired_state;
-                    if (is_write)
+                    if (is_write) {
                         desired_state = region_mapping->region_state.store_state;
+
+                        // print 4 bytes in write buffer
+                        LOG_INFO("Write buffer: ");
+                        for (int j = 0; j < 4 && j < input_region.size[0] * input_region.unit; j++)
+                            LOG_JUST_PRINT("%02x ", ((unsigned char *)buf)[j]);
+                        LOG_INFO("\n");
+                    }
                     else {
                         desired_state = region_mapping->region_state.client_state;
 
@@ -706,8 +715,8 @@ PDC_Server_transfer_request_io(uint64_t obj_id, int obj_ndim, const uint64_t *ob
                         int      fd            = open(storage_location, O_RDONLY);
                         uint64_t bytes_to_read = PDC_get_region_desc_size_bytes(
                             input_region.size, input_region.unit, input_region.ndim);
-                        LOG_INFO("Writing %lu bytes\n", bytes_to_read);
-                        pwrite(fd, buf, bytes_to_read, 0);
+                        LOG_INFO("Reading %lu bytes\n", bytes_to_read);
+                        pread(fd, buf, bytes_to_read, 0);
                         close(fd);
                     }
 
@@ -728,11 +737,26 @@ PDC_Server_transfer_request_io(uint64_t obj_id, int obj_ndim, const uint64_t *ob
                             uint64_t bytes_to_write = PDC_get_region_desc_size_bytes(
                                 output_region.size, output_region.unit, output_region.ndim);
                             LOG_INFO("Writing %lu bytes\n", bytes_to_write);
+                            // print 10 bytes of the buffer
+                            LOG_INFO("Read Buffer: ");
+                            for (int j = 0; j < 10 && j < bytes_to_write; j++)
+                                LOG_JUST_PRINT("%02x ", ((unsigned char *)buf)[j]);
+                            LOG_INFO("\n");
+
                             pwrite(fd, buf, bytes_to_write, 0);
                             close(fd);
 
                             // update actual region mapping
                             PDCtf_copy_tf_region_t(&output_region, &region_mapping->actual_region);
+                        }
+                        else {
+                            // print output read buffer
+                            LOG_INFO("Output buffer: ");
+                            for (int j = 0; j < 10 && j < output_region.size[0] * output_region.unit; j++)
+                                LOG_JUST_PRINT("%02x ", ((unsigned char *)buf)[j]);
+                            LOG_INFO("\n");
+
+                            memcpy(cpy_buf, buf, PDCtf_get_pdc_region_t_bytes(output_region));
                         }
 
                         // updating state to desired state
@@ -802,7 +826,7 @@ parse_bulk_data(void *buf, transfer_request_all_data *request_data, pdc_access_t
 {
     FUNC_ENTER(NULL);
 
-    char *   ptr = (char *)buf;
+    char    *ptr = (char *)buf;
     int      i, j;
     uint64_t data_size;
 

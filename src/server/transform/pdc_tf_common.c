@@ -10,7 +10,7 @@
 #include "pdc_timing.h"
 #include "json-c/json.h"
 
-pdc_dg_t *            pdc_tf_graphs[200];
+pdc_dg_t             *pdc_tf_graphs[200];
 pdc_tf_builtin_func_t pdc_tf_builtin_funcs_g[PDC_TF_MAX_BUILTIN_FUNCS];
 uint32_t              pdc_tf_builtin_cur_func_g = 0;
 bool                  pdc_tf_has_init_g         = false;
@@ -32,9 +32,9 @@ PDCtf_copy_tf_region_t(pdc_tf_region_t *src, pdc_tf_region_t *dest)
 {
     FUNC_ENTER(NULL);
 
-    src->ndim = dest->ndim;
-    src->unit = dest->unit;
-    memcpy(src->size, dest->size, src->unit * sizeof(uint64_t));
+    dest->ndim = src->ndim;
+    dest->unit = src->unit;
+    memcpy(dest->size, src->size, src->unit * sizeof(uint64_t));
 
     FUNC_LEAVE(SUCCEED);
 }
@@ -71,13 +71,25 @@ PDCtf_exec_graph(pdcid_t dg_id, char *cur_state, char *desired_state, pdc_tf_reg
             pdc_dg_edge_t   e  = edges_out[j];
             pdc_tf_state_t *v1 = (pdc_tf_state_t *)(pdc_tf_graphs[dg_id]->vertices[e.v1_id]->data);
             pdc_tf_state_t *v2 = (pdc_tf_state_t *)(pdc_tf_graphs[dg_id]->vertices[e.v2_id]->data);
-            pdc_tf_func_t * f  = (pdc_tf_func_t *)(e.data);
+            pdc_tf_func_t  *f  = (pdc_tf_func_t *)(e.data);
+
+            // setup input and output parameters
+            pdc_tf_params_t tf_params;
+            tf_params.params_str         = f->params_str;
+            tf_params.input_params       = v1->params;
+            tf_params.input_params_size  = v1->params_size;
+            tf_params.output_params      = NULL;
+            tf_params.output_params_size = 0;
 
             // run the transformation
-            if (f->c_func(NULL, input, input_region, output_region) == false)
+            if (f->c_func(&tf_params, input, input_region, output_region) == false)
                 PGOTO_ERROR(FAIL, "Error when running transformation, %s", f->name);
             else
                 LOG_INFO("Transformation %s(%s) = %s ran successfully\n", f->name, v1->name, v2->name);
+
+            // set output state params for next transformation
+            v2->params      = tf_params.output_params;
+            v2->params_size = tf_params.output_params_size;
 
             // set previous output region as input region for next transformation
             if (j + 1 != num_edges)
@@ -176,7 +188,7 @@ PDCtf_region_has_attached_graph(struct pdc_tf_obj_t *tf_obj, int ndim, uint8_t u
     for (int i = 0; i < tf_obj->num_region_mappings; i++) {
         *region_mapping                    = &tf_obj->region_mappings[i];
         pdc_tf_region_t *coneptual_region  = &((*region_mapping)->conceptual_region);
-        uint64_t *       conceptual_offset = (*region_mapping)->conceptual_offset;
+        uint64_t        *conceptual_offset = (*region_mapping)->conceptual_offset;
 
         // check if client ndim, offset, dims, unit match
         bool ndim_matches = coneptual_region->ndim == ndim;
@@ -216,13 +228,17 @@ done:
 }
 
 static const char *
-get_json_string(struct json_object *json_obj, char *str_name)
+get_json_string(struct json_object *json_obj, char *str_name, bool expect_string)
 {
     struct json_object *str_json_obj = NULL;
-    const char *        ret_value    = NULL;
+    const char         *ret_value    = NULL;
 
-    if (!json_object_object_get_ex(json_obj, str_name, &str_json_obj))
-        PGOTO_ERROR(NULL, "%s was not found", str_name);
+    if (!json_object_object_get_ex(json_obj, str_name, &str_json_obj)) {
+        if (expect_string)
+            PGOTO_ERROR(NULL, "%s was not found", str_name);
+        else
+            PGOTO_DONE(NULL);
+    }
     if (json_object_get_type(str_json_obj) != json_type_string)
         PGOTO_ERROR(NULL, "%s was not a string\n", str_json_obj);
     ret_value = json_object_get_string(str_json_obj);
@@ -326,7 +342,7 @@ PDCtf_open_dg_json_common(char *filepath)
     FUNC_ENTER(NULL);
 
     pdcid_t             ret_value = tf_cur_graph_id;
-    FILE *              fp        = NULL;
+    FILE               *fp        = NULL;
     struct json_object *json_obj  = NULL;
     io_buffer_t         io_buffer;
     memset(&io_buffer, 0, sizeof(io_buffer_t));
@@ -354,7 +370,7 @@ PDCtf_open_dg_json_common(char *filepath)
     LOG_INFO("================START loading JSON into PDC===================\n");
 
     // Get directed graph name
-    const char *dg_name = get_json_string(json_obj, "name");
+    const char *dg_name = get_json_string(json_obj, "name", true);
     if (dg_name == NULL)
         PGOTO_ERROR(0, "Failed to find graph name");
     LOG_INFO("Directed graph name: %s\n", dg_name);
@@ -377,8 +393,8 @@ PDCtf_open_dg_json_common(char *filepath)
     for (int i = 0; i < states_length; i++) {
         struct json_object *s = array_list_get_idx(states, i);
 
-        const char *s_name        = get_json_string(s, "name");
-        const char *s_granularity = get_json_string(s, "granularity");
+        const char *s_name        = get_json_string(s, "name", true);
+        const char *s_granularity = get_json_string(s, "granularity", true);
 
         if (s_name == NULL || s_granularity == NULL)
             PGOTO_DONE(0);
@@ -404,6 +420,8 @@ PDCtf_open_dg_json_common(char *filepath)
 
         dg_state->name        = strdup(s_name);
         dg_state->granularity = granularity;
+        dg_state->params      = NULL;
+        dg_state->params_size = 0;
 
         if (PDCdg_add_vertex(dg, dg_state) == PDC_DG_INVALID_VERTEX)
             PGOTO_ERROR(0, "Failed to add vertex to directed graph\n");
@@ -417,11 +435,12 @@ PDCtf_open_dg_json_common(char *filepath)
     for (int i = 0; i < functions_length; i++) {
         struct json_object *f = array_list_get_idx(functions, i);
 
-        const char *f_name         = get_json_string(f, "name");
-        const char *f_device       = get_json_string(f, "device");
-        const char *f_input_state  = get_json_string(f, "input_state");
-        const char *f_output_state = get_json_string(f, "output_state");
-        const char *f_location     = get_json_string(f, "location");
+        const char *f_name         = get_json_string(f, "name", true);
+        const char *f_device       = get_json_string(f, "device", true);
+        const char *f_input_state  = get_json_string(f, "input_state", true);
+        const char *f_output_state = get_json_string(f, "output_state", true);
+        const char *f_location     = get_json_string(f, "location", true);
+        const char *f_params_str   = get_json_string(f, "params", false);
 
         if (f_name == NULL || f_input_state == NULL || f_output_state == NULL || f_location == NULL)
             PGOTO_DONE(0);
@@ -431,6 +450,7 @@ PDCtf_open_dg_json_common(char *filepath)
         LOG_INFO("\tInput state: %s\n", f_input_state);
         LOG_INFO("\tOutput state: %s\n", f_output_state);
         LOG_INFO("\tLocation: %s\n", f_location);
+        LOG_INFO("\tParams string: %s\n", (f_params_str) ? f_params_str : "None");
 
         pdc_tf_func_t *dg_func = PDC_calloc(1, sizeof(pdc_tf_func_t));
 
@@ -470,7 +490,8 @@ PDCtf_open_dg_json_common(char *filepath)
         dg_func->location = location;
         if (PDCtf_link_builtin_func(f_name, dg_func) != SUCCEED)
             PGOTO_ERROR(0, "Failed to link to builtin function");
-        dg_func->name = strdup(f_name);
+        dg_func->name       = strdup(f_name);
+        dg_func->params_str = (f_params_str) ? strdup(f_params_str) : NULL;
 
         /**
          * Construct input/output dg states

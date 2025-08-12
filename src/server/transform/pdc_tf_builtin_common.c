@@ -10,7 +10,7 @@
 #include "pdc_logger.h"
 
 bool
-pdc_tf_builtin_double_to_float(void *params, void **region_data, pdc_tf_region_t input_reg,
+pdc_tf_builtin_double_to_float(pdc_tf_params_t *tf_params, void **region_data, pdc_tf_region_t input_reg,
                                pdc_tf_region_t *output_reg)
 {
     LOG_INFO("pdc_tf_builtin_double_to_float was called\n");
@@ -34,7 +34,7 @@ pdc_tf_builtin_double_to_float(void *params, void **region_data, pdc_tf_region_t
 }
 
 bool
-pdc_tf_builtin_float_to_double(void *params, void **region_data, pdc_tf_region_t input_reg,
+pdc_tf_builtin_float_to_double(pdc_tf_params_t *tf_params, void **region_data, pdc_tf_region_t input_reg,
                                pdc_tf_region_t *output_reg)
 {
     LOG_INFO("pdc_tf_builtin_float_to_double was called\n");
@@ -42,45 +42,57 @@ pdc_tf_builtin_float_to_double(void *params, void **region_data, pdc_tf_region_t
     return true;
 }
 
+typedef struct zfp_compress_params_t {
+    zfp_type        z_type;
+    pdc_var_type_t  data_type;
+    pdc_tf_region_t decompressed_region;
+} zfp_compress_params_t;
+
 #ifdef ENABLE_TF_ZFP_COMPRESSION
 bool
-pdc_tf_builtin_zfp_compress(void *params, void **region_data, pdc_tf_region_t input_reg,
+pdc_tf_builtin_zfp_compress(pdc_tf_params_t *tf_params, void **region_data, pdc_tf_region_t input_reg,
                             pdc_tf_region_t *output_reg)
 {
     LOG_INFO("pdc_tf_builtin_zfp_compress was called\n");
 
     PDCtf_log_pdc_region_t(input_reg);
 
-    /**
-     * FIXME: we can get the zfp type through the *params for now hardcoding
-     * we can also get the compression rate and align parameters
-     */
-    zfp_type z_type    = zfp_type_int32;
-    uint8_t  comp_rate = 16;
-    uint8_t  align     = 0;
+    // set datatype based on params
+    zfp_type z_type;
 
-    float *buf = *((float **)region_data);
-
-    if (buf == NULL) {
-        LOG_ERROR("ZFP compress passed NULL buf\n");
-        return false;
+    switch (tf_params->params_str[0]) {
+        case 'f':
+            z_type = zfp_type_float;
+            break;
+        case 'd':
+            z_type = zfp_type_double;
+            break;
+        case 'i':
+            z_type = zfp_type_int32;
+            break;
+        case 'l':
+            z_type = zfp_type_int64;
+            break;
+        default:
+            LOG_ERROR("Unsupported datatype: %s\n", tf_params->params_str);
+            return false;
     }
 
     zfp_field *field = NULL;
-
     switch (input_reg.ndim) {
         case 1:
-            field = zfp_field_1d(buf, z_type, input_reg.size[0]);
+            field = zfp_field_1d(*region_data, z_type, input_reg.size[0]);
             break;
         case 2:
-            field = zfp_field_2d(buf, z_type, input_reg.size[0], input_reg.size[1]);
+            field = zfp_field_2d(*region_data, z_type, input_reg.size[0], input_reg.size[1]);
             break;
         case 3:
-            field = zfp_field_3d(buf, z_type, input_reg.size[0], input_reg.size[1], input_reg.size[2]);
+            field =
+                zfp_field_3d(*region_data, z_type, input_reg.size[0], input_reg.size[1], input_reg.size[2]);
             break;
         case 4:
-            field = zfp_field_4d(buf, z_type, input_reg.size[0], input_reg.size[1], input_reg.size[2],
-                                 input_reg.size[3]);
+            field = zfp_field_4d(*region_data, z_type, input_reg.size[0], input_reg.size[1],
+                                 input_reg.size[2], input_reg.size[3]);
             break;
         case 0:
             LOG_ERROR("ZFP compression not supported for 0 dimensions\n");
@@ -97,15 +109,16 @@ pdc_tf_builtin_zfp_compress(void *params, void **region_data, pdc_tf_region_t in
 
     // Create a zfp stream
     zfp_stream *zfp = zfp_stream_open(NULL);
+
     if (!zfp) {
         LOG_ERROR("Failed to create zfp stream\n");
         zfp_field_free(field);
         return false;
     }
 
-    // Set compression rate (bits per value)
-    if (!zfp_stream_set_rate(zfp, comp_rate, z_type, input_reg.ndim, align)) {
-        LOG_ERROR("Failed to set zfp compression rate\n");
+    double tolerance = 1e-9;
+    if (!zfp_stream_set_accuracy(zfp, tolerance)) {
+        LOG_ERROR("Failed to set zfp compression accuracy\n");
         zfp_field_free(field);
         zfp_stream_close(zfp);
         return false;
@@ -113,7 +126,7 @@ pdc_tf_builtin_zfp_compress(void *params, void **region_data, pdc_tf_region_t in
 
     // Allocate buffer for compressed data
     size_t bufsize           = zfp_stream_maximum_size(zfp, field);
-    void * compressed_buffer = malloc(bufsize);
+    void  *compressed_buffer = malloc(bufsize);
     if (!compressed_buffer) {
         LOG_ERROR("Failed to allocate memory for compressed data\n");
         zfp_field_free(field);
@@ -158,29 +171,53 @@ pdc_tf_builtin_zfp_compress(void *params, void **region_data, pdc_tf_region_t in
     zfp_stream_close(zfp);
     stream_close(stream);
 
+    // Set output params
+    zfp_compress_params_t *out_params = (zfp_compress_params_t *)malloc(sizeof(zfp_compress_params_t));
+    out_params->z_type                = z_type;
+    PDCtf_copy_tf_region_t(&input_reg, &out_params->decompressed_region);
+
+    tf_params->output_params      = out_params;
+    tf_params->output_params_size = sizeof(zfp_compress_params_t);
+
     LOG_INFO("ZFP compression succeeded, compressed size bytes: %zu bytes\n", compressed_size);
+
+    // print bytes
+    LOG_INFO("Compressed data: ");
+    for (size_t i = 0; i < compressed_size; i++) {
+        LOG_JUST_PRINT("%02x ", ((uint8_t *)compressed_buffer)[i]);
+    }
+    LOG_INFO("\n");
 
     return true;
 }
 
 bool
-pdc_tf_builtin_zfp_decompress(void *params, void **region_data, pdc_tf_region_t input_reg,
+pdc_tf_builtin_zfp_decompress(pdc_tf_params_t *tf_params, void **region_data, pdc_tf_region_t input_reg,
                               pdc_tf_region_t *output_reg)
 {
     LOG_INFO("pdc_tf_builtin_zfp_decompress was called\n");
 
     PDCtf_log_pdc_region_t(input_reg);
 
-    // Hardcoded for now to match compress path
-    zfp_type z_type = zfp_type_int32;
-    uint8_t  align  = 0;
+    // print region data bytse
+    LOG_INFO("Compressed data: ");
+    for (size_t i = 0; i < input_reg.size[0]; i++) {
+        LOG_JUST_PRINT("%02x ", ((uint8_t *)*region_data)[i]);
+    }
 
-    // Compressed buffer from input
-    void * compressed_buffer = *region_data;
-    size_t compressed_size   = input_reg.size[0];
+    // set datatype based on params
+    zfp_compress_params_t *in_params = (zfp_compress_params_t *)tf_params->input_params;
+    if (in_params == NULL) {
+        LOG_ERROR("ZFP decompress passed NULL params\n");
+        return false;
+    }
+
+    size_t compressed_size = input_reg.size[0];
+
+    LOG_INFO("Compressed size: %zu bytes\n", compressed_size);
 
     // Create bitstream from compressed data
-    bitstream *stream = stream_open(compressed_buffer, compressed_size);
+    bitstream *stream = stream_open(*region_data, compressed_size);
     if (!stream) {
         LOG_ERROR("Failed to open bitstream for decompression\n");
         return false;
@@ -198,38 +235,33 @@ pdc_tf_builtin_zfp_decompress(void *params, void **region_data, pdc_tf_region_t 
     zfp_stream_rewind(zfp);
 
     // Allocate uncompressed buffer
-    size_t total_elems = 1;
-    for (int i = 0; i < input_reg.ndim; ++i)
-        total_elems *= input_reg.size[i];
-
-    float *decompressed_data = (float *)malloc(total_elems * sizeof(float));
-    if (!decompressed_data) {
-        LOG_ERROR("Failed to allocate memory for decompressed data\n");
-        zfp_stream_close(zfp);
-        stream_close(stream);
-        return false;
-    }
+    size_t total_bytes = PDCtf_get_pdc_region_t_bytes(in_params->decompressed_region);
+    void  *buf         = malloc(total_bytes);
 
     // Create ZFP field for decompression
     zfp_field *field = NULL;
-    switch (input_reg.ndim) {
+    switch (in_params->decompressed_region.ndim) {
         case 1:
-            field = zfp_field_1d(decompressed_data, z_type, input_reg.size[0]);
+            field = zfp_field_1d(buf, in_params->z_type, in_params->decompressed_region.size[0]);
             break;
         case 2:
-            field = zfp_field_2d(decompressed_data, z_type, input_reg.size[0], input_reg.size[1]);
+            field = zfp_field_2d(buf, in_params->z_type, in_params->decompressed_region.size[0],
+                                 in_params->decompressed_region.size[1]);
             break;
         case 3:
-            field = zfp_field_3d(decompressed_data, z_type, input_reg.size[0], input_reg.size[1],
-                                 input_reg.size[2]);
+            field =
+                zfp_field_3d(buf, in_params->z_type, in_params->decompressed_region.size[0],
+                             in_params->decompressed_region.size[1], in_params->decompressed_region.size[2]);
             break;
         case 4:
-            field = zfp_field_4d(decompressed_data, z_type, input_reg.size[0], input_reg.size[1],
-                                 input_reg.size[2], input_reg.size[3]);
+            field =
+                zfp_field_4d(buf, in_params->z_type, in_params->decompressed_region.size[0],
+                             in_params->decompressed_region.size[1], in_params->decompressed_region.size[2],
+                             in_params->decompressed_region.size[3]);
             break;
         default:
-            LOG_ERROR("Unsupported ndim: %d\n", input_reg.size);
-            free(decompressed_data);
+            LOG_ERROR("Unsupported ndim: %d\n", in_params->decompressed_region.ndim);
+            free(buf);
             zfp_stream_close(zfp);
             stream_close(stream);
             return false;
@@ -237,7 +269,7 @@ pdc_tf_builtin_zfp_decompress(void *params, void **region_data, pdc_tf_region_t 
 
     if (!field) {
         LOG_ERROR("Failed to create zfp field\n");
-        free(decompressed_data);
+        free(buf);
         zfp_stream_close(zfp);
         stream_close(stream);
         return false;
@@ -247,7 +279,7 @@ pdc_tf_builtin_zfp_decompress(void *params, void **region_data, pdc_tf_region_t 
     size_t decompressed_size = zfp_decompress(zfp, field);
     if (decompressed_size == 0) {
         LOG_ERROR("ZFP decompression failed\n");
-        free(decompressed_data);
+        free(buf);
         zfp_field_free(field);
         zfp_stream_close(zfp);
         stream_close(stream);
@@ -255,14 +287,10 @@ pdc_tf_builtin_zfp_decompress(void *params, void **region_data, pdc_tf_region_t 
     }
 
     // Set output region unit and dims (same as input)
-    output_reg->unit = 4;
-    output_reg->ndim = 1;
-    memcpy(output_reg->size, input_reg.size, input_reg.ndim * sizeof(uint64_t));
+    PDCtf_copy_tf_region_t(&in_params->decompressed_region, output_reg);
 
     // Update region_data to point to decompressed buffer
-    *region_data = decompressed_data;
-
-    LOG_INFO("ZFP decompression succeeded, decompressed size bytes: %zu\n", decompressed_size);
+    *region_data = buf;
 
     zfp_field_free(field);
     zfp_stream_close(zfp);
@@ -270,5 +298,4 @@ pdc_tf_builtin_zfp_decompress(void *params, void **region_data, pdc_tf_region_t 
 
     return true;
 }
-
 #endif // ENABLE_TF_ZFP_COMPRESSION

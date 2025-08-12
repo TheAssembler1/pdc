@@ -8,17 +8,28 @@
 #include "pdc.h"
 #include "test_helper.h"
 
-#define NUM_PARTICLES_PER_DIM 10
+#define NUM_PARTICLES_PER_DIM 4096
 #define NUM_DIMS              1
-#define TYPE                  PDC_INT
-#define INIT_VAL              2
-#define FINAL_VAL             2
+#define TYPE                  PDC_FLOAT
+#define INIT_VAL              2.0f
+#define FINAL_VAL             2.0f
 
 static void
-set_buf(int *buf, int val, uint64_t num)
+set_buf(float *buf, float val, uint64_t num)
 {
     for (uint64_t i = 0; i < num; i++)
         buf[i] = val;
+}
+
+static void
+print_buf(float *buf, uint64_t num)
+{
+    for (uint64_t i = 0; i < num; i++) {
+        if (i % 10 == 0)
+            printf("\n");
+        printf("%f ", buf[i]);
+    }
+    printf("\n");
 }
 
 static int
@@ -27,11 +38,18 @@ workflow1(pdcid_t pdc, pdcid_t cont)
     int     ret_value = TSUCCEED;
     pdcid_t obj_id, obj_prop, reg, reg_global, transfer_id;
 
-    uint64_t total_particles = NUM_PARTICLES_PER_DIM;
-    for (int i = 2; i <= NUM_DIMS; i++)
+    uint64_t total_particles = 1;
+    for (int i = 0; i < NUM_DIMS; i++)
         total_particles *= NUM_PARTICLES_PER_DIM;
-    int *data = (int *)malloc(total_particles * sizeof(int));
+
+    float *data = (float *)malloc(total_particles * sizeof(float));
+    if (!data) {
+        LOG_ERROR("Failed to allocate data buffer\n");
+        return FAIL;
+    }
+
     set_buf(data, INIT_VAL, total_particles);
+    print_buf(data, total_particles);
 
     pdcid_t dg_id = PDCtf_open_dg_json("/home/ta1/src/workspace/source/pdc/tf_graphs/test.json");
     PDCtf_print_dg(dg_id, true);
@@ -40,6 +58,7 @@ workflow1(pdcid_t pdc, pdcid_t cont)
 
     TASSERT((obj_prop = PDCprop_create(PDC_OBJ_CREATE, pdc)) != 0, "obj_prop_create succeeded",
             "obj_prop_create failed");
+
     uint64_t dims[NUM_DIMS];
     uint64_t offset[NUM_DIMS];
 
@@ -47,19 +66,23 @@ workflow1(pdcid_t pdc, pdcid_t cont)
         offset[i] = 0;
         dims[i]   = NUM_PARTICLES_PER_DIM;
     }
+
     TASSERT(PDCprop_set_obj_type(obj_prop, TYPE) >= 0, "obj_prop_set_obj_type succeeded",
             "obj_prop_set_obj_type failed");
+
     TASSERT(PDCprop_set_obj_dims(obj_prop, NUM_DIMS, dims) >= 0, "obj_prop_set_obj_dims succeeded",
             "obj_prop_set_obj_dims failed");
+
     TASSERT((obj_id = PDCobj_create(cont, "obj_transform", obj_prop)) != 0, "obj_create succeeded",
             "obj_create failed");
+
     // for now local and global region are the same
     TASSERT((reg = PDCregion_create(NUM_DIMS, offset, dims)) != 0, "region_create succeeded",
             "region_create failed");
     TASSERT((reg_global = PDCregion_create(NUM_DIMS, offset, dims)) != 0, "region_create succeeded",
             "region_create failed");
 
-    // attach grraph to object region
+    // attach graph to object region
     // FIXME: the cur state of the client mappings won't match the server information currently
     PDCtf_attach_to_region(dg_id, obj_id, reg_global, "decompressed_floats", "compressed_floats");
 
@@ -89,10 +112,12 @@ workflow1(pdcid_t pdc, pdcid_t cont)
             "region_transfer_close failed");
 
     // validate floats
-    for (int i = 0; i < total_particles; i++) {
-        if (data[i] != FINAL_VAL)
-            TGOTO_ERROR(FAIL, "Data validation failed at index %d: expected %d, got %d\n", i, FINAL_VAL,
-                        data[i]);
+    print_buf(data, total_particles);
+    float tol = 1e-6f;
+    for (uint64_t i = 0; i < total_particles; i++) {
+        if (fabsf(data[i] - FINAL_VAL) > tol)
+            TGOTO_ERROR(FAIL, "Data validation failed at index %llu: expected %f, got %f\n",
+                        (unsigned long long)i, FINAL_VAL, data[i]);
     }
     LOG_INFO("Data buffer had expected values\n");
 
@@ -100,11 +125,11 @@ workflow1(pdcid_t pdc, pdcid_t cont)
     TASSERT(PDCregion_close(reg) >= 0, "Call to PDCregion_close succeeded", "Call to PDCregion_close failed");
     TASSERT(PDCregion_close(reg_global) >= 0, "Call to PDCregion_close succeeded",
             "Call to PDCregion_close failed");
-    // close object
     TASSERT(PDCobj_close(obj_id) >= 0, "Call to PDCobj_close succeeded", "Call to PDCobj_close failed");
-    // close a object property
     TASSERT(PDCprop_close(obj_prop) >= 0, "Call to PDCprop_close succeeded", "Call to PDCprop_close failed");
+
 done:
+    free(data);
     return ret_value;
 }
 
