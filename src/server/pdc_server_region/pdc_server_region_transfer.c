@@ -657,14 +657,6 @@ PDC_Server_transfer_request_io(uint64_t obj_id, int obj_ndim, const uint64_t *ob
             PDC_Server_data_io_flattened(obj_id, obj_ndim, obj_dims, region_info, buf, unit, is_write));
     }
     else if (storage_strategy_g == STORE_FLATTENED_REGION_PER_FILE) {
-        // FIXME: ad hoc way to init transformations
-        if (!pdc_tf_has_init_g) {
-            if (PDCtf_init_builtin_funcs() != SUCCEED)
-                PGOTO_ERROR(FAIL, "Failed to PDCtf_init_builtin_funcs");
-
-            pdc_tf_has_init_g = true;
-        }
-
         /**
          * FIMXE: If running transformation need to validate that
          * region info size and offset is flush with file_dims and
@@ -683,6 +675,14 @@ PDC_Server_transfer_request_io(uint64_t obj_id, int obj_ndim, const uint64_t *ob
 
                 if (PDCtf_region_has_attached_graph(tf_obj, region_info->ndim, unit, region_info->offset,
                                                     region_info->size, &region_mapping)) {
+
+                    // FIXME: ad hoc way to init transformations
+                    if (!pdc_tf_has_init_g) {
+                        if (PDCtf_init_builtin_funcs() != SUCCEED)
+                            PGOTO_ERROR(FAIL, "Failed to PDCtf_init_builtin_funcs");
+
+                        pdc_tf_has_init_g = true;
+                    }
                     pdc_tf_region_t output_region;
 
                     // setup input region

@@ -4,15 +4,19 @@
 
 #include <stdlib.h>
 #include <time.h>
+#include <assert.h>
 
 #include "pdc.h"
 #include "test_helper.h"
 
-#define NUM_PARTICLES_PER_DIM 4096
 #define NUM_DIMS              1
+#define NUM_PARTICLES_PER_DIM 4096
 #define TYPE                  PDC_FLOAT
-#define INIT_VAL              2.0f
-#define FINAL_VAL             2.0f
+
+#define REG_1_INIT_VAL  3.14f
+#define REG_1_FINAL_VAL 3.14f
+#define REG_2_INIT_VAL  6.28f
+#define REG_2_FINAL_VAL 6.28f
 
 static void
 set_buf(float *buf, float val, uint64_t num)
@@ -21,115 +25,162 @@ set_buf(float *buf, float val, uint64_t num)
         buf[i] = val;
 }
 
-static void
-print_buf(float *buf, uint64_t num)
-{
-    for (uint64_t i = 0; i < num; i++) {
-        if (i % 10 == 0)
-            printf("\n");
-        printf("%f ", buf[i]);
-    }
-    printf("\n");
-}
-
 static int
 workflow1(pdcid_t pdc, pdcid_t cont)
 {
-    int     ret_value = TSUCCEED;
-    pdcid_t obj_id, obj_prop, reg, reg_global, transfer_id;
-
+    int      ret_value = TSUCCEED;
+    pdcid_t  obj_prop = 0, obj = 0;
+    pdcid_t  reg1 = 0, reg2 = 0, reg_global1 = 0, reg_global2 = 0;
     uint64_t total_particles = 1;
+    uint64_t dims[NUM_DIMS];
+    uint64_t region_dims[NUM_DIMS];
+    uint64_t offset1[NUM_DIMS];
+    uint64_t offset2[NUM_DIMS];
+
+    // Calculate total particles
     for (int i = 0; i < NUM_DIMS; i++)
         total_particles *= NUM_PARTICLES_PER_DIM;
 
-    float *data = (float *)malloc(total_particles * sizeof(float));
-    if (!data) {
-        LOG_ERROR("Failed to allocate data buffer\n");
-        return FAIL;
+    // Allocate buffers for two regions (half each)
+    uint64_t half_particles = total_particles / 2;
+    float   *data1          = (float *)malloc(sizeof(float) * half_particles);
+    float   *data2          = (float *)malloc(sizeof(float) * half_particles);
+    if (!data1 || !data2) {
+        fprintf(stderr, "Failed to allocate data buffers\n");
+        ret_value = TFAIL;
+        goto cleanup;
     }
 
-    set_buf(data, INIT_VAL, total_particles);
-    print_buf(data, total_particles);
+    // Initialize buffers with distinct values
+    set_buf(data1, REG_1_INIT_VAL, half_particles);
+    set_buf(data2, REG_2_INIT_VAL, half_particles);
+
+    // Create object property and set type and full dims
+    obj_prop = PDCprop_create(PDC_OBJ_CREATE, pdc);
+    if (obj_prop == 0) {
+        fprintf(stderr, "Failed to create object property\n");
+        ret_value = TFAIL;
+        goto cleanup;
+    }
+    dims[0] = NUM_PARTICLES_PER_DIM;
+    if (PDCprop_set_obj_type(obj_prop, TYPE) < 0 || PDCprop_set_obj_dims(obj_prop, NUM_DIMS, dims) < 0) {
+        fprintf(stderr, "Failed to set object property attributes\n");
+        ret_value = TFAIL;
+        goto cleanup;
+    }
+
+    // Create the object
+    obj = PDCobj_create(cont, "obj_consecutive_regions", obj_prop);
+    if (obj == 0) {
+        fprintf(stderr, "Failed to create object\n");
+        ret_value = TFAIL;
+        goto cleanup;
+    }
+
+    // Define first region offset and size (first half)
+    offset1[0]     = 0;
+    region_dims[0] = NUM_PARTICLES_PER_DIM / 2;
+
+    // Define second region offset and size (second half)
+    offset2[0] = NUM_PARTICLES_PER_DIM / 2;
+
+    // Create local and global regions for both
+    reg1        = PDCregion_create(NUM_DIMS, offset1, region_dims);
+    reg_global1 = PDCregion_create(NUM_DIMS, offset1, region_dims);
+    reg2        = PDCregion_create(NUM_DIMS, offset1, region_dims);
+    reg_global2 = PDCregion_create(NUM_DIMS, offset2, region_dims);
+    if (!reg1 || !reg_global1 || !reg2 || !reg_global2) {
+        fprintf(stderr, "Failed to create regions\n");
+        ret_value = TFAIL;
+        goto cleanup;
+    }
 
     pdcid_t dg_id = PDCtf_open_dg_json("/home/ta1/src/workspace/source/pdc/tf_graphs/test.json");
     PDCtf_print_dg(dg_id, true);
     PDCtf_print_exec_path(dg_id, "decompressed_floats", "compressed_floats");
     PDCtf_print_exec_path(dg_id, "compressed_floats", "decompressed_floats");
 
-    TASSERT((obj_prop = PDCprop_create(PDC_OBJ_CREATE, pdc)) != 0, "obj_prop_create succeeded",
-            "obj_prop_create failed");
+    PDCtf_attach_to_region(dg_id, obj, reg_global1, "decompressed_floats", "compressed_floats");
+    PDCtf_attach_to_region(dg_id, obj, reg_global2, "decompressed_floats", "compressed_floats");
 
-    uint64_t dims[NUM_DIMS];
-    uint64_t offset[NUM_DIMS];
-
-    for (int i = 0; i < NUM_DIMS; i++) {
-        offset[i] = 0;
-        dims[i]   = NUM_PARTICLES_PER_DIM;
+    // Write first region
+    pdcid_t transfer_id = PDCregion_transfer_create(data1, PDC_WRITE, obj, reg1, reg_global1);
+    if (transfer_id == 0 || PDCregion_transfer_start(transfer_id) < 0 ||
+        PDCregion_transfer_wait(transfer_id) < 0 || PDCregion_transfer_close(transfer_id) < 0) {
+        fprintf(stderr, "Failed to write first region\n");
+        ret_value = TFAIL;
+        goto cleanup;
     }
 
-    TASSERT(PDCprop_set_obj_type(obj_prop, TYPE) >= 0, "obj_prop_set_obj_type succeeded",
-            "obj_prop_set_obj_type failed");
-
-    TASSERT(PDCprop_set_obj_dims(obj_prop, NUM_DIMS, dims) >= 0, "obj_prop_set_obj_dims succeeded",
-            "obj_prop_set_obj_dims failed");
-
-    TASSERT((obj_id = PDCobj_create(cont, "obj_transform", obj_prop)) != 0, "obj_create succeeded",
-            "obj_create failed");
-
-    // for now local and global region are the same
-    TASSERT((reg = PDCregion_create(NUM_DIMS, offset, dims)) != 0, "region_create succeeded",
-            "region_create failed");
-    TASSERT((reg_global = PDCregion_create(NUM_DIMS, offset, dims)) != 0, "region_create succeeded",
-            "region_create failed");
-
-    // attach graph to object region
-    // FIXME: the cur state of the client mappings won't match the server information currently
-    PDCtf_attach_to_region(dg_id, obj_id, reg_global, "decompressed_floats", "compressed_floats");
-
-    // write transfer
-    LOG_INFO("Starting region transfer write\n");
-    TASSERT((transfer_id = PDCregion_transfer_create(data, PDC_WRITE, obj_id, reg, reg)) != 0,
-            "region_transfer_create succeeded", "region_transfer_create failed");
-    TASSERT(PDCregion_transfer_start(transfer_id) >= 0, "region_transfer_start succeeded",
-            "region_transfer_start failed");
-    TASSERT(PDCregion_transfer_wait(transfer_id) >= 0, "region_transfer_wait succeeded",
-            "region_transfer_wait failed");
-    TASSERT(PDCregion_transfer_close(transfer_id) >= 0, "region_transfer_close succeeded",
-            "region_transfer_close failed");
-
-    // reset data buffer
-    set_buf(data, 0, total_particles);
-
-    // read transfer
-    LOG_INFO("Starting region transfer read\n");
-    TASSERT((transfer_id = PDCregion_transfer_create(data, PDC_READ, obj_id, reg, reg)) != 0,
-            "region_transfer_create succeeded", "region_transfer_create failed");
-    TASSERT(PDCregion_transfer_start(transfer_id) >= 0, "region_transfer_start succeeded",
-            "region_transfer_start failed");
-    TASSERT(PDCregion_transfer_wait(transfer_id) >= 0, "region_transfer_wait succeeded",
-            "region_transfer_wait failed");
-    TASSERT(PDCregion_transfer_close(transfer_id) >= 0, "region_transfer_close succeeded",
-            "region_transfer_close failed");
-
-    // validate floats
-    print_buf(data, total_particles);
-    float tol = 1e-6f;
-    for (uint64_t i = 0; i < total_particles; i++) {
-        if (fabsf(data[i] - FINAL_VAL) > tol)
-            TGOTO_ERROR(FAIL, "Data validation failed at index %llu: expected %f, got %f\n",
-                        (unsigned long long)i, FINAL_VAL, data[i]);
+    // Write second region
+    transfer_id = PDCregion_transfer_create(data2, PDC_WRITE, obj, reg2, reg_global2);
+    if (transfer_id == 0 || PDCregion_transfer_start(transfer_id) < 0 ||
+        PDCregion_transfer_wait(transfer_id) < 0 || PDCregion_transfer_close(transfer_id) < 0) {
+        fprintf(stderr, "Failed to write second region\n");
+        ret_value = TFAIL;
+        goto cleanup;
     }
-    LOG_INFO("Data buffer had expected values\n");
 
-    PDCtf_close_dg(dg_id);
-    TASSERT(PDCregion_close(reg) >= 0, "Call to PDCregion_close succeeded", "Call to PDCregion_close failed");
-    TASSERT(PDCregion_close(reg_global) >= 0, "Call to PDCregion_close succeeded",
-            "Call to PDCregion_close failed");
-    TASSERT(PDCobj_close(obj_id) >= 0, "Call to PDCobj_close succeeded", "Call to PDCobj_close failed");
-    TASSERT(PDCprop_close(obj_prop) >= 0, "Call to PDCprop_close succeeded", "Call to PDCprop_close failed");
+    // Reset buffers to zero before read
+    set_buf(data1, 0, half_particles);
+    set_buf(data2, 0, half_particles);
 
-done:
-    free(data);
+    // Read first region
+    transfer_id = PDCregion_transfer_create(data1, PDC_READ, obj, reg1, reg_global1);
+    if (transfer_id == 0 || PDCregion_transfer_start(transfer_id) < 0 ||
+        PDCregion_transfer_wait(transfer_id) < 0 || PDCregion_transfer_close(transfer_id) < 0) {
+        fprintf(stderr, "Failed to read first region\n");
+        ret_value = TFAIL;
+        goto cleanup;
+    }
+
+    // Read second region
+    transfer_id = PDCregion_transfer_create(data2, PDC_READ, obj, reg2, reg_global2);
+    if (transfer_id == 0 || PDCregion_transfer_start(transfer_id) < 0 ||
+        PDCregion_transfer_wait(transfer_id) < 0 || PDCregion_transfer_close(transfer_id) < 0) {
+        fprintf(stderr, "Failed to read second region\n");
+        ret_value = TFAIL;
+        goto cleanup;
+    }
+
+    // Validate first buffer
+    for (uint64_t i = 0; i < half_particles; i++) {
+        if (fabsf(data1[i] - REG_1_FINAL_VAL) > 1e-6) {
+            fprintf(stderr, "Validation failed for data1 at %llu: expected %f got %f\n",
+                    (unsigned long long)i, REG_1_FINAL_VAL, data1[i]);
+            ret_value = TFAIL;
+            goto cleanup;
+        }
+    }
+
+    // Validate second buffer
+    for (uint64_t i = 0; i < half_particles; i++) {
+        if (fabsf(data2[i] - REG_2_FINAL_VAL) > 1e-6) {
+            fprintf(stderr, "Validation failed for data2 at %llu: expected %f got %f\n",
+                    (unsigned long long)i, REG_2_FINAL_VAL, data2[i]);
+            ret_value = TFAIL;
+            goto cleanup;
+        }
+    }
+
+cleanup:
+    if (reg1)
+        PDCregion_close(reg1);
+    if (reg_global1)
+        PDCregion_close(reg_global1);
+    if (reg2)
+        PDCregion_close(reg2);
+    if (reg_global2)
+        PDCregion_close(reg_global2);
+    if (obj)
+        PDCobj_close(obj);
+    if (obj_prop)
+        PDCprop_close(obj_prop);
+    if (data1)
+        free(data1);
+    if (data2)
+        free(data2);
+
     return ret_value;
 }
 
