@@ -10,7 +10,7 @@
 #include "pdc_timing.h"
 #include "json-c/json.h"
 
-pdc_dg_t *            pdc_tf_graphs[200];
+pdc_dg_t             *pdc_tf_graphs[200];
 pdc_tf_builtin_func_t pdc_tf_builtin_funcs_g[PDC_TF_MAX_BUILTIN_FUNCS];
 uint32_t              pdc_tf_builtin_cur_func_g = 0;
 bool                  pdc_tf_has_init_g         = false;
@@ -40,6 +40,62 @@ PDCtf_copy_tf_region_t(pdc_tf_region_t *src, pdc_tf_region_t *dest)
 }
 
 perr_t
+PDCtf_set_state_param(pdc_dg_t *dg, char *state_name, void *params, uint64_t params_size)
+{
+    FUNC_ENTER(NULL);
+
+    perr_t ret_value = SUCCEED;
+
+    // Get state from graph
+    pdc_tf_state_t query_stat;
+    query_stat.name = state_name;
+
+    pdc_dg_vertex_id_t vert = PDCdg_vertex_exists(dg, &query_stat);
+    if (vert == PDC_DG_INVALID_VERTEX)
+        PGOTO_ERROR(FAIL, "Failed to find state in PDCtf_set_state_param");
+
+    // Get the tf state
+    pdc_tf_state_t *tf_state = (pdc_tf_state_t *)dg->vertices[vert]->data;
+    if (tf_state == NULL)
+        PGOTO_ERROR(FAIL, "Vertex data wasNULL");
+
+    // Set the new params
+    tf_state->params      = params;
+    tf_state->params_size = params_size;
+
+done:
+    FUNC_LEAVE(ret_value);
+}
+
+perr_t
+PDCtf_get_state_param(pdc_dg_t *dg, char *state_name, void **params, uint64_t *params_size)
+{
+    FUNC_ENTER(NULL);
+
+    perr_t ret_value = SUCCEED;
+
+    // Get state from graph
+    pdc_tf_state_t query_stat;
+    query_stat.name = state_name;
+
+    pdc_dg_vertex_id_t vert = PDCdg_vertex_exists(dg, &query_stat);
+    if (vert == PDC_DG_INVALID_VERTEX)
+        PGOTO_ERROR(FAIL, "Failed to find state in PDCtf_get_state_param");
+
+    // Get the tf state
+    pdc_tf_state_t *tf_state = (pdc_tf_state_t *)dg->vertices[vert]->data;
+    if (tf_state == NULL)
+        PGOTO_ERROR(FAIL, "Vertex data wasNULL");
+
+    // Set the new params
+    *params      = tf_state->params;
+    *params_size = tf_state->params_size;
+
+done:
+    FUNC_LEAVE(ret_value);
+}
+
+perr_t
 PDCtf_exec_graph(pdcid_t dg_id, char *cur_state, char *desired_state, pdc_tf_region_t input_region,
                  pdc_tf_region_t *output_region, void **input)
 {
@@ -51,7 +107,7 @@ PDCtf_exec_graph(pdcid_t dg_id, char *cur_state, char *desired_state, pdc_tf_reg
 
     /**
      * Setup input and output states
-     * NOTE: the vertices are check for equality based on the name alone
+     * NOTE: The vertices are check for equality based on the name alone
      */
     pdc_tf_state_t tf_input_state;
     pdc_tf_state_t tf_output_state;
@@ -66,34 +122,38 @@ PDCtf_exec_graph(pdcid_t dg_id, char *cur_state, char *desired_state, pdc_tf_reg
     memcpy(output_region, &input_region, sizeof(pdc_tf_region_t));
 
     if (PDCdg_shortest_path(pdc_tf_graphs[dg_id], input_state, output_state, &edges_out, &num_edges)) {
+        LOG_INFO("Planned Execution path\n");
+        for (uint32_t j = 0; j < num_edges; j++) {
+            pdc_dg_edge_t   e  = edges_out[j];
+            pdc_tf_state_t *v1 = (pdc_tf_state_t *)(pdc_tf_graphs[dg_id]->vertices[e.v1_id]->data);
+            pdc_tf_state_t *v2 = (pdc_tf_state_t *)(pdc_tf_graphs[dg_id]->vertices[e.v2_id]->data);
+            pdc_tf_func_t  *f  = (pdc_tf_func_t *)(e.data);
+
+            LOG_INFO("Transformation %s(%s) = %s\n", f->name, v1->name, v2->name);
+        }
+    }
+
+    if (PDCdg_shortest_path(pdc_tf_graphs[dg_id], input_state, output_state, &edges_out, &num_edges)) {
         LOG_INFO("Path was found:\n");
         for (uint32_t j = 0; j < num_edges; j++) {
             pdc_dg_edge_t   e  = edges_out[j];
             pdc_tf_state_t *v1 = (pdc_tf_state_t *)(pdc_tf_graphs[dg_id]->vertices[e.v1_id]->data);
             pdc_tf_state_t *v2 = (pdc_tf_state_t *)(pdc_tf_graphs[dg_id]->vertices[e.v2_id]->data);
-            pdc_tf_func_t * f  = (pdc_tf_func_t *)(e.data);
+            pdc_tf_func_t  *f  = (pdc_tf_func_t *)(e.data);
 
-            // setup input and output parameters
-            pdc_tf_params_t tf_params;
-            tf_params.params_str         = f->params_str;
-            tf_params.input_params       = v1->params;
-            tf_params.input_params_size  = v1->params_size;
-            tf_params.output_params      = NULL;
-            tf_params.output_params_size = 0;
+            // Setup internal paramters for helper macros
+            pdc_tf_internal_param internal_params;
+            internal_params.dg = pdc_tf_graphs[dg_id];
 
-            // run the transformation
+            // Run the transformation
             LOG_JUST_PRINT("--------------------------TRANSFORM_START--------------------------\n");
-            if (f->c_func(&tf_params, input, input_region, output_region) == false)
+            if (f->c_func(internal_params, f->params_str, input, input_region, output_region) == false)
                 PGOTO_ERROR(FAIL, "Error when running transformation, %s", f->name);
             else
                 LOG_INFO("Transformation %s(%s) = %s ran successfully\n", f->name, v1->name, v2->name);
             LOG_JUST_PRINT("--------------------------TRANSFORM_DONE--------------------------\n");
 
-            // set output state params for next transformation
-            v2->params      = tf_params.output_params;
-            v2->params_size = tf_params.output_params_size;
-
-            // set previous output region as input region for next transformation
+            // Set previous output region as input region for next transformation
             if (j + 1 != num_edges)
                 memcpy(&input_region, output_region, sizeof(pdc_tf_region_t));
         }
@@ -176,7 +236,7 @@ PDCtf_init_builtin_funcs()
 #endif
     if (PDCtf_add_builtin_func("secret_box_encrypt", pdc_tf_builtin_encrypt) != SUCCEED)
         PGOTO_ERROR(FAIL, "Failed to add builtin func secret_box_encrypt");
-    if (PDCtf_add_builtin_func("secret_box_decryp", pdc_tf_builtin_zfp_decompress) != SUCCEED)
+    if (PDCtf_add_builtin_func("secret_box_decrypt", pdc_tf_builtin_decrypt) != SUCCEED)
         PGOTO_ERROR(FAIL, "Failed to add builtin func pdc_tf_builtin_decrypt");
 done:
     FUNC_LEAVE(ret_value);
@@ -198,7 +258,7 @@ PDCtf_region_has_attached_graph(struct pdc_tf_obj_t *tf_obj, int ndim, uint8_t u
     for (int i = 0; i < tf_obj->num_region_mappings; i++) {
         *region_mapping                    = &tf_obj->region_mappings[i];
         pdc_tf_region_t *coneptual_region  = &((*region_mapping)->conceptual_region);
-        uint64_t *       conceptual_offset = (*region_mapping)->conceptual_offset;
+        uint64_t        *conceptual_offset = (*region_mapping)->conceptual_offset;
 
         // check if client ndim, offset, dims, unit match
         bool ndim_matches = coneptual_region->ndim == ndim;
@@ -241,7 +301,7 @@ static const char *
 get_json_string(struct json_object *json_obj, char *str_name, bool expect_string)
 {
     struct json_object *str_json_obj = NULL;
-    const char *        ret_value    = NULL;
+    const char         *ret_value    = NULL;
 
     if (!json_object_object_get_ex(json_obj, str_name, &str_json_obj)) {
         if (expect_string)
@@ -352,7 +412,7 @@ PDCtf_open_dg_json_common(char *filepath)
     FUNC_ENTER(NULL);
 
     pdcid_t             ret_value = tf_cur_graph_id;
-    FILE *              fp        = NULL;
+    FILE               *fp        = NULL;
     struct json_object *json_obj  = NULL;
     io_buffer_t         io_buffer;
     memset(&io_buffer, 0, sizeof(io_buffer_t));

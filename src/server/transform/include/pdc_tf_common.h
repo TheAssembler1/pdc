@@ -18,9 +18,9 @@ typedef struct pdc_tf_region_t {
 
 typedef struct pdc_tf_region_state_t {
     pdcid_t dg_id;
-    char *  cur_state;
-    char *  client_state;
-    char *  store_state;
+    char   *cur_state;
+    char   *client_state;
+    char   *store_state;
 } pdc_tf_region_state_t;
 
 typedef struct pdc_tf_region_mapping_t {
@@ -52,20 +52,15 @@ typedef enum pdc_tf_granularities_t {
 extern char *pdc_tf_granularity_strs[];
 
 typedef struct pdc_tf_state_t {
-    char *                 name;
-    void *                 params;
+    char                  *name;
+    void                  *params;
     uint64_t               params_size;
     pdc_tf_granularities_t granularity;
 } pdc_tf_state_t;
 
-typedef struct pdc_tf_params_t {
-    char *   params_str;
-    void *   input_params;
-    uint64_t input_params_size;
-
-    void *   output_params;
-    uint64_t output_params_size;
-} pdc_tf_params_t;
+typedef struct pdc_tf_internal_param {
+    pdc_dg_t *dg;
+} pdc_tf_internal_param;
 
 /**
  * Prototype for region transformation functions
@@ -81,8 +76,8 @@ typedef struct pdc_tf_params_t {
  * If a new data buffer is assigned to `*region_data`, it must be heap-allocated
  * so that PDC can free it. The original pointer should NOT be freed.
  */
-typedef bool (*c_func_t)(pdc_tf_params_t *input_tf_params, void **region_data, pdc_tf_region_t input_state,
-                         pdc_tf_region_t *output_state);
+typedef bool (*c_func_t)(pdc_tf_internal_param internal_param, char *params_str, void **region_data,
+                         pdc_tf_region_t input_region, pdc_tf_region_t *output_region);
 
 /**
  * what device the function can run on
@@ -99,8 +94,8 @@ extern char *pdc_tf_location_strs[];
 typedef struct pdc_tf_func_t {
     pdc_tf_dev_t      dev;
     pdc_tf_location_t location;
-    char *            name;
-    char *            params_str;
+    char             *name;
+    char             *params_str;
     c_func_t          c_func;
 } pdc_tf_func_t;
 
@@ -139,6 +134,8 @@ extern pdc_dg_t *pdc_tf_graphs[200];
 
 perr_t  PDCtf_set_tf_region_t(pdc_tf_region_t *dest, uint8_t ndim, uint8_t unit, uint64_t *size);
 perr_t  PDCtf_copy_tf_region_t(pdc_tf_region_t *src, pdc_tf_region_t *dest);
+perr_t  PDCtf_set_state_param(pdc_dg_t *dg, char *state_name, void *params, uint64_t params_size);
+perr_t  PDCtf_get_state_param(pdc_dg_t *dg, char *state_name, void **params, uint64_t *params_size);
 pdcid_t PDCtf_open_dg_json_common(char *filepath);
 perr_t  PDCtf_exec_graph(pdcid_t dg_id, char *cur_state, char *desired_state, pdc_tf_region_t input_region,
                          pdc_tf_region_t *output_region, void **input);

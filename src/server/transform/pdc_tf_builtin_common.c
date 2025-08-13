@@ -2,6 +2,7 @@
 
 #include "pdc_tf_builtin_common.h"
 #include "pdc_tf_common.h"
+#include "pdc_tf_helper.h"
 
 #ifdef ENABLE_TF_ZFP_COMPRESSION
 #include <zfp.h>
@@ -14,35 +15,35 @@
 #include "pdc_logger.h"
 
 bool
-pdc_tf_builtin_double_to_float(pdc_tf_params_t *tf_params, void **region_data, pdc_tf_region_t input_reg,
-                               pdc_tf_region_t *output_reg)
+pdc_tf_builtin_double_to_float(pdc_tf_internal_param internal_param, char *params_str, void **region_data,
+                               pdc_tf_region_t input_region, pdc_tf_region_t *output_region)
 {
     LOG_INFO("pdc_tf_builtin_double_to_float was called\n");
 
-    PDCtf_log_pdc_region_t(input_reg);
-    size_t num_elements = PDCtf_get_pdc_region_t_elements(input_reg);
+    PDCtf_log_pdc_region_t(input_region);
+    size_t num_elements = PDCtf_get_pdc_region_t_elements(input_region);
 
     double *buf = *((double **)region_data);
 
     // copy into new buffer
-    float *new_buf = (float *)malloc(PDCtf_get_pdc_region_t_bytes(input_reg));
-    for (int i = 0; i < PDCtf_get_pdc_region_t_elements(input_reg); i++)
+    float *new_buf = (float *)malloc(PDCtf_get_pdc_region_t_bytes(input_region));
+    for (int i = 0; i < PDCtf_get_pdc_region_t_elements(input_region); i++)
         new_buf[i] = (float)buf[i];
 
     *region_data = new_buf;
 
     // resize output region
-    output_reg->unit = sizeof(float);
+    output_region->unit = sizeof(float);
 
     return true;
 }
 
 bool
-pdc_tf_builtin_float_to_double(pdc_tf_params_t *tf_params, void **region_data, pdc_tf_region_t input_reg,
-                               pdc_tf_region_t *output_reg)
+pdc_tf_builtin_float_to_double(pdc_tf_internal_param internal_param, char *params_str, void **region_data,
+                               pdc_tf_region_t input_region, pdc_tf_region_t *output_region)
 {
     LOG_INFO("pdc_tf_builtin_float_to_double was called\n");
-    PDCtf_log_pdc_region_t(input_reg);
+    PDCtf_log_pdc_region_t(input_region);
     return true;
 }
 
@@ -77,17 +78,17 @@ print_ztype(zfp_type z_type)
 
 #ifdef ENABLE_TF_ZFP_COMPRESSION
 bool
-pdc_tf_builtin_zfp_compress(pdc_tf_params_t *tf_params, void **region_data, pdc_tf_region_t input_reg,
-                            pdc_tf_region_t *output_reg)
+pdc_tf_builtin_zfp_compress(pdc_tf_internal_param internal_param, char *params_str, void **region_data,
+                            pdc_tf_region_t input_region, pdc_tf_region_t *output_region)
 {
     LOG_INFO("pdc_tf_builtin_zfp_compress was called\n");
 
-    PDCtf_log_pdc_region_t(input_reg);
+    PDCtf_log_pdc_region_t(input_region);
 
     // set datatype based on params
     zfp_type z_type;
 
-    switch (tf_params->params_str[0]) {
+    switch (params_str[0]) {
         case 'f':
             z_type = zfp_type_float;
             break;
@@ -101,26 +102,26 @@ pdc_tf_builtin_zfp_compress(pdc_tf_params_t *tf_params, void **region_data, pdc_
             z_type = zfp_type_int64;
             break;
         default:
-            LOG_ERROR("Unsupported datatype: %s\n", tf_params->params_str);
+            LOG_ERROR("Unsupported datatype: %s\n", params_str);
             return false;
     }
     print_ztype(z_type);
 
     zfp_field *field = NULL;
-    switch (input_reg.ndim) {
+    switch (input_region.ndim) {
         case 1:
-            field = zfp_field_1d(*region_data, z_type, input_reg.size[0]);
+            field = zfp_field_1d(*region_data, z_type, input_region.size[0]);
             break;
         case 2:
-            field = zfp_field_2d(*region_data, z_type, input_reg.size[0], input_reg.size[1]);
+            field = zfp_field_2d(*region_data, z_type, input_region.size[0], input_region.size[1]);
             break;
         case 3:
-            field =
-                zfp_field_3d(*region_data, z_type, input_reg.size[0], input_reg.size[1], input_reg.size[2]);
+            field = zfp_field_3d(*region_data, z_type, input_region.size[0], input_region.size[1],
+                                 input_region.size[2]);
             break;
         case 4:
-            field = zfp_field_4d(*region_data, z_type, input_reg.size[0], input_reg.size[1],
-                                 input_reg.size[2], input_reg.size[3]);
+            field = zfp_field_4d(*region_data, z_type, input_region.size[0], input_region.size[1],
+                                 input_region.size[2], input_region.size[3]);
             break;
         case 0:
             LOG_ERROR("ZFP compression not supported for 0 dimensions\n");
@@ -146,7 +147,7 @@ pdc_tf_builtin_zfp_compress(pdc_tf_params_t *tf_params, void **region_data, pdc_
 
     // Allocate buffer for compressed data
     size_t bufsize           = zfp_stream_maximum_size(zfp, field);
-    void * compressed_buffer = malloc(bufsize);
+    void  *compressed_buffer = malloc(bufsize);
     if (!compressed_buffer) {
         LOG_ERROR("Failed to allocate memory for compressed data\n");
         zfp_field_free(field);
@@ -183,9 +184,9 @@ pdc_tf_builtin_zfp_compress(pdc_tf_params_t *tf_params, void **region_data, pdc_
     *region_data = compressed_buffer;
 
     // Update output region dims to reflect compressed data size (1D)
-    output_reg->ndim    = 1;
-    output_reg->unit    = 1;
-    output_reg->size[0] = compressed_size;
+    output_region->ndim    = 1;
+    output_region->unit    = 1;
+    output_region->size[0] = compressed_size;
 
     // Free zfp structures
     zfp_field_free(field);
@@ -195,10 +196,8 @@ pdc_tf_builtin_zfp_compress(pdc_tf_params_t *tf_params, void **region_data, pdc_
     // Set output params
     zfp_compress_params_t *out_params = (zfp_compress_params_t *)malloc(sizeof(zfp_compress_params_t));
     out_params->z_type                = z_type;
-    PDCtf_copy_tf_region_t(&input_reg, &out_params->decompressed_region);
-
-    tf_params->output_params      = out_params;
-    tf_params->output_params_size = sizeof(zfp_compress_params_t);
+    PDCtf_copy_tf_region_t(&input_region, &out_params->decompressed_region);
+    SET_STATE_PARAMS("compressed", out_params, sizeof(zfp_compress_params_t));
 
     LOG_INFO("ZFP compression succeeded, compressed size bytes: %zu bytes\n", compressed_size);
 
@@ -206,22 +205,20 @@ pdc_tf_builtin_zfp_compress(pdc_tf_params_t *tf_params, void **region_data, pdc_
 }
 
 bool
-pdc_tf_builtin_zfp_decompress(pdc_tf_params_t *tf_params, void **region_data, pdc_tf_region_t input_reg,
-                              pdc_tf_region_t *output_reg)
+pdc_tf_builtin_zfp_decompress(pdc_tf_internal_param internal_param, char *params_str, void **region_data,
+                              pdc_tf_region_t input_region, pdc_tf_region_t *output_region)
 {
     LOG_INFO("pdc_tf_builtin_zfp_decompress was called\n");
 
-    PDCtf_log_pdc_region_t(input_reg);
+    PDCtf_log_pdc_region_t(input_region);
 
-    // set datatype based on params
-    zfp_compress_params_t *in_params = (zfp_compress_params_t *)tf_params->input_params;
-    if (in_params == NULL) {
-        LOG_ERROR("ZFP decompress passed NULL params\n");
-        return false;
-    }
+    // Get params
+    zfp_compress_params_t *in_params;
+    uint64_t               in_params_size;
+    GET_STATE_PARAMS("compressed", (void **)&in_params, &in_params_size);
 
     print_ztype(in_params->z_type);
-    size_t compressed_size = input_reg.size[0];
+    size_t compressed_size = input_region.size[0];
     LOG_INFO("Compressed size: %zu bytes\n", compressed_size);
 
     // Create bitstream from compressed data
@@ -297,7 +294,7 @@ pdc_tf_builtin_zfp_decompress(pdc_tf_params_t *tf_params, void **region_data, pd
     }
 
     // Set output region unit and dims (same as input)
-    PDCtf_copy_tf_region_t(&in_params->decompressed_region, output_reg);
+    PDCtf_copy_tf_region_t(&in_params->decompressed_region, output_region);
 
     // Update region_data to point to decompressed buffer
     *region_data = buf;
@@ -326,7 +323,7 @@ pdc_tf_builtin_zfp_decompress(pdc_tf_params_t *tf_params, void **region_data, pd
 
     size_t decompressed_bytes = num_elements * elem_size;
     LOG_INFO("Actual decompressed size: %zu bytes\n", decompressed_bytes);
-    LOG_INFO("Expected decompressed size: %zu bytes\n", PDCtf_get_pdc_region_t_bytes(*output_reg));
+    LOG_INFO("Expected decompressed size: %zu bytes\n", PDCtf_get_pdc_region_t_bytes(*output_region));
 
     zfp_field_free(field);
     zfp_stream_close(zfp);
@@ -347,12 +344,12 @@ typedef struct simple_params {
 } simple_params_t;
 
 bool
-pdc_tf_builtin_encrypt(pdc_tf_params_t *tf_params, void **region_data, pdc_tf_region_t input_reg,
-                       pdc_tf_region_t *output_reg)
+pdc_tf_builtin_encrypt(pdc_tf_internal_param internal_param, char *params_str, void **region_data,
+                       pdc_tf_region_t input_region, pdc_tf_region_t *output_region)
 {
     LOG_INFO("pdc_tf_builtin_encrypt called\n");
 
-    size_t plaintext_len = PDCtf_get_pdc_region_t_bytes(input_reg);
+    size_t plaintext_len = PDCtf_get_pdc_region_t_bytes(input_region);
 
     size_t         ciphertext_len = plaintext_len + crypto_secretbox_MACBYTES;
     unsigned char *ciphertext     = malloc(ciphertext_len);
@@ -368,9 +365,9 @@ pdc_tf_builtin_encrypt(pdc_tf_params_t *tf_params, void **region_data, pdc_tf_re
     }
 
     // Output region is 1D bytes (ciphertext)
-    output_reg->ndim    = 1;
-    output_reg->unit    = 1;
-    output_reg->size[0] = ciphertext_len;
+    output_region->ndim    = 1;
+    output_region->unit    = 1;
+    output_region->size[0] = ciphertext_len;
 
     // Save original plaintext size in output_params
     simple_params_t *out_params = malloc(sizeof(simple_params_t));
@@ -380,9 +377,7 @@ pdc_tf_builtin_encrypt(pdc_tf_params_t *tf_params, void **region_data, pdc_tf_re
         return false;
     }
     out_params->original_plaintext_size = plaintext_len;
-
-    tf_params->output_params      = out_params;
-    tf_params->output_params_size = sizeof(simple_params_t);
+    SET_STATE_PARAMS("encrypted", out_params, sizeof(simple_params_t));
 
     // Update data pointer
     *region_data = ciphertext;
@@ -392,18 +387,16 @@ pdc_tf_builtin_encrypt(pdc_tf_params_t *tf_params, void **region_data, pdc_tf_re
 }
 
 bool
-pdc_tf_builtin_decrypt(pdc_tf_params_t *tf_params, void **region_data, pdc_tf_region_t input_reg,
-                       pdc_tf_region_t *output_reg)
+pdc_tf_builtin_decrypt(pdc_tf_internal_param internal_param, char *params_str, void **region_data,
+                       pdc_tf_region_t input_region, pdc_tf_region_t *output_region)
 {
     LOG_INFO("pdc_tf_builtin_decrypt called\n");
 
-    size_t ciphertext_len = PDCtf_get_pdc_region_t_bytes(input_reg);
+    size_t ciphertext_len = PDCtf_get_pdc_region_t_bytes(input_region);
 
-    simple_params_t *in_params = (simple_params_t *)tf_params->input_params;
-    if (!in_params) {
-        LOG_ERROR("Missing input params with original plaintext size\n");
-        return false;
-    }
+    simple_params_t *in_params;
+    uint64_t         in_params_size;
+    GET_STATE_PARAMS("encrypted", (void **)&in_params, &in_params_size);
 
     if (ciphertext_len < crypto_secretbox_MACBYTES) {
         LOG_ERROR("Ciphertext too short\n");
@@ -426,9 +419,9 @@ pdc_tf_builtin_decrypt(pdc_tf_params_t *tf_params, void **region_data, pdc_tf_re
     }
 
     // Set output region dims: restore original plaintext region
-    output_reg->ndim    = 1;
-    output_reg->unit    = 1;
-    output_reg->size[0] = plaintext_len;
+    output_region->ndim    = 1;
+    output_region->unit    = 1;
+    output_region->size[0] = plaintext_len;
 
     // Update data pointer
     *region_data = plaintext;

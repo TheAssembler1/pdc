@@ -42,8 +42,8 @@
             "input_state": "encrypted",
             "output_state": "compressed",
             "location": "builtin",
-            "name": "secret_box_decryp"
+            "name": "secret_box_decrypt"
         }
     ],
-    "name": "ZFP_compression"
+    "name": "ZFP_compression_encryption"
 }
