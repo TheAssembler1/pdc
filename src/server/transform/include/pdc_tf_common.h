@@ -1,6 +1,8 @@
 #ifndef PDC_TF_COMMON_H
 #define PDC_TF_COMMON_H
 
+#include "mercury_proc_string.h"
+
 #include "pdc_public.h"
 #include "pdc_dg.h"
 #include "pdc_region.h"
@@ -16,9 +18,9 @@ typedef struct pdc_tf_region_t {
 
 typedef struct pdc_tf_region_state_t {
     pdcid_t dg_id;
-    char *  cur_state;
-    char *  client_state;
-    char *  store_state;
+    char   *cur_state;
+    char   *client_state;
+    char   *store_state;
 } pdc_tf_region_state_t;
 
 typedef struct pdc_tf_region_mapping_t {
@@ -50,18 +52,18 @@ typedef enum pdc_tf_granularities_t {
 extern char *pdc_tf_granularity_strs[];
 
 typedef struct pdc_tf_state_t {
-    char *                 name;
-    void *                 params;
+    char                  *name;
+    void                  *params;
     uint64_t               params_size;
     pdc_tf_granularities_t granularity;
 } pdc_tf_state_t;
 
 typedef struct pdc_tf_params_t {
-    char *   params_str;
-    void *   input_params;
+    char    *params_str;
+    void    *input_params;
     uint64_t input_params_size;
 
-    void *   output_params;
+    void    *output_params;
     uint64_t output_params_size;
 } pdc_tf_params_t;
 
@@ -97,10 +99,20 @@ extern char *pdc_tf_location_strs[];
 typedef struct pdc_tf_func_t {
     pdc_tf_dev_t      dev;
     pdc_tf_location_t location;
-    char *            name;
-    char *            params_str;
+    char             *name;
+    char             *params_str;
     c_func_t          c_func;
 } pdc_tf_func_t;
+
+/**
+ * Strings need by server to run transformation
+ */
+typedef struct pdc_tf_pkg_t {
+    hg_string_t json_filepath;
+    hg_string_t cur_state;
+    hg_string_t client_state;
+    hg_string_t store_state;
+} pdc_tf_pkg_t;
 
 // FIXME: we could store this in a dynamically allocated buf
 #define PDC_TF_MAX_FUNC_NAME_LEN 100

@@ -88,7 +88,7 @@ PDC_finish_request(uint64_t transfer_request_id)
 {
     FUNC_ENTER(NULL);
 
-    pdc_transfer_request_status *   ptr, *tmp = NULL;
+    pdc_transfer_request_status    *ptr, *tmp = NULL;
     perr_t                          ret_value = SUCCEED;
     transfer_request_wait_out_t     out;
     transfer_request_wait_all_out_t out_all;
@@ -295,7 +295,7 @@ PDC_Server_data_io_flattened(uint64_t obj_id, int obj_ndim, const uint64_t *obj_
 
     perr_t   ret_value = SUCCEED;
     int      fd;
-    char *   data_path = NULL;
+    char    *data_path = NULL;
     char     storage_location[ADDR_MAX];
     ssize_t  io_size;
     uint64_t i, j;
@@ -432,13 +432,16 @@ get_storage_location_region_per_file(int obj_id, int obj_ndim, const uint64_t *i
 static uint64_t
 flatten_index(const uint64_t *indices, const uint64_t *dims, int ndim)
 {
-    uint64_t idx    = 0;
-    uint64_t stride = 1;
+    FUNC_ENTER(NULL);
+
+    uint64_t ret_value = 0;
+    uint64_t stride    = 1;
     for (int i = ndim - 1; i >= 0; i--) {
-        idx += indices[i] * stride;
+        ret_value += indices[i] * stride;
         stride *= dims[i];
     }
-    return idx;
+
+    FUNC_LEAVE(ret_value);
 }
 
 static perr_t
@@ -633,13 +636,152 @@ done:
     FUNC_LEAVE(ret_value);
 }
 
+/**
+ * Returns a pointer to the region mapping for obj_id
+ * If no region mapping is found returns NULL
+ */
+struct pdc_tf_obj_t *
+PDCtf_get_region_mapping(pdcid_t obj_id)
+{
+    FUNC_ENTER(NULL);
+
+    struct pdc_tf_obj_t *ret_value = NULL;
+    for (int i = 0; i < num_tf_obj_with_obj_ids_g; i++) {
+        if (obj_id == pdc_tf_obj_with_obj_ids[i].obj_id)
+            PGOTO_DONE(&pdc_tf_obj_with_obj_ids[i].pdc_tf_obj_t);
+    }
+
+done:
+    FUNC_LEAVE(ret_value);
+}
+
+static perr_t
+PDC_Server_data_io_region_per_file_transformations(uint64_t obj_id, int obj_ndim, const uint64_t *obj_dims,
+                                                   struct pdc_region_info *region_info, void *buf,
+                                                   size_t unit, int is_write, bool *ran_transformation)
+{
+    FUNC_ENTER(NULL);
+
+    perr_t ret_value = SUCCEED;
+    void  *cpy_buf   = buf;
+
+    struct pdc_tf_obj_t     *tf_obj = PDCtf_get_region_mapping(obj_id);
+    pdc_tf_region_mapping_t *region_mapping;
+    if (!PDCtf_region_has_attached_graph(tf_obj, region_info->ndim, unit, region_info->offset,
+                                         region_info->size, &region_mapping)) {
+        *ran_transformation = false;
+        PGOTO_DONE(SUCCEED);
+    }
+
+    // FIXME: adhoc way of initializing builtin funcs
+    if (!pdc_tf_has_init_g) {
+        if (PDCtf_init_builtin_funcs() != SUCCEED)
+            PGOTO_ERROR(FAIL, "Failed to PDCtf_init_builtin_funcs");
+        pdc_tf_has_init_g = true;
+    }
+
+    pdc_tf_region_t output_region;
+    pdc_tf_region_t input_region;
+
+    if (is_write)
+        PDCtf_set_tf_region_t(&input_region, region_info->ndim, unit, region_info->size);
+    else {
+        PDCtf_set_tf_region_t(&input_region, region_mapping->actual_region.ndim,
+                              region_mapping->actual_region.unit, region_mapping->actual_region.size);
+    }
+
+    char *desired_state;
+    if (is_write)
+        desired_state = region_mapping->region_state.store_state;
+    else {
+        desired_state = region_mapping->region_state.client_state;
+
+        // Read in data for transformation
+        char *storage_location = get_storage_location_region_per_file(obj_id, obj_ndim, region_info->offset);
+        int   fd               = open(storage_location, O_RDONLY);
+        uint64_t bytes_to_read =
+            PDC_get_region_desc_size_bytes(input_region.size, input_region.unit, input_region.ndim);
+        PDC_POSIX_IO(fd, buf, bytes_to_read, 0);
+        close(fd);
+    }
+
+    // We can now execute the directed graph
+    if (PDCtf_exec_graph(region_mapping->region_state.dg_id, region_mapping->region_state.cur_state,
+                         desired_state, input_region, &output_region, &buf) != SUCCEED) {
+        PGOTO_ERROR(FAIL, "Error with PDCtf_exec_graph");
+    }
+
+    // At this point we have run the transformation
+    *ran_transformation = true;
+
+    if (is_write) {
+        // Write out data after transformation
+        char *storage_location = get_storage_location_region_per_file(obj_id, obj_ndim, region_info->offset);
+        int   fd               = open(storage_location, O_CREAT | O_WRONLY | O_TRUNC, 0644);
+        uint64_t bytes_to_write =
+            PDC_get_region_desc_size_bytes(output_region.size, output_region.unit, output_region.ndim);
+        PDC_POSIX_IO(fd, buf, bytes_to_write, 1);
+        close(fd);
+
+        // Update actual region mapping
+        PDCtf_copy_tf_region_t(&output_region, &region_mapping->actual_region);
+    }
+    else
+        memcpy(cpy_buf, buf, PDCtf_get_pdc_region_t_bytes(output_region));
+
+    // updating state to desired state
+    region_mapping->region_state.cur_state = desired_state;
+
+done:
+    FUNC_LEAVE(ret_value);
+}
+
+static perr_t
+PDC_shrink_file_dims(uint64_t *temp_file_dims, const uint64_t *obj_dims, uint8_t obj_ndim, uint8_t unit)
+{
+    FUNC_ENTER(NULL);
+
+    perr_t ret_value = SUCCEED;
+
+    for (int i = 0; i < obj_ndim; i++) {
+        temp_file_dims[i] = obj_dims[i];
+    }
+    uint64_t max_bytes_per_file = 4096 * 4096 * 8;
+
+    /**
+     * We need to reduce the region file size to a reasonable size
+     * The file size is malloced in this storage strategy possibly several times
+     * So we need to make sure this can fit in memory
+     * This following strategies halves the largest dimension until
+     * the file size is < max_bytes_per_file
+     */
+    while (PDC_get_region_desc_size_bytes(temp_file_dims, unit, obj_ndim) > max_bytes_per_file) {
+        int max_dim = 0;
+        for (int i = 1; i < obj_ndim; i++) {
+            if (temp_file_dims[i] > temp_file_dims[max_dim])
+                max_dim = i;
+        }
+        if (temp_file_dims[max_dim] <= 1)
+            PGOTO_ERROR(FAIL, "Cannot reduce dimension %d further", max_dim);
+        temp_file_dims[max_dim] /= 2;
+    }
+
+done:
+    FUNC_LEAVE(ret_value);
+}
+
+/**
+ * This function is used to flush regions to the storage system
+ * If the cache is disabled it is called immediately on PDC_WRITE or PDC_READ
+ * If the cache is enabled it is called when evicting regions from the cache
+ * or when reading a region into the cache
+ */
 perr_t
 PDC_Server_transfer_request_io(uint64_t obj_id, int obj_ndim, const uint64_t *obj_dims,
                                struct pdc_region_info *region_info, void *buf, size_t unit, int is_write)
 {
     FUNC_ENTER(NULL);
 
-    void * cpy_buf   = buf;
     perr_t ret_value = SUCCEED;
 
     /**
@@ -663,133 +805,26 @@ PDC_Server_transfer_request_io(uint64_t obj_id, int obj_ndim, const uint64_t *ob
          *
          * In addition, need a way for user's to set the file_dims
          */
-
         // check if the obj has transformations
         bool ran_transformation = false;
-        for (int i = 0; i < num_tf_obj_with_obj_ids_g; i++) {
-            if (obj_id == pdc_tf_obj_with_obj_ids[i].obj_id) {
-                struct pdc_tf_obj_t *    tf_obj = &pdc_tf_obj_with_obj_ids[i].pdc_tf_obj_t;
-                pdc_tf_region_mapping_t *region_mapping;
-
-                if (PDCtf_region_has_attached_graph(tf_obj, region_info->ndim, unit, region_info->offset,
-                                                    region_info->size, &region_mapping)) {
-
-                    if (!pdc_tf_has_init_g) {
-                        if (PDCtf_init_builtin_funcs() != SUCCEED)
-                            PGOTO_ERROR(FAIL, "Failed to PDCtf_init_builtin_funcs");
-
-                        pdc_tf_has_init_g = true;
-                    }
-                    pdc_tf_region_t output_region;
-
-                    // setup input region
-                    pdc_tf_region_t input_region;
-                    if (is_write)
-                        PDCtf_set_tf_region_t(&input_region, region_info->ndim, unit, region_info->size);
-                    else {
-                        PDCtf_set_tf_region_t(&input_region, region_mapping->actual_region.ndim,
-                                              region_mapping->actual_region.unit,
-                                              region_mapping->actual_region.size);
-                    }
-
-                    char *desired_state;
-                    if (is_write)
-                        desired_state = region_mapping->region_state.store_state;
-                    else {
-                        desired_state = region_mapping->region_state.client_state;
-
-                        // read in data for transformation
-                        char *storage_location =
-                            get_storage_location_region_per_file(obj_id, obj_ndim, region_info->offset);
-                        LOG_INFO("Storage location: %s\n", storage_location);
-                        int fd = open(storage_location, O_RDONLY);
-                        assert(fd != -1 && "Failed to open file for reading");
-                        uint64_t bytes_to_read = PDC_get_region_desc_size_bytes(
-                            input_region.size, input_region.unit, input_region.ndim);
-                        LOG_INFO("Reading %lu bytes\n", bytes_to_read);
-                        ssize_t read_bytes = pread(fd, buf, bytes_to_read, 0);
-                        assert(read_bytes == bytes_to_read && "Failed to read full data");
-                        LOG_INFO("AFTER READ\n");
-                        for (int j = 0; j < 189; j++)
-                            LOG_JUST_PRINT("%02x ", ((char *)buf)[j]);
-                        LOG_JUST_PRINT("\n");
-                        assert(close(fd) == 0 && "Failed to close file after writing");
-                    }
-
-                    // We can now execute the directed graph
-                    if (PDCtf_exec_graph(region_mapping->region_state.dg_id,
-                                         region_mapping->region_state.cur_state, desired_state, input_region,
-                                         &output_region, &buf) != SUCCEED) {
-                        PGOTO_ERROR(FAIL, "Error with PDCtf_exec_graph");
-                    }
-                    else {
-                        ran_transformation = true;
-
-                        LOG_INFO("Successfully ran graph\n");
-                        if (is_write) {
-                            char *storage_location =
-                                get_storage_location_region_per_file(obj_id, obj_ndim, region_info->offset);
-                            LOG_INFO("Storage location: %s\n", storage_location);
-                            int fd = open(storage_location, O_CREAT | O_WRONLY | O_TRUNC, 0644);
-                            assert(fd != -1 && "Failed to open file for writing");
-                            uint64_t bytes_to_write = PDC_get_region_desc_size_bytes(
-                                output_region.size, output_region.unit, output_region.ndim);
-                            LOG_INFO("Writing %lu bytes\n", bytes_to_write);
-                            LOG_INFO("BEFORE WRITE\n");
-                            for (int j = 0; j < 189; j++)
-                                LOG_JUST_PRINT("%02x ", ((char *)buf)[j]);
-                            LOG_JUST_PRINT("\n");
-                            ssize_t written = pwrite(fd, buf, bytes_to_write, 0);
-                            assert(written == bytes_to_write && "Failed to write full data");
-                            assert(close(fd) == 0 && "Failed to close file after writing");
-                            // update actual region mapping
-                            PDCtf_copy_tf_region_t(&output_region, &region_mapping->actual_region);
-                        }
-                        else
-                            memcpy(cpy_buf, buf, PDCtf_get_pdc_region_t_bytes(output_region));
-
-                        // updating state to desired state
-                        region_mapping->region_state.cur_state = desired_state;
-                    }
-                }
-            }
+        if (PDC_Server_data_io_region_per_file_transformations(obj_id, obj_ndim, obj_dims, region_info, buf,
+                                                               unit, is_write,
+                                                               &ran_transformation) != SUCCEED) {
+            PGOTO_ERROR(FAIL, "Error with PDC_Server_data_io_region_per_file_transformations");
         }
-
-        if (ran_transformation) {
-            LOG_INFO("Ran transformation succesfully\n");
+        if (ran_transformation)
             PGOTO_DONE(SUCCEED);
-        }
-        else
-            LOG_INFO("Did not run transform\n");
 
-        abort();
-
+        // FIXME: Need to find a reasonable size for this or hints from client
         uint64_t temp_file_dims[DIM_MAX];
-        for (int i = 0; i < obj_ndim; i++) {
-            temp_file_dims[i] = obj_dims[i];
-        }
-
-        uint64_t max_bytes_per_file = 4096 * 4096 * 8;
-
-        while (PDC_get_region_desc_size_bytes(temp_file_dims, unit, obj_ndim) > max_bytes_per_file) {
-            // Reduce the largest dimension by half
-            int max_dim = 0;
-            for (int i = 1; i < obj_ndim; i++) {
-                if (temp_file_dims[i] > temp_file_dims[max_dim])
-                    max_dim = i;
-            }
-            if (temp_file_dims[max_dim] <= 1) {
-                PGOTO_ERROR(FAIL, "Cannot reduce dimension %d further", max_dim);
-            }
-            temp_file_dims[max_dim] /= 2;
-        }
+        if (PDC_shrink_file_dims(temp_file_dims, obj_dims, obj_ndim, unit) != SUCCEED)
+            PGOTO_ERROR(FAIL, "Error with PDC_shrink_file_dims");
 
         PGOTO_DONE(PDC_Server_data_io_region_per_file(obj_id, obj_ndim, obj_dims, temp_file_dims, region_info,
                                                       buf, unit, is_write));
     }
-    else {
+    else
         PGOTO_ERROR(FAIL, "Invalid storage strategy");
-    }
 
 done:
     FUNC_LEAVE(ret_value);
@@ -815,7 +850,7 @@ parse_bulk_data(void *buf, transfer_request_all_data *request_data, pdc_access_t
 {
     FUNC_ENTER(NULL);
 
-    char *   ptr = (char *)buf;
+    char    *ptr = (char *)buf;
     int      i, j;
     uint64_t data_size;
 
