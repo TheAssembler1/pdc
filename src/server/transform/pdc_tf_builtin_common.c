@@ -7,6 +7,10 @@
 #include <zfp.h>
 #endif
 
+#ifdef ENABLE_SECRET_BOX_ENCRYPTION
+#include <sodium.h>
+#endif
+
 #include "pdc_logger.h"
 
 bool
@@ -147,7 +151,7 @@ pdc_tf_builtin_zfp_compress(pdc_tf_params_t *tf_params, void **region_data, pdc_
 
     // Allocate buffer for compressed data
     size_t bufsize           = zfp_stream_maximum_size(zfp, field);
-    void * compressed_buffer = malloc(bufsize);
+    void  *compressed_buffer = malloc(bufsize);
     if (!compressed_buffer) {
         LOG_ERROR("Failed to allocate memory for compressed data\n");
         zfp_field_free(field);
@@ -351,3 +355,105 @@ pdc_tf_builtin_zfp_decompress(pdc_tf_params_t *tf_params, void **region_data, pd
     return true;
 }
 #endif // ENABLE_TF_ZFP_COMPRESSION
+
+#ifdef ENABLE_SECRET_BOX_ENCRYPTION
+
+// FIXME: should be picked up by params_str
+unsigned char key[crypto_secretbox_KEYBYTES]     = {0};
+unsigned char nonce[crypto_secretbox_NONCEBYTES] = {0};
+
+typedef struct simple_params {
+    size_t original_plaintext_size;
+} simple_params_t;
+
+bool
+pdc_tf_builtin_encrypt(pdc_tf_params_t *tf_params, void **region_data, pdc_tf_region_t input_reg,
+                       pdc_tf_region_t *output_reg)
+{
+    LOG_INFO("pdc_tf_builtin_encrypt called\n");
+
+    size_t plaintext_len = PDCtf_get_pdc_region_t_bytes(input_reg);
+
+    size_t         ciphertext_len = plaintext_len + crypto_secretbox_MACBYTES;
+    unsigned char *ciphertext     = malloc(ciphertext_len);
+    if (!ciphertext) {
+        LOG_ERROR("Failed to allocate ciphertext buffer\n");
+        return false;
+    }
+
+    if (crypto_secretbox_easy(ciphertext, (unsigned char *)*region_data, plaintext_len, nonce, key) != 0) {
+        LOG_ERROR("Encryption failed\n");
+        free(ciphertext);
+        return false;
+    }
+
+    // Output region is 1D bytes (ciphertext)
+    output_reg->ndim    = 1;
+    output_reg->unit    = 1;
+    output_reg->size[0] = ciphertext_len;
+
+    // Save original plaintext size in output_params
+    simple_params_t *out_params = malloc(sizeof(simple_params_t));
+    if (!out_params) {
+        LOG_ERROR("Failed to allocate output params\n");
+        free(ciphertext);
+        return false;
+    }
+    out_params->original_plaintext_size = plaintext_len;
+
+    tf_params->output_params      = out_params;
+    tf_params->output_params_size = sizeof(simple_params_t);
+
+    // Update data pointer
+    *region_data = ciphertext;
+
+    LOG_INFO("Encryption succeeded, ciphertext length: %zu bytes\n", ciphertext_len);
+    return true;
+}
+
+bool
+pdc_tf_builtin_decrypt(pdc_tf_params_t *tf_params, void **region_data, pdc_tf_region_t input_reg,
+                       pdc_tf_region_t *output_reg)
+{
+    LOG_INFO("pdc_tf_builtin_decrypt called\n");
+
+    size_t ciphertext_len = PDCtf_get_pdc_region_t_bytes(input_reg);
+
+    simple_params_t *in_params = (simple_params_t *)tf_params->input_params;
+    if (!in_params) {
+        LOG_ERROR("Missing input params with original plaintext size\n");
+        return false;
+    }
+
+    if (ciphertext_len < crypto_secretbox_MACBYTES) {
+        LOG_ERROR("Ciphertext too short\n");
+        return false;
+    }
+
+    size_t plaintext_len = in_params->original_plaintext_size;
+
+    unsigned char *plaintext = malloc(plaintext_len);
+    if (!plaintext) {
+        LOG_ERROR("Failed to allocate plaintext buffer\n");
+        return false;
+    }
+
+    if (crypto_secretbox_open_easy(plaintext, (unsigned char *)*region_data, ciphertext_len, nonce, key) !=
+        0) {
+        LOG_ERROR("Decryption failed or ciphertext tampered\n");
+        free(plaintext);
+        return false;
+    }
+
+    // Set output region dims: restore original plaintext region
+    output_reg->ndim    = 1;
+    output_reg->unit    = 1;
+    output_reg->size[0] = plaintext_len;
+
+    // Update data pointer
+    *region_data = plaintext;
+
+    LOG_INFO("Decryption succeeded, plaintext length: %zu bytes\n", plaintext_len);
+    return true;
+}
+#endif // NABLE_SECRET_BOX_ENCRYPTION

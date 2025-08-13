@@ -6,6 +6,8 @@
 
 // FIXME: this should be picked up from the cmakelists
 #define ENABLE_TF_ZFP_COMPRESSION
+// FIMXE: same
+#define ENABLE_SECRET_BOX_ENCRYPTION
 
 #include "pdc_tf_common.h"
 
@@ -19,6 +21,13 @@ bool pdc_tf_builtin_zfp_compress(pdc_tf_params_t *tf_params, void **region_data,
                                  pdc_tf_region_t *output_reg);
 bool pdc_tf_builtin_zfp_decompress(pdc_tf_params_t *tf_params, void **region_data, pdc_tf_region_t input_reg,
                                    pdc_tf_region_t *output_reg);
+#endif
+
+#ifdef ENABLE_SECRET_BOX_ENCRYPTION
+bool pdc_tf_builtin_encrypt(pdc_tf_params_t *tf_params, void **region_data, pdc_tf_region_t input_reg,
+                            pdc_tf_region_t *output_reg);
+bool pdc_tf_builtin_decrypt(pdc_tf_params_t *tf_params, void **region_data, pdc_tf_region_t input_reg,
+                            pdc_tf_region_t *output_reg);
 #endif
 
 #endif

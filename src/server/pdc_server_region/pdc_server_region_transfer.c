@@ -682,7 +682,6 @@ PDC_Server_data_io_region_per_file_transformations(uint64_t obj_id, int obj_ndim
 
     pdc_tf_region_t output_region;
     pdc_tf_region_t input_region;
-
     if (is_write)
         PDCtf_set_tf_region_t(&input_region, region_info->ndim, unit, region_info->size);
     else {
@@ -729,7 +728,7 @@ PDC_Server_data_io_region_per_file_transformations(uint64_t obj_id, int obj_ndim
     else
         memcpy(cpy_buf, buf, PDCtf_get_pdc_region_t_bytes(output_region));
 
-    // updating state to desired state
+    // Updating the current state to the desired state
     region_mapping->region_state.cur_state = desired_state;
 
 done:

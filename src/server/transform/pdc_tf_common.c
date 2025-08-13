@@ -172,7 +172,12 @@ PDCtf_init_builtin_funcs()
     if (PDCtf_add_builtin_func("zfp_decompress", pdc_tf_builtin_zfp_decompress) != SUCCEED)
         PGOTO_ERROR(FAIL, "Failed to add builtin func zfp_decompress");
 #endif
-
+#ifdef ENABLE_SECRET_BOX_ENCRYPTION
+#endif
+    if (PDCtf_add_builtin_func("secret_box_encrypt", pdc_tf_builtin_encrypt) != SUCCEED)
+        PGOTO_ERROR(FAIL, "Failed to add builtin func secret_box_encrypt");
+    if (PDCtf_add_builtin_func("secret_box_decryp", pdc_tf_builtin_zfp_decompress) != SUCCEED)
+        PGOTO_ERROR(FAIL, "Failed to add builtin func pdc_tf_builtin_decrypt");
 done:
     FUNC_LEAVE(ret_value);
 }

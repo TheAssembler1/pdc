@@ -38,6 +38,11 @@ find_package(PkgConfig REQUIRED)
 pkg_check_modules(JSONC REQUIRED json-c)
 include_directories(${JSONC_INCLUDE_DIRS})
 link_libraries(${JSONC_LIBRARIES})
+# libsodium
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(LIBSODIUM REQUIRED libsodium)
+include_directories(${LIBSODIUM_INCLUDE_DIRS})
+link_libraries(${LIBSODIUM_LIBRARIES})
 
 # Set a consistent MACOSX_RPATH default across all CMake versions.
 # checks if the variable CMAKE_MACOSX_RPATH is not defined and sets it to 0 if it is not defined.
