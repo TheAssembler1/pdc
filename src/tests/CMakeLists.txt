@@ -109,6 +109,8 @@ set(PROGRAMS
   transformation/region_transfer_compression_transform_2D
   transformation/region_transfer_compression_transform_3D
   transformation/region_transfer_compression_encryption_transform
+  transformation/region_transfer_compression_encryption_transform_2D
+  transformation/region_transfer_compression_encryption_transform_3D
 )
 
 # TODO: Check if import_vpic.c is needed. If yes, we have to add the following :
@@ -294,6 +296,9 @@ add_test(NAME region_transfer_write_read WORKING_DIRECTORY ${CMAKE_RUNTIME_OUTPU
 add_test(NAME region_transfer_compression_transform WORKING_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY} COMMAND run_test.sh ./region_transfer_compression_transform )
 add_test(NAME region_transfer_compression_transform_2D WORKING_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY} COMMAND run_test.sh ./region_transfer_compression_transform_2D )
 add_test(NAME region_transfer_compression_transform_3D WORKING_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY} COMMAND run_test.sh ./region_transfer_compression_transform_3D )
+add_test(NAME region_transfer_compression_encryption_transform WORKING_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY} COMMAND run_test.sh ./region_transfer_compression_encryption_transform )
+add_test(NAME region_transfer_compression_encryption_transform_2D WORKING_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY} COMMAND run_test.sh ./region_transfer_compression_encryption_transform_2D )
+add_test(NAME region_transfer_compression_encryption_transform_3D WORKING_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY} COMMAND run_test.sh ./region_transfer_compression_encryption_transform_3D )
 add_test(NAME region_transfer_all    WORKING_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY} COMMAND run_test.sh ./region_transfer_all )
 add_test(NAME region_transfer_all_2D    WORKING_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY} COMMAND run_test.sh ./region_transfer_all_2D )
 add_test(NAME region_transfer_all_3D    WORKING_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY} COMMAND run_test.sh ./region_transfer_all_3D )
@@ -398,12 +403,15 @@ set_tests_properties(read_obj_int64    PROPERTIES LABELS serial)
 set_tests_properties(read_obj_uint64   PROPERTIES LABELS serial)
 set_tests_properties(read_obj_int16    PROPERTIES LABELS serial)
 set_tests_properties(read_obj_int8     PROPERTIES LABELS serial)
+set_tests_properties(vpicio_bdcats_transfer_request      PROPERTIES LABELS serial)
 
 # Tests with transformations
-set_tests_properties(vpicio_bdcats_transfer_request      PROPERTIES LABELS serial)
 set_tests_properties(region_transfer_compression_transform     PROPERTIES LABELS transform)
 set_tests_properties(region_transfer_compression_transform_2D     PROPERTIES LABELS transform)
 set_tests_properties(region_transfer_compression_transform_3D     PROPERTIES LABELS transform)
+set_tests_properties(region_transfer_compression_encryption_transform     PROPERTIES LABELS transform)
+set_tests_properties(region_transfer_compression_encryption_transform_2D     PROPERTIES LABELS transform)
+set_tests_properties(region_transfer_compression_encryption_transform_3D     PROPERTIES LABELS transform)
 
 if(BUILD_MPI_TESTING)
     add_test(NAME read_obj_shared_int WORKING_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY} COMMAND mpi_test.sh ./read_obj_shared ${MPI_RUN_CMD} 4 6 o 1 int)
