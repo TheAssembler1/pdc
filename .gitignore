@@ -1,11 +1,10 @@
 # ignore swp files
 *.swp
+.cache
 
 # exes
 *.exe
-
 *.pdf
-
 src/install
 
 # ignore vscode files
