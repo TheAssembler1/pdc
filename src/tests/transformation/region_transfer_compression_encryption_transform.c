@@ -113,7 +113,7 @@ main(int argc, char **argv)
         data[i] = i;
 
     pdcid_t dg_id =
-        PDCtf_open_dg_json("/home/ta1/src/workspace/source/pdc/tf_graphs/compression_encryption_i.json");
+        PDCtf_dg_json_create("/home/ta1/src/workspace/source/pdc/tf_graphs/compression_encryption_i.json");
     PDCtf_print_dg(dg_id, true);
     PDCtf_attach_to_region(dg_id, obj1, reg_global, "decompressed", "encrypted");
 
@@ -149,6 +149,9 @@ main(int argc, char **argv)
             PGOTO_ERROR(FAIL, "Wrong value at index %d!=%d", data_read[i], i);
     }
 
+    // close tf graph
+    TASSERT(PDCtf_close_dg(dg_id) >= 0, "Call to PDCtf_close_dg succeeded", "Call to PDCtf_close_dg failed");
+    // close regions
     TASSERT(PDCregion_close(reg) >= 0, "Call to PDCregion_close succeeded", "Call to PDCregion_close failed");
     TASSERT(PDCregion_close(reg_global) >= 0, "Call to PDCregion_close succeeded",
             "Call to PDCregion_close failed");

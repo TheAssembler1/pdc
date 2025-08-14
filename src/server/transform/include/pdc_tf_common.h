@@ -18,9 +18,9 @@ typedef struct pdc_tf_region_t {
 
 typedef struct pdc_tf_region_state_t {
     pdcid_t dg_id;
-    char *  cur_state;
-    char *  client_state;
-    char *  store_state;
+    char   *cur_state;
+    char   *client_state;
+    char   *store_state;
 } pdc_tf_region_state_t;
 
 typedef struct pdc_tf_region_mapping_t {
@@ -52,8 +52,8 @@ typedef enum pdc_tf_granularities_t {
 extern char *pdc_tf_granularity_strs[];
 
 typedef struct pdc_tf_state_t {
-    char *                 name;
-    void *                 params;
+    char                  *name;
+    void                  *params;
     uint64_t               params_size;
     pdc_tf_granularities_t granularity;
 } pdc_tf_state_t;
@@ -94,8 +94,8 @@ extern char *pdc_tf_location_strs[];
 typedef struct pdc_tf_func_t {
     pdc_tf_dev_t      dev;
     pdc_tf_location_t location;
-    char *            name;
-    char *            params_str;
+    char             *name;
+    char             *params_str;
     c_func_t          c_func;
 } pdc_tf_func_t;
 
@@ -130,21 +130,19 @@ typedef struct pdc_tf_builtin_func_t {
 extern pdc_tf_builtin_func_t pdc_tf_builtin_funcs_g[PDC_TF_MAX_BUILTIN_FUNCS];
 extern uint32_t              pdc_tf_builtin_cur_func_g;
 
-extern pdc_dg_t *pdc_tf_graphs[200];
-
-perr_t  PDCtf_set_tf_region_t(pdc_tf_region_t *dest, uint8_t ndim, uint8_t unit, uint64_t *size);
-perr_t  PDCtf_copy_tf_region_t(pdc_tf_region_t *src, pdc_tf_region_t *dest);
-perr_t  PDCtf_set_state_param(pdc_dg_t *dg, char *state_name, void *params, uint64_t params_size);
-perr_t  PDCtf_get_state_param(pdc_dg_t *dg, char *state_name, void **params, uint64_t *params_size);
-pdcid_t PDCtf_open_dg_json_common(char *filepath);
-perr_t  PDCtf_exec_graph(pdcid_t dg_id, char *cur_state, char *desired_state, pdc_tf_region_t input_region,
-                         pdc_tf_region_t *output_region, void **input);
-perr_t  PDCtf_init_builtin_funcs();
-perr_t  PDCtf_add_builtin_func(char *func_name, c_func_t c_func);
-perr_t  PDCtf_link_builtin_func(char *func_name, pdc_tf_func_t *f);
-bool    PDCtf_region_has_attached_graph(struct pdc_tf_obj_t *tf_obj, int ndim, uint8_t unit, uint64_t *offset,
-                                        uint64_t *size, pdc_tf_region_mapping_t **region_mapping);
-size_t  PDCtf_get_pdc_region_t_elements(pdc_tf_region_t reg);
-size_t  PDCtf_get_pdc_region_t_bytes(pdc_tf_region_t reg);
-void    PDCtf_log_pdc_region_t(pdc_tf_region_t reg);
+perr_t    PDCtf_set_tf_region_t(pdc_tf_region_t *dest, uint8_t ndim, uint8_t unit, uint64_t *size);
+perr_t    PDCtf_copy_tf_region_t(pdc_tf_region_t *src, pdc_tf_region_t *dest);
+perr_t    PDCtf_set_state_param(pdc_dg_t *dg, char *state_name, void *params, uint64_t params_size);
+perr_t    PDCtf_get_state_param(pdc_dg_t *dg, char *state_name, void **params, uint64_t *params_size);
+pdc_dg_t *PDCtf_dg_json_create_common(char *filepath);
+perr_t    PDCtf_init_builtin_funcs();
+perr_t    PDCtf_add_builtin_func(char *func_name, c_func_t c_func);
+perr_t    PDCtf_link_builtin_func(char *func_name, pdc_tf_func_t *f);
+bool   PDCtf_region_has_attached_graph(struct pdc_tf_obj_t *tf_obj, int ndim, uint8_t unit, uint64_t *offset,
+                                       uint64_t *size, pdc_tf_region_mapping_t **region_mapping);
+size_t PDCtf_get_pdc_region_t_elements(pdc_tf_region_t reg);
+size_t PDCtf_get_pdc_region_t_bytes(pdc_tf_region_t reg);
+void   PDCtf_log_pdc_region_t(pdc_tf_region_t reg);
+void   PDCtf_print_exec_path_common(pdc_dg_t *dg, char *cur_state, char *desired_state);
+void   PDCtf_print_dg_common(pdc_dg_t *dg, bool write_to_file);
 #endif // PDC_TF_COMMON_H

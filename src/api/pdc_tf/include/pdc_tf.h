@@ -29,6 +29,8 @@ typedef enum pdc_tf_output_mode_t {
     PDC_TF_CREATE,
 } pdc_tf_output_mode_t;
 
+pdc_dg_t *PDCtf_get_dg(pdcid_t dg_id);
+
 /**
  * specifies how the output of a transformation function should be handled
  * the default is PDC_TF_OVERWRITE if this function is not called
@@ -63,6 +65,6 @@ void PDCtf_print_dg(pdcid_t dg_id, bool write_to_file);
 void PDCtf_print_exec_path(pdcid_t dg_id, char *cur_state, char *desired_state);
 
 // load JSON file describing directed graph
-pdcid_t PDCtf_open_dg_json(char *json_filepath);
+pdcid_t PDCtf_dg_json_create(char *json_filepath);
 
 #endif /* PDC_TF_H */
