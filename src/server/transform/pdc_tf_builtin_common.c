@@ -14,39 +14,6 @@
 
 #include "pdc_logger.h"
 
-bool
-pdc_tf_builtin_double_to_float(pdc_tf_internal_param internal_param, char *params_str, void **region_data,
-                               pdc_tf_region_t input_region, pdc_tf_region_t *output_region)
-{
-    LOG_INFO("pdc_tf_builtin_double_to_float was called\n");
-
-    PDCtf_log_pdc_region_t(input_region);
-    size_t num_elements = PDCtf_get_pdc_region_t_elements(input_region);
-
-    double *buf = *((double **)region_data);
-
-    // copy into new buffer
-    float *new_buf = (float *)malloc(PDCtf_get_pdc_region_t_bytes(input_region));
-    for (int i = 0; i < PDCtf_get_pdc_region_t_elements(input_region); i++)
-        new_buf[i] = (float)buf[i];
-
-    *region_data = new_buf;
-
-    // resize output region
-    output_region->unit = sizeof(float);
-
-    return true;
-}
-
-bool
-pdc_tf_builtin_float_to_double(pdc_tf_internal_param internal_param, char *params_str, void **region_data,
-                               pdc_tf_region_t input_region, pdc_tf_region_t *output_region)
-{
-    LOG_INFO("pdc_tf_builtin_float_to_double was called\n");
-    PDCtf_log_pdc_region_t(input_region);
-    return true;
-}
-
 typedef struct zfp_compress_params_t {
     zfp_type        z_type;
     pdc_var_type_t  data_type;
@@ -147,7 +114,7 @@ pdc_tf_builtin_zfp_compress(pdc_tf_internal_param internal_param, char *params_s
 
     // Allocate buffer for compressed data
     size_t bufsize           = zfp_stream_maximum_size(zfp, field);
-    void * compressed_buffer = malloc(bufsize);
+    void  *compressed_buffer = malloc(bufsize);
     if (!compressed_buffer) {
         LOG_ERROR("Failed to allocate memory for compressed data\n");
         zfp_field_free(field);
@@ -339,9 +306,9 @@ pdc_tf_builtin_zfp_decompress(pdc_tf_internal_param internal_param, char *params
 unsigned char key[crypto_secretbox_KEYBYTES]     = {0};
 unsigned char nonce[crypto_secretbox_NONCEBYTES] = {0};
 
-typedef struct simple_params {
+typedef struct encrypt_params_t {
     size_t original_plaintext_size;
-} simple_params_t;
+} encrypt_params_t;
 
 bool
 pdc_tf_builtin_encrypt(pdc_tf_internal_param internal_param, char *params_str, void **region_data,
@@ -370,14 +337,14 @@ pdc_tf_builtin_encrypt(pdc_tf_internal_param internal_param, char *params_str, v
     output_region->size[0] = ciphertext_len;
 
     // Save original plaintext size in output_params
-    simple_params_t *out_params = malloc(sizeof(simple_params_t));
+    encrypt_params_t *out_params = malloc(sizeof(encrypt_params_t));
     if (!out_params) {
         LOG_ERROR("Failed to allocate output params\n");
         free(ciphertext);
         return false;
     }
     out_params->original_plaintext_size = plaintext_len;
-    SET_STATE_PARAMS("encrypted", out_params, sizeof(simple_params_t));
+    SET_STATE_PARAMS("encrypted", out_params, sizeof(encrypt_params_t));
 
     // Update data pointer
     *region_data = ciphertext;
@@ -394,8 +361,8 @@ pdc_tf_builtin_decrypt(pdc_tf_internal_param internal_param, char *params_str, v
 
     size_t ciphertext_len = PDCtf_get_pdc_region_t_bytes(input_region);
 
-    simple_params_t *in_params;
-    uint64_t         in_params_size;
+    encrypt_params_t *in_params;
+    uint64_t          in_params_size;
     GET_STATE_PARAMS("encrypted", (void **)&in_params, &in_params_size);
 
     if (ciphertext_len < crypto_secretbox_MACBYTES) {

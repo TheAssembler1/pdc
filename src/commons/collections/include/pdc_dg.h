@@ -28,7 +28,7 @@ typedef int pdc_dg_edge_id_t;
  */
 typedef struct pdc_dg_vertex_t {
     pdc_dg_vertex_id_t vertex_id;
-    void *             data;
+    void              *data;
 } pdc_dg_vertex_t;
 
 /**
@@ -43,7 +43,7 @@ typedef struct pdc_dg_edge_t {
     pdc_dg_edge_id_t   edge_id;
     pdc_dg_vertex_id_t v1_id;
     pdc_dg_vertex_id_t v2_id;
-    void *             data;
+    void              *data;
 } pdc_dg_edge_t;
 
 /**
@@ -68,7 +68,7 @@ typedef struct pdc_dg_edge_t {
  * \param vertex_data_free Function to free vertex-level user data.
  */
 typedef struct pdc_dg_t {
-    pdc_dg_edge_t **  edges;
+    pdc_dg_edge_t   **edges;
     pdc_dg_vertex_t **vertices;
 
     uint32_t edge_count;
@@ -148,6 +148,26 @@ pdc_dg_edge_id_t PDCdg_add_edge(pdc_dg_t *dg, void *v1_data, void *v2_data, void
  * \return ID of the vertex if it exists, or PDC_DG_INVALID_VERTEX.
  */
 pdc_dg_vertex_id_t PDCdg_vertex_exists(pdc_dg_t *dg, void *vertex_data);
+
+/**
+ * Retrieve data associated with vertex
+ *
+ * \param dg          Pointer to the graph.
+ * \param vertex_id   Vertex id with data.
+ *
+ * \return Data of the vertex if it exists, or NULL.
+ */
+void *PDCdg_get_vertex_data(pdc_dg_t *dg, pdc_dg_vertex_id_t vertex_id);
+
+/**
+ * Retrieve data associated with edge
+ *
+ * \param dg          Pointer to the graph.
+ * \param edge_id      Edge id with data.
+ *
+ * \return Data of the edge if it exists, or NULL.
+ */
+void *PDCdg_get_edge_data(pdc_dg_t *dg, pdc_dg_edge_id_t edge_id);
 
 /**
  * Find the shortest path between two vertices.

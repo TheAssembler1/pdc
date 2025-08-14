@@ -1,4 +1,5 @@
 #include "pdc_tf_server.h"
+#include "pdc_malloc.h"
 
 pdc_dg_t *pdc_tf_graphs[200];
 uint32_t  num_tf_obj_with_obj_ids_g = 0;
@@ -13,7 +14,7 @@ PDCtf_store_json_mapping(pdcid_t obj_id, char *json_filepath, char *cur_state, c
 }
 perr_t
 PDCtf_exec_graph(pdcid_t dg_id, char *cur_state, char *desired_state, pdc_tf_region_t input_region,
-                 pdc_tf_region_t *output_region, void **input)
+                 pdc_tf_region_t *output_region, void **input, int is_write)
 {
     FUNC_ENTER(NULL);
     FUNC_LEAVE(SUCCEED);
@@ -72,7 +73,7 @@ done:
 
 perr_t
 PDCtf_exec_graph(pdcid_t dg_id, char *cur_state, char *desired_state, pdc_tf_region_t input_region,
-                 pdc_tf_region_t *output_region, void **input)
+                 pdc_tf_region_t *output_region, void **input, int is_write)
 {
     FUNC_ENTER(NULL);
 
@@ -84,12 +85,10 @@ PDCtf_exec_graph(pdcid_t dg_id, char *cur_state, char *desired_state, pdc_tf_reg
      * Setup input and output states
      * NOTE: The vertices are check for equality based on the name alone
      */
-    pdc_tf_state_t tf_input_state;
-    pdc_tf_state_t tf_output_state;
-    tf_input_state.name  = cur_state;
-    tf_output_state.name = desired_state;
-    void *input_state    = (void *)&tf_input_state;
-    void *output_state   = (void *)&tf_output_state;
+    pdc_tf_state_t tf_input_state  = {.name = cur_state};
+    pdc_tf_state_t tf_output_state = {.name = desired_state};
+    void          *input_state     = (void *)&tf_input_state;
+    void          *output_state    = (void *)&tf_output_state;
 
     pdc_dg_edge_t *edges_out;
     uint32_t       num_edges;
@@ -122,10 +121,25 @@ PDCtf_exec_graph(pdcid_t dg_id, char *cur_state, char *desired_state, pdc_tf_reg
 
             // Run the transformation
             LOG_JUST_PRINT("--------------------------TRANSFORM_START--------------------------\n");
+            void *prev_input = *input;
             if (f->c_func(internal_params, f->params_str, input, input_region, output_region) == false)
                 PGOTO_ERROR(FAIL, "Error when running transformation, %s", f->name);
             else
                 LOG_INFO("Transformation %s(%s) = %s ran successfully\n", f->name, v1->name, v2->name);
+            /**
+             * The transformation malloced a new buffer
+             * The buffer associated with the original bulk handle (i.e. j != 0)
+             * should not be freed as this is freed by a higher up caller
+             * only on a write
+             */
+            LOG_INFO("Buffer changed: %d\n", prev_input != *input);
+            LOG_INFO("Is write: %d\n", is_write);
+            LOG_INFO("j: %d\n", j);
+            if (!(is_write && j == 0) && prev_input != *input) {
+                LOG_INFO("Freeing old transformation input\n");
+                prev_input = PDC_free(prev_input);
+            }
+
             LOG_JUST_PRINT("--------------------------TRANSFORM_DONE--------------------------\n");
 
             // Set previous output region as input region for next transformation

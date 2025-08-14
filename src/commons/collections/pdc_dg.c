@@ -8,7 +8,7 @@ resize_dg(pdc_dg_t *dg, uint32_t new_vertex_count, uint32_t new_edge_count)
 {
     FUNC_ENTER(NULL);
 
-    LOG_INFO("resize_dg was called\n");
+    LOG_DEBUG("resize_dg was called\n");
 
     perr_t ret_value = SUCCEED;
 
@@ -45,7 +45,7 @@ PDCdg_create(void *data, bool (*vertices_are_equal)(void *v1_data, void *v2_data
 {
     FUNC_ENTER(NULL);
 
-    LOG_INFO("PDCdg_create was called\n");
+    LOG_DEBUG("PDCdg_create was called\n");
 
     pdc_dg_t *ret_value = NULL;
 
@@ -78,14 +78,14 @@ PDCdg_destroy(pdc_dg_t *dg)
 {
     FUNC_ENTER(NULL);
 
-    LOG_INFO("PDCdg_destroy was called\n");
+    LOG_DEBUG("PDCdg_destroy was called\n");
 
     if (dg == NULL) {
         LOG_ERROR("dg was NULL\n");
         FUNC_LEAVE_VOID();
     }
 
-    LOG_INFO("Destroying graph with %d vertices, %d edges\n", dg->vertex_count, dg->edge_count);
+    LOG_DEBUG("Destroying graph with %d vertices, %d edges\n", dg->vertex_count, dg->edge_count);
 
     // first check that there are edges
     if (dg->edges) {
@@ -135,7 +135,7 @@ PDCdg_add_vertex(pdc_dg_t *dg, void *data)
 {
     FUNC_ENTER(NULL);
 
-    LOG_INFO("PDCdg_add_vertex was called\n");
+    LOG_DEBUG("PDCdg_add_vertex was called\n");
 
     pdc_dg_vertex_id_t ret_value;
 
@@ -163,7 +163,7 @@ PDCdg_add_edge(pdc_dg_t *dg, void *v1_data, void *v2_data, void *edge_data)
 {
     FUNC_ENTER(NULL);
 
-    LOG_INFO("PDCdg_add_edge was called\n");
+    LOG_DEBUG("PDCdg_add_edge was called\n");
 
     pdc_dg_edge_id_t ret_value;
 
@@ -204,7 +204,7 @@ PDCdg_vertex_exists(pdc_dg_t *dg, void *vertex_data)
 {
     FUNC_ENTER(NULL);
 
-    LOG_INFO("PDCdg_vertex_exists was called\n");
+    LOG_DEBUG("PDCdg_vertex_exists was called\n");
 
     if (dg == NULL) {
         LOG_WARNING("pdc_dg_has_vertex called with NULL dg\n");
@@ -225,10 +225,10 @@ PDCdg_shortest_path(pdc_dg_t *dg, void *v1_data, void *v2_data, pdc_dg_edge_t **
 {
     FUNC_ENTER(NULL);
 
-    LOG_INFO("PDCdg_shortest_path was called\n");
+    LOG_DEBUG("PDCdg_shortest_path was called\n");
 
     bool                ret_value = false;
-    bool *              visited   = NULL;
+    bool               *visited   = NULL;
     pdc_dg_vertex_id_t *prev      = NULL;
     pdc_dg_vertex_id_t *queue     = NULL;
     pdc_dg_vertex_id_t *path      = NULL;
@@ -347,4 +347,56 @@ done:
         path = PDC_free(path);
 
     FUNC_LEAVE(ret_value);
+}
+
+/**
+ * Retrieve data associated with vertex
+ *
+ * \param dg          Pointer to the graph.
+ * \param vertex_id   Vertex id with data.
+ *
+ * \return Data of the vertex if it exists, or NULL.
+ */
+void *
+PDCdg_get_vertex_data(pdc_dg_t *dg, pdc_dg_vertex_id_t vertex_id)
+{
+    FUNC_ENTER(NULL);
+
+    void *ret_value = NULL;
+
+    if (dg == NULL)
+        PGOTO_ERROR(NULL, "dg was NULL");
+    if (dg->vertices == NULL)
+        PGOTO_ERROR(NULL, "dg->vertices was NULL");
+
+    ret_value = dg->vertices[vertex_id]->data;
+
+done:
+    FUNC_LEAVE(ret_value);
+}
+
+/**
+ * Retrieve data associated with edge
+ *
+ * \param dg          Pointer to the graph.
+ * \param edge_id      Edge id with data.
+ *
+ * \return Data of the edge if it exists, or NULL.
+ */
+void *
+PDCdg_get_edge_data(pdc_dg_t *dg, pdc_dg_edge_id_t edge_id)
+{
+    FUNC_ENTER(NULL);
+
+    void *ret_value = NULL;
+
+    if (dg == NULL)
+        PGOTO_ERROR(NULL, "dg was NULL");
+    if (dg->edges == NULL)
+        PGOTO_ERROR(NULL, "dg->edges was NULL");
+
+    ret_value = dg->edges[edge_id]->data;
+
+done:
+    FUNC_LEAVE(dg->edges[edge_id]);
 }

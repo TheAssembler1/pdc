@@ -11,13 +11,6 @@
 
 #include "pdc_tf_common.h"
 
-bool pdc_tf_builtin_double_to_float(pdc_tf_internal_param internal_param, char *params_str,
-                                    void **region_data, pdc_tf_region_t input_region,
-                                    pdc_tf_region_t *output_region);
-bool pdc_tf_builtin_float_to_double(pdc_tf_internal_param internal_param, char *params_str,
-                                    void **region_data, pdc_tf_region_t input_region,
-                                    pdc_tf_region_t *output_region);
-
 #ifdef ENABLE_TF_ZFP_COMPRESSION
 bool pdc_tf_builtin_zfp_compress(pdc_tf_internal_param internal_param, char *params_str, void **region_data,
                                  pdc_tf_region_t input_region, pdc_tf_region_t *output_region);

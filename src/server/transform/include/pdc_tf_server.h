@@ -42,5 +42,5 @@ perr_t PDCtf_store_json_mapping(pdcid_t obj_id, char *json_filepath, char *cur_s
                                 char *store_state, uint64_t *offset, uint64_t *size, uint8_t ndim,
                                 uint8_t unit);
 perr_t PDCtf_exec_graph(pdcid_t dg_id, char *cur_state, char *desired_state, pdc_tf_region_t input_region,
-                        pdc_tf_region_t *output_region, void **input);
+                        pdc_tf_region_t *output_region, void **input, int is_write);
 #endif
