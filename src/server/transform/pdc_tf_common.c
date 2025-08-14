@@ -180,7 +180,7 @@ PDCtf_region_has_attached_graph(struct pdc_tf_obj_t *tf_obj, int ndim, uint8_t u
     for (int i = 0; i < tf_obj->num_region_mappings; i++) {
         *region_mapping                    = &tf_obj->region_mappings[i];
         pdc_tf_region_t *coneptual_region  = &((*region_mapping)->conceptual_region);
-        uint64_t        *conceptual_offset = (*region_mapping)->conceptual_offset;
+        uint64_t *       conceptual_offset = (*region_mapping)->conceptual_offset;
 
         // check if client ndim, offset, dims, unit match
         bool ndim_matches = coneptual_region->ndim == ndim;
@@ -223,7 +223,7 @@ static const char *
 get_json_string(struct json_object *json_obj, char *str_name, bool expect_string)
 {
     struct json_object *str_json_obj = NULL;
-    const char         *ret_value    = NULL;
+    const char *        ret_value    = NULL;
 
     if (!json_object_object_get_ex(json_obj, str_name, &str_json_obj)) {
         if (expect_string)
@@ -331,9 +331,9 @@ PDCtf_dg_json_create_common(char *filepath)
 {
     FUNC_ENTER(NULL);
 
-    pdc_dg_t           *ret_value = NULL;
-    pdc_dg_t           *dg_cpy    = NULL;
-    FILE               *fp        = NULL;
+    pdc_dg_t *          ret_value = NULL;
+    pdc_dg_t *          dg_cpy    = NULL;
+    FILE *              fp        = NULL;
     struct json_object *json_obj  = NULL;
     io_buffer_t         io_buffer;
     memset(&io_buffer, 0, sizeof(io_buffer_t));
@@ -377,7 +377,7 @@ PDCtf_dg_json_create_common(char *filepath)
     for (int i = 0; i < states_length; i++) {
         struct json_object *s = array_list_get_idx(states, i);
 
-        char       *s_name        = strdup(get_json_string(s, "name", true));
+        char *      s_name        = strdup(get_json_string(s, "name", true));
         const char *s_granularity = get_json_string(s, "granularity", true);
 
         if (s_name == NULL || s_granularity == NULL)
@@ -629,7 +629,7 @@ PDCtf_print_dg_common(pdc_dg_t *dg, bool write_to_file)
         // Correctly cast vertex data to state*
         pdc_tf_state_t *input_state  = (pdc_tf_state_t *)PDCdg_get_vertex_data(dg, edge->v1_id);
         pdc_tf_state_t *output_state = (pdc_tf_state_t *)PDCdg_get_vertex_data(dg, edge->v2_id);
-        pdc_tf_func_t  *edge_func    = (pdc_tf_func_t *)edge->data;
+        pdc_tf_func_t * edge_func    = (pdc_tf_func_t *)edge->data;
 
         const char *color = (edge_func->dev == PDC_TF_CPU_DEVICE) ? "blue" : "red";
 
