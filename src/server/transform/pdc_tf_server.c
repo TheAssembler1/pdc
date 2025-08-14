@@ -132,11 +132,7 @@ PDCtf_exec_graph(pdcid_t dg_id, char *cur_state, char *desired_state, pdc_tf_reg
              * should not be freed as this is freed by a higher up caller
              * only on a write
              */
-            LOG_INFO("Buffer changed: %d\n", prev_input != *input);
-            LOG_INFO("Is write: %d\n", is_write);
-            LOG_INFO("j: %d\n", j);
             if (!(is_write && j == 0) && prev_input != *input) {
-                LOG_INFO("Freeing old transformation input\n");
                 prev_input = PDC_free(prev_input);
             }
 
