@@ -114,12 +114,6 @@ typedef struct pdc_tf_pkg_t {
 #define PDC_TF_MAX_BUILTIN_FUNCS 100
 #define PDC_TF_MAPPINGS          100
 
-/**
- * This could just happen on client/server init
- * Currently happens in PDCtf_open_dg_json_common
- */
-extern bool pdc_tf_has_init_g;
-
 // this structure used to store our builtin functions
 typedef struct pdc_tf_builtin_func_t {
     char     name[PDC_TF_MAX_FUNC_NAME_LEN];

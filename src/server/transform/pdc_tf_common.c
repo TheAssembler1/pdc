@@ -13,7 +13,6 @@
 
 pdc_tf_builtin_func_t pdc_tf_builtin_funcs_g[PDC_TF_MAX_BUILTIN_FUNCS];
 uint32_t              pdc_tf_builtin_cur_func_g = 0;
-bool                  pdc_tf_has_init_g         = false;
 
 perr_t
 PDCtf_set_tf_region_t(pdc_tf_region_t *dest, uint8_t ndim, uint8_t unit, uint64_t *size)
@@ -338,12 +337,6 @@ PDCtf_dg_json_create_common(char *filepath)
     struct json_object *json_obj  = NULL;
     io_buffer_t         io_buffer;
     memset(&io_buffer, 0, sizeof(io_buffer_t));
-
-    if (!pdc_tf_has_init_g) {
-        if (PDCtf_init_builtin_funcs() == FAIL)
-            PGOTO_ERROR(NULL, "Failed to initialialize builtin functions");
-        pdc_tf_has_init_g = true;
-    }
 
     // Open and read JSON file into buffer
     if ((fp = open_file(filepath, IO_MODE_READ)) == NULL)

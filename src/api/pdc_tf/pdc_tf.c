@@ -171,6 +171,8 @@ PDCtf_init()
 
     if (PDC_register_type(PDC_TF_DG, (PDC_free_t)PDCtf_dg_free) < 0)
         PGOTO_ERROR(FAIL, "Failed to register PDC_TF_DG type");
+    if (PDCtf_init_builtin_funcs() != SUCCEED)
+        PGOTO_ERROR(FAIL, "Error with PDCtf_init_builtin_funcs");
 
 done:
     FUNC_LEAVE(ret_value);

@@ -673,13 +673,6 @@ PDC_Server_data_io_region_per_file_transformations(uint64_t obj_id, int obj_ndim
         PGOTO_DONE(SUCCEED);
     }
 
-    // FIXME: adhoc way of initializing builtin funcs
-    if (!pdc_tf_has_init_g) {
-        if (PDCtf_init_builtin_funcs() != SUCCEED)
-            PGOTO_ERROR(FAIL, "Failed to PDCtf_init_builtin_funcs");
-        pdc_tf_has_init_g = true;
-    }
-
     pdc_tf_region_t output_region;
     pdc_tf_region_t input_region;
     if (is_write)
