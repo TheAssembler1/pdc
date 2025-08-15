@@ -112,7 +112,7 @@ main(int argc, char **argv)
     pdcid_t dg_id =
         PDCtf_dg_json_create("/home/ta1/src/workspace/source/pdc/tf_graphs/compression_encryption_i.json");
     PDCtf_print_dg(dg_id, true);
-    PDCtf_attach_to_region(dg_id, obj1, reg_global, "decompressed", "compressed");
+    PDCtf_attach_to_region(dg_id, obj1, reg_global, "decompressed", "encrypted");
 
     TASSERT((transfer_request = PDCregion_transfer_create(data, PDC_WRITE, obj1, reg, reg_global)) != 0,
             "Call to PDCregion_transfer_create succeeded", "Call to PDCregion_transfer_create failed");
