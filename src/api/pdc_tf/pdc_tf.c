@@ -111,8 +111,8 @@ PDCtf_attach_to_region(pdcid_t dg_id, pdcid_t obj_id, pdcid_t remote_reg, char *
 
     // get region mapping fields from object
     pdc_tf_region_mapping_t *region_mapping    = &pdc_tf_obj->region_mappings[cur_region_map];
-    pdc_tf_region_t         *conceptual_region = &region_mapping->conceptual_region;
-    uint64_t                *conceptual_offset = region_mapping->conceptual_offset;
+    pdc_tf_region_t *        conceptual_region = &region_mapping->conceptual_region;
+    uint64_t *               conceptual_offset = region_mapping->conceptual_offset;
 
     // Copy region information into conceptual region
     PDCtf_set_tf_region_t(conceptual_region, region_info->ndim,
