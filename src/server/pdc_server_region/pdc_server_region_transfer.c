@@ -88,7 +88,7 @@ PDC_finish_request(uint64_t transfer_request_id)
 {
     FUNC_ENTER(NULL);
 
-    pdc_transfer_request_status    *ptr, *tmp = NULL;
+    pdc_transfer_request_status *   ptr, *tmp = NULL;
     perr_t                          ret_value = SUCCEED;
     transfer_request_wait_out_t     out;
     transfer_request_wait_all_out_t out_all;
@@ -295,7 +295,7 @@ PDC_Server_data_io_flattened(uint64_t obj_id, int obj_ndim, const uint64_t *obj_
 
     perr_t   ret_value = SUCCEED;
     int      fd;
-    char    *data_path = NULL;
+    char *   data_path = NULL;
     char     storage_location[ADDR_MAX];
     ssize_t  io_size;
     uint64_t i, j;
@@ -663,9 +663,9 @@ PDC_Server_data_io_region_per_file_transformations(uint64_t obj_id, int obj_ndim
     FUNC_ENTER(NULL);
 
     perr_t ret_value = SUCCEED;
-    void  *cpy_buf   = buf;
+    void * cpy_buf   = buf;
 
-    struct pdc_tf_obj_t     *tf_obj = PDCtf_get_region_mapping(obj_id);
+    struct pdc_tf_obj_t *    tf_obj = PDCtf_get_region_mapping(obj_id);
     pdc_tf_region_mapping_t *region_mapping;
     if (!PDCtf_region_has_attached_graph(tf_obj, region_info->ndim, unit, region_info->offset,
                                          region_info->size, &region_mapping)) {
@@ -850,7 +850,7 @@ parse_bulk_data(void *buf, transfer_request_all_data *request_data, pdc_access_t
 {
     FUNC_ENTER(NULL);
 
-    char    *ptr = (char *)buf;
+    char *   ptr = (char *)buf;
     int      i, j;
     uint64_t data_size;
 
