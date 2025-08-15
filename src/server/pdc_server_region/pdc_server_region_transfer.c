@@ -88,7 +88,7 @@ PDC_finish_request(uint64_t transfer_request_id)
 {
     FUNC_ENTER(NULL);
 
-    pdc_transfer_request_status *   ptr, *tmp = NULL;
+    pdc_transfer_request_status    *ptr, *tmp = NULL;
     perr_t                          ret_value = SUCCEED;
     transfer_request_wait_out_t     out;
     transfer_request_wait_all_out_t out_all;
@@ -295,7 +295,7 @@ PDC_Server_data_io_flattened(uint64_t obj_id, int obj_ndim, const uint64_t *obj_
 
     perr_t   ret_value = SUCCEED;
     int      fd;
-    char *   data_path = NULL;
+    char    *data_path = NULL;
     char     storage_location[ADDR_MAX];
     ssize_t  io_size;
     uint64_t i, j;
@@ -663,9 +663,9 @@ PDC_Server_data_io_region_per_file_transformations(uint64_t obj_id, int obj_ndim
     FUNC_ENTER(NULL);
 
     perr_t ret_value = SUCCEED;
-    void * cpy_buf   = buf;
+    void  *cpy_buf   = buf;
 
-    struct pdc_tf_obj_t *    tf_obj = PDCtf_get_region_mapping(obj_id);
+    struct pdc_tf_obj_t     *tf_obj = PDCtf_get_region_mapping(obj_id);
     pdc_tf_region_mapping_t *region_mapping;
     if (!PDCtf_region_has_attached_graph(tf_obj, region_info->ndim, unit, region_info->offset,
                                          region_info->size, &region_mapping)) {
@@ -704,6 +704,7 @@ PDC_Server_data_io_region_per_file_transformations(uint64_t obj_id, int obj_ndim
     }
 
     // At this point we have run the transformation
+    LOG_INFO("Setting ran transformation\n");
     *ran_transformation = true;
 
     if (is_write) {
@@ -774,18 +775,22 @@ PDC_Server_transfer_request_io(uint64_t obj_id, int obj_ndim, const uint64_t *ob
 {
     FUNC_ENTER(NULL);
 
+    LOG_INFO("PDC_Server_transfer_request_io was called\n");
+
     perr_t ret_value = SUCCEED;
 
     /**
      * Switch between storage strategies and hand off to correct handler
      */
     if (storage_strategy_g == STORE_REGION_BY_REGION_SINGLE_FILE || obj_ndim == 0) {
+        LOG_INFO("Running storage strategy STORE_REGION_BY_REGION_SINGLE_FILE\n");
         if (is_write)
             PGOTO_DONE(PDC_Server_data_write_out(obj_id, region_info, buf, unit));
         else
             PGOTO_DONE(PDC_Server_data_read_from(obj_id, region_info, buf, unit));
     }
     else if (storage_strategy_g == STORE_FLATTENED_SINGLE_FILE) {
+        LOG_INFO("Running storage strategy STORE_FLATTENED_SINGLE_FILE\n");
         PGOTO_DONE(
             PDC_Server_data_io_flattened(obj_id, obj_ndim, obj_dims, region_info, buf, unit, is_write));
     }
@@ -804,14 +809,17 @@ PDC_Server_transfer_request_io(uint64_t obj_id, int obj_ndim, const uint64_t *ob
                                                                &ran_transformation) != SUCCEED) {
             PGOTO_ERROR(FAIL, "Error with PDC_Server_data_io_region_per_file_transformations");
         }
-        if (ran_transformation)
+        if (ran_transformation) {
+            LOG_INFO("Running storage strategy STORE_FLATTENED_REGION_PER_FILE transformation\n");
             PGOTO_DONE(SUCCEED);
+        }
 
         // FIXME: Need to find a reasonable size for this or hints from client
         uint64_t temp_file_dims[DIM_MAX];
         if (PDC_shrink_file_dims(temp_file_dims, obj_dims, obj_ndim, unit) != SUCCEED)
             PGOTO_ERROR(FAIL, "Error with PDC_shrink_file_dims");
 
+        LOG_INFO("Running storage strategy STORE_FLATTENED_REGION_PER_FILE\n");
         PGOTO_DONE(PDC_Server_data_io_region_per_file(obj_id, obj_ndim, obj_dims, temp_file_dims, region_info,
                                                       buf, unit, is_write));
     }
@@ -842,7 +850,7 @@ parse_bulk_data(void *buf, transfer_request_all_data *request_data, pdc_access_t
 {
     FUNC_ENTER(NULL);
 
-    char *   ptr = (char *)buf;
+    char    *ptr = (char *)buf;
     int      i, j;
     uint64_t data_size;
 
