@@ -6,6 +6,7 @@
 #include "pdc_malloc.h"
 #include "pdc_tf_common.h"
 #include "pdc_tf_builtin_common.h"
+#include "pdc_client_server_common.h"
 #include "pdc_tf.h"
 #include "pdc_timing.h"
 #include "pdc_interface.h"
@@ -15,13 +16,13 @@ pdc_tf_builtin_func_t pdc_tf_builtin_funcs_g[PDC_TF_MAX_BUILTIN_FUNCS];
 uint32_t              pdc_tf_builtin_cur_func_g = 0;
 
 perr_t
-PDCtf_set_tf_region_t(pdc_tf_region_t *dest, uint8_t ndim, uint8_t unit, uint64_t *size)
+PDCtf_set_tf_region_t(pdc_tf_region_t *dest, uint8_t ndim, pdc_var_type_t pdc_var_type, uint64_t *size)
 {
     FUNC_ENTER(NULL);
 
-    dest->ndim = ndim;
-    dest->unit = unit;
-    memcpy(dest->size, size, unit * sizeof(uint64_t));
+    dest->ndim         = ndim;
+    dest->pdc_var_type = pdc_var_type;
+    memcpy(dest->size, size, PDC_get_var_type_size(pdc_var_type) * sizeof(uint64_t));
 
     FUNC_LEAVE(SUCCEED);
 }
@@ -31,9 +32,9 @@ PDCtf_copy_tf_region_t(pdc_tf_region_t *src, pdc_tf_region_t *dest)
 {
     FUNC_ENTER(NULL);
 
-    dest->ndim = src->ndim;
-    dest->unit = src->unit;
-    memcpy(dest->size, src->size, src->unit * sizeof(uint64_t));
+    dest->ndim         = src->ndim;
+    dest->pdc_var_type = src->pdc_var_type;
+    memcpy(dest->size, src->size, PDC_get_var_type_size(src->pdc_var_type) * sizeof(uint64_t));
 
     FUNC_LEAVE(SUCCEED);
 }
@@ -165,8 +166,8 @@ done:
 }
 
 bool
-PDCtf_region_has_attached_graph(struct pdc_tf_obj_t *tf_obj, int ndim, uint8_t unit, uint64_t *offset,
-                                uint64_t *size, pdc_tf_region_mapping_t **region_mapping)
+PDCtf_region_has_attached_graph(struct pdc_tf_obj_t *tf_obj, int ndim, pdc_var_type_t pdc_var_type,
+                                uint64_t *offset, uint64_t *size, pdc_tf_region_mapping_t **region_mapping)
 {
     FUNC_ENTER(NULL);
 
@@ -182,19 +183,19 @@ PDCtf_region_has_attached_graph(struct pdc_tf_obj_t *tf_obj, int ndim, uint8_t u
     for (int i = 0; i < tf_obj->num_region_mappings; i++) {
         *region_mapping                    = &tf_obj->region_mappings[i];
         pdc_tf_region_t *coneptual_region  = &((*region_mapping)->conceptual_region);
-        uint64_t *       conceptual_offset = (*region_mapping)->conceptual_offset;
+        uint64_t        *conceptual_offset = (*region_mapping)->conceptual_offset;
 
         // check if client ndim, offset, dims, unit match
-        bool ndim_matches = coneptual_region->ndim == ndim;
-        bool unit_matches = coneptual_region->unit == unit;
+        bool ndim_matches         = coneptual_region->ndim == ndim;
+        bool pdc_var_type_matches = coneptual_region->pdc_var_type == pdc_var_type;
         // note these return 0 on match so ! is needed
         bool offset_matches = !memcmp(conceptual_offset, offset, ndim * sizeof(uint64_t));
         bool size_matches   = !memcmp(coneptual_region->size, size, ndim * sizeof(uint64_t));
 
-        LOG_INFO("ndim_matches: %d, unit_matches: %d, offset_matches: %d, size_matches: %d\n", ndim_matches,
-                 unit_matches, offset_matches, size_matches);
+        LOG_INFO("ndim_matches: %d, var_type_matches: %d, offset_matches: %d, size_matches: %d\n",
+                 ndim_matches, pdc_var_type_matches, offset_matches, size_matches);
 
-        if (ndim_matches && offset_matches && size_matches && unit_matches) {
+        if (ndim_matches && offset_matches && size_matches && pdc_var_type_matches) {
             PGOTO_DONE(true);
         }
     }
@@ -225,7 +226,7 @@ static const char *
 get_json_string(struct json_object *json_obj, char *str_name, bool expect_string)
 {
     struct json_object *str_json_obj = NULL;
-    const char *        ret_value    = NULL;
+    const char         *ret_value    = NULL;
 
     if (!json_object_object_get_ex(json_obj, str_name, &str_json_obj)) {
         if (expect_string)
@@ -333,9 +334,9 @@ PDCtf_dg_json_create_common(char *filepath)
 {
     FUNC_ENTER(NULL);
 
-    pdc_dg_t *          ret_value = NULL;
-    pdc_dg_t *          dg_cpy    = NULL;
-    FILE *              fp        = NULL;
+    pdc_dg_t           *ret_value = NULL;
+    pdc_dg_t           *dg_cpy    = NULL;
+    FILE               *fp        = NULL;
     struct json_object *json_obj  = NULL;
     io_buffer_t         io_buffer;
     memset(&io_buffer, 0, sizeof(io_buffer_t));
@@ -379,7 +380,7 @@ PDCtf_dg_json_create_common(char *filepath)
     for (int i = 0; i < states_length; i++) {
         struct json_object *s = array_list_get_idx(states, i);
 
-        char *      s_name        = strdup(get_json_string(s, "name", true));
+        char       *s_name        = strdup(get_json_string(s, "name", true));
         const char *s_granularity = get_json_string(s, "granularity", true);
 
         if (s_name == NULL || s_granularity == NULL)
@@ -526,7 +527,7 @@ size_t
 PDCtf_get_pdc_region_t_bytes(pdc_tf_region_t reg)
 {
     FUNC_ENTER(NULL);
-    FUNC_LEAVE(PDCtf_get_pdc_region_t_elements(reg) * reg.unit);
+    FUNC_LEAVE(PDCtf_get_pdc_region_t_elements(reg) * PDC_get_var_type_size(reg.pdc_var_type));
 }
 
 void
@@ -535,7 +536,7 @@ PDCtf_log_pdc_region_t(pdc_tf_region_t reg)
     FUNC_ENTER(NULL);
 
     LOG_INFO("region ndim: %lu\n", reg.ndim);
-    LOG_INFO("region unit: %lu\n", reg.unit);
+    LOG_INFO("region unit: %lu\n", PDC_get_var_type_size(reg.pdc_var_type));
     for (int i = 0; i < reg.ndim; i++)
         LOG_INFO("\tsize[%d] = %lu\n", i + 1, reg.size[0]);
     LOG_INFO("region bytes: %zu\n", PDCtf_get_pdc_region_t_bytes(reg));
@@ -631,7 +632,7 @@ PDCtf_print_dg_common(pdc_dg_t *dg, bool write_to_file)
         // Correctly cast vertex data to state*
         pdc_tf_state_t *input_state  = (pdc_tf_state_t *)PDCdg_get_vertex_data(dg, edge->v1_id);
         pdc_tf_state_t *output_state = (pdc_tf_state_t *)PDCdg_get_vertex_data(dg, edge->v2_id);
-        pdc_tf_func_t * edge_func    = (pdc_tf_func_t *)edge->data;
+        pdc_tf_func_t  *edge_func    = (pdc_tf_func_t *)edge->data;
 
         const char *color = (edge_func->dev == PDC_TF_CPU_DEVICE) ? "blue" : "red";
 

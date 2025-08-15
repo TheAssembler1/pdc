@@ -15,16 +15,14 @@
       "input_state": "decompressed",
       "output_state": "compressed",
       "location": "builtin",
-      "name": "zfp_compress",
-      "params": "i"
+      "name": "zfp_compress"
     },
     {
       "device": "CPU",
       "input_state": "compressed",
       "output_state": "decompressed",
       "location": "builtin",
-      "name": "zfp_decompress",
-      "params": "i"
+      "name": "zfp_decompress"
     }
   ],
   "name": "ZFP_compression"

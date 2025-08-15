@@ -132,17 +132,17 @@ typedef struct pdc_kvtag_list_t {
 
 typedef struct get_storage_loc_args_t {
     perr_t (*cb)();
-    void *          cb_args;
+    void           *cb_args;
     region_list_t **region_lists;
     hg_handle_t     rpc_handle;
-    uint32_t *      n_loc;
-    void *          void_buf;
+    uint32_t       *n_loc;
+    void           *void_buf;
 } get_storage_loc_args_t;
 
 typedef struct update_region_storage_meta_bulk_args_t {
     perr_t (*cb)();
-    void *      meta_list_target;
-    int *       n_updated;
+    void       *meta_list_target;
+    int        *n_updated;
     int         server_id;
     hg_bulk_t   bulk_handle;
     hg_handle_t rpc_handle;
@@ -165,8 +165,8 @@ typedef struct region_list_t {
     int                   is_data_ready;
     char                  shm_addr[ADDR_MAX];
     int                   shm_fd;
-    pdc_histogram_t *     region_hist;
-    char *                buf;
+    pdc_histogram_t      *region_hist;
+    char                 *buf;
     _pdc_data_loc_t       data_loc_type;
     char                  storage_location[ADDR_MAX];
     uint64_t              offset;
@@ -250,7 +250,7 @@ typedef struct region_map_t {
     pdcid_t                local_reg_id;  /* origin of region id */
     region_info_transfer_t local_region;
     size_t                 local_ndim;
-    uint64_t *             local_reg_size;
+    uint64_t              *local_reg_size;
     hg_addr_t              local_addr;
     hg_bulk_t              local_bulk_handle;
     pdc_var_type_t         local_data_type;
@@ -261,7 +261,7 @@ typedef struct region_map_t {
 } region_map_t;
 
 typedef struct region_buf_map_t {
-    void *                            remote_data_ptr;
+    void                             *remote_data_ptr;
     pdcid_t                           remote_obj_id; /* target of object id */
     pdcid_t                           remote_reg_id; /* target of region id */
     int32_t                           remote_client_id;
@@ -275,7 +275,7 @@ typedef struct region_buf_map_t {
     pdcid_t                local_reg_id; /* origin of region id */
     region_info_transfer_t local_region;
     size_t                 local_ndim;
-    uint64_t *             local_reg_size;
+    uint64_t              *local_reg_size;
     hg_addr_t              local_addr;
     hg_bulk_t              local_bulk_handle;
     pdc_var_type_t         local_data_type;
@@ -318,8 +318,8 @@ typedef struct data_server_region_t {
     // For region map
     region_map_t *region_map_head;
     // For region storage
-    region_list_t *              region_storage_head;
-    char *                       storage_location; // save the file location to enable reopening
+    region_list_t               *region_storage_head;
+    char                        *storage_location; // save the file location to enable reopening
     struct data_server_region_t *prev;
     struct data_server_region_t *next;
 } data_server_region_t;
@@ -328,7 +328,7 @@ typedef struct data_server_region_unmap_t {
     uint64_t obj_id;
 
     region_info_transfer_t unmap_region;
-    const struct hg_info * info;
+    const struct hg_info  *info;
 
     struct data_server_region_unmap_t *prev;
     struct data_server_region_unmap_t *next;
@@ -376,7 +376,7 @@ typedef struct pdc_metadata_t {
     // For hash table list
     struct pdc_metadata_t *prev;
     struct pdc_metadata_t *next;
-    void *                 bloom;
+    void                  *bloom;
 
 } pdc_metadata_t;
 
@@ -397,7 +397,7 @@ typedef struct query_read_names_args_t {
     int    cnt;
     int    is_select_all;
     char **obj_names;
-    char * obj_names_1d;
+    char  *obj_names_1d;
 } query_read_names_args_t;
 
 /********************************************************/
@@ -1040,7 +1040,7 @@ typedef struct pdc_query_xfer_t {
     int                     n_unique_obj;
     int                     query_op;
     int                     n_combine_ops;
-    int *                   combine_ops;
+    int                    *combine_ops;
     int                     n_constraints;
     int                     get_op;
     int                     next_server_id;
@@ -1071,7 +1071,7 @@ typedef struct query_storage_region_transfer_t {
     int                    manager;
     uint64_t               obj_id;
     region_info_transfer_t region_transfer;
-    char *                 storage_location;
+    char                  *storage_location;
     uint64_t               offset;
     uint64_t               size;
     int                    has_hist;
@@ -1095,10 +1095,10 @@ typedef struct {
 typedef struct {
     int8_t   op_type;
     int8_t   hash_algo;
-    char *   attr_key;
+    char    *attr_key;
     uint32_t attr_vsize;
     uint8_t  attr_vtype;
-    void *   attr_val;
+    void    *attr_val;
     uint64_t vnode_id;
     int8_t   obj_ref_type;
     uint64_t obj_primary_ref;
@@ -2399,6 +2399,10 @@ hg_proc_transfer_request_in_t(hg_proc_t proc, void *data)
         FUNC_LEAVE(ret);
     }
     ret = hg_proc_uint8_t(proc, &struct_data->access_type);
+    if (ret != HG_SUCCESS) {
+        FUNC_LEAVE(ret);
+    }
+    ret = hg_proc_uint8_t(proc, &struct_data->pdc_tf_pkg.pdc_var_type);
     if (ret != HG_SUCCESS) {
         FUNC_LEAVE(ret);
     }
@@ -3720,10 +3724,10 @@ struct bulk_args_t {
     size_t            nbytes;
     int               origin;
     size_t            ret;
-    pdc_metadata_t ** meta_arr;
+    pdc_metadata_t  **meta_arr;
     uint32_t          n_meta;
     uint64_t          obj_id;
-    uint64_t *        obj_ids;
+    uint64_t         *obj_ids;
     int               client_seq_id;
     int               is_id; // if is_id == true, then use uint64_t; otherwise, pdc_metadata_t
     int8_t            op_type;
@@ -3747,7 +3751,7 @@ struct buf_map_release_bulk_args {
     double start_time;
 #endif
     hg_handle_t             handle;
-    void *                  data_buf;
+    void                   *data_buf;
     pdcid_t                 remote_obj_id; /* target of object id */
     pdcid_t                 remote_reg_id; /* target of region id */
     int32_t                 remote_client_id;
@@ -3768,8 +3772,8 @@ struct lock_bulk_args {
     hg_handle_t             handle;
     region_lock_in_t        in;
     struct pdc_region_info *server_region;
-    void *                  data_buf;
-    region_map_t *          mapping_list;
+    void                   *data_buf;
+    region_map_t           *mapping_list;
     hg_addr_t               addr;
 };
 
@@ -3779,14 +3783,14 @@ struct region_lock_update_bulk_args {
     pdcid_t                 remote_obj_id;
     pdcid_t                 remote_reg_id;
     int32_t                 remote_client_id;
-    void *                  data_buf;
+    void                   *data_buf;
     struct pdc_region_info *server_region;
 };
 
 struct transfer_request_wait_all_local_bulk_args {
     hg_handle_t                    handle;
     hg_bulk_t                      bulk_handle;
-    void *                         data_buf;
+    void                          *data_buf;
     transfer_request_wait_all_in_t in;
 #ifdef PDC_TIMING
     double start_time;
@@ -3797,8 +3801,8 @@ struct transfer_request_all_local_bulk_args {
     hg_handle_t               handle;
     hg_bulk_t                 bulk_handle;
     transfer_request_all_in_t in;
-    uint64_t *                transfer_request_id;
-    void *                    data_buf;
+    uint64_t                 *transfer_request_id;
+    void                     *data_buf;
 #ifdef PDC_TIMING
     double start_time;
 #endif
@@ -3808,8 +3812,8 @@ struct transfer_request_all_local_bulk_args2 {
     hg_handle_t               handle;
     transfer_request_all_data request_data;
     hg_bulk_t                 bulk_handle;
-    uint64_t *                transfer_request_id;
-    void *                    data_buf;
+    uint64_t                 *transfer_request_id;
+    void                     *data_buf;
 #ifdef PDC_TIMING
     double start_time;
 #endif
@@ -3819,7 +3823,7 @@ struct transfer_request_metadata_query_local_bulk_args {
     hg_handle_t                          handle;
     hg_bulk_t                            bulk_handle;
     transfer_request_metadata_query_in_t in;
-    void *                               data_buf;
+    void                                *data_buf;
 #ifdef PDC_TIMING
     double start_time;
 #endif
@@ -3828,7 +3832,7 @@ struct transfer_request_metadata_query_local_bulk_args {
 struct transfer_request_metadata_query2_local_bulk_args {
     hg_handle_t handle;
     hg_bulk_t   bulk_handle;
-    void *      data_buf;
+    void       *data_buf;
 #ifdef PDC_TIMING
     double start_time;
 #endif
@@ -3839,7 +3843,7 @@ struct transfer_request_local_bulk_args {
     hg_bulk_t             bulk_handle;
     transfer_request_in_t in;
     uint64_t              transfer_request_id;
-    void *                data_buf;
+    void                 *data_buf;
     size_t                total_mem_size;
 
 #ifdef PDC_TIMING
@@ -3888,12 +3892,12 @@ typedef struct process_bulk_storage_meta_args_t {
 
 typedef struct region_meta_transfer_t {
     int                    loc_len;
-    char *                 storage_location;
+    char                  *storage_location;
     region_info_transfer_t region_info;
     uint64_t               offset;
     uint64_t               size;
     int                    has_hist;
-    pdc_histogram_t *      histogram;
+    pdc_histogram_t       *histogram;
 } region_meta_transfer_t;
 
 typedef struct storage_region_bulk_header_t {

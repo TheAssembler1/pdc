@@ -55,17 +55,17 @@ pdc_tf_builtin_zfp_compress(pdc_tf_internal_param internal_param, char *params_s
     // set datatype based on params
     zfp_type z_type;
 
-    switch (params_str[0]) {
-        case 'f':
+    switch (input_region.pdc_var_type) {
+        case PDC_FLOAT:
             z_type = zfp_type_float;
             break;
-        case 'd':
+        case PDC_DOUBLE:
             z_type = zfp_type_double;
             break;
-        case 'i':
+        case PDC_INT32:
             z_type = zfp_type_int32;
             break;
-        case 'l':
+        case PDC_INT64:
             z_type = zfp_type_int64;
             break;
         default:
@@ -114,7 +114,7 @@ pdc_tf_builtin_zfp_compress(pdc_tf_internal_param internal_param, char *params_s
 
     // Allocate buffer for compressed data
     size_t bufsize           = zfp_stream_maximum_size(zfp, field);
-    void * compressed_buffer = malloc(bufsize);
+    void  *compressed_buffer = malloc(bufsize);
     if (!compressed_buffer) {
         LOG_ERROR("Failed to allocate memory for compressed data\n");
         zfp_field_free(field);
@@ -151,9 +151,9 @@ pdc_tf_builtin_zfp_compress(pdc_tf_internal_param internal_param, char *params_s
     *region_data = compressed_buffer;
 
     // Update output region dims to reflect compressed data size (1D)
-    output_region->ndim    = 1;
-    output_region->unit    = 1;
-    output_region->size[0] = compressed_size;
+    output_region->ndim         = 1;
+    output_region->pdc_var_type = PDC_CHAR;
+    output_region->size[0]      = compressed_size;
 
     // Free zfp structures
     zfp_field_free(field);
@@ -332,9 +332,9 @@ pdc_tf_builtin_encrypt(pdc_tf_internal_param internal_param, char *params_str, v
     }
 
     // Output region is 1D bytes (ciphertext)
-    output_region->ndim    = 1;
-    output_region->unit    = 1;
-    output_region->size[0] = ciphertext_len;
+    output_region->ndim         = 1;
+    output_region->pdc_var_type = PDC_CHAR;
+    output_region->size[0]      = ciphertext_len;
 
     // Save original plaintext size in output_params
     encrypt_params_t *out_params = malloc(sizeof(encrypt_params_t));
@@ -386,9 +386,9 @@ pdc_tf_builtin_decrypt(pdc_tf_internal_param internal_param, char *params_str, v
     }
 
     // Set output region dims: restore original plaintext region
-    output_region->ndim    = 1;
-    output_region->unit    = 1;
-    output_region->size[0] = plaintext_len;
+    output_region->ndim         = 1;
+    output_region->pdc_var_type = PDC_CHAR;
+    output_region->size[0]      = plaintext_len;
 
     // Update data pointer
     *region_data = plaintext;
