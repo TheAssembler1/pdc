@@ -645,10 +645,15 @@ PDCtf_get_region_mapping(pdcid_t obj_id)
 {
     FUNC_ENTER(NULL);
 
+    LOG_INFO("Searching for %d\n", obj_id);
+    LOG_INFO("Num objects with region mappings: %d\n", num_tf_obj_with_obj_ids_g);
+
     struct pdc_tf_obj_t *ret_value = NULL;
     for (int i = 0; i < num_tf_obj_with_obj_ids_g; i++) {
-        if (obj_id == pdc_tf_obj_with_obj_ids[i].obj_id)
+        LOG_INFO("Searching against %d\n", pdc_tf_obj_with_obj_ids[i].obj_id);
+        if (obj_id == pdc_tf_obj_with_obj_ids[i].obj_id) {
             PGOTO_DONE(&pdc_tf_obj_with_obj_ids[i].pdc_tf_obj_t);
+        }
     }
 
 done:
@@ -673,10 +678,14 @@ PDC_Server_data_io_region_per_file_transformations(uint64_t obj_id, int obj_ndim
         PGOTO_DONE(SUCCEED);
     }
 
+    LOG_INFO("VAR TYPE: %d\n", region_mapping->conceptual_region.pdc_var_type);
+    assert(PDC_get_var_type_size(region_mapping->conceptual_region.pdc_var_type) != 0);
+
     pdc_tf_region_t output_region;
     pdc_tf_region_t input_region;
     if (is_write)
-        PDCtf_set_tf_region_t(&input_region, region_info->ndim, unit, region_info->size);
+        PDCtf_set_tf_region_t(&input_region, region_info->ndim,
+                              region_mapping->conceptual_region.pdc_var_type, region_info->size);
     else {
         PDCtf_set_tf_region_t(&input_region, region_mapping->actual_region.ndim,
                               region_mapping->actual_region.pdc_var_type, region_mapping->actual_region.size);
@@ -698,6 +707,8 @@ PDC_Server_data_io_region_per_file_transformations(uint64_t obj_id, int obj_ndim
     }
 
     // We can now execute the directed graph
+    assert(PDC_get_var_type_size(input_region.pdc_var_type) != 0);
+    LOG_INFO("VAR TYPE3: %d\n", input_region.pdc_var_type);
     if (PDCtf_exec_graph(region_mapping->region_state.dg_id, region_mapping->region_state.cur_state,
                          desired_state, input_region, &output_region, &buf, is_write) != SUCCEED) {
         PGOTO_ERROR(FAIL, "Error with PDCtf_exec_graph");
@@ -730,7 +741,7 @@ done:
 }
 
 static perr_t
-PDC_shrink_file_dims(uint64_t *temp_file_dims, const uint64_t *obj_dims, uint8_t obj_ndim, uint8_t unit)
+PDC_shrink_file_dims(uint64_t *temp_file_dims, const uint64_t *obj_dims, uint8_t obj_ndim, size_t unit)
 {
     FUNC_ENTER(NULL);
 

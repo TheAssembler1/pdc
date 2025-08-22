@@ -1,5 +1,8 @@
+#include <assert.h>
+
 #include "pdc_tf_server.h"
 #include "pdc_malloc.h"
+#include "pdc_client_server_common.h"
 
 pdc_dg_t *pdc_tf_graphs[200];
 uint32_t  num_tf_obj_with_obj_ids_g = 0;
@@ -30,7 +33,7 @@ PDCtf_store_json_mapping(pdcid_t obj_id, char *json_filepath, char *cur_state, c
 {
     FUNC_ENTER(NULL);
 
-    LOG_INFO("PDCtf_attach_to_region was called\n");
+    LOG_INFO("PDCtf_store_json_mapping was called\n");
 
     perr_t ret_value = SUCCEED;
 
@@ -45,13 +48,16 @@ PDCtf_store_json_mapping(pdcid_t obj_id, char *json_filepath, char *cur_state, c
     const uint32_t            cur_region_map =
         pdc_tf_obj_with_obj_ids[cur_num_tf_obj_with_obj_id].pdc_tf_obj_t.num_region_mappings;
 
-    cur_tf_server_obj_info->obj_id = obj_id;
+    // Set object ID
+    pdc_tf_obj_with_obj_ids[cur_num_tf_obj_with_obj_id].obj_id = obj_id;
 
     // get region mapping fields from object
     pdc_tf_region_mapping_t *region_mapping =
         &cur_tf_server_obj_info->pdc_tf_obj_t.region_mappings[cur_region_map];
     pdc_tf_region_t *conceptual_region = &region_mapping->conceptual_region;
     uint64_t        *conceptual_offset = region_mapping->conceptual_offset;
+
+    assert(PDC_get_var_type_size(pdc_var_type) != 0);
 
     // copy region information into conceptual region
     conceptual_region->ndim         = ndim;
@@ -65,10 +71,14 @@ PDCtf_store_json_mapping(pdcid_t obj_id, char *json_filepath, char *cur_state, c
     region_mapping->region_state.store_state  = strdup(store_state);
     region_mapping->region_state.dg_id        = cur_graph;
 
+    assert(PDC_get_var_type_size(conceptual_region->pdc_var_type) != 0);
+
     // increase the current region mapping
     cur_tf_server_obj_info->pdc_tf_obj_t.num_region_mappings++;
     num_tf_obj_with_obj_ids_g++;
     cur_graph++;
+
+    LOG_INFO("Cur number of objs with region mappings: %d\n", num_tf_obj_with_obj_ids_g);
 done:
     FUNC_LEAVE(ret_value);
 }
@@ -83,6 +93,9 @@ PDCtf_exec_graph(pdcid_t dg_id, char *cur_state, char *desired_state, pdc_tf_reg
 
     LOG_INFO("PDCtf_exec_graph was called\n");
 
+    LOG_INFO("VAR TYPE4: %d\n", input_region.pdc_var_type);
+    assert(PDC_get_var_type_size(input_region.pdc_var_type) != 0);
+
     /**
      * Setup input and output states
      * NOTE: The vertices are check for equality based on the name alone
@@ -94,8 +107,6 @@ PDCtf_exec_graph(pdcid_t dg_id, char *cur_state, char *desired_state, pdc_tf_reg
 
     pdc_dg_edge_t *edges_out;
     uint32_t       num_edges;
-
-    memcpy(output_region, &input_region, sizeof(pdc_tf_region_t));
 
     if (PDCdg_shortest_path(pdc_tf_graphs[dg_id], input_state, output_state, &edges_out, &num_edges)) {
         LOG_INFO("Planned Execution path\n");
@@ -109,6 +120,7 @@ PDCtf_exec_graph(pdcid_t dg_id, char *cur_state, char *desired_state, pdc_tf_reg
         }
     }
 
+    LOG_INFO("VAR TYPE5: %d\n", input_region.pdc_var_type);
     if (PDCdg_shortest_path(pdc_tf_graphs[dg_id], input_state, output_state, &edges_out, &num_edges)) {
         LOG_INFO("Path was found:\n");
         for (uint32_t j = 0; j < num_edges; j++) {
@@ -124,10 +136,13 @@ PDCtf_exec_graph(pdcid_t dg_id, char *cur_state, char *desired_state, pdc_tf_reg
             // Run the transformation
             LOG_JUST_PRINT("--------------------------TRANSFORM_START--------------------------\n");
             void *prev_input = *input;
+
+            LOG_INFO("VAR TYPE6: %d\n", input_region.pdc_var_type);
             if (f->c_func(internal_params, f->params_str, input, input_region, output_region) == false)
                 PGOTO_ERROR(FAIL, "Error when running transformation, %s", f->name);
             else
                 LOG_INFO("Transformation %s(%s) = %s ran successfully\n", f->name, v1->name, v2->name);
+            LOG_INFO("AFTER_TRANSFORM\n");
             /**
              * The transformation malloced a new buffer
              * The buffer associated with the original bulk handle (i.e. j != 0)

@@ -40,8 +40,10 @@ PDCtf_dg_json_create(char *json_filepath)
     pdcid_t ret_value = 0;
 
     pdc_dg_t *dg = PDCtf_dg_json_create_common(json_filepath);
-    if (dg == NULL)
+    if (dg == NULL) {
+        abort();
         PGOTO_ERROR(FAIL, "Error with PDCtf_open_dg_json_common");
+    }
 
     ret_value = PDC_id_register(PDC_TF_DG, dg);
 
@@ -91,10 +93,17 @@ PDCtf_attach_to_region(pdcid_t dg_id, pdcid_t obj_id, pdcid_t remote_reg, char *
     struct _pdc_obj_info *obj_info = obj_id_info->obj_ptr;
 
     // Validate partition strategy is supported with transformations
-    if (obj_info->obj_pt->obj_prop_pub->region_partition != PDC_REGION_STATIC) {
+    if (obj_info->obj_pt->obj_prop_pub->region_partition == PDC_REGION_STATIC) {
         LOG_ERROR("PDC_REGION_STATIC partition strategy not supported for transformations\n");
+        abort();
         PGOTO_ERROR(FAIL, "The following partitions strategies are supported: PDC_REGION_LOCAL, "
                           "PDC_REGION_DYNAMIC, or PDC_OBJ_STATIC\n");
+    }
+
+    // Validate user has set the datatype on the object
+    if (PDC_get_var_type_size(obj_info->obj_pt->obj_prop_pub->type) == 0) {
+        LOG_ERROR("Invalid data type for object transformation\n");
+        PGOTO_ERROR(FAIL, "Data type must be set on object before attaching transformations");
     }
 
     // Pull out pdc obj transform information and allocate first if NULL
@@ -111,12 +120,12 @@ PDCtf_attach_to_region(pdcid_t dg_id, pdcid_t obj_id, pdcid_t remote_reg, char *
 
     // get region mapping fields from object
     pdc_tf_region_mapping_t *region_mapping    = &pdc_tf_obj->region_mappings[cur_region_map];
-    pdc_tf_region_t *        conceptual_region = &region_mapping->conceptual_region;
-    uint64_t *               conceptual_offset = region_mapping->conceptual_offset;
+    pdc_tf_region_t         *conceptual_region = &region_mapping->conceptual_region;
+    uint64_t                *conceptual_offset = region_mapping->conceptual_offset;
 
     // Copy region information into conceptual region
-    PDCtf_set_tf_region_t(conceptual_region, region_info->ndim,
-                          PDC_get_var_type_size(obj_info->obj_pt->obj_prop_pub->type), region_info->size);
+    PDCtf_set_tf_region_t(conceptual_region, region_info->ndim, obj_info->obj_pt->obj_prop_pub->type,
+                          region_info->size);
     memcpy(conceptual_offset, region_info->offset, region_info->ndim * sizeof(uint64_t));
 
     // FIXME: need to free these strings later

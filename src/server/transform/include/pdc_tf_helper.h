@@ -4,6 +4,7 @@
 #include <assert.h>
 
 #include "pdc_tf_common.h"
+#include "pdc_client_server_common.h"
 
 /**
  * @brief Set state parameters.

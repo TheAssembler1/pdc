@@ -81,7 +81,6 @@ main(int argc, char **argv)
             "Call to PDCprop_create failed");
     TASSERT(PDCprop_set_obj_type(obj_prop, PDC_INT) >= 0, "Call to PDCprop_set_obj_type succeeded",
             "Call to PDCprop_set_obj_type failed");
-
     TASSERT(PDCprop_set_obj_dims(obj_prop, 1, dims) >= 0, "Call to PDCprop_set_obj_dims succeeded",
             "Call to PDCprop_set_obj_dims failed");
     TASSERT(PDCprop_set_obj_user_id(obj_prop, getuid()) >= 0, "Call to PDCprop_set_obj_user_id succeeded",
@@ -92,6 +91,9 @@ main(int argc, char **argv)
             "Call to PDCprop_set_obj_user_id succeeded", "Call to PDCprop_set_obj_user_id failed");
     TASSERT(PDCprop_set_obj_tags(obj_prop, "tag0=1") >= 0, "Call to PDCprop_set_obj_tags succeeded",
             "Call to PDCprop_set_obj_tags failed");
+    TASSERT(PDCprop_set_obj_transfer_region_type(obj_prop, PDC_OBJ_STATIC) >= 0,
+            "Call to PDCprop_set_obj_transfer_region_type succeeded",
+            "Call to PDCprop_set_obj_transfer_region_type failed");
 
     // create first object
     sprintf(obj_name1, "o1_%d", rank);

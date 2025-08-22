@@ -2402,7 +2402,7 @@ hg_proc_transfer_request_in_t(hg_proc_t proc, void *data)
     if (ret != HG_SUCCESS) {
         FUNC_LEAVE(ret);
     }
-    ret = hg_proc_uint8_t(proc, &struct_data->pdc_tf_pkg.pdc_var_type);
+    ret = hg_proc_uint32_t(proc, &struct_data->pdc_tf_pkg.pdc_var_type);
     if (ret != HG_SUCCESS) {
         FUNC_LEAVE(ret);
     }

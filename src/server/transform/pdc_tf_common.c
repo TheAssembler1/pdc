@@ -20,6 +20,9 @@ PDCtf_set_tf_region_t(pdc_tf_region_t *dest, uint8_t ndim, pdc_var_type_t pdc_va
 {
     FUNC_ENTER(NULL);
 
+    LOG_INFO("VAR TYPE: %d\n", pdc_var_type);
+    assert(PDC_get_var_type_size(pdc_var_type) != 0);
+
     dest->ndim         = ndim;
     dest->pdc_var_type = pdc_var_type;
     memcpy(dest->size, size, PDC_get_var_type_size(pdc_var_type) * sizeof(uint64_t));
@@ -166,8 +169,8 @@ done:
 }
 
 bool
-PDCtf_region_has_attached_graph(struct pdc_tf_obj_t *tf_obj, int ndim, pdc_var_type_t pdc_var_type,
-                                uint64_t *offset, uint64_t *size, pdc_tf_region_mapping_t **region_mapping)
+PDCtf_region_has_attached_graph(struct pdc_tf_obj_t *tf_obj, int ndim, size_t unit, uint64_t *offset,
+                                uint64_t *size, pdc_tf_region_mapping_t **region_mapping)
 {
     FUNC_ENTER(NULL);
 
@@ -182,20 +185,22 @@ PDCtf_region_has_attached_graph(struct pdc_tf_obj_t *tf_obj, int ndim, pdc_var_t
 
     for (int i = 0; i < tf_obj->num_region_mappings; i++) {
         *region_mapping                    = &tf_obj->region_mappings[i];
-        pdc_tf_region_t *coneptual_region  = &((*region_mapping)->conceptual_region);
+        pdc_tf_region_t *conceptual_region = &((*region_mapping)->conceptual_region);
         uint64_t        *conceptual_offset = (*region_mapping)->conceptual_offset;
 
         // check if client ndim, offset, dims, unit match
-        bool ndim_matches         = coneptual_region->ndim == ndim;
-        bool pdc_var_type_matches = coneptual_region->pdc_var_type == pdc_var_type;
+        LOG_INFO("VAR TYPE: %d\n", conceptual_region->pdc_var_type);
+        bool ndim_matches = conceptual_region->ndim == ndim;
+        assert(PDC_get_var_type_size(conceptual_region->pdc_var_type) != 0);
+        bool unit_matches = PDC_get_var_type_size(conceptual_region->pdc_var_type) == unit;
         // note these return 0 on match so ! is needed
         bool offset_matches = !memcmp(conceptual_offset, offset, ndim * sizeof(uint64_t));
-        bool size_matches   = !memcmp(coneptual_region->size, size, ndim * sizeof(uint64_t));
+        bool size_matches   = !memcmp(conceptual_region->size, size, ndim * sizeof(uint64_t));
 
-        LOG_INFO("ndim_matches: %d, var_type_matches: %d, offset_matches: %d, size_matches: %d\n",
-                 ndim_matches, pdc_var_type_matches, offset_matches, size_matches);
+        LOG_INFO("ndim_matches: %d, unit matches: %d, offset_matches: %d, size_matches: %d\n", ndim_matches,
+                 unit_matches, offset_matches, size_matches);
 
-        if (ndim_matches && offset_matches && size_matches && pdc_var_type_matches) {
+        if (ndim_matches && offset_matches && size_matches && unit_matches) {
             PGOTO_DONE(true);
         }
     }

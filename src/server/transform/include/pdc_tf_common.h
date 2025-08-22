@@ -104,11 +104,11 @@ typedef struct pdc_tf_func_t {
  * Strings need by server to run transformation
  */
 typedef struct pdc_tf_pkg_t {
-    pdc_var_type_t pdc_var_type;
-    hg_string_t    json_filepath;
-    hg_string_t    cur_state;
-    hg_string_t    client_state;
-    hg_string_t    store_state;
+    uint32_t    pdc_var_type;
+    hg_string_t json_filepath;
+    hg_string_t cur_state;
+    hg_string_t client_state;
+    hg_string_t store_state;
 } pdc_tf_pkg_t;
 
 // FIXME: we could store this in a dynamically allocated buf
@@ -135,12 +135,11 @@ pdc_dg_t *PDCtf_dg_json_create_common(char *filepath);
 perr_t    PDCtf_init_builtin_funcs();
 perr_t    PDCtf_add_builtin_func(char *func_name, c_func_t c_func);
 perr_t    PDCtf_link_builtin_func(char *func_name, pdc_tf_func_t *f);
-bool      PDCtf_region_has_attached_graph(struct pdc_tf_obj_t *tf_obj, int ndim, pdc_var_type_t pdc_var_type,
-                                          uint64_t *offset, uint64_t *size,
-                                          pdc_tf_region_mapping_t **region_mapping);
-size_t    PDCtf_get_pdc_region_t_elements(pdc_tf_region_t reg);
-size_t    PDCtf_get_pdc_region_t_bytes(pdc_tf_region_t reg);
-void      PDCtf_log_pdc_region_t(pdc_tf_region_t reg);
-void      PDCtf_print_exec_path_common(pdc_dg_t *dg, char *cur_state, char *desired_state);
-void      PDCtf_print_dg_common(pdc_dg_t *dg, bool write_to_file);
+bool   PDCtf_region_has_attached_graph(struct pdc_tf_obj_t *tf_obj, int ndim, size_t unit, uint64_t *offset,
+                                       uint64_t *size, pdc_tf_region_mapping_t **region_mapping);
+size_t PDCtf_get_pdc_region_t_elements(pdc_tf_region_t reg);
+size_t PDCtf_get_pdc_region_t_bytes(pdc_tf_region_t reg);
+void   PDCtf_log_pdc_region_t(pdc_tf_region_t reg);
+void   PDCtf_print_exec_path_common(pdc_dg_t *dg, char *cur_state, char *desired_state);
+void   PDCtf_print_dg_common(pdc_dg_t *dg, bool write_to_file);
 #endif // PDC_TF_COMMON_H

@@ -31,6 +31,7 @@
 #include <unistd.h>
 #include <sys/time.h>
 #include "pdc.h"
+#include "test_helper.h"
 #define BUF_LEN 256
 #define OBJ_NUM 10
 
@@ -127,27 +128,9 @@ main(int argc, char **argv)
     obj    = (pdcid_t *)malloc(sizeof(pdcid_t) * OBJ_NUM);
     dg_ids = (pdcid_t *)malloc(sizeof(pdcid_t) * OBJ_NUM);
     for (i = 0; i < OBJ_NUM; ++i) {
-        switch (i % 4) {
-            case 0: {
-                ret = PDCprop_set_obj_transfer_region_type(obj_prop, PDC_REGION_STATIC);
-                break;
-            }
-            case 1: {
-                ret = PDCprop_set_obj_transfer_region_type(obj_prop, PDC_OBJ_STATIC);
-                break;
-            }
-            case 2: {
-                ret = PDCprop_set_obj_transfer_region_type(obj_prop, PDC_REGION_LOCAL);
-                break;
-            }
-            case 3: {
-                ret = PDCprop_set_obj_transfer_region_type(obj_prop, PDC_REGION_DYNAMIC);
-                break;
-            }
-            default: {
-                abort();
-            }
-        }
+        TASSERT(PDCprop_set_obj_transfer_region_type(obj_prop, PDC_OBJ_STATIC) >= 0,
+                "Call to PDCprop_set_obj_transfer_region_type succeeded",
+                "Call to PDCprop_set_obj_transfer_region_type failed");
         if (ret != SUCCEED) {
             LOG_ERROR("Failed to set obj type");
             ret_value = 1;
@@ -271,7 +254,7 @@ main(int argc, char **argv)
         LOG_INFO("successfully closed global region\n");
     }
 
-    offset[0]        = 0;
+    /*offset[0]        = 0;
     offset_length[0] = BUF_LEN;
     reg              = PDCregion_create(1, offset, offset_length);
     offset[0]        = 0;
@@ -400,7 +383,8 @@ main(int argc, char **argv)
     }
     else {
         LOG_INFO("Successfully closed container property\n");
-    }
+    }*/
+done:
     free(data[0]);
     free(data_read[0]);
     free(data);

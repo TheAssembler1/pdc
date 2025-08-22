@@ -15,9 +15,7 @@
 #include "pdc_logger.h"
 
 typedef struct zfp_compress_params_t {
-    zfp_type        z_type;
-    pdc_var_type_t  data_type;
-    pdc_tf_region_t decompressed_region;
+    pdc_tf_region_t decrypted_region;
 } zfp_compress_params_t;
 
 static void
@@ -54,7 +52,6 @@ pdc_tf_builtin_zfp_compress(pdc_tf_internal_param internal_param, char *params_s
 
     // set datatype based on params
     zfp_type z_type;
-
     switch (input_region.pdc_var_type) {
         case PDC_FLOAT:
             z_type = zfp_type_float;
@@ -62,6 +59,7 @@ pdc_tf_builtin_zfp_compress(pdc_tf_internal_param internal_param, char *params_s
         case PDC_DOUBLE:
             z_type = zfp_type_double;
             break;
+        case PDC_INT:
         case PDC_INT32:
             z_type = zfp_type_int32;
             break;
@@ -69,7 +67,7 @@ pdc_tf_builtin_zfp_compress(pdc_tf_internal_param internal_param, char *params_s
             z_type = zfp_type_int64;
             break;
         default:
-            LOG_ERROR("Unsupported datatype: %s\n", params_str);
+            LOG_ERROR("Unsupported datatype: %d\n", input_region.pdc_var_type);
             return false;
     }
     print_ztype(z_type);
@@ -162,8 +160,7 @@ pdc_tf_builtin_zfp_compress(pdc_tf_internal_param internal_param, char *params_s
 
     // Set output params
     zfp_compress_params_t *out_params = (zfp_compress_params_t *)malloc(sizeof(zfp_compress_params_t));
-    out_params->z_type                = z_type;
-    PDCtf_copy_tf_region_t(&input_region, &out_params->decompressed_region);
+    PDCtf_copy_tf_region_t(&input_region, &out_params->decrypted_region);
     SET_STATE_PARAMS("compressed", out_params, sizeof(zfp_compress_params_t));
 
     LOG_INFO("ZFP compression succeeded, compressed size bytes: %zu bytes\n", compressed_size);
@@ -183,8 +180,26 @@ pdc_tf_builtin_zfp_decompress(pdc_tf_internal_param internal_param, char *params
     zfp_compress_params_t *in_params;
     uint64_t               in_params_size;
     GET_STATE_PARAMS("compressed", (void **)&in_params, &in_params_size);
-
-    print_ztype(in_params->z_type);
+    zfp_type z_type;
+    switch (in_params->decrypted_region.pdc_var_type) {
+        case PDC_FLOAT:
+            z_type = zfp_type_float;
+            break;
+        case PDC_DOUBLE:
+            z_type = zfp_type_double;
+            break;
+        case PDC_INT:
+        case PDC_INT32:
+            z_type = zfp_type_int32;
+            break;
+        case PDC_INT64:
+            z_type = zfp_type_int64;
+            break;
+        default:
+            LOG_ERROR("Unsupported datatype: %s\n", params_str);
+            return false;
+    }
+    print_ztype(z_type);
     size_t compressed_size = input_region.size[0];
     LOG_INFO("Compressed size: %zu bytes\n", compressed_size);
 
@@ -208,33 +223,31 @@ pdc_tf_builtin_zfp_decompress(pdc_tf_internal_param internal_param, char *params
     zfp_stream_rewind(zfp);
 
     // Allocate uncompressed buffer
-    size_t total_bytes = PDCtf_get_pdc_region_t_bytes(in_params->decompressed_region);
+    size_t total_bytes = PDCtf_get_pdc_region_t_bytes(in_params->decrypted_region);
     LOG_INFO("Decompressed region %zu bytes\n", total_bytes);
     void *buf = malloc(total_bytes);
 
     // Create ZFP field for decompression
     zfp_field *field = NULL;
-    switch (in_params->decompressed_region.ndim) {
+    switch (in_params->decrypted_region.ndim) {
         case 1:
-            field = zfp_field_1d(buf, in_params->z_type, in_params->decompressed_region.size[0]);
+            field = zfp_field_1d(buf, z_type, in_params->decrypted_region.size[0]);
             break;
         case 2:
-            field = zfp_field_2d(buf, in_params->z_type, in_params->decompressed_region.size[0],
-                                 in_params->decompressed_region.size[1]);
+            field = zfp_field_2d(buf, z_type, in_params->decrypted_region.size[0],
+                                 in_params->decrypted_region.size[1]);
             break;
         case 3:
-            field =
-                zfp_field_3d(buf, in_params->z_type, in_params->decompressed_region.size[0],
-                             in_params->decompressed_region.size[1], in_params->decompressed_region.size[2]);
+            field = zfp_field_3d(buf, z_type, in_params->decrypted_region.size[0],
+                                 in_params->decrypted_region.size[1], in_params->decrypted_region.size[2]);
             break;
         case 4:
-            field =
-                zfp_field_4d(buf, in_params->z_type, in_params->decompressed_region.size[0],
-                             in_params->decompressed_region.size[1], in_params->decompressed_region.size[2],
-                             in_params->decompressed_region.size[3]);
+            field = zfp_field_4d(buf, z_type, in_params->decrypted_region.size[0],
+                                 in_params->decrypted_region.size[1], in_params->decrypted_region.size[2],
+                                 in_params->decrypted_region.size[3]);
             break;
         default:
-            LOG_ERROR("Unsupported ndim: %d\n", in_params->decompressed_region.ndim);
+            LOG_ERROR("Unsupported ndim: %d\n", in_params->decrypted_region.ndim);
             free(buf);
             zfp_stream_close(zfp);
             stream_close(stream);
@@ -261,7 +274,7 @@ pdc_tf_builtin_zfp_decompress(pdc_tf_internal_param internal_param, char *params
     }
 
     // Set output region unit and dims (same as input)
-    PDCtf_copy_tf_region_t(&in_params->decompressed_region, output_region);
+    PDCtf_copy_tf_region_t(&in_params->decrypted_region, output_region);
 
     // Update region_data to point to decompressed buffer
     *region_data = buf;
@@ -307,7 +320,7 @@ unsigned char key[crypto_secretbox_KEYBYTES]     = {0};
 unsigned char nonce[crypto_secretbox_NONCEBYTES] = {0};
 
 typedef struct encrypt_params_t {
-    size_t original_plaintext_size;
+    pdc_tf_region_t decompressed_region;
 } encrypt_params_t;
 
 bool
@@ -336,15 +349,11 @@ pdc_tf_builtin_encrypt(pdc_tf_internal_param internal_param, char *params_str, v
     output_region->pdc_var_type = PDC_CHAR;
     output_region->size[0]      = ciphertext_len;
 
-    // Save original plaintext size in output_params
-    encrypt_params_t *out_params = malloc(sizeof(encrypt_params_t));
-    if (!out_params) {
-        LOG_ERROR("Failed to allocate output params\n");
-        free(ciphertext);
-        return false;
-    }
-    out_params->original_plaintext_size = plaintext_len;
-    SET_STATE_PARAMS("encrypted", out_params, sizeof(encrypt_params_t));
+    // Save original region size in output_params
+    encrypt_params_t *out_params                 = (encrypt_params_t *)malloc(sizeof(encrypt_params_t));
+    out_params->decompressed_region.pdc_var_type = input_region.pdc_var_type;
+    PDCtf_copy_tf_region_t(&input_region, &out_params->decompressed_region);
+    SET_STATE_PARAMS("encrypted", out_params, sizeof(zfp_compress_params_t));
 
     // Update data pointer
     *region_data = ciphertext;
@@ -370,7 +379,10 @@ pdc_tf_builtin_decrypt(pdc_tf_internal_param internal_param, char *params_str, v
         return false;
     }
 
-    size_t plaintext_len = in_params->original_plaintext_size;
+    size_t plaintext_len =
+        PDC_get_region_desc_size_bytes(in_params->decompressed_region.size,
+                                       PDC_get_var_type_size(in_params->decompressed_region.pdc_var_type),
+                                       in_params->decompressed_region.ndim);
 
     unsigned char *plaintext = malloc(plaintext_len);
     if (!plaintext) {
@@ -386,9 +398,7 @@ pdc_tf_builtin_decrypt(pdc_tf_internal_param internal_param, char *params_str, v
     }
 
     // Set output region dims: restore original plaintext region
-    output_region->ndim         = 1;
-    output_region->pdc_var_type = PDC_CHAR;
-    output_region->size[0]      = plaintext_len;
+    PDCtf_copy_tf_region_t(&in_params->decompressed_region, output_region);
 
     // Update data pointer
     *region_data = plaintext;
@@ -396,4 +406,4 @@ pdc_tf_builtin_decrypt(pdc_tf_internal_param internal_param, char *params_str, v
     LOG_INFO("Decryption succeeded, plaintext length: %zu bytes\n", plaintext_len);
     return true;
 }
-#endif // NABLE_SECRET_BOX_ENCRYPTION
+#endif // ENABLE_SECRET_BOX_ENCRYPTION
