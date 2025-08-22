@@ -18,9 +18,9 @@ typedef struct pdc_tf_region_t {
 
 typedef struct pdc_tf_region_state_t {
     pdcid_t dg_id;
-    char *  cur_state;
-    char *  client_state;
-    char *  store_state;
+    char   *cur_state;
+    char   *client_state;
+    char   *store_state;
 } pdc_tf_region_state_t;
 
 typedef struct pdc_tf_region_mapping_t {
@@ -53,8 +53,8 @@ typedef enum pdc_tf_granularities_t {
 extern char *pdc_tf_granularity_strs[];
 
 typedef struct pdc_tf_state_t {
-    char *                 name;
-    void *                 params;
+    char                  *name;
+    void                  *params;
     uint64_t               params_size;
     pdc_tf_granularities_t granularity;
 } pdc_tf_state_t;
@@ -95,8 +95,10 @@ extern char *pdc_tf_location_strs[];
 typedef struct pdc_tf_func_t {
     pdc_tf_dev_t      dev;
     pdc_tf_location_t location;
-    char *            name;
-    char *            params_str;
+    char             *name;
+    char             *params_str;
+    void             *params;
+    uint64_t          params_size;
     c_func_t          c_func;
 } pdc_tf_func_t;
 
@@ -131,6 +133,8 @@ perr_t    PDCtf_set_tf_region_t(pdc_tf_region_t *dest, uint8_t ndim, pdc_var_typ
 perr_t    PDCtf_copy_tf_region_t(pdc_tf_region_t *src, pdc_tf_region_t *dest);
 perr_t    PDCtf_set_state_param(pdc_dg_t *dg, char *state_name, void *params, uint64_t params_size);
 perr_t    PDCtf_get_state_param(pdc_dg_t *dg, char *state_name, void **params, uint64_t *params_size);
+perr_t    PDCtf_set_func_param(pdc_dg_t *dg, char *func_name, void *params, uint64_t params_size);
+perr_t    PDCtf_get_func_param(pdc_dg_t *dg, char *func_name, void **params, uint64_t *params_size);
 pdc_dg_t *PDCtf_dg_json_create_common(char *filepath);
 perr_t    PDCtf_init_builtin_funcs();
 perr_t    PDCtf_add_builtin_func(char *func_name, c_func_t c_func);

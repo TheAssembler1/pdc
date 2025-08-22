@@ -26,8 +26,10 @@
  * Test Description
  * -----------------------------------------------------------------------------
  *
- * Performs a single 1D region transfer write and then a single region transfer read.
- * Attached a compression/decompression transformation to the region before the region write/read.
+ * Performs a 3 1D region transfer writes and 3 corresponding reads.
+ * No region transformation to the first region before the region write/read.
+ * Attached a compression/decompression transformation to the 2nd region before the region write/read.
+ * Attached a encryption/decryption transformation to the 2nd region before the region write/read.
  */
 
 #include <stdio.h>
@@ -114,19 +116,15 @@ main(int argc, char **argv)
 
     offset[0]        = 0;
     offset_length[0] = BUF_LEN;
-    TASSERT((reg = PDCregion_create(1, offset, offset_length)) != 0, "Call to PDCregion_create succeeded",
-            "Call to PDCregion_create failed");
+    TASSERT((reg = PDCregion_create(1, local_offset, offset_length)) != 0,
+            "Call to PDCregion_create succeeded", "Call to PDCregion_create failed");
     TASSERT((reg_global = PDCregion_create(1, offset, offset_length)) != 0,
             "Call to PDCregion_create succeeded", "Call to PDCregion_create failed");
 
+    // Write to data buffer
     for (i = 0; i < BUF_LEN; ++i)
         data[i] = i;
-
-    pdcid_t dg_id = PDCtf_dg_json_create("/home/ta1/src/workspace/source/pdc/tf_graphs/compression.json");
-    PDCtf_print_dg(dg_id, true);
-    PDCtf_attach_to_region(dg_id, obj1, reg_global, "decompressed", "compressed");
-
-    // write transfer request
+    // Write transfer request
     TASSERT((transfer_request = PDCregion_transfer_create(data, PDC_WRITE, obj1, reg, reg_global)) != 0,
             "Call to PDCregion_transfer_create succeeded", "Call to PDCregion_transfer_create failed");
     TASSERT(PDCregion_transfer_start(transfer_request) >= 0, "Call to PDCregion_transfer_start succeeded",
@@ -140,10 +138,93 @@ main(int argc, char **argv)
             "Call to PDCregion_create succeeded", "Call to PDCregion_create failed");
     TASSERT((reg_global = PDCregion_create(1, offset, offset_length)) != 0,
             "Call to PDCregion_create succeeded", "Call to PDCregion_create failed");
-
     memset(data_read, 0, sizeof(int) * BUF_LEN);
+    // Read transfer request
+    TASSERT((transfer_request = PDCregion_transfer_create(data_read, PDC_READ, obj1, reg, reg_global)) != 0,
+            "Call to PDCregion_transfer_create succeeded", "Call to PDCregion_transfer_create failed");
+    TASSERT(PDCregion_transfer_start(transfer_request) >= 0, "Call to PDCregion_transfer_start succeeded",
+            "Call to PDCregion_transfer_start failed");
+    TASSERT(PDCregion_transfer_wait(transfer_request) >= 0, "Call to PDCregion_transfer_wait succeeded",
+            "Call to PDCregion_transfer_wait failed");
+    TASSERT(PDCregion_transfer_close(transfer_request) >= 0, "Call to PDCregion_transfer_close succeeded",
+            "Call to PDCregion_transfer_close failed");
+    // Check if data written previously has been correctly read.
+    for (i = 0; i < BUF_LEN; ++i) {
+        if (data_read[i] != i)
+            PGOTO_ERROR(FAIL, "Wrong value at index %d!=%d", data_read[i], i);
+    }
 
-    // read transfer request
+    // Redo offsets
+    offset[0] = BUF_LEN;
+    TASSERT((reg_global = PDCregion_create(1, offset, offset_length)) != 0,
+            "Call to PDCregion_create succeeded", "Call to PDCregion_create failed");
+
+    // attach graph
+    pdcid_t dg_id =
+        PDCtf_dg_json_create("/home/ta1/src/workspace/source/pdc/tf_graphs/compression_or_encryption.json");
+    PDCtf_print_dg(dg_id, true);
+    PDCtf_attach_to_region(dg_id, obj1, reg_global, "client", "compressed");
+
+    // Write to data buffer
+    for (i = 0; i < BUF_LEN; ++i)
+        data[i] = i;
+    // Write transfer request
+    TASSERT((transfer_request = PDCregion_transfer_create(data, PDC_WRITE, obj1, reg, reg_global)) != 0,
+            "Call to PDCregion_transfer_create succeeded", "Call to PDCregion_transfer_create failed");
+    TASSERT(PDCregion_transfer_start(transfer_request) >= 0, "Call to PDCregion_transfer_start succeeded",
+            "Call to PDCregion_transfer_start failed");
+    TASSERT(PDCregion_transfer_wait(transfer_request) >= 0, "Call to PDCregion_transfer_wait succeeded",
+            "Call to PDCregion_transfer_wait failed");
+    TASSERT(PDCregion_transfer_close(transfer_request) >= 0, "Call to PDCregion_transfer_close succeeded",
+            "Call to PDCregion_transfer_close failed");
+
+    TASSERT((reg = PDCregion_create(1, local_offset, offset_length)) != 0,
+            "Call to PDCregion_create succeeded", "Call to PDCregion_create failed");
+    TASSERT((reg_global = PDCregion_create(1, offset, offset_length)) != 0,
+            "Call to PDCregion_create succeeded", "Call to PDCregion_create failed");
+    memset(data_read, 0, sizeof(int) * BUF_LEN);
+    // Read transfer request
+    TASSERT((transfer_request = PDCregion_transfer_create(data_read, PDC_READ, obj1, reg, reg_global)) != 0,
+            "Call to PDCregion_transfer_create succeeded", "Call to PDCregion_transfer_create failed");
+    TASSERT(PDCregion_transfer_start(transfer_request) >= 0, "Call to PDCregion_transfer_start succeeded",
+            "Call to PDCregion_transfer_start failed");
+    TASSERT(PDCregion_transfer_wait(transfer_request) >= 0, "Call to PDCregion_transfer_wait succeeded",
+            "Call to PDCregion_transfer_wait failed");
+    TASSERT(PDCregion_transfer_close(transfer_request) >= 0, "Call to PDCregion_transfer_close succeeded",
+            "Call to PDCregion_transfer_close failed");
+    // Check if data written previously has been correctly read.
+    for (i = 0; i < BUF_LEN; ++i) {
+        if (data_read[i] != i)
+            PGOTO_ERROR(FAIL, "Wrong value at index %d!=%d", data_read[i], i);
+    }
+
+    // Redo offsets
+    offset[0] = BUF_LEN * 2;
+    TASSERT((reg_global = PDCregion_create(1, offset, offset_length)) != 0,
+            "Call to PDCregion_create succeeded", "Call to PDCregion_create failed");
+
+    // attach graph
+    PDCtf_attach_to_region(dg_id, obj1, reg_global, "client", "encrypted");
+
+    // Write to data buffer
+    for (i = 0; i < BUF_LEN; ++i)
+        data[i] = i;
+    // Write transfer request
+    TASSERT((transfer_request = PDCregion_transfer_create(data, PDC_WRITE, obj1, reg, reg_global)) != 0,
+            "Call to PDCregion_transfer_create succeeded", "Call to PDCregion_transfer_create failed");
+    TASSERT(PDCregion_transfer_start(transfer_request) >= 0, "Call to PDCregion_transfer_start succeeded",
+            "Call to PDCregion_transfer_start failed");
+    TASSERT(PDCregion_transfer_wait(transfer_request) >= 0, "Call to PDCregion_transfer_wait succeeded",
+            "Call to PDCregion_transfer_wait failed");
+    TASSERT(PDCregion_transfer_close(transfer_request) >= 0, "Call to PDCregion_transfer_close succeeded",
+            "Call to PDCregion_transfer_close failed");
+
+    TASSERT((reg = PDCregion_create(1, local_offset, offset_length)) != 0,
+            "Call to PDCregion_create succeeded", "Call to PDCregion_create failed");
+    TASSERT((reg_global = PDCregion_create(1, offset, offset_length)) != 0,
+            "Call to PDCregion_create succeeded", "Call to PDCregion_create failed");
+    memset(data_read, 0, sizeof(int) * BUF_LEN);
+    // Read transfer request
     TASSERT((transfer_request = PDCregion_transfer_create(data_read, PDC_READ, obj1, reg, reg_global)) != 0,
             "Call to PDCregion_transfer_create succeeded", "Call to PDCregion_transfer_create failed");
     TASSERT(PDCregion_transfer_start(transfer_request) >= 0, "Call to PDCregion_transfer_start succeeded",

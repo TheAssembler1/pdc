@@ -55,7 +55,7 @@ PDCtf_store_json_mapping(pdcid_t obj_id, char *json_filepath, char *cur_state, c
     pdc_tf_region_mapping_t *region_mapping =
         &cur_tf_server_obj_info->pdc_tf_obj_t.region_mappings[cur_region_map];
     pdc_tf_region_t *conceptual_region = &region_mapping->conceptual_region;
-    uint64_t *       conceptual_offset = region_mapping->conceptual_offset;
+    uint64_t        *conceptual_offset = region_mapping->conceptual_offset;
 
     assert(PDC_get_var_type_size(pdc_var_type) != 0);
 
@@ -93,7 +93,6 @@ PDCtf_exec_graph(pdcid_t dg_id, char *cur_state, char *desired_state, pdc_tf_reg
 
     LOG_INFO("PDCtf_exec_graph was called\n");
 
-    LOG_INFO("VAR TYPE4: %d\n", input_region.pdc_var_type);
     assert(PDC_get_var_type_size(input_region.pdc_var_type) != 0);
 
     /**
@@ -102,10 +101,10 @@ PDCtf_exec_graph(pdcid_t dg_id, char *cur_state, char *desired_state, pdc_tf_reg
      */
     pdc_tf_state_t tf_input_state  = {.name = cur_state};
     pdc_tf_state_t tf_output_state = {.name = desired_state};
-    void *         input_state     = (void *)&tf_input_state;
-    void *         output_state    = (void *)&tf_output_state;
+    void          *input_state     = (void *)&tf_input_state;
+    void          *output_state    = (void *)&tf_output_state;
 
-    pdc_dg_edge_t *edges_out;
+    pdc_dg_edge_t *edges_out = NULL;
     uint32_t       num_edges;
 
     if (PDCdg_shortest_path(pdc_tf_graphs[dg_id], input_state, output_state, &edges_out, &num_edges)) {
@@ -114,20 +113,20 @@ PDCtf_exec_graph(pdcid_t dg_id, char *cur_state, char *desired_state, pdc_tf_reg
             pdc_dg_edge_t   e  = edges_out[j];
             pdc_tf_state_t *v1 = (pdc_tf_state_t *)(pdc_tf_graphs[dg_id]->vertices[e.v1_id]->data);
             pdc_tf_state_t *v2 = (pdc_tf_state_t *)(pdc_tf_graphs[dg_id]->vertices[e.v2_id]->data);
-            pdc_tf_func_t * f  = (pdc_tf_func_t *)(e.data);
+            pdc_tf_func_t  *f  = (pdc_tf_func_t *)(e.data);
 
             LOG_INFO("Transformation %s(%s) = %s\n", f->name, v1->name, v2->name);
         }
     }
+    edges_out = PDC_free(edges_out);
 
-    LOG_INFO("VAR TYPE5: %d\n", input_region.pdc_var_type);
     if (PDCdg_shortest_path(pdc_tf_graphs[dg_id], input_state, output_state, &edges_out, &num_edges)) {
         LOG_INFO("Path was found:\n");
         for (uint32_t j = 0; j < num_edges; j++) {
             pdc_dg_edge_t   e  = edges_out[j];
             pdc_tf_state_t *v1 = (pdc_tf_state_t *)(pdc_tf_graphs[dg_id]->vertices[e.v1_id]->data);
             pdc_tf_state_t *v2 = (pdc_tf_state_t *)(pdc_tf_graphs[dg_id]->vertices[e.v2_id]->data);
-            pdc_tf_func_t * f  = (pdc_tf_func_t *)(e.data);
+            pdc_tf_func_t  *f  = (pdc_tf_func_t *)(e.data);
 
             // Setup internal paramters for helper macros
             pdc_tf_internal_param internal_params;
@@ -137,12 +136,10 @@ PDCtf_exec_graph(pdcid_t dg_id, char *cur_state, char *desired_state, pdc_tf_reg
             LOG_JUST_PRINT("--------------------------TRANSFORM_START--------------------------\n");
             void *prev_input = *input;
 
-            LOG_INFO("VAR TYPE6: %d\n", input_region.pdc_var_type);
             if (f->c_func(internal_params, f->params_str, input, input_region, output_region) == false)
                 PGOTO_ERROR(FAIL, "Error when running transformation, %s", f->name);
             else
                 LOG_INFO("Transformation %s(%s) = %s ran successfully\n", f->name, v1->name, v2->name);
-            LOG_INFO("AFTER_TRANSFORM\n");
             /**
              * The transformation malloced a new buffer
              * The buffer associated with the original bulk handle (i.e. j != 0)
@@ -159,13 +156,15 @@ PDCtf_exec_graph(pdcid_t dg_id, char *cur_state, char *desired_state, pdc_tf_reg
             if (j + 1 != num_edges)
                 memcpy(&input_region, output_region, sizeof(pdc_tf_region_t));
         }
-
         LOG_INFO("Done running transformations\n");
     }
     else
         PGOTO_ERROR(FAIL, "No path to desired states");
 
 done:
+    if (edges_out != NULL)
+        edges_out = PDC_free(edges_out);
+
     FUNC_LEAVE(ret_value);
 }
 #endif // #ifndef IS_PDC_SERVER

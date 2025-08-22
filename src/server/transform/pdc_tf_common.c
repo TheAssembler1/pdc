@@ -20,7 +20,6 @@ PDCtf_set_tf_region_t(pdc_tf_region_t *dest, uint8_t ndim, pdc_var_type_t pdc_va
 {
     FUNC_ENTER(NULL);
 
-    LOG_INFO("VAR TYPE: %d\n", pdc_var_type);
     assert(PDC_get_var_type_size(pdc_var_type) != 0);
 
     dest->ndim         = ndim;
@@ -43,6 +42,56 @@ PDCtf_copy_tf_region_t(pdc_tf_region_t *src, pdc_tf_region_t *dest)
 }
 
 perr_t
+PDCtf_set_func_param(pdc_dg_t *dg, char *func_name, void *params, uint64_t params_size)
+{
+    FUNC_ENTER(NULL);
+
+    perr_t ret_value = SUCCEED;
+
+    // Find edge with name
+    for (int i = 0; i < dg->edge_count; i++) {
+        pdc_dg_edge_t *edge = dg->edges[i];
+        assert(edge != NULL && edge->data != NULL);
+        pdc_tf_func_t *tf_func = edge->data;
+
+        if (!strcmp(func_name, tf_func->name)) {
+            // Set the new params
+            tf_func->params      = params;
+            tf_func->params_size = params_size;
+            FUNC_LEAVE(SUCCEED);
+        }
+    }
+
+    LOG_ERROR("Edge %s not found\n", func_name);
+    FUNC_LEAVE(FAIL);
+}
+
+perr_t
+PDCtf_get_func_param(pdc_dg_t *dg, char *func_name, void **params, uint64_t *params_size)
+{
+    FUNC_ENTER(NULL);
+
+    perr_t ret_value = SUCCEED;
+
+    // Find edge with name
+    for (int i = 0; i < dg->edge_count; i++) {
+        pdc_dg_edge_t *edge = dg->edges[i];
+        assert(edge != NULL && edge->data != NULL);
+        pdc_tf_func_t *tf_func = edge->data;
+
+        if (!strcmp(func_name, tf_func->name)) {
+            // Set the new params
+            *params      = tf_func->params;
+            *params_size = tf_func->params_size;
+            FUNC_LEAVE(SUCCEED);
+        }
+    }
+
+    LOG_ERROR("Edge %s not found\n", func_name);
+    FUNC_LEAVE(FAIL);
+}
+
+perr_t
 PDCtf_set_state_param(pdc_dg_t *dg, char *state_name, void *params, uint64_t params_size)
 {
     FUNC_ENTER(NULL);
@@ -60,7 +109,7 @@ PDCtf_set_state_param(pdc_dg_t *dg, char *state_name, void *params, uint64_t par
     // Get the tf state
     pdc_tf_state_t *tf_state = (pdc_tf_state_t *)dg->vertices[vert]->data;
     if (tf_state == NULL)
-        PGOTO_ERROR(FAIL, "Vertex data wasNULL");
+        PGOTO_ERROR(FAIL, "Vertex data was NULL");
 
     // Set the new params
     tf_state->params      = params;
@@ -87,7 +136,7 @@ PDCtf_get_state_param(pdc_dg_t *dg, char *state_name, void **params, uint64_t *p
     // Get the tf state
     pdc_tf_state_t *tf_state = (pdc_tf_state_t *)dg->vertices[vert]->data;
     if (tf_state == NULL)
-        PGOTO_ERROR(FAIL, "Vertex data wasNULL");
+        PGOTO_ERROR(FAIL, "Vertex data was NULL");
 
     // Set the new params
     *params      = tf_state->params;
@@ -189,7 +238,6 @@ PDCtf_region_has_attached_graph(struct pdc_tf_obj_t *tf_obj, int ndim, size_t un
         uint64_t        *conceptual_offset = (*region_mapping)->conceptual_offset;
 
         // check if client ndim, offset, dims, unit match
-        LOG_INFO("VAR TYPE: %d\n", conceptual_region->pdc_var_type);
         bool ndim_matches = conceptual_region->ndim == ndim;
         assert(PDC_get_var_type_size(conceptual_region->pdc_var_type) != 0);
         bool unit_matches = PDC_get_var_type_size(conceptual_region->pdc_var_type) == unit;
@@ -485,8 +533,10 @@ PDCtf_dg_json_create_common(char *filepath)
         dg_func->location = location;
         if (PDCtf_link_builtin_func(f_name, dg_func) != SUCCEED)
             PGOTO_ERROR(NULL, "Failed to link to builtin function");
-        dg_func->name       = f_name;
-        dg_func->params_str = (f_params_str) ? f_params_str : NULL;
+        dg_func->name        = f_name;
+        dg_func->params_str  = (f_params_str) ? f_params_str : NULL;
+        dg_func->params_size = 0;
+        dg_func->params      = NULL;
 
         /**
          * Construct input/output dg states

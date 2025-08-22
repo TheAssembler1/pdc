@@ -112,7 +112,7 @@ pdc_tf_builtin_zfp_compress(pdc_tf_internal_param internal_param, char *params_s
 
     // Allocate buffer for compressed data
     size_t bufsize           = zfp_stream_maximum_size(zfp, field);
-    void * compressed_buffer = malloc(bufsize);
+    void  *compressed_buffer = malloc(bufsize);
     if (!compressed_buffer) {
         LOG_ERROR("Failed to allocate memory for compressed data\n");
         zfp_field_free(field);
@@ -161,7 +161,7 @@ pdc_tf_builtin_zfp_compress(pdc_tf_internal_param internal_param, char *params_s
     // Set output params
     zfp_compress_params_t *out_params = (zfp_compress_params_t *)malloc(sizeof(zfp_compress_params_t));
     PDCtf_copy_tf_region_t(&input_region, &out_params->decrypted_region);
-    SET_STATE_PARAMS("compressed", out_params, sizeof(zfp_compress_params_t));
+    SET_FUNC_PARAMS("zfp_compress", out_params, sizeof(zfp_compress_params_t));
 
     LOG_INFO("ZFP compression succeeded, compressed size bytes: %zu bytes\n", compressed_size);
 
@@ -179,7 +179,7 @@ pdc_tf_builtin_zfp_decompress(pdc_tf_internal_param internal_param, char *params
     // Get params
     zfp_compress_params_t *in_params;
     uint64_t               in_params_size;
-    GET_STATE_PARAMS("compressed", (void **)&in_params, &in_params_size);
+    GET_FUNC_PARAMS("zfp_compress", (void **)&in_params, &in_params_size);
     zfp_type z_type;
     switch (in_params->decrypted_region.pdc_var_type) {
         case PDC_FLOAT:
@@ -353,7 +353,7 @@ pdc_tf_builtin_encrypt(pdc_tf_internal_param internal_param, char *params_str, v
     encrypt_params_t *out_params                 = (encrypt_params_t *)malloc(sizeof(encrypt_params_t));
     out_params->decompressed_region.pdc_var_type = input_region.pdc_var_type;
     PDCtf_copy_tf_region_t(&input_region, &out_params->decompressed_region);
-    SET_STATE_PARAMS("encrypted", out_params, sizeof(zfp_compress_params_t));
+    SET_FUNC_PARAMS("secret_box_encrypt", out_params, sizeof(zfp_compress_params_t));
 
     // Update data pointer
     *region_data = ciphertext;
@@ -372,7 +372,7 @@ pdc_tf_builtin_decrypt(pdc_tf_internal_param internal_param, char *params_str, v
 
     encrypt_params_t *in_params;
     uint64_t          in_params_size;
-    GET_STATE_PARAMS("encrypted", (void **)&in_params, &in_params_size);
+    GET_FUNC_PARAMS("secret_box_encrypt", (void **)&in_params, &in_params_size);
 
     if (ciphertext_len < crypto_secretbox_MACBYTES) {
         LOG_ERROR("Ciphertext too short\n");

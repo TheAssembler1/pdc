@@ -88,7 +88,7 @@ PDC_finish_request(uint64_t transfer_request_id)
 {
     FUNC_ENTER(NULL);
 
-    pdc_transfer_request_status *   ptr, *tmp = NULL;
+    pdc_transfer_request_status    *ptr, *tmp = NULL;
     perr_t                          ret_value = SUCCEED;
     transfer_request_wait_out_t     out;
     transfer_request_wait_all_out_t out_all;
@@ -295,7 +295,7 @@ PDC_Server_data_io_flattened(uint64_t obj_id, int obj_ndim, const uint64_t *obj_
 
     perr_t   ret_value = SUCCEED;
     int      fd;
-    char *   data_path = NULL;
+    char    *data_path = NULL;
     char     storage_location[ADDR_MAX];
     ssize_t  io_size;
     uint64_t i, j;
@@ -645,12 +645,8 @@ PDCtf_get_region_mapping(pdcid_t obj_id)
 {
     FUNC_ENTER(NULL);
 
-    LOG_INFO("Searching for %d\n", obj_id);
-    LOG_INFO("Num objects with region mappings: %d\n", num_tf_obj_with_obj_ids_g);
-
     struct pdc_tf_obj_t *ret_value = NULL;
     for (int i = 0; i < num_tf_obj_with_obj_ids_g; i++) {
-        LOG_INFO("Searching against %d\n", pdc_tf_obj_with_obj_ids[i].obj_id);
         if (obj_id == pdc_tf_obj_with_obj_ids[i].obj_id) {
             PGOTO_DONE(&pdc_tf_obj_with_obj_ids[i].pdc_tf_obj_t);
         }
@@ -668,9 +664,9 @@ PDC_Server_data_io_region_per_file_transformations(uint64_t obj_id, int obj_ndim
     FUNC_ENTER(NULL);
 
     perr_t ret_value = SUCCEED;
-    void * cpy_buf   = buf;
+    void  *cpy_buf   = buf;
 
-    struct pdc_tf_obj_t *    tf_obj = PDCtf_get_region_mapping(obj_id);
+    struct pdc_tf_obj_t     *tf_obj = PDCtf_get_region_mapping(obj_id);
     pdc_tf_region_mapping_t *region_mapping;
     if (!PDCtf_region_has_attached_graph(tf_obj, region_info->ndim, unit, region_info->offset,
                                          region_info->size, &region_mapping)) {
@@ -678,7 +674,6 @@ PDC_Server_data_io_region_per_file_transformations(uint64_t obj_id, int obj_ndim
         PGOTO_DONE(SUCCEED);
     }
 
-    LOG_INFO("VAR TYPE: %d\n", region_mapping->conceptual_region.pdc_var_type);
     assert(PDC_get_var_type_size(region_mapping->conceptual_region.pdc_var_type) != 0);
 
     pdc_tf_region_t output_region;
@@ -708,14 +703,12 @@ PDC_Server_data_io_region_per_file_transformations(uint64_t obj_id, int obj_ndim
 
     // We can now execute the directed graph
     assert(PDC_get_var_type_size(input_region.pdc_var_type) != 0);
-    LOG_INFO("VAR TYPE3: %d\n", input_region.pdc_var_type);
     if (PDCtf_exec_graph(region_mapping->region_state.dg_id, region_mapping->region_state.cur_state,
                          desired_state, input_region, &output_region, &buf, is_write) != SUCCEED) {
         PGOTO_ERROR(FAIL, "Error with PDCtf_exec_graph");
     }
 
     // At this point we have run the transformation
-    LOG_INFO("Setting ran transformation\n");
     *ran_transformation = true;
 
     if (is_write) {
@@ -861,7 +854,7 @@ parse_bulk_data(void *buf, transfer_request_all_data *request_data, pdc_access_t
 {
     FUNC_ENTER(NULL);
 
-    char *   ptr = (char *)buf;
+    char    *ptr = (char *)buf;
     int      i, j;
     uint64_t data_size;
 

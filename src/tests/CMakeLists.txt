@@ -109,6 +109,8 @@ set(PROGRAMS
   transformation/region_transfer_compression_transform
   transformation/region_transfer_compression_transform_2D
   transformation/region_transfer_compression_transform_3D
+  # Transformations multi-region transfer
+  transformation/region_transfer_multi_region_transform
   # Transformations region transfer compression encryption
   transformation/region_transfer_compression_encryption_transform
   transformation/region_transfer_compression_encryption_transform_2D
@@ -302,6 +304,8 @@ add_test(NAME region_transfer_write_read WORKING_DIRECTORY ${CMAKE_RUNTIME_OUTPU
 add_test(NAME region_transfer_compression_transform WORKING_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY} COMMAND run_test.sh ./region_transfer_compression_transform )
 add_test(NAME region_transfer_compression_transform_2D WORKING_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY} COMMAND run_test.sh ./region_transfer_compression_transform_2D )
 add_test(NAME region_transfer_compression_transform_3D WORKING_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY} COMMAND run_test.sh ./region_transfer_compression_transform_3D )
+# Transformations multi-region transfer
+add_test(NAME region_transfer_multi_region_transform WORKING_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY} COMMAND run_test.sh ./region_transfer_multi_region_transform )
 # Transformations region transfer compression encryption
 add_test(NAME region_transfer_compression_encryption_transform WORKING_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY} COMMAND run_test.sh ./region_transfer_compression_encryption_transform )
 add_test(NAME region_transfer_compression_encryption_transform_2D WORKING_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY} COMMAND run_test.sh ./region_transfer_compression_encryption_transform_2D )
@@ -419,6 +423,8 @@ set_tests_properties(vpicio_bdcats_transfer_request      PROPERTIES LABELS seria
 set_tests_properties(region_transfer_compression_transform     PROPERTIES LABELS transform)
 set_tests_properties(region_transfer_compression_transform_2D     PROPERTIES LABELS transform)
 set_tests_properties(region_transfer_compression_transform_3D     PROPERTIES LABELS transform)
+# Transformations region transfer multiregion
+set_tests_properties(region_transfer_multi_region_transform     PROPERTIES LABELS transform)
 # Transformations region transfer compression encryption
 set_tests_properties(region_transfer_compression_encryption_transform     PROPERTIES LABELS transform)
 set_tests_properties(region_transfer_compression_encryption_transform_2D     PROPERTIES LABELS transform)

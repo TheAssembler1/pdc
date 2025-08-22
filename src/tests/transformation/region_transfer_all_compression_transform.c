@@ -178,7 +178,7 @@ main(int argc, char **argv)
 
     // Place a transfer request for every objects
     for (i = 0; i < OBJ_NUM; ++i) {
-        dg_ids[i] = PDCtf_dg_json_create("/home/ta1/src/workspace/source/pdc/tf_graphs/compression_i.json");
+        dg_ids[i] = PDCtf_dg_json_create("/home/ta1/src/workspace/source/pdc/tf_graphs/compression.json");
         PDCtf_print_dg(dg_ids[i], true);
         PDCtf_attach_to_region(dg_ids[i], obj[i], reg_global, "decompressed", "compressed");
         transfer_request[i] = PDCregion_transfer_create(data[i], PDC_WRITE, obj[i], reg, reg_global);
@@ -263,7 +263,7 @@ main(int argc, char **argv)
 
     for (i = 0; i < OBJ_NUM; ++i) {
         memset(data_read[i], 0, sizeof(int) * BUF_LEN);
-        dg_ids[i] = PDCtf_dg_json_create("/home/ta1/src/workspace/source/pdc/tf_graphs/compression_i.json");
+        dg_ids[i] = PDCtf_dg_json_create("/home/ta1/src/workspace/source/pdc/tf_graphs/compression.json");
         PDCtf_print_dg(dg_ids[i], true);
         PDCtf_attach_to_region(dg_ids[i], obj[i], reg_global, "decompressed", "compressed");
         transfer_request[i] = PDCregion_transfer_create(data_read[i], PDC_READ, obj[i], reg, reg_global);

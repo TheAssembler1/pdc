@@ -22,6 +22,15 @@
  * perform publicly and display publicly, and to permit other to do so.
  */
 
+/**
+ * Test Description
+ * -----------------------------------------------------------------------------
+ *
+ * Performs a single 2D region transfer write and then a single region transfer read.
+ * Attached a compression/decompression encyprtion/decryption transformation to the region before the region
+ * write/read.
+ */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -115,7 +124,7 @@ main(int argc, char **argv)
     }
 
     pdcid_t dg_id =
-        PDCtf_dg_json_create("/home/ta1/src/workspace/source/pdc/tf_graphs/compression_encryption_i.json");
+        PDCtf_dg_json_create("/home/ta1/src/workspace/source/pdc/tf_graphs/compression_encryption.json");
     PDCtf_print_dg(dg_id, true);
     PDCtf_attach_to_region(dg_id, obj1, reg_global, "decompressed", "encrypted");
 
