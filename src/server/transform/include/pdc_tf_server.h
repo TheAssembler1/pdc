@@ -21,7 +21,7 @@ extern uint32_t num_tf_obj_with_obj_ids_g;
 #define MAX_NUM_TF_OBJ_WITH_OBJ_IDS 100
 
 pdc_tf_obj_with_obj_id_t pdc_tf_obj_with_obj_ids[MAX_NUM_TF_OBJ_WITH_OBJ_IDS];
-extern pdc_dg_t         *pdc_tf_graphs[200];
+extern pdc_dg_t *        pdc_tf_graphs[200];
 
 /**
  * These functions should only be used on the
