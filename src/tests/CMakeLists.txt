@@ -430,7 +430,7 @@ set_tests_properties(region_transfer_compression_encryption_transform     PROPER
 set_tests_properties(region_transfer_compression_encryption_transform_2D     PROPERTIES LABELS transform)
 set_tests_properties(region_transfer_compression_encryption_transform_3D     PROPERTIES LABELS transform)
 # Transformations region transfer compression
-#set_tests_properties(region_transfer_all_compression_transform     PROPERTIES LABELS transform)
+set_tests_properties(region_transfer_all_compression_transform     PROPERTIES LABELS transform)
 
 if(BUILD_MPI_TESTING)
     add_test(NAME read_obj_shared_int WORKING_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY} COMMAND mpi_test.sh ./read_obj_shared ${MPI_RUN_CMD} 4 6 o 1 int)
