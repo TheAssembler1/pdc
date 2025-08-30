@@ -873,6 +873,12 @@ parse_bulk_data(void *buf, transfer_request_all_data *request_data, pdc_access_t
     request_data->obj_dims      = request_data->remote_length + request_data->n_objs;
     request_data->unit          = (size_t *)PDC_malloc(sizeof(size_t) * request_data->n_objs);
     request_data->data_buf      = (char **)PDC_malloc(sizeof(char *) * request_data->n_objs);
+    // preallocate transformations string arrays
+    request_data->var_types = (pdc_var_type_t *)PDC_calloc(1, sizeof(pdc_var_type_t) * request_data->n_objs);
+    request_data->json_filepaths   = (char **)PDC_calloc(1, sizeof(char *) * request_data->n_objs);
+    request_data->client_state_str = (char **)PDC_calloc(1, sizeof(char *) * request_data->n_objs);
+    request_data->cur_state_str    = (char **)PDC_calloc(1, sizeof(char *) * request_data->n_objs);
+    request_data->store_state_str  = (char **)PDC_calloc(1, sizeof(char *) * request_data->n_objs);
 
     /*
      * The following times n_objs (one set per object).
@@ -892,21 +898,24 @@ parse_bulk_data(void *buf, transfer_request_all_data *request_data, pdc_access_t
         request_data->unit[i] = *((pdcid_t *)ptr);
         ptr += sizeof(size_t);
 
+        request_data->var_types[i] = *((pdc_var_type_t *)ptr);
+        ptr += sizeof(pdc_var_type_t);
+
         // Parse and print strings immediately after unit
-        char *json_filepath = ptr;
-        printf("Object %d json_filepath: %s\n", i, json_filepath);
+        request_data->json_filepaths[i] = ptr;
+        printf("Object %d json_filepath: %s\n", i, request_data->json_filepaths[i]);
         ptr += strlen(ptr) + 1;
 
-        char *cur_state_str = ptr;
-        printf("Object %d cur_state: %s\n", i, cur_state_str);
+        request_data->cur_state_str[i] = ptr;
+        printf("Object %d cur_state: %s\n", i, request_data->cur_state_str[i]);
         ptr += strlen(ptr) + 1;
 
-        char *client_state_str = ptr;
-        printf("Object %d client_state: %s\n", i, client_state_str);
+        request_data->client_state_str[i] = ptr;
+        printf("Object %d client_state: %s\n", i, request_data->client_state_str[i]);
         ptr += strlen(ptr) + 1;
 
-        char *store_state_str = ptr;
-        printf("Object %d store_state: %s\n", i, store_state_str);
+        request_data->store_state_str[i] = ptr;
+        printf("Object %d store_state: %s\n", i, request_data->store_state_str[i]);
         ptr += strlen(ptr) + 1;
     }
     /*
@@ -923,6 +932,26 @@ parse_bulk_data(void *buf, transfer_request_all_data *request_data, pdc_access_t
         ptr += request_data->remote_ndim[i] * sizeof(uint64_t);
         request_data->obj_dims[i] = (uint64_t *)ptr;
         ptr += request_data->obj_ndim[i] * sizeof(uint64_t);
+
+        // Setup transformations
+        if (request_data->json_filepaths[i] != NULL && strlen(request_data->json_filepaths[i]) > 0) {
+            LOG_INFO("RPC recieved region transfer with attached graph\n");
+
+            LOG_INFO("Region transfer json filepath: %s\n", request_data->json_filepaths[i]);
+            LOG_INFO("Region transfer current state: %s\n", request_data->cur_state_str[i]);
+            LOG_INFO("Region transfer client state: %s\n", request_data->client_state_str[i]);
+            LOG_INFO("Region transfer stored state: %s\n", request_data->store_state_str[i]);
+
+            assert(PDC_get_var_type_size(request_data->var_types[i]) != 0);
+
+            if (PDCtf_store_json_mapping(request_data->obj_id[i], request_data->json_filepaths[i],
+                                         request_data->cur_state_str[i], request_data->client_state_str[i],
+                                         request_data->store_state_str[i], request_data->remote_offset[i],
+                                         request_data->remote_length[i], request_data->remote_ndim[i],
+                                         request_data->var_types[i]) != SUCCEED) {
+                LOG_ERROR("Failed to PDCtf_store_json_mapping\n");
+            }
+        }
 
         if (access_type == PDC_WRITE) {
             data_size = request_data->remote_length[i][0] * request_data->unit[i];

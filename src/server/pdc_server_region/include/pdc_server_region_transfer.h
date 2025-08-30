@@ -31,19 +31,25 @@ typedef struct transfer_request_all_data {
     uint64_t **obj_dims;
     uint64_t **remote_offset;
     uint64_t **remote_length;
-    pdcid_t *  obj_id;
-    int *      obj_ndim;
-    size_t *   unit;
-    int *      remote_ndim;
-    char **    data_buf;
+    pdcid_t   *obj_id;
+    int       *obj_ndim;
+    size_t    *unit;
+    int       *remote_ndim;
+    char     **data_buf;
     int        n_objs;
+
+    pdc_var_type_t *var_types;
+    char          **json_filepaths;
+    char          **cur_state_str;
+    char          **client_state_str;
+    char          **store_state_str;
 } transfer_request_all_data;
 
 typedef struct pdc_transfer_request_status {
     hg_handle_t                         handle;
     uint64_t                            transfer_request_id;
     uint32_t                            status;
-    int *                               handle_ref;
+    int                                *handle_ref;
     int                                 out_type;
     struct pdc_transfer_request_status *next;
 } pdc_transfer_request_status;

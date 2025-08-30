@@ -1231,9 +1231,10 @@ PDC_Client_pack_all_requests(int n_objs, pdc_transfer_request_start_all_pkg **tr
      *     obj_ndim: sizeof(int)
      *     remote remote_ndim: sizeof(int)
      *     unit: sizeof(size_t)
+     *     var_type: sizeof(pdc_var_type_t)
      *     transformation strings lengths
      */
-    metadata_size = n_objs * (sizeof(pdcid_t) + sizeof(int) * 2 + sizeof(size_t));
+    metadata_size = n_objs * (sizeof(pdcid_t) + sizeof(int) * 2 + sizeof(size_t) + sizeof(pdc_var_type_t));
     for (i = 0; i < n_objs; ++i) {
         struct _pdc_obj_info *obj_pointer = transfer_requests[i]->transfer_request->obj_pointer;
         int                   remote_ndim = transfer_requests[i]->transfer_request->remote_region_ndim;
@@ -1300,6 +1301,9 @@ PDC_Client_pack_all_requests(int n_objs, pdc_transfer_request_start_all_pkg **tr
         MEMCPY_INC(&(transfer_requests[i]->transfer_request->obj_ndim), sizeof(int));
         MEMCPY_INC(&(transfer_requests[i]->transfer_request->remote_region_ndim), sizeof(int));
         MEMCPY_INC(&unit, sizeof(size_t));
+        pdc_var_type_t var_type =
+            transfer_requests[i]->transfer_request->obj_pointer->obj_pt->obj_prop_pub->type;
+        MEMCPY_INC(&var_type, sizeof(pdc_var_type_t));
 
         assert(transfer_requests[i]->transfer_request->obj_pointer != NULL);
 
