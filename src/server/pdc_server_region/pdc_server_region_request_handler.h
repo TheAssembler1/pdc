@@ -62,7 +62,6 @@ transfer_request_all_bulk_transfer_read_cb(const struct hg_cb_info *info)
     handle_info         = HG_Get_info(local_bulk_args->handle);
     request_data.n_objs = local_bulk_args->in.n_objs;
     parse_bulk_data(local_bulk_args->data_buf, &request_data, PDC_READ);
-    // print_bulk_data(&request_data);
 
     remote_reg_info = (struct pdc_region_info *)PDC_malloc(sizeof(struct pdc_region_info));
     total_mem_size  = 0;
@@ -106,19 +105,11 @@ transfer_request_all_bulk_transfer_read_cb(const struct hg_cb_info *info)
                                        request_data.obj_dims[i], remote_reg_info, (void *)ptr,
                                        request_data.unit[i], 0);
 #endif
-#if 0
-        LOG_ERROR("server read array, offset = %lu, size = %lu:", request_data.remote_offset[i][0], request_data.remote_length[i][0]); uint64_t k; 
-        for ( k = 0; k < remote_reg_info->size[0]; ++k ) {
-            LOG_ERROR("%d,", *(int*)(ptr + sizeof(int) * k));
-        }
-        LOG_ERROR("\n");
-#endif
         ptr += mem_size;
     }
 #ifndef PDC_SERVER_CACHE
-    for (i = 0; i < request_data.n_objs; ++i) {
+    for (i = 0; i < request_data.n_objs; ++i)
         PDC_Server_unregister_obj_region_by_pointer(temp_ptrs[i], 1);
-    }
     temp_ptrs = (data_server_region_t **)PDC_free(temp_ptrs);
 #endif
 
@@ -214,14 +205,6 @@ transfer_request_all_bulk_transfer_write_cb(const struct hg_cb_info *info)
                                        (void *)request_data.data_buf[i], request_data.unit[i], 1);
 #endif
 
-#if 0
-        uint64_t j;
-        LOG_ERROR("server write array, offset = %lu, size = %lu:", request_data.remote_offset[i][0], request_data.remote_length[i][0]);
-        for ( j = 0; j < remote_reg_info->size[0]; ++j ) {
-            LOG_ERROR("%d,", *(int*)(request_data.data_buf[i] + sizeof(int) * j));
-        }
-        LOG_ERROR("\n");
-#endif
         pthread_mutex_lock(&transfer_request_status_mutex);
         PDC_finish_request(local_bulk_args->transfer_request_id[i]);
         pthread_mutex_unlock(&transfer_request_status_mutex);
@@ -526,8 +509,6 @@ HG_TEST_RPC_CB(transfer_request_all, handle)
 {
     FUNC_ENTER(NULL);
 
-    abort();
-
     struct transfer_request_all_local_bulk_args *local_bulk_args;
     const struct hg_info                        *info;
     transfer_request_all_in_t                    in;
@@ -785,13 +766,10 @@ HG_TEST_RPC_CB(transfer_request, handle)
 
             LOG_INFO("Region transfer json filepath: %s\n", in.pdc_tf_pkg.json_filepath);
             LOG_INFO("Region transfer current state: %s\n", in.pdc_tf_pkg.cur_state);
-            LOG_INFO("Region transfer desired state: %s\n", in.pdc_tf_pkg.store_state);
             LOG_INFO("Region transfer client state: %s\n", in.pdc_tf_pkg.client_state);
+            LOG_INFO("Region transfer stored state: %s\n", in.pdc_tf_pkg.store_state);
 
             assert(PDC_get_var_type_size(in.pdc_tf_pkg.pdc_var_type) != 0);
-
-            LOG_INFO("OBJECT ID %lu\n", in.obj_id);
-            LOG_INFO("OFFSET PASSED TO JSON MAPPING %lu\n", in.remote_region.start[0]);
 
             if (PDCtf_store_json_mapping(in.obj_id, in.pdc_tf_pkg.json_filepath, in.pdc_tf_pkg.cur_state,
                                          in.pdc_tf_pkg.client_state, in.pdc_tf_pkg.store_state,

@@ -233,7 +233,6 @@ PDC_try_finish_request(uint64_t transfer_request_id, hg_handle_t handle, int *ha
  * TODO: Scan the entire transfer list and search for repetitive nodes.
  * Not a thread-safe function, need protection from pthread_mutex_lock(&transfer_request_id_mutex);
  */
-
 pdcid_t
 PDC_transfer_request_id_register()
 {
@@ -881,6 +880,7 @@ parse_bulk_data(void *buf, transfer_request_all_data *request_data, pdc_access_t
      *     obj_ndim: sizeof(int)
      *     remote remote_ndim: sizeof(int)
      *     unit: sizeof(size_t)
+     *
      */
     for (i = 0; i < request_data->n_objs; ++i) {
         request_data->obj_id[i] = *((pdcid_t *)ptr);
@@ -891,6 +891,23 @@ parse_bulk_data(void *buf, transfer_request_all_data *request_data, pdc_access_t
         ptr += sizeof(int);
         request_data->unit[i] = *((pdcid_t *)ptr);
         ptr += sizeof(size_t);
+
+        // Parse and print strings immediately after unit
+        char *json_filepath = ptr;
+        printf("Object %d json_filepath: %s\n", i, json_filepath);
+        ptr += strlen(ptr) + 1;
+
+        char *cur_state_str = ptr;
+        printf("Object %d cur_state: %s\n", i, cur_state_str);
+        ptr += strlen(ptr) + 1;
+
+        char *client_state_str = ptr;
+        printf("Object %d client_state: %s\n", i, client_state_str);
+        ptr += strlen(ptr) + 1;
+
+        char *store_state_str = ptr;
+        printf("Object %d store_state: %s\n", i, store_state_str);
+        ptr += strlen(ptr) + 1;
     }
     /*
      * For each of objects
@@ -906,6 +923,7 @@ parse_bulk_data(void *buf, transfer_request_all_data *request_data, pdc_access_t
         ptr += request_data->remote_ndim[i] * sizeof(uint64_t);
         request_data->obj_dims[i] = (uint64_t *)ptr;
         ptr += request_data->obj_ndim[i] * sizeof(uint64_t);
+
         if (access_type == PDC_WRITE) {
             data_size = request_data->remote_length[i][0] * request_data->unit[i];
             for (j = 1; j < request_data->remote_ndim[i]; ++j) {
