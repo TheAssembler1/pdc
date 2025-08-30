@@ -42,7 +42,8 @@ PDCtf_copy_tf_region_t(pdc_tf_region_t *src, pdc_tf_region_t *dest)
 }
 
 perr_t
-PDCtf_set_func_param(pdc_dg_t *dg, char *func_name, void *params, uint64_t params_size)
+PDCtf_set_func_param(pdc_dg_t *dg, char *func_name, uint64_t flat_conceptual_offset, void *params,
+                     uint64_t params_size)
 {
     FUNC_ENTER(NULL);
 
@@ -55,19 +56,39 @@ PDCtf_set_func_param(pdc_dg_t *dg, char *func_name, void *params, uint64_t param
         pdc_tf_func_t *tf_func = edge->data;
 
         if (!strcmp(func_name, tf_func->name)) {
-            // Set the new params
-            tf_func->params      = params;
-            tf_func->params_size = params_size;
-            FUNC_LEAVE(SUCCEED);
+            // Locate the params by conceptual offset
+            pdc_tf_dg_params_t *pdc_dg_params = NULL;
+            for (int params_list_index = 0; params_list_index < tf_func->cur_num_params;
+                 params_list_index++) {
+                pdc_dg_params = &tf_func->pdc_tf_dg_params_list[params_list_index];
+                if (pdc_dg_params->flat_conceptual_offset == flat_conceptual_offset) {
+                    pdc_dg_params->params      = params;
+                    pdc_dg_params->params_size = params_size;
+                    PGOTO_DONE(SUCCEED);
+                }
+            }
+
+            // Append new entry
+            pdc_dg_params = &tf_func->pdc_tf_dg_params_list[tf_func->cur_num_params];
+            assert(pdc_dg_params != NULL);
+            pdc_dg_params->flat_conceptual_offset = flat_conceptual_offset;
+            pdc_dg_params->params                 = params;
+            pdc_dg_params->params_size            = params_size;
+
+            tf_func->cur_num_params++;
+            PGOTO_DONE(SUCCEED);
         }
     }
 
-    LOG_ERROR("Edge %s not found\n", func_name);
-    FUNC_LEAVE(FAIL);
+    PGOTO_ERROR(FAIL, "Edge %s not found\n", func_name);
+
+done:
+    FUNC_LEAVE(ret_value);
 }
 
 perr_t
-PDCtf_get_func_param(pdc_dg_t *dg, char *func_name, void **params, uint64_t *params_size)
+PDCtf_get_func_param(pdc_dg_t *dg, char *func_name, uint64_t flat_conceptual_offset, void **params,
+                     uint64_t *params_size)
 {
     FUNC_ENTER(NULL);
 
@@ -80,19 +101,31 @@ PDCtf_get_func_param(pdc_dg_t *dg, char *func_name, void **params, uint64_t *par
         pdc_tf_func_t *tf_func = edge->data;
 
         if (!strcmp(func_name, tf_func->name)) {
-            // Set the new params
-            *params      = tf_func->params;
-            *params_size = tf_func->params_size;
-            FUNC_LEAVE(SUCCEED);
+            // Locate the params by conceptual offset
+            for (int params_list_index = 0; params_list_index < tf_func->cur_num_params;
+                 params_list_index++) {
+                pdc_tf_dg_params_t *pdc_dg_params = &tf_func->pdc_tf_dg_params_list[params_list_index];
+                if (pdc_dg_params->flat_conceptual_offset == flat_conceptual_offset) {
+                    *params      = pdc_dg_params->params;
+                    *params_size = pdc_dg_params->params_size;
+                    PGOTO_DONE(SUCCEED);
+                }
+            }
+
+            PGOTO_ERROR(FAIL, "Failed to locate params in func_name %s by flat conceptual offset %lu\n",
+                        func_name, flat_conceptual_offset);
         }
     }
 
-    LOG_ERROR("Edge %s not found\n", func_name);
-    FUNC_LEAVE(FAIL);
+    PGOTO_ERROR(FAIL, "Edge %s not found\n", func_name);
+
+done:
+    FUNC_LEAVE(ret_value);
 }
 
 perr_t
-PDCtf_set_state_param(pdc_dg_t *dg, char *state_name, void *params, uint64_t params_size)
+PDCtf_set_state_param(pdc_dg_t *dg, char *state_name, uint64_t flat_conceptual_offset, void *params,
+                      uint64_t params_size)
 {
     FUNC_ENTER(NULL);
 
@@ -111,16 +144,33 @@ PDCtf_set_state_param(pdc_dg_t *dg, char *state_name, void *params, uint64_t par
     if (tf_state == NULL)
         PGOTO_ERROR(FAIL, "Vertex data was NULL");
 
-    // Set the new params
-    tf_state->params      = params;
-    tf_state->params_size = params_size;
+    // Locate the params by conceptual offset
+    pdc_tf_dg_params_t *pdc_dg_params = NULL;
+    for (int params_list_index = 0; params_list_index < tf_state->cur_num_params; params_list_index++) {
+        pdc_dg_params = &tf_state->pdc_tf_dg_params_list[params_list_index];
+        if (pdc_dg_params->flat_conceptual_offset == flat_conceptual_offset) {
+            pdc_dg_params->params      = params;
+            pdc_dg_params->params_size = params_size;
+            PGOTO_DONE(SUCCEED);
+        }
+    }
+
+    pdc_dg_params = &tf_state->pdc_tf_dg_params_list[tf_state->cur_num_params];
+    assert(pdc_dg_params != NULL);
+    pdc_dg_params->params                 = params;
+    pdc_dg_params->params_size            = params_size;
+    pdc_dg_params->flat_conceptual_offset = flat_conceptual_offset;
+
+    // Params were not found need to append params to list
+    tf_state->cur_num_params++;
 
 done:
     FUNC_LEAVE(ret_value);
 }
 
 perr_t
-PDCtf_get_state_param(pdc_dg_t *dg, char *state_name, void **params, uint64_t *params_size)
+PDCtf_get_state_param(pdc_dg_t *dg, char *state_name, uint64_t flat_conceptual_offset, void **params,
+                      uint64_t *params_size)
 {
     FUNC_ENTER(NULL);
 
@@ -138,9 +188,18 @@ PDCtf_get_state_param(pdc_dg_t *dg, char *state_name, void **params, uint64_t *p
     if (tf_state == NULL)
         PGOTO_ERROR(FAIL, "Vertex data was NULL");
 
-    // Set the new params
-    *params      = tf_state->params;
-    *params_size = tf_state->params_size;
+    // Locate the params by conceptual offset
+    for (int params_list_index = 0; params_list_index < tf_state->cur_num_params; params_list_index++) {
+        pdc_tf_dg_params_t *pdc_dg_params = &tf_state->pdc_tf_dg_params_list[params_list_index];
+        if (pdc_dg_params->flat_conceptual_offset == flat_conceptual_offset) {
+            *params      = pdc_dg_params->params;
+            *params_size = pdc_dg_params->params_size;
+            PGOTO_DONE(SUCCEED);
+        }
+    }
+
+    PGOTO_ERROR(FAIL, "Failed to locate params in state_name %s by conceptual offset %lu\n", state_name,
+                flat_conceptual_offset);
 
 done:
     FUNC_LEAVE(ret_value);
@@ -235,22 +294,26 @@ PDCtf_region_has_attached_graph(struct pdc_tf_obj_t *tf_obj, int ndim, size_t un
     for (int i = 0; i < tf_obj->num_region_mappings; i++) {
         *region_mapping                    = &tf_obj->region_mappings[i];
         pdc_tf_region_t *conceptual_region = &((*region_mapping)->conceptual_region);
-        uint64_t *       conceptual_offset = (*region_mapping)->conceptual_offset;
+        uint64_t        *conceptual_offset = (*region_mapping)->conceptual_offset;
 
         // check if client ndim, offset, dims, unit match
         bool ndim_matches = conceptual_region->ndim == ndim;
         assert(PDC_get_var_type_size(conceptual_region->pdc_var_type) != 0);
         bool unit_matches = PDC_get_var_type_size(conceptual_region->pdc_var_type) == unit;
+
         // note these return 0 on match so ! is needed
         bool offset_matches = !memcmp(conceptual_offset, offset, ndim * sizeof(uint64_t));
         bool size_matches   = !memcmp(conceptual_region->size, size, ndim * sizeof(uint64_t));
 
+        for (int j = 0; j < ndim; j++) {
+            LOG_INFO("stored[%d] %lu, passed %lu\n", j, conceptual_offset[j], offset[j]);
+        }
+
         LOG_INFO("ndim_matches: %d, unit matches: %d, offset_matches: %d, size_matches: %d\n", ndim_matches,
                  unit_matches, offset_matches, size_matches);
 
-        if (ndim_matches && offset_matches && size_matches && unit_matches) {
+        if (ndim_matches && offset_matches && size_matches && unit_matches)
             PGOTO_DONE(true);
-        }
     }
 
 done:
@@ -279,7 +342,7 @@ static const char *
 get_json_string(struct json_object *json_obj, char *str_name, bool expect_string)
 {
     struct json_object *str_json_obj = NULL;
-    const char *        ret_value    = NULL;
+    const char         *ret_value    = NULL;
 
     if (!json_object_object_get_ex(json_obj, str_name, &str_json_obj)) {
         if (expect_string)
@@ -374,8 +437,10 @@ vertex_free(void *data)
     LOG_INFO("vertex_free called\n");
 
     pdc_tf_state_t *s = (pdc_tf_state_t *)data;
-    if (s->params != NULL)
-        s->params = PDC_free(s->params);
+    for (int i = 0; i < s->cur_num_params; i++) {
+        if (s->pdc_tf_dg_params_list[i].params != NULL)
+            s->pdc_tf_dg_params_list[i].params = PDC_free(s->pdc_tf_dg_params_list[i].params);
+    }
     s->name = PDC_free(s->name);
     s       = PDC_free(s);
 
@@ -387,9 +452,9 @@ PDCtf_dg_json_create_common(char *filepath)
 {
     FUNC_ENTER(NULL);
 
-    pdc_dg_t *          ret_value = NULL;
-    pdc_dg_t *          dg_cpy    = NULL;
-    FILE *              fp        = NULL;
+    pdc_dg_t           *ret_value = NULL;
+    pdc_dg_t           *dg_cpy    = NULL;
+    FILE               *fp        = NULL;
     struct json_object *json_obj  = NULL;
     io_buffer_t         io_buffer;
     memset(&io_buffer, 0, sizeof(io_buffer_t));
@@ -433,7 +498,7 @@ PDCtf_dg_json_create_common(char *filepath)
     for (int i = 0; i < states_length; i++) {
         struct json_object *s = array_list_get_idx(states, i);
 
-        char *      s_name        = strdup(get_json_string(s, "name", true));
+        char       *s_name        = strdup(get_json_string(s, "name", true));
         const char *s_granularity = get_json_string(s, "granularity", true);
 
         if (s_name == NULL || s_granularity == NULL)
@@ -456,12 +521,10 @@ PDCtf_dg_json_create_common(char *filepath)
             PGOTO_ERROR(NULL, "Invalid granularity %s\n", s_granularity);
 
         // Add vertex to the directed graph data structure
-        pdc_tf_state_t *dg_state = PDC_malloc(sizeof(pdc_tf_state_t));
+        pdc_tf_state_t *dg_state = PDC_calloc(1, sizeof(pdc_tf_state_t));
 
         dg_state->name        = s_name;
         dg_state->granularity = granularity;
-        dg_state->params      = NULL;
-        dg_state->params_size = 0;
 
         if (PDCdg_add_vertex(ret_value, dg_state) == PDC_DG_INVALID_VERTEX)
             PGOTO_ERROR(NULL, "Failed to add vertex to directed graph");
@@ -533,10 +596,8 @@ PDCtf_dg_json_create_common(char *filepath)
         dg_func->location = location;
         if (PDCtf_link_builtin_func(f_name, dg_func) != SUCCEED)
             PGOTO_ERROR(NULL, "Failed to link to builtin function");
-        dg_func->name        = f_name;
-        dg_func->params_str  = (f_params_str) ? f_params_str : NULL;
-        dg_func->params_size = 0;
-        dg_func->params      = NULL;
+        dg_func->name       = f_name;
+        dg_func->params_str = (f_params_str) ? f_params_str : NULL;
 
         /**
          * Construct input/output dg states
@@ -576,6 +637,24 @@ PDCtf_get_pdc_region_t_elements(pdc_tf_region_t reg)
     }
 
     FUNC_LEAVE(num_elements);
+}
+
+size_t
+PDCtf_get_flat_conceptual_offset(int ndim, uint64_t offset[4], const uint64_t *dims)
+{
+    FUNC_ENTER(NULL);
+
+    assert(ndim > 0);
+
+    size_t flat_offset = 0;
+    size_t stride      = 1;
+
+    for (int i = 0; i < ndim; i++) {
+        flat_offset += offset[i] * stride;
+        stride *= dims[i];
+    }
+
+    FUNC_LEAVE(flat_offset);
 }
 
 size_t
@@ -687,7 +766,7 @@ PDCtf_print_dg_common(pdc_dg_t *dg, bool write_to_file)
         // Correctly cast vertex data to state*
         pdc_tf_state_t *input_state  = (pdc_tf_state_t *)PDCdg_get_vertex_data(dg, edge->v1_id);
         pdc_tf_state_t *output_state = (pdc_tf_state_t *)PDCdg_get_vertex_data(dg, edge->v2_id);
-        pdc_tf_func_t * edge_func    = (pdc_tf_func_t *)edge->data;
+        pdc_tf_func_t  *edge_func    = (pdc_tf_func_t *)edge->data;
 
         const char *color = (edge_func->dev == PDC_TF_CPU_DEVICE) ? "blue" : "red";
 

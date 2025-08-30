@@ -18,7 +18,8 @@
  */
 #define SET_STATE_PARAMS(name, params, params_size)                                                          \
     do {                                                                                                     \
-        assert(PDCtf_set_state_param(internal_param.dg, name, params, params_size) == SUCCEED);              \
+        assert(PDCtf_set_state_param(internal_param.dg, name, internal_param.flat_conceptual_offset, params, \
+                                     params_size) == SUCCEED);                                               \
     } while (0)
 
 /**
@@ -30,7 +31,8 @@
  */
 #define GET_STATE_PARAMS(name, params, params_size)                                                          \
     do {                                                                                                     \
-        assert(PDCtf_get_state_param(internal_param.dg, name, params, params_size) == SUCCEED);              \
+        assert(PDCtf_get_state_param(internal_param.dg, name, internal_param.flat_conceptual_offset, params, \
+                                     params_size) == SUCCEED);                                               \
     } while (0)
 
 /**
@@ -45,7 +47,8 @@
  */
 #define SET_FUNC_PARAMS(name, params, params_size)                                                           \
     do {                                                                                                     \
-        assert(PDCtf_set_func_param(internal_param.dg, name, params, params_size) == SUCCEED);               \
+        assert(PDCtf_set_func_param(internal_param.dg, name, internal_param.flat_conceptual_offset, params,  \
+                                    params_size) == SUCCEED);                                                \
     } while (0)
 
 /**
@@ -57,7 +60,8 @@
  */
 #define GET_FUNC_PARAMS(name, params, params_size)                                                           \
     do {                                                                                                     \
-        assert(PDCtf_get_func_param(internal_param.dg, name, params, params_size) == SUCCEED);               \
+        assert(PDCtf_get_func_param(internal_param.dg, name, internal_param.flat_conceptual_offset, params,  \
+                                    params_size) == SUCCEED);                                                \
     } while (0)
 
 #endif
