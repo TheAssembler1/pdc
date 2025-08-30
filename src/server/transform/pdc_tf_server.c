@@ -103,7 +103,7 @@ PDCtf_store_json_mapping(pdcid_t obj_id, char *json_filepath, char *cur_state, c
     }
 
     pdc_tf_region_t *conceptual_region = &region_mapping->conceptual_region;
-    uint64_t        *conceptual_offset = region_mapping->conceptual_offset;
+    uint64_t *       conceptual_offset = region_mapping->conceptual_offset;
 
     assert(PDC_get_var_type_size(pdc_var_type) != 0);
 
@@ -144,8 +144,8 @@ PDCtf_exec_graph(pdc_dg_t *dg, uint64_t flat_conceptual_offset, char *cur_state,
      */
     pdc_tf_state_t tf_input_state  = {.name = cur_state};
     pdc_tf_state_t tf_output_state = {.name = desired_state};
-    void          *input_state     = (void *)&tf_input_state;
-    void          *output_state    = (void *)&tf_output_state;
+    void *         input_state     = (void *)&tf_input_state;
+    void *         output_state    = (void *)&tf_output_state;
 
     pdc_dg_edge_t *edges_out = NULL;
     uint32_t       num_edges;
@@ -156,7 +156,7 @@ PDCtf_exec_graph(pdc_dg_t *dg, uint64_t flat_conceptual_offset, char *cur_state,
             pdc_dg_edge_t   e  = edges_out[j];
             pdc_tf_state_t *v1 = (pdc_tf_state_t *)(dg->vertices[e.v1_id]->data);
             pdc_tf_state_t *v2 = (pdc_tf_state_t *)(dg->vertices[e.v2_id]->data);
-            pdc_tf_func_t  *f  = (pdc_tf_func_t *)(e.data);
+            pdc_tf_func_t * f  = (pdc_tf_func_t *)(e.data);
 
             LOG_INFO("Transformation %s(%s) = %s\n", f->name, v1->name, v2->name);
         }
@@ -169,7 +169,7 @@ PDCtf_exec_graph(pdc_dg_t *dg, uint64_t flat_conceptual_offset, char *cur_state,
             pdc_dg_edge_t   e  = edges_out[j];
             pdc_tf_state_t *v1 = (pdc_tf_state_t *)(dg->vertices[e.v1_id]->data);
             pdc_tf_state_t *v2 = (pdc_tf_state_t *)(dg->vertices[e.v2_id]->data);
-            pdc_tf_func_t  *f  = (pdc_tf_func_t *)(e.data);
+            pdc_tf_func_t * f  = (pdc_tf_func_t *)(e.data);
 
             // Setup internal paramters for helper macros
             pdc_tf_internal_param internal_params;
