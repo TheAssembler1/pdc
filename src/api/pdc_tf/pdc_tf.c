@@ -190,13 +190,18 @@ done:
 
 // all region transfers for specified obj_ids follow DG
 perr_t
-PDCtf_attach_to_objs(pdcid_t dg_id, pdcid_t *obj_ids, int num_ids, pdcid_t client_state_id,
-                     pdcid_t server_state_id)
+PDCtf_attach_to_objs(pdcid_t dg_id, pdcid_t *obj_ids, int num_ids, char *client_state, char *store_state)
 {
     FUNC_ENTER(NULL);
 
     perr_t ret_value = SUCCEED;
 
+    for (int i = 0; i < num_ids; i++) {
+        if (PDCtf_attach_to_obj(dg_id, obj_ids[i], client_state, store_state) != SUCCEED)
+            PGOTO_ERROR(FAIL, "Error with PDCtf_attach_to_obj");
+    }
+
+done:
     FUNC_LEAVE(ret_value);
 }
 
