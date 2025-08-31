@@ -109,6 +109,8 @@ set(PROGRAMS
   transformation/compression_transform
   transformation/compression_transform_2D
   transformation/compression_transform_3D
+  # Transformations attached to object region transfer compression
+  transformation/attach_obj_compression_transform
   # Transformations multi-region transfer
   transformation/multi_region_transform
   # Transformations region transfer compression encryption
@@ -304,6 +306,8 @@ add_test(NAME region_transfer_write_read WORKING_DIRECTORY ${CMAKE_RUNTIME_OUTPU
 add_test(NAME compression_transform WORKING_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY} COMMAND run_test.sh ./compression_transform )
 add_test(NAME compression_transform_2D WORKING_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY} COMMAND run_test.sh ./compression_transform_2D )
 add_test(NAME compression_transform_3D WORKING_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY} COMMAND run_test.sh ./compression_transform_3D )
+# Transformations attached to object region transfer compression
+add_test(NAME attach_obj_compression_transform WORKING_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY} COMMAND run_test.sh ./attach_obj_compression_transform )
 # Transformations multi-region transfer
 add_test(NAME multi_region_transform WORKING_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY} COMMAND run_test.sh ./multi_region_transform )
 # Transformations region transfer compression encryption
@@ -423,6 +427,8 @@ set_tests_properties(vpicio_bdcats_transfer_request      PROPERTIES LABELS seria
 set_tests_properties(compression_transform     PROPERTIES LABELS transform)
 set_tests_properties(compression_transform_2D     PROPERTIES LABELS transform)
 set_tests_properties(compression_transform_3D     PROPERTIES LABELS transform)
+# Transformations attached to object region transfer compression
+set_tests_properties(attach_obj_compression_transform PROPERTIES LABELS transform)
 # Transformations region transfer multiregion
 set_tests_properties(multi_region_transform     PROPERTIES LABELS transform)
 # Transformations region transfer compression encryption

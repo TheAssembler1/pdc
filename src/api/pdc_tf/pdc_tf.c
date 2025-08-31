@@ -75,6 +75,46 @@ PDCtf_set_output_mode(pdcid_t dg_id, pdc_tf_output_mode_t mode, pdcid_t *obj_ids
     FUNC_LEAVE(ret_value);
 }
 
+/**
+ * Gets pdc_tf_obj_t from obj_id
+ * If pdc_tf_obj_t is NULL then one is allocated
+ */
+static perr_t
+locate_and_set_pdc_tf_obj_t(pdcid_t obj_id, struct _pdc_obj_info **pdc_obj_info,
+                            struct pdc_tf_obj_t **pdc_tf_obj)
+{
+    FUNC_ENTER(NULL);
+
+    perr_t ret_value = SUCCEED;
+
+    // First locate object
+    const struct _pdc_id_info *obj_id_info = PDC_find_id(obj_id);
+    if (obj_id_info == NULL)
+        PGOTO_ERROR(FAIL, "Failed to find object using pdcid");
+    *pdc_obj_info = obj_id_info->obj_ptr;
+
+    // Validate partition strategy is supported with transformations
+    if ((*pdc_obj_info)->obj_pt->obj_prop_pub->region_partition == PDC_REGION_STATIC) {
+        LOG_ERROR("PDC_REGION_STATIC partition strategy not supported for transformations\n");
+        PGOTO_ERROR(FAIL, "The following partitions strategies are supported: PDC_REGION_LOCAL, "
+                          "PDC_REGION_DYNAMIC, or PDC_OBJ_STATIC");
+    }
+
+    // Validate user has set the datatype on the object
+    if (PDC_get_var_type_size((*pdc_obj_info)->obj_pt->obj_prop_pub->type) == 0) {
+        LOG_ERROR("Invalid data type for object transformation\n");
+        PGOTO_ERROR(FAIL, "Data type must be set on object before attaching transformations");
+    }
+
+    // Pull out pdc obj transform information and allocate first if NULL
+    if ((*pdc_obj_info)->pdc_tf_obj == NULL)
+        (*pdc_obj_info)->pdc_tf_obj = PDC_calloc(1, sizeof(struct pdc_tf_obj_t));
+    *pdc_tf_obj = (*pdc_obj_info)->pdc_tf_obj;
+
+done:
+    FUNC_LEAVE(ret_value);
+}
+
 // Region transfer to/from the specified obj_id, remote_reg_id follow DG
 perr_t
 PDCtf_attach_to_region(pdcid_t dg_id, pdcid_t obj_id, pdcid_t remote_reg, char *client_state,
@@ -86,31 +126,11 @@ PDCtf_attach_to_region(pdcid_t dg_id, pdcid_t obj_id, pdcid_t remote_reg, char *
 
     perr_t ret_value = SUCCEED;
 
-    // First locate object
-    const struct _pdc_id_info *obj_id_info = PDC_find_id(obj_id);
-    if (obj_id_info == NULL)
-        PGOTO_ERROR(FAIL, "Failed to find object using pdcid");
-    struct _pdc_obj_info *obj_info = obj_id_info->obj_ptr;
-
-    // Validate partition strategy is supported with transformations
-    if (obj_info->obj_pt->obj_prop_pub->region_partition == PDC_REGION_STATIC) {
-        LOG_ERROR("PDC_REGION_STATIC partition strategy not supported for transformations\n");
-        abort();
-        PGOTO_ERROR(FAIL, "The following partitions strategies are supported: PDC_REGION_LOCAL, "
-                          "PDC_REGION_DYNAMIC, or PDC_OBJ_STATIC\n");
-    }
-
-    // Validate user has set the datatype on the object
-    if (PDC_get_var_type_size(obj_info->obj_pt->obj_prop_pub->type) == 0) {
-        LOG_ERROR("Invalid data type for object transformation\n");
-        PGOTO_ERROR(FAIL, "Data type must be set on object before attaching transformations");
-    }
-
-    // Pull out pdc obj transform information and allocate first if NULL
-    if (obj_info->pdc_tf_obj == NULL)
-        obj_info->pdc_tf_obj = PDC_calloc(1, sizeof(struct pdc_tf_obj_t));
-    struct pdc_tf_obj_t *pdc_tf_obj     = obj_info->pdc_tf_obj;
-    const uint32_t       cur_region_map = pdc_tf_obj->num_region_mappings;
+    struct pdc_tf_obj_t  *pdc_tf_obj   = NULL;
+    struct _pdc_obj_info *pdc_obj_info = NULL;
+    if (locate_and_set_pdc_tf_obj_t(obj_id, &pdc_obj_info, &pdc_tf_obj) != SUCCEED)
+        PGOTO_ERROR(FAIL, "Error with locate_and_set_pdc_tf_obj_t");
+    const uint32_t cur_region_map = pdc_tf_obj->num_region_mappings;
 
     // Get region information
     struct _pdc_id_info *region_id_info = PDC_find_id(remote_reg);
@@ -118,13 +138,13 @@ PDCtf_attach_to_region(pdcid_t dg_id, pdcid_t obj_id, pdcid_t remote_reg, char *
         PGOTO_ERROR(FAIL, "Cannot locate remote region ID");
     struct pdc_region_info *region_info = region_id_info->obj_ptr;
 
-    // get region mapping fields from object
+    // Get region mapping fields from object
     pdc_tf_region_mapping_t *region_mapping    = &pdc_tf_obj->region_mappings[cur_region_map];
-    pdc_tf_region_t *        conceptual_region = &region_mapping->conceptual_region;
-    uint64_t *               conceptual_offset = region_mapping->conceptual_offset;
+    pdc_tf_region_t         *conceptual_region = &region_mapping->conceptual_region;
+    uint64_t                *conceptual_offset = region_mapping->conceptual_offset;
 
     // Copy region information into conceptual region
-    PDCtf_set_tf_region_t(conceptual_region, region_info->ndim, obj_info->obj_pt->obj_prop_pub->type,
+    PDCtf_set_tf_region_t(conceptual_region, region_info->ndim, pdc_obj_info->obj_pt->obj_prop_pub->type,
                           region_info->size);
     memcpy(conceptual_offset, region_info->offset, region_info->ndim * sizeof(uint64_t));
 
@@ -134,7 +154,7 @@ PDCtf_attach_to_region(pdcid_t dg_id, pdcid_t obj_id, pdcid_t remote_reg, char *
     region_mapping->region_state.store_state  = strdup(store_state);
     region_mapping->region_state.dg_id        = dg_id;
 
-    // increase the current region mapping
+    // Increase the current region mapping
     pdc_tf_obj->num_region_mappings++;
 done:
     FUNC_LEAVE(ret_value);
@@ -142,12 +162,29 @@ done:
 
 // all region transfers for obj_id follow DG
 perr_t
-PDCtf_attach_to_obj(pdcid_t dg_id, pdcid_t obj_id, pdcid_t client_state_id, pdcid_t server_state_id)
+PDCtf_attach_to_obj(pdcid_t dg_id, pdcid_t obj_id, char *client_state, char *store_state)
 {
     FUNC_ENTER(NULL);
 
+    LOG_INFO("PDCtf_attach_to_obj was called\n");
+
     perr_t ret_value = SUCCEED;
 
+    struct pdc_tf_obj_t  *pdc_tf_obj   = NULL;
+    struct _pdc_obj_info *pdc_obj_info = NULL;
+    if (locate_and_set_pdc_tf_obj_t(obj_id, &pdc_obj_info, &pdc_tf_obj) != SUCCEED)
+        PGOTO_ERROR(FAIL, "Error with locate_and_set_pdc_tf_obj_t");
+
+    if (pdc_tf_obj->attach_to_all_regions)
+        LOG_WARNING("Graph was already attached to obj\n");
+    pdc_tf_obj->attach_to_all_regions = true;
+
+    pdc_tf_obj->all_regions_state.client_state = strdup(client_state);
+    pdc_tf_obj->all_regions_state.cur_state    = strdup(client_state);
+    pdc_tf_obj->all_regions_state.store_state  = strdup(store_state);
+    pdc_tf_obj->all_regions_state.dg_id        = dg_id;
+
+done:
     FUNC_LEAVE(ret_value);
 }
 

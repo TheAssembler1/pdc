@@ -18,9 +18,9 @@ typedef struct pdc_tf_region_t {
 
 typedef struct pdc_tf_region_state_t {
     pdcid_t dg_id;
-    char *  cur_state;
-    char *  client_state;
-    char *  store_state;
+    char   *cur_state;
+    char   *client_state;
+    char   *store_state;
 } pdc_tf_region_state_t;
 
 typedef struct pdc_tf_region_mapping_t {
@@ -54,8 +54,20 @@ typedef struct pdc_tf_region_mapping_t {
  *          The conceptual region is used to define the transformation,
  *          while the actual region is used to store the data.
  * The num_region is the number of regions with attached graphs.
+ * The attach_to_all_regions indicates whether all region transfers
+ * should go through the directed graph.
  */
 typedef struct pdc_tf_obj_t {
+    /**
+     * These fields are for attaching graphs to region transfers
+     * after the graph has been attached to the entire object
+     */
+    bool                  attach_to_all_regions;
+    pdc_tf_region_state_t all_regions_state;
+
+    /**
+     * These fields are used to attach graphs to individual regions
+     */
     pdc_tf_region_mapping_t region_mappings[MAX_REGIONS];
     uint32_t                num_region_mappings;
 } pdc_obj_tf_t;
@@ -80,12 +92,12 @@ extern char *pdc_tf_granularity_strs[];
  */
 typedef struct pdc_tf_dg_params_t {
     uint64_t flat_conceptual_offset;
-    void *   params;
+    void    *params;
     uint64_t params_size;
 } pdc_tf_dg_params_t;
 
 typedef struct pdc_tf_state_t {
-    char *                 name;
+    char                  *name;
     pdc_tf_dg_params_t     pdc_tf_dg_params_list[MAX_PDC_DG_PARAMS];
     uint32_t               cur_num_params;
     pdc_tf_granularities_t granularity;
@@ -124,10 +136,10 @@ extern char *pdc_tf_location_strs[];
 typedef struct pdc_tf_func_t {
     pdc_tf_dev_t       dev;
     pdc_tf_location_t  location;
-    char *             name;
+    char              *name;
     pdc_tf_dg_params_t pdc_tf_dg_params_list[MAX_PDC_DG_PARAMS];
     uint32_t           cur_num_params;
-    char *             params_str;
+    char              *params_str;
     c_func_t           c_func;
 } pdc_tf_func_t;
 
