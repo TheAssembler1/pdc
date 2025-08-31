@@ -88,7 +88,7 @@ PDC_finish_request(uint64_t transfer_request_id)
 {
     FUNC_ENTER(NULL);
 
-    pdc_transfer_request_status *   ptr, *tmp = NULL;
+    pdc_transfer_request_status    *ptr, *tmp = NULL;
     perr_t                          ret_value = SUCCEED;
     transfer_request_wait_out_t     out;
     transfer_request_wait_all_out_t out_all;
@@ -294,7 +294,7 @@ PDC_Server_data_io_flattened(uint64_t obj_id, int obj_ndim, const uint64_t *obj_
 
     perr_t   ret_value = SUCCEED;
     int      fd;
-    char *   data_path = NULL;
+    char    *data_path = NULL;
     char     storage_location[ADDR_MAX];
     ssize_t  io_size;
     uint64_t i, j;
@@ -664,10 +664,10 @@ PDC_Server_data_io_region_per_file_transformations(uint64_t obj_id, int obj_ndim
     FUNC_ENTER(NULL);
 
     perr_t    ret_value = SUCCEED;
-    void *    cpy_buf   = buf;
+    void     *cpy_buf   = buf;
     pdc_dg_t *dg        = NULL;
 
-    struct pdc_tf_obj_t *    tf_obj = PDCtf_get_region_mapping(obj_id, &dg);
+    struct pdc_tf_obj_t     *tf_obj = PDCtf_get_region_mapping(obj_id, &dg);
     pdc_tf_region_mapping_t *region_mapping;
     if (!PDCtf_region_has_attached_graph(tf_obj, region_info->ndim, unit, region_info->offset,
                                          region_info->size, &region_mapping)) {
@@ -699,6 +699,7 @@ PDC_Server_data_io_region_per_file_transformations(uint64_t obj_id, int obj_ndim
         int   fd               = open(storage_location, O_RDONLY);
         uint64_t bytes_to_read = PDC_get_region_desc_size_bytes(
             input_region.size, PDC_get_var_type_size(input_region.pdc_var_type), input_region.ndim);
+        buf = PDC_malloc(bytes_to_read);
         PDC_POSIX_IO(fd, buf, bytes_to_read, 0);
         close(fd);
     }
@@ -820,7 +821,7 @@ PDC_Server_transfer_request_io(uint64_t obj_id, int obj_ndim, const uint64_t *ob
             PGOTO_ERROR(FAIL, "Error with PDC_Server_data_io_region_per_file_transformations");
         }
         if (ran_transformation) {
-            LOG_INFO("Running storage strategy STORE_FLATTENED_REGION_PER_FILE transformation\n");
+            LOG_INFO("Ran storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION\n");
             PGOTO_DONE(SUCCEED);
         }
 
@@ -860,7 +861,7 @@ parse_bulk_data(void *buf, transfer_request_all_data *request_data, pdc_access_t
 {
     FUNC_ENTER(NULL);
 
-    char *   ptr = (char *)buf;
+    char    *ptr = (char *)buf;
     int      i, j;
     uint64_t data_size;
 

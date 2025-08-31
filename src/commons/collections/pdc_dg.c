@@ -228,7 +228,7 @@ PDCdg_shortest_path(pdc_dg_t *dg, void *v1_data, void *v2_data, pdc_dg_edge_t **
     LOG_DEBUG("PDCdg_shortest_path was called\n");
 
     bool                ret_value = false;
-    bool *              visited   = NULL;
+    bool               *visited   = NULL;
     pdc_dg_vertex_id_t *prev      = NULL;
     pdc_dg_vertex_id_t *queue     = NULL;
     pdc_dg_vertex_id_t *path      = NULL;
@@ -242,6 +242,13 @@ PDCdg_shortest_path(pdc_dg_t *dg, void *v1_data, void *v2_data, pdc_dg_edge_t **
     pdc_dg_vertex_id_t from_vertex_id = PDCdg_vertex_exists(dg, v1_data);
     pdc_dg_vertex_id_t to_vertex_id   = PDCdg_vertex_exists(dg, v2_data);
 
+    // Validate vertices
+    if (from_vertex_id >= dg->vertex_count)
+        PGOTO_ERROR(false, "Source vertex ID %u out of range (vertex_count=%u)", from_vertex_id,
+                    dg->vertex_count);
+    if (to_vertex_id >= dg->vertex_count)
+        PGOTO_ERROR(false, "Destination vertex ID %u out of range (vertex_count=%u)", to_vertex_id,
+                    dg->vertex_count);
     if (from_vertex_id == PDC_DG_INVALID_VERTEX)
         PGOTO_ERROR(false, "Source vertex not found");
     if (to_vertex_id == PDC_DG_INVALID_VERTEX)
