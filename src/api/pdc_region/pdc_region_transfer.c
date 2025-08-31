@@ -77,7 +77,7 @@ typedef struct pdc_transfer_request {
     // For each of the contig buffer sent to a server, we have a bulk buffer.
     char **bulk_buf;
     // Reference counter for bulk_buf, if 0, we free it.
-    int                  **bulk_buf_ref;
+    int **                 bulk_buf_ref;
     pdc_region_partition_t region_partition;
 
     // Consistency semantics required by user
@@ -135,7 +135,7 @@ typedef struct pdc_transfer_request_start_all_pkg {
     // appears in the transfer_request->obj_servers.
     int index;
     // Data buffer. This data buffer is contiguous according to the remote region.
-    char                                      *buf;
+    char *                                     buf;
     struct pdc_transfer_request_start_all_pkg *next;
 } pdc_transfer_request_start_all_pkg;
 
@@ -149,7 +149,7 @@ typedef struct pdc_transfer_request_wait_all_pkg {
     // Record the index of the metadata_id in the current transfer_request
     int index;
     // Pointer to the transfer request
-    pdc_transfer_request                     *transfer_request;
+    pdc_transfer_request *                    transfer_request;
     struct pdc_transfer_request_wait_all_pkg *next;
 } pdc_transfer_request_wait_all_pkg;
 
@@ -285,12 +285,12 @@ PDCregion_transfer_create(void *buf, pdc_access_t access_type, pdcid_t obj_id, p
     FUNC_ENTER(NULL);
 
     pdcid_t                 ret_value = SUCCEED;
-    struct _pdc_id_info    *obj_info;
-    struct _pdc_obj_info   *obj;
-    pdc_transfer_request   *p;
-    struct _pdc_id_info    *reginfo1, *reginfo2;
+    struct _pdc_id_info *   obj_info;
+    struct _pdc_obj_info *  obj;
+    pdc_transfer_request *  p;
+    struct _pdc_id_info *   reginfo1, *reginfo2;
     struct pdc_region_info *reg1, *reg2;
-    uint64_t               *ptr;
+    uint64_t *              ptr;
     uint64_t                unit;
     int                     j;
 
@@ -332,8 +332,8 @@ PDCregion_transfer_create(void *buf, pdc_access_t access_type, pdcid_t obj_id, p
         LOG_INFO("Found graph attached to obj\n");
 
         pdcid_t dg_id        = obj->pdc_tf_obj->all_regions_state.dg_id;
-        char   *client_state = obj->pdc_tf_obj->all_regions_state.client_state;
-        char   *store_state  = obj->pdc_tf_obj->all_regions_state.store_state;
+        char *  client_state = obj->pdc_tf_obj->all_regions_state.client_state;
+        char *  store_state  = obj->pdc_tf_obj->all_regions_state.store_state;
 
         assert(client_state != NULL);
         assert(store_state != NULL);
@@ -385,7 +385,7 @@ PDCregion_transfer_close(pdcid_t transfer_request_id)
 {
     FUNC_ENTER(NULL);
 
-    struct _pdc_id_info  *transferinfo;
+    struct _pdc_id_info * transferinfo;
     pdc_transfer_request *transfer_request;
     perr_t                ret_value = SUCCEED;
 
@@ -633,7 +633,7 @@ pack_region_buffer(char *buf, uint64_t *obj_dims, size_t total_data_size, int lo
 
     uint64_t i, j;
     perr_t   ret_value = SUCCEED;
-    char    *ptr;
+    char *   ptr;
 
     if (local_ndim == 1) {
         *new_buf = buf + local_offset[0] * unit;
@@ -701,7 +701,7 @@ pack_region_metadata_query(pdc_transfer_request_start_all_pkg **transfer_request
 
     perr_t   ret_value = SUCCEED;
     int      i;
-    char    *ptr;
+    char *   ptr;
     uint64_t total_buf_size;
     uint8_t  region_partition;
 
@@ -749,13 +749,13 @@ unpack_region_metadata_query(char *buf, pdc_transfer_request_start_all_pkg **tra
 
     perr_t                              ret_value = SUCCEED;
     pdc_transfer_request_start_all_pkg *transfer_request_head, *transfer_request_end;
-    pdc_transfer_request               *local_request;
+    pdc_transfer_request *              local_request;
     int                                 size;
     int                                 i, j, index;
     int                                 counter;
-    char                               *ptr;
+    char *                              ptr;
     uint64_t                            region_size;
-    uint64_t                           *sub_offset;
+    uint64_t *                          sub_offset;
 
     local_request         = NULL;
     transfer_request_head = NULL;
@@ -849,10 +849,10 @@ register_metadata(pdc_transfer_request_start_all_pkg **transfer_request_input, i
     perr_t                               ret_value = SUCCEED;
     int                                  i, j, index, size, output_size, remain_size, n_objs;
     pdc_transfer_request_start_all_pkg **transfer_requests;
-    pdc_transfer_request_start_all_pkg  *transfer_request_head, *transfer_request_front_head,
+    pdc_transfer_request_start_all_pkg * transfer_request_head, *transfer_request_front_head,
         *transfer_request_end, **transfer_request_output, *previous = NULL;
     uint64_t  total_buf_size, output_buf_size, query_id;
-    char     *buf, *output_buf;
+    char *    buf, *output_buf;
     hg_bulk_t bulk_handle;
 
     transfer_request_output     = NULL;
@@ -991,7 +991,7 @@ prepare_start_all_requests(pdcid_t *transfer_request_id, int size,
         *read_request_pkgs, *write_request_pkgs_end, *read_request_pkgs_end, *request_pkgs,
         **transfer_request_output;
     int                   write_size, read_size, output_size;
-    struct _pdc_id_info  *transferinfo;
+    struct _pdc_id_info * transferinfo;
     pdc_transfer_request *transfer_request;
     int                   set_output_buf = 0;
     int                   ret_value      = SUCCEED;
@@ -1231,7 +1231,7 @@ PDC_Client_pack_all_requests(int n_objs, pdc_transfer_request_start_all_pkg **tr
     FUNC_ENTER(NULL);
 
     perr_t ret_value = SUCCEED;
-    char  *bulk_buf, *ptr, *ptr2;
+    char * bulk_buf, *ptr, *ptr2;
     size_t total_buf_size, obj_data_size, total_obj_data_size, unit, data_size, metadata_size;
     int    i, j;
 
@@ -1323,10 +1323,10 @@ PDC_Client_pack_all_requests(int n_objs, pdc_transfer_request_start_all_pkg **tr
 
         // Checked for transformations associated with region
         pdc_tf_region_mapping_t *region_mapping;
-        struct _pdc_obj_info    *obj_pointer   = transfer_requests[i]->transfer_request->obj_pointer;
+        struct _pdc_obj_info *   obj_pointer   = transfer_requests[i]->transfer_request->obj_pointer;
         int                      remote_ndim   = transfer_requests[i]->transfer_request->remote_region_ndim;
-        uint64_t                *remote_offset = transfer_requests[i]->transfer_request->remote_region_offset;
-        uint64_t                *remote_size   = transfer_requests[i]->transfer_request->remote_region_size;
+        uint64_t *               remote_offset = transfer_requests[i]->transfer_request->remote_region_offset;
+        uint64_t *               remote_size   = transfer_requests[i]->transfer_request->remote_region_size;
 
         const char *json_filepath    = "";
         const char *cur_state_str    = "";
@@ -1350,8 +1350,8 @@ PDC_Client_pack_all_requests(int n_objs, pdc_transfer_request_start_all_pkg **tr
             LOG_INFO("Region transfer store state: %s\n", region_mapping->region_state.store_state);
             LOG_INFO("Region transfer client state: %s\n", region_mapping->region_state.client_state);
 
-            cur_state_str    = (access_type == PDC_WRITE) ? region_mapping->region_state.client_state
-                                                          : region_mapping->region_state.store_state;
+            cur_state_str = (access_type == PDC_WRITE) ? region_mapping->region_state.client_state
+                                                       : region_mapping->region_state.store_state;
             client_state_str = region_mapping->region_state.client_state;
             store_state_str  = region_mapping->region_state.store_state;
         }
@@ -1406,10 +1406,10 @@ PDC_Client_start_all_requests(pdc_transfer_request_start_all_pkg **transfer_requ
     int       index, i, j;
     int       n_objs;
     uint64_t *metadata_id;
-    char    **read_bulk_buf;
-    char     *bulk_buf;
+    char **   read_bulk_buf;
+    char *    bulk_buf;
     size_t    bulk_buf_size;
-    int      *bulk_buf_ref;
+    int *     bulk_buf_ref;
     hg_bulk_t bulk_handle;
 
     if (size == 0)
@@ -1488,10 +1488,10 @@ merge_transfer_request_ids(pdcid_t *transfer_request_id, int size, pdcid_t *merg
 {
     FUNC_ENTER(NULL);
 
-    struct _pdc_id_info   *transferinfo;
+    struct _pdc_id_info *  transferinfo;
     pdcid_t                obj_id, new_local_reg, new_remote_reg;
     int                    flag = 0, i;
-    void                  *new_buf;
+    void *                 new_buf;
     pdc_access_t           access_type;
     pdc_transfer_request **all_transfer_request;
     uint64_t               new_buf_size = 0, copy_off = 0;
@@ -1588,7 +1588,7 @@ PDCregion_transfer_start_all_common(pdcid_t *transfer_request_id, int size, int 
     perr_t                               ret_value  = SUCCEED;
     int                                  write_size = 0, read_size = 0, posix_size = 0, merged_size = 0;
     pdc_transfer_request_start_all_pkg **write_transfer_requests = NULL, **read_transfer_requests = NULL;
-    pdcid_t                             *posix_transfer_request_id, *merged_request_id;
+    pdcid_t *                            posix_transfer_request_id, *merged_request_id;
 
     // Merge the transfer_request_ids when they are operating on the same obj and have contiguous off, len
     if (size > PDC_MERGE_TRANSFER_MIN_COUNT) {
@@ -1671,7 +1671,7 @@ region_transfer_start_common_helper(pdcid_t transfer_request_id,
     FUNC_ENTER(NULL);
 
     perr_t                ret_value = SUCCEED;
-    struct _pdc_id_info  *transfer_info;
+    struct _pdc_id_info * transfer_info;
     pdc_transfer_request *transfer_request;
     size_t                unit;
     int                   i;
@@ -1827,7 +1827,7 @@ release_region_buffer(char *buf, uint64_t *obj_dims, int local_ndim, uint64_t *l
     int      k;
 
     perr_t ret_value = SUCCEED;
-    char  *ptr;
+    char * ptr;
     if (local_ndim == 2) {
         if (access_type == PDC_READ) {
             ptr = new_buf;
@@ -1866,7 +1866,7 @@ PDCregion_transfer_status(pdcid_t transfer_request_id, pdc_transfer_status_t *co
     FUNC_ENTER(NULL);
 
     perr_t                ret_value = SUCCEED;
-    struct _pdc_id_info  *transferinfo;
+    struct _pdc_id_info * transferinfo;
     pdc_transfer_request *transfer_request;
     size_t                unit;
     int                   i;
@@ -1953,15 +1953,15 @@ PDCregion_transfer_wait_all(pdcid_t *transfer_request_id, int size)
     int                                 index, i, j, merged_xfer = 0, ori_size = size, is_first = 1;
     size_t                              unit;
     int                                 total_requests, n_objs;
-    uint64_t                           *metadata_ids, merge_off = 0, cur_off = 0;
+    uint64_t *                          metadata_ids, merge_off = 0, cur_off = 0;
     pdc_transfer_request_wait_all_pkg **transfer_requests, *transfer_request_head, *transfer_request_end,
         *temp;
     hg_bulk_t bulk_handle;
 
     struct _pdc_id_info **transferinfos;
-    struct _pdc_id_info  *transfer_info;
+    struct _pdc_id_info * transfer_info;
     pdc_transfer_request *transfer_request, *merged_request;
-    pdcid_t              *my_transfer_request_id = transfer_request_id;
+    pdcid_t *             my_transfer_request_id = transfer_request_id;
 
     double t0, t1;
 
@@ -2198,7 +2198,7 @@ PDCregion_transfer_wait(pdcid_t transfer_request_id)
     FUNC_ENTER(NULL);
 
     perr_t                ret_value = SUCCEED;
-    struct _pdc_id_info  *transferinfo;
+    struct _pdc_id_info * transferinfo;
     pdc_transfer_request *transfer_request;
     size_t                unit;
     int                   i;
