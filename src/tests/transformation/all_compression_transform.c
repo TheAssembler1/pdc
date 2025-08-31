@@ -40,7 +40,7 @@
 #define BATCH_REQUESTS      1
 #define INDIVIDUAL_REQUESTS 0
 
-#define TRANSFORM_GRAPH_PATH "/home/ta1/src/workspace/source/pdc/tf_graphs/compression.json"
+#define TRANSFORM_GRAPH_PATH TF_GRAPHS_DIR "compression.json"
 
 int
 main(int argc, char **argv)

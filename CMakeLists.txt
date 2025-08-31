@@ -453,7 +453,16 @@ if(PDC_ENABLE_APP_CLOSE_SERVER)
 endif()
 
 #-----------------------------------------------------------------------------
-# 
+# Path to graphs for tests
+#-----------------------------------------------------------------------------
+set(TF_GRAPHS_DIR "${CMAKE_SOURCE_DIR}/tf_graphs/")
+if(NOT EXISTS "${TF_GRAPHS_DIR}")
+    message(FATAL_ERROR "Directory ${TF_GRAPHS_DIR} does not exist!")
+endif()
+add_compile_definitions(TF_GRAPHS_DIR="${TF_GRAPHS_DIR}")
+
+#-----------------------------------------------------------------------------
+# Wait for data fanalized in FS when object unmap is called
 #-----------------------------------------------------------------------------
 option(PDC_ENABLE_WAIT_DATA 
     "Wait for data fanalized in FS when object unmap is called." OFF)
