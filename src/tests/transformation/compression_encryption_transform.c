@@ -124,8 +124,7 @@ main(int argc, char **argv)
     for (i = 0; i < BUF_LEN; ++i)
         data[i] = i;
 
-    pdcid_t dg_id =
-        PDCtf_dg_json_create("/home/ta1/src/workspace/source/pdc/tf_graphs/compression_encryption.json");
+    pdcid_t dg_id = PDCtf_dg_json_create(TF_GRAPHS_DIR "compression_encryption.json");
     PDCtf_attach_to_region(dg_id, obj1, reg_global, "decompressed", "encrypted");
 
     // write transfer request
