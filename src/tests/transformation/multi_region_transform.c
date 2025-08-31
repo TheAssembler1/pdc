@@ -162,7 +162,6 @@ main(int argc, char **argv)
     // attach graph
     pdcid_t dg_id =
         PDCtf_dg_json_create("/home/ta1/src/workspace/source/pdc/tf_graphs/compression_or_encryption.json");
-    PDCtf_print_dg(dg_id, true);
     PDCtf_attach_to_region(dg_id, obj1, reg_global, "client", "compressed");
 
     // Write to data buffer

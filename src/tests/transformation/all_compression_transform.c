@@ -30,10 +30,17 @@
 #include <inttypes.h>
 #include <unistd.h>
 #include <sys/time.h>
+
 #include "pdc.h"
 #include "test_helper.h"
+
 #define BUF_LEN 256
 #define OBJ_NUM 10
+
+#define BATCH_REQUESTS      1
+#define INDIVIDUAL_REQUESTS 0
+
+#define TRANSFORM_GRAPH_PATH "/home/ta1/src/workspace/source/pdc/tf_graphs/compression.json"
 
 int
 main(int argc, char **argv)
@@ -48,8 +55,8 @@ main(int argc, char **argv)
     int   rank = 0, size = 1, i, j;
     int   ret_value = 0;
     int **data, **data_read;
-    int   start_method = 1;
-    int   wait_method  = 1;
+    int   start_method = BATCH_REQUESTS;
+    int   wait_method  = BATCH_REQUESTS;
 
     uint64_t offset[1], offset_length[1];
     uint64_t dims[1];
@@ -59,15 +66,16 @@ main(int argc, char **argv)
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
     MPI_Comm_size(MPI_COMM_WORLD, &size);
 #endif
-    if (argc >= 2) {
+
+    if (argc >= 2)
         start_method = atoi(argv[1]);
-    }
-    if (argc >= 3) {
+    if (argc >= 3)
         wait_method = atoi(argv[2]);
-    }
     if (!rank) {
-        LOG_INFO("start_method = %d, wait_method = %d\n", start_method, wait_method);
+        LOG_INFO("Start method: %s\n", (start_method) ? "batch" : "individual");
+        LOG_INFO("Wait method: %s\n", (start_method) ? "batch" : "individual");
     }
+
     data         = (int **)malloc(sizeof(int *) * OBJ_NUM);
     data_read    = (int **)malloc(sizeof(int *) * OBJ_NUM);
     data[0]      = (int *)malloc(sizeof(int) * BUF_LEN * OBJ_NUM);
@@ -82,42 +90,34 @@ main(int argc, char **argv)
 
     // create a pdc
     pdc = PDCinit("pdc");
-    LOG_INFO("create a new pdc\n");
+    LOG_INFO("Created a new pdc\n");
 
     // create a container property
     cont_prop = PDCprop_create(PDC_CONT_CREATE, pdc);
-    if (cont_prop > 0) {
-        LOG_INFO("Create a container property\n");
-    }
-    else {
-        LOG_ERROR("Failed to create container property\n");
-        ret_value = 1;
-    }
+    if (cont_prop > 0)
+        LOG_INFO("Created container property\n");
+    else
+        TGOTO_ERROR(FAIL, "Failed to create container property");
+
     // create a container
     sprintf(cont_name, "c%d", rank);
     cont = PDCcont_create(cont_name, cont_prop);
-    if (cont > 0) {
-        LOG_INFO("Create a container c1\n");
-    }
-    else {
-        LOG_ERROR("Failed to create container\n");
-        ret_value = 1;
-    }
+    if (cont > 0)
+        LOG_INFO("Created container c1\n");
+    else
+        TGOTO_ERROR(TFAIL, "Failed to create container");
     // create an object property
     obj_prop = PDCprop_create(PDC_OBJ_CREATE, pdc);
-    if (obj_prop > 0) {
-        LOG_INFO("Create an object property\n");
-    }
+    if (obj_prop > 0)
+        LOG_INFO("Created an object property\n");
     else {
         LOG_ERROR("Failed to create object property\n");
         ret_value = 1;
     }
 
     ret = PDCprop_set_obj_type(obj_prop, PDC_INT);
-    if (ret != SUCCEED) {
-        LOG_ERROR("Failed to set obj type\n");
-        ret_value = 1;
-    }
+    if (ret != SUCCEED)
+        TGOTO_ERROR(TFAIL, "Failed to set obj type\n");
     PDCprop_set_obj_dims(obj_prop, 1, dims);
     PDCprop_set_obj_user_id(obj_prop, getuid());
     PDCprop_set_obj_time_step(obj_prop, 0);
@@ -131,80 +131,61 @@ main(int argc, char **argv)
         TASSERT(PDCprop_set_obj_transfer_region_type(obj_prop, PDC_OBJ_STATIC) >= 0,
                 "Call to PDCprop_set_obj_transfer_region_type succeeded",
                 "Call to PDCprop_set_obj_transfer_region_type failed");
-        if (ret != SUCCEED) {
-            LOG_ERROR("Failed to set obj type");
-            ret_value = 1;
-        }
+        if (ret != SUCCEED)
+            TGOTO_ERROR(TFAIL, "Failed to set obj type");
 
         sprintf(obj_name, "o%d_%d", i, rank);
         obj[i] = PDCobj_create(cont, obj_name, obj_prop);
-        if (obj[i] > 0) {
-            LOG_INFO("Create an object o1\n");
-        }
-        else {
-            LOG_ERROR("Failed to create object\n");
-            ret_value = 1;
-        }
+        if (obj[i] > 0)
+            LOG_INFO("Created an object o1\n");
+        else
+            TGOTO_ERROR(TFAIL, "Failed to create object");
     }
 
     offset[0]        = 0;
     offset_length[0] = BUF_LEN;
     reg              = PDCregion_create(1, offset, offset_length);
-    if (reg > 0) {
+    if (reg > 0)
         LOG_INFO("Create local region\n");
-    }
-    else {
-        LOG_ERROR("Failed to create region\n");
-        ret_value = 1;
-    }
+    else
+        TGOTO_ERROR(TFAIL, "Failed to create region\n");
 
     offset[0]        = 0;
     offset_length[0] = BUF_LEN;
     reg_global       = PDCregion_create(1, offset, offset_length);
-    if (reg_global > 0) {
-        LOG_INFO("Create global region\n");
-    }
-    else {
-        LOG_ERROR("Failed to create region\n");
-        ret_value = 1;
-    }
+    if (reg_global > 0)
+        LOG_INFO("Created a global region\n");
+    else
+        TGOTO_ERROR(TFAIL, "Failed to create region");
 
     for (j = 0; j < OBJ_NUM; ++j) {
-        for (i = 0; i < BUF_LEN; ++i) {
+        for (i = 0; i < BUF_LEN; ++i)
             data[j][i] = i;
-        }
     }
     transfer_request = (pdcid_t *)malloc(sizeof(pdcid_t) * OBJ_NUM);
 
     // Place a transfer request for every objects
     for (i = 0; i < OBJ_NUM; ++i) {
-        dg_ids[i] = PDCtf_dg_json_create("/home/ta1/src/workspace/source/pdc/tf_graphs/compression.json");
-        PDCtf_print_dg(dg_ids[i], true);
+        dg_ids[i] = PDCtf_dg_json_create(TRANSFORM_GRAPH_PATH);
         PDCtf_attach_to_region(dg_ids[i], obj[i], reg_global, "decompressed", "compressed");
         transfer_request[i] = PDCregion_transfer_create(data[i], PDC_WRITE, obj[i], reg, reg_global);
     }
     if (start_method) {
         ret = PDCregion_transfer_start_all(transfer_request, OBJ_NUM);
-        if (ret != SUCCEED) {
-            LOG_ERROR("Failed to region transfer start\n");
-            ret_value = 1;
-        }
+        if (ret != SUCCEED)
+            TGOTO_ERROR(TFAIL, "Failed to region transfer start");
     }
     else {
         for (i = 0; i < OBJ_NUM; ++i) {
             ret = PDCregion_transfer_start(transfer_request[i]);
-            if (ret != SUCCEED) {
-                LOG_ERROR("Failed to region transfer start\n");
-                ret_value = 1;
-            }
+            if (ret != SUCCEED)
+                TGOTO_ERROR(TFAIL, "Failed to region transfer start");
         }
     }
     if (wait_method == 1) {
         ret = PDCregion_transfer_wait_all(transfer_request, OBJ_NUM);
-        if (ret != SUCCEED) {
-            LOG_ERROR("Failed to region transfer wait\n");
-            ret_value = 1;
-        }
+        if (ret != SUCCEED)
+            TGOTO_ERROR(TFAIL, "Failed to region transfer wait");
     }
     else if (wait_method == 0) {
         pdcid_t *transfer_request_all = (pdcid_t *)malloc(sizeof(pdcid_t) * OBJ_NUM);
@@ -214,45 +195,33 @@ main(int argc, char **argv)
             request_size++;
         }
         ret = PDCregion_transfer_wait_all(transfer_request_all, request_size);
-        if (ret != SUCCEED) {
-            LOG_ERROR("Failed to region transfer wait\n");
-            ret_value = 1;
-        }
+        if (ret != SUCCEED)
+            TGOTO_ERROR(TFAIL, "Failed to region transfer wait");
         request_size = 0;
         for (i = 1; i < OBJ_NUM; i += 2) {
             transfer_request_all[request_size] = transfer_request[i];
             request_size++;
         }
         ret = PDCregion_transfer_wait_all(transfer_request_all, request_size);
-        if (ret != SUCCEED) {
-            LOG_ERROR("Failed to region transfer wait\n");
-            ret_value = 1;
-        }
+        if (ret != SUCCEED)
+            TGOTO_ERROR(TFAIL, "Failed to region transfer wait");
         free(transfer_request_all);
     }
     for (i = 0; i < OBJ_NUM; ++i) {
         PDCtf_close_dg(dg_ids[i]);
         ret = PDCregion_transfer_close(transfer_request[i]);
-        if (ret != SUCCEED) {
-            LOG_ERROR("Failed to region transfer close\n");
-            ret_value = 1;
-        }
+        if (ret != SUCCEED)
+            TGOTO_ERROR(TFAIL, "Failed to region transfer close");
     }
-    if (PDCregion_close(reg) < 0) {
-        LOG_ERROR("Failed to close local region\n");
-        ret_value = 1;
-    }
-    else {
-        LOG_INFO("successfully closed local region\n");
-    }
+    if (PDCregion_close(reg) < 0)
+        TGOTO_ERROR(TFAIL, "Failed to close local region");
+    else
+        LOG_INFO("Successfully closed local region\n");
 
-    if (PDCregion_close(reg_global) < 0) {
-        LOG_ERROR("Failed to close global region\n");
-        ret_value = 1;
-    }
-    else {
-        LOG_INFO("successfully closed global region\n");
-    }
+    if (PDCregion_close(reg_global) < 0)
+        TGOTO_ERROR(TFAIL, "Failed to close global region\n");
+    else
+        LOG_INFO("Successfully closed global region\n");
 
 done:
     free(data[0]);
@@ -262,10 +231,9 @@ done:
     free(obj);
     free(transfer_request);
     // close pdc
-    if (PDCclose(pdc) < 0) {
-        LOG_ERROR("Failed to close PDC\n");
-        ret_value = 1;
-    }
+    if (PDCclose(pdc) < 0)
+        TGOTO_ERROR(TFAIL, "Failed to close PDC");
+
 #ifdef ENABLE_MPI
     MPI_Finalize();
 #endif
