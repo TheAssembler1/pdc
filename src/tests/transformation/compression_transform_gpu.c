@@ -67,7 +67,7 @@ main(int argc, char **argv)
 
     double *data      = (double *)malloc(sizeof(double) * BUF_LEN);
     double *data_read = (double *)malloc(sizeof(double) * BUF_LEN);
-    dims[0]        = PDC_SIZE_UNLIMITED;
+    dims[0]           = PDC_SIZE_UNLIMITED;
 
 #ifdef ENABLE_MPI
     MPI_Init(&argc, &argv);
@@ -152,8 +152,8 @@ main(int argc, char **argv)
     // Check if data written previously has been correctly read.
     for (i = 0; i < BUF_LEN; ++i) {
         LOG_JUST_PRINT("%lf ", data_read[i]);
-        if(i % 10 == 0 && i != 0) {
-                LOG_JUST_PRINT("\n");
+        if (i % 10 == 0 && i != 0) {
+            LOG_JUST_PRINT("\n");
         }
     }
 

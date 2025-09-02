@@ -45,10 +45,10 @@
  * @param params        [in]  Pointer to the data to set for the parameter.
  * @param params_size   [in]  Size in bytes of the data pointed to by params.
  */
-#define SET_FUNC_PARAMS(name, dev, params, params_size)                                                           \
+#define SET_FUNC_PARAMS(name, dev, params, params_size)                                                      \
     do {                                                                                                     \
-        assert(PDCtf_set_func_param(internal_param.dg, name, dev, internal_param.flat_conceptual_offset, params,  \
-                                    params_size) == SUCCEED);                                                \
+        assert(PDCtf_set_func_param(internal_param.dg, name, dev, internal_param.flat_conceptual_offset,     \
+                                    params, params_size) == SUCCEED);                                        \
     } while (0)
 
 /**
@@ -58,10 +58,10 @@
  * @param params        [in,out] Pointer to a buffer pointer that will be set by the function.
  * @param params_size   [in,out] Pointer to a size_t that will be set to the size of the returned buffer.
  */
-#define GET_FUNC_PARAMS(name, dev, params, params_size)                                                           \
+#define GET_FUNC_PARAMS(name, dev, params, params_size)                                                      \
     do {                                                                                                     \
-        assert(PDCtf_get_func_param(internal_param.dg, name, dev, internal_param.flat_conceptual_offset, params,  \
-                                    params_size) == SUCCEED);                                                \
+        assert(PDCtf_get_func_param(internal_param.dg, name, dev, internal_param.flat_conceptual_offset,     \
+                                    params, params_size) == SUCCEED);                                        \
     } while (0)
 
 #endif

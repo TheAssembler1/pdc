@@ -165,9 +165,9 @@ typedef struct pdc_tf_pkg_t {
  * Such as zfp compression on the CPU and zfp compression on the GPU
  */
 typedef struct pdc_tf_builtin_func_t {
-    char            name[PDC_TF_MAX_FUNC_NAME_LEN];
-    pdc_tf_dev_t       dev;
-    c_func_t            c_func;
+    char         name[PDC_TF_MAX_FUNC_NAME_LEN];
+    pdc_tf_dev_t dev;
+    c_func_t     c_func;
 } pdc_tf_builtin_func_t;
 
 // this is our global array of builtin functions
@@ -181,10 +181,10 @@ perr_t PDCtf_set_state_param(pdc_dg_t *dg, char *state_name, uint64_t flat_conce
                              uint64_t params_size);
 perr_t PDCtf_get_state_param(pdc_dg_t *dg, char *state_name, uint64_t flat_conceptual_offset, void **params,
                              uint64_t *params_size);
-perr_t PDCtf_set_func_param(pdc_dg_t *dg, char *func_name, pdc_tf_dev_t dev, uint64_t flat_conceptual_offset, void *params,
-                            uint64_t params_size);
-perr_t PDCtf_get_func_param(pdc_dg_t *dg, char *func_name, pdc_tf_dev_t dev, uint64_t flat_conceptual_offset, void **params,
-                            uint64_t *params_size);
+perr_t PDCtf_set_func_param(pdc_dg_t *dg, char *func_name, pdc_tf_dev_t dev, uint64_t flat_conceptual_offset,
+                            void *params, uint64_t params_size);
+perr_t PDCtf_get_func_param(pdc_dg_t *dg, char *func_name, pdc_tf_dev_t dev, uint64_t flat_conceptual_offset,
+                            void **params, uint64_t *params_size);
 pdc_dg_t *PDCtf_dg_json_create_common(char *filepath);
 perr_t    PDCtf_init_builtin_funcs();
 perr_t    PDCtf_add_builtin_func(char *func_name, c_func_t c_func, pdc_tf_dev_t dev);
