@@ -42,7 +42,7 @@ PDCtf_copy_tf_region_t(pdc_tf_region_t *src, pdc_tf_region_t *dest)
 }
 
 perr_t
-PDCtf_set_func_param(pdc_dg_t *dg, char *func_name, uint64_t flat_conceptual_offset, void *params,
+PDCtf_set_func_param(pdc_dg_t *dg, char *func_name, pdc_tf_dev_t dev, uint64_t flat_conceptual_offset, void *params,
                      uint64_t params_size)
 {
     FUNC_ENTER(NULL);
@@ -87,7 +87,7 @@ done:
 }
 
 perr_t
-PDCtf_get_func_param(pdc_dg_t *dg, char *func_name, uint64_t flat_conceptual_offset, void **params,
+PDCtf_get_func_param(pdc_dg_t *dg, char *func_name, pdc_tf_dev_t dev, uint64_t flat_conceptual_offset, void **params,
                      uint64_t *params_size)
 {
     FUNC_ENTER(NULL);
@@ -100,7 +100,7 @@ PDCtf_get_func_param(pdc_dg_t *dg, char *func_name, uint64_t flat_conceptual_off
         assert(edge != NULL && edge->data != NULL);
         pdc_tf_func_t *tf_func = edge->data;
 
-        if (!strcmp(func_name, tf_func->name)) {
+        if (!strcmp(func_name, tf_func->name) && tf_func->dev == dev) {
             // Locate the params by conceptual offset
             for (int params_list_index = 0; params_list_index < tf_func->cur_num_params;
                  params_list_index++) {
@@ -206,7 +206,7 @@ done:
 }
 
 perr_t
-PDCtf_add_builtin_func(char *func_name, c_func_t c_func)
+PDCtf_add_builtin_func(char *func_name, c_func_t c_func, pdc_tf_dev_t dev)
 {
     FUNC_ENTER(NULL);
 
@@ -217,17 +217,19 @@ PDCtf_add_builtin_func(char *func_name, c_func_t c_func)
 
     strcpy(pdc_tf_builtin_funcs_g[pdc_tf_builtin_cur_func_g].name, func_name);
     pdc_tf_builtin_funcs_g[pdc_tf_builtin_cur_func_g].c_func = c_func;
+    pdc_tf_builtin_funcs_g[pdc_tf_builtin_cur_func_g].dev = dev;
 
     pdc_tf_builtin_cur_func_g++;
 
-    LOG_INFO("Successfully added builtin function %s\n", func_name);
+    LOG_INFO("Successfully added builtin function %s %s\n", 
+            func_name, (dev == PDC_TF_CPU_DEVICE) ? "CPU" : "GPU");
 
 done:
     FUNC_LEAVE(ret_value);
 }
 
 perr_t
-PDCtf_link_builtin_func(char *func_name, pdc_tf_func_t *f)
+PDCtf_link_builtin_func(char *func_name, pdc_tf_dev_t dev, pdc_tf_func_t *f)
 {
     FUNC_ENTER(NULL);
 
@@ -240,7 +242,7 @@ PDCtf_link_builtin_func(char *func_name, pdc_tf_func_t *f)
         PGOTO_ERROR(FAIL, "f was NULL");
 
     for (int i = 0; i < pdc_tf_builtin_cur_func_g; i++) {
-        if (strcmp(pdc_tf_builtin_funcs_g[i].name, func_name) == 0) {
+        if (strcmp(pdc_tf_builtin_funcs_g[i].name, func_name) == 0 && pdc_tf_builtin_funcs_g[i].dev == dev) {
             found     = true;
             f->c_func = pdc_tf_builtin_funcs_g[i].c_func;
         }
@@ -261,17 +263,24 @@ PDCtf_init_builtin_funcs()
     perr_t ret_value = SUCCEED;
 
 #ifdef ENABLE_TF_ZFP_COMPRESSION
-    if (PDCtf_add_builtin_func("zfp_compress", pdc_tf_builtin_zfp_compress) != SUCCEED)
-        PGOTO_ERROR(FAIL, "Failed to add builtin func zfp_compress");
-    if (PDCtf_add_builtin_func("zfp_decompress", pdc_tf_builtin_zfp_decompress) != SUCCEED)
-        PGOTO_ERROR(FAIL, "Failed to add builtin func zfp_decompress");
-#endif
+    if (PDCtf_add_builtin_func("zfp_compress", pdc_tf_builtin_zfp_compress, PDC_TF_CPU_DEVICE) != SUCCEED)
+        PGOTO_ERROR(FAIL, "Failed to add builtin func zfp_compress CPU");
+    if (PDCtf_add_builtin_func("zfp_decompress", pdc_tf_builtin_zfp_decompress, PDC_TF_CPU_DEVICE) != SUCCEED)
+        PGOTO_ERROR(FAIL, "Failed to add builtin func zfp_decompress CPU");
+#ifdef CUDA_ENABLED
+    if (PDCtf_add_builtin_func("zfp_compress", pdc_tf_builtin_zfp_compress_cuda, PDC_TF_GPU_DEVICE) != SUCCEED)
+        PGOTO_ERROR(FAIL, "Failed to add builtin func zfp_compress GPU");
+    if (PDCtf_add_builtin_func("zfp_decompress", pdc_tf_builtin_zfp_decompress_cuda, PDC_TF_GPU_DEVICE) != SUCCEED)
+        PGOTO_ERROR(FAIL, "Failed to add builtin func zfp_decompress GPU");
+#endif // CUDA_ENABLED
+#endif // ENABLE_TF_ZFP_COMPRESSION
 #ifdef ENABLE_SECRET_BOX_ENCRYPTION
-    if (PDCtf_add_builtin_func("secret_box_encrypt", pdc_tf_builtin_encrypt) != SUCCEED)
-        PGOTO_ERROR(FAIL, "Failed to add builtin func secret_box_encrypt");
-    if (PDCtf_add_builtin_func("secret_box_decrypt", pdc_tf_builtin_decrypt) != SUCCEED)
-        PGOTO_ERROR(FAIL, "Failed to add builtin func pdc_tf_builtin_decrypt");
-#endif
+    if (PDCtf_add_builtin_func("secret_box_encrypt", pdc_tf_builtin_encrypt, PDC_TF_CPU_DEVICE) != SUCCEED)
+        PGOTO_ERROR(FAIL, "Failed to add builtin func secret_box_encrypt CPU");
+    if (PDCtf_add_builtin_func("secret_box_decrypt", pdc_tf_builtin_decrypt, PDC_TF_CPU_DEVICE) != SUCCEED)
+        PGOTO_ERROR(FAIL, "Failed to add builtin func secret_box_decrypt CPU");
+#endif // ENABLE_SECRET_BOX_ENCRYPTION
+
 done:
     FUNC_LEAVE(ret_value);
 }
@@ -586,15 +595,13 @@ PDCtf_dg_json_create_common(char *filepath)
         if (!found_location)
             PGOTO_ERROR(NULL, "Invalid location %s\n", f_location);
 
-        // FIXME: Currently on support CPU devices and built-in functions
-        if (dev != PDC_TF_CPU_DEVICE)
-            PGOTO_ERROR(NULL, "Currently, only support CPU functions");
+        // FIXME: Currently support only built-in functions
         if (location != PDC_TF_BUILTIN)
             PGOTO_ERROR(NULL, "Currently, only support builtin functions");
 
         dg_func->dev      = dev;
         dg_func->location = location;
-        if (PDCtf_link_builtin_func(f_name, dg_func) != SUCCEED)
+        if (PDCtf_link_builtin_func(f_name, dev, dg_func) != SUCCEED)
             PGOTO_ERROR(NULL, "Failed to link to builtin function");
         dg_func->name       = f_name;
         dg_func->params_str = (f_params_str) ? f_params_str : NULL;

@@ -17,6 +17,13 @@ bool pdc_tf_builtin_zfp_compress(pdc_tf_internal_param internal_param, char *par
 bool pdc_tf_builtin_zfp_decompress(pdc_tf_internal_param internal_param, char *params_str, void **region_data,
                                    pdc_tf_region_t input_region, pdc_tf_region_t *output_region);
 #endif
+#if defined(ENABLE_TF_ZFP_COMPRESSION) && defined(CUDA_ENABLED)
+bool pdc_tf_builtin_zfp_compress_cuda(pdc_tf_internal_param internal_param, char *params_str, void **region_data,
+                                 pdc_tf_region_t input_region, pdc_tf_region_t *output_region);
+bool pdc_tf_builtin_zfp_decompress_cuda(pdc_tf_internal_param internal_param, char *params_str, void **region_data,
+                                   pdc_tf_region_t input_region, pdc_tf_region_t *output_region);
+#endif
+
 
 #ifdef ENABLE_SECRET_BOX_ENCRYPTION
 bool pdc_tf_builtin_encrypt(pdc_tf_internal_param internal_param, char *params_str, void **region_data,

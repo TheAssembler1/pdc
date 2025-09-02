@@ -157,12 +157,17 @@ typedef struct pdc_tf_pkg_t {
 // FIXME: we could store this in a dynamically allocated buf
 #define PDC_TF_MAX_FUNC_NAME_LEN 100
 #define PDC_TF_MAX_BUILTIN_FUNCS 100
-#define PDC_TF_MAPPINGS          100
 
-// this structure used to store our builtin functions
+/**
+ * This structure used to store our builtin functions
+ * Functions are unique according to name and device
+ * Allows for identical functions to be differentiated by device
+ * Such as zfp compression on the CPU and zfp compression on the GPU
+ */
 typedef struct pdc_tf_builtin_func_t {
-    char     name[PDC_TF_MAX_FUNC_NAME_LEN];
-    c_func_t c_func;
+    char            name[PDC_TF_MAX_FUNC_NAME_LEN];
+    pdc_tf_dev_t       dev;
+    c_func_t            c_func;
 } pdc_tf_builtin_func_t;
 
 // this is our global array of builtin functions
@@ -176,14 +181,14 @@ perr_t PDCtf_set_state_param(pdc_dg_t *dg, char *state_name, uint64_t flat_conce
                              uint64_t params_size);
 perr_t PDCtf_get_state_param(pdc_dg_t *dg, char *state_name, uint64_t flat_conceptual_offset, void **params,
                              uint64_t *params_size);
-perr_t PDCtf_set_func_param(pdc_dg_t *dg, char *func_name, uint64_t flat_conceptual_offset, void *params,
+perr_t PDCtf_set_func_param(pdc_dg_t *dg, char *func_name, pdc_tf_dev_t dev, uint64_t flat_conceptual_offset, void *params,
                             uint64_t params_size);
-perr_t PDCtf_get_func_param(pdc_dg_t *dg, char *func_name, uint64_t flat_conceptual_offset, void **params,
+perr_t PDCtf_get_func_param(pdc_dg_t *dg, char *func_name, pdc_tf_dev_t dev, uint64_t flat_conceptual_offset, void **params,
                             uint64_t *params_size);
 pdc_dg_t *PDCtf_dg_json_create_common(char *filepath);
 perr_t    PDCtf_init_builtin_funcs();
-perr_t    PDCtf_add_builtin_func(char *func_name, c_func_t c_func);
-perr_t    PDCtf_link_builtin_func(char *func_name, pdc_tf_func_t *f);
+perr_t    PDCtf_add_builtin_func(char *func_name, c_func_t c_func, pdc_tf_dev_t dev);
+perr_t    PDCtf_link_builtin_func(char *func_name, pdc_tf_dev_t dev, pdc_tf_func_t *f);
 bool   PDCtf_region_has_attached_graph(struct pdc_tf_obj_t *tf_obj, int ndim, size_t unit, uint64_t *offset,
                                        uint64_t *size, pdc_tf_region_mapping_t **region_mapping);
 size_t PDCtf_get_pdc_region_t_elements(pdc_tf_region_t reg);

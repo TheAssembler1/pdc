@@ -1,0 +1,29 @@
+{
+  "states": [
+    {
+      "name": "decompressed",
+      "granularity": "element"
+    },
+    {
+      "name": "compressed",
+      "granularity": "region"
+    }
+  ],
+  "functions": [
+    {
+      "device": "GPU",
+      "input_state": "decompressed",
+      "output_state": "compressed",
+      "location": "builtin",
+      "name": "zfp_compress"
+    },
+    {
+      "device": "GPU",
+      "input_state": "compressed",
+      "output_state": "decompressed",
+      "location": "builtin",
+      "name": "zfp_decompress"
+    }
+  ],
+  "name": "ZFP_compression"
+}

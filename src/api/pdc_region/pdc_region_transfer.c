@@ -1393,7 +1393,6 @@ PDC_Client_pack_all_requests(int n_objs, pdc_transfer_request_start_all_pkg **tr
     }
     *total_buf_size_ptr = total_buf_size;
 
-done:
     FUNC_LEAVE(ret_value);
 }
 

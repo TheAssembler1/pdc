@@ -61,6 +61,27 @@ endif()
 include_directories(${LIBSODIUM_INCLUDE_DIR})
 link_libraries(${LIBSODIUM_LIBRARY})
 
+# CUDA 
+# Explicit CUDA path
+set(CUDA_ROOT "/opt/nvidia/hpc_sdk/Linux_x86_64/24.5/cuda/12.4")
+# Find include directory
+find_path(CUDA_INCLUDE_DIR NAMES cuda_runtime.h PATHS "${CUDA_ROOT}/include")
+# Find runtime library
+find_library(CUDA_RUNTIME_LIBRARY NAMES cudart PATHS "${CUDA_ROOT}/lib64" "${CUDA_ROOT}/lib")
+if(NOT CUDA_INCLUDE_DIR)
+    message(FATAL_ERROR "Could not find CUDA headers in ${CUDA_ROOT}/include")
+endif()
+if(NOT CUDA_RUNTIME_LIBRARY)
+    message(FATAL_ERROR "Could not find CUDA runtime library in ${CUDA_ROOT}/lib64 or ${CUDA_ROOT}/lib")
+endif()
+include_directories(${CUDA_INCLUDE_DIR})
+link_libraries(${CUDA_RUNTIME_LIBRARY})
+set(CUDA_ENABLED 1 CACHE BOOL "Enable CUDA globally")
+if(CUDA_ENABLED)
+  add_compile_definitions(CUDA_ENABLED=1)
+    add_definitions(-DUSE_CUDA)
+endif()
+
 
 # Set a consistent MACOSX_RPATH default across all CMake versions.
 # checks if the variable CMAKE_MACOSX_RPATH is not defined and sets it to 0 if it is not defined.
