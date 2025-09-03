@@ -87,6 +87,7 @@ set(PDC_SRCS
   ${PDC_SOURCE_DIR}/src/server/pdc_server_region/pdc_server_region_transfer_metadata_query.c
   ${PDC_SOURCE_DIR}/src/utils/pdc_interface.c
   ${PDC_SOURCE_DIR}/src/utils/pdc_region_utils.c
+  ${PDC_SOURCE_DIR}/src/commons/utils/pdc_malloc.c
 )
 
 set(PDC_COMMON_INCLUDE_DIRS ${PDC_COMMON_INCLUDE_DIRS})
@@ -151,6 +152,33 @@ set(PDC_HEADERS
   ${PDC_SOURCE_DIR}/src/api/pdc_query/include/pdc_query.h
   ${PDC_SOURCE_DIR}/src/api/pdc_region/include/pdc_region.h
   ${PDC_SOURCE_DIR}/src/api/pdc_tf/include/pdc_tf.h
+  ${PDC_SOURCE_DIR}/src/api/include/pdc_client_connect.h
+  ${PDC_SOURCE_DIR}/src/server/include/pdc_client_server_common.h
+  ${PDC_SOURCE_DIR}/src/commons/utils/include/pdc_private.h
+  ${PDC_SOURCE_DIR}/src/server/transform/include/pdc_tf_builtin_common.h
+  ${PDC_SOURCE_DIR}/src/server/transform/include/pdc_tf_common.h
+  ${PDC_SOURCE_DIR}/src/commons/collections/include/pdc_dg.h
+  ${PDC_SOURCE_DIR}/src/commons/utils/include/pdc_timing.h
+  ${PDC_SOURCE_DIR}/src/server/pdc_server_region/include/pdc_server_region_transfer_metadata_query.h
+  ${PDC_SOURCE_DIR}/src/server/pdc_server_region/include/pdc_server_region_transfer.h
+  ${PDC_SOURCE_DIR}/src/commons/index/dart/include/dart_core.h
+  ${PDC_SOURCE_DIR}/src/commons/index/dart/include/dart_algo.h
+  ${PDC_SOURCE_DIR}/src/commons/index/dart/include/dart_math.h
+  ${PDC_SOURCE_DIR}/src/commons/index/dart/include/dart_utils.h
+  ${PDC_SOURCE_DIR}/src/commons/utils/include/thpool.h
+  ${PDC_SOURCE_DIR}/src/commons/utils/include/string_utils.h
+  ${PDC_SOURCE_DIR}/src/commons/utils/include/query_utils.h
+  ${PDC_SOURCE_DIR}/src/commons/collections/libhl/include/comparators.h
+  ${PDC_SOURCE_DIR}/src/commons/collections/libhl/include/linklist.h
+  ${PDC_SOURCE_DIR}/src/commons/collections/libhl/include/rbtree.h
+  ${PDC_SOURCE_DIR}/src/commons/collections/libhl/include/atomic_defs.h
+  ${PDC_SOURCE_DIR}/src/commons/collections/include/pdc_set.h
+  ${PDC_SOURCE_DIR}/src/commons/collections/include/pdc_vector.h
+  ${PDC_SOURCE_DIR}/src/commons/collections/include/pdc_compare.h
+  ${PDC_SOURCE_DIR}/src/commons/collections/include/pdc_hash.h
+  ${PDC_SOURCE_DIR}/src/commons/collections/include/pdc_deque.h
+  ${PDC_SOURCE_DIR}/src/commons/collections/include/art.h
+  ${PDC_SOURCE_DIR}/src/commons/collections/include/pdc_hash_table.h
   ${PROJECT_BINARY_DIR}/pdc_config_sys.h
   ${PROJECT_BINARY_DIR}/pdc_config.h
   )
