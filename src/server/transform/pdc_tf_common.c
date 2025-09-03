@@ -42,8 +42,8 @@ PDCtf_copy_tf_region_t(pdc_tf_region_t *src, pdc_tf_region_t *dest)
 }
 
 perr_t
-PDCtf_set_func_param(pdc_dg_t *dg, char *func_name, pdc_tf_dev_t dev, uint64_t flat_conceptual_offset, void *params,
-                     uint64_t params_size)
+PDCtf_set_func_param(pdc_dg_t *dg, char *func_name, pdc_tf_dev_t dev, uint64_t flat_conceptual_offset,
+                     void *params, uint64_t params_size)
 {
     FUNC_ENTER(NULL);
 
@@ -87,8 +87,8 @@ done:
 }
 
 perr_t
-PDCtf_get_func_param(pdc_dg_t *dg, char *func_name, pdc_tf_dev_t dev, uint64_t flat_conceptual_offset, void **params,
-                     uint64_t *params_size)
+PDCtf_get_func_param(pdc_dg_t *dg, char *func_name, pdc_tf_dev_t dev, uint64_t flat_conceptual_offset,
+                     void **params, uint64_t *params_size)
 {
     FUNC_ENTER(NULL);
 
@@ -217,12 +217,12 @@ PDCtf_add_builtin_func(char *func_name, c_func_t c_func, pdc_tf_dev_t dev)
 
     strcpy(pdc_tf_builtin_funcs_g[pdc_tf_builtin_cur_func_g].name, func_name);
     pdc_tf_builtin_funcs_g[pdc_tf_builtin_cur_func_g].c_func = c_func;
-    pdc_tf_builtin_funcs_g[pdc_tf_builtin_cur_func_g].dev = dev;
+    pdc_tf_builtin_funcs_g[pdc_tf_builtin_cur_func_g].dev    = dev;
 
     pdc_tf_builtin_cur_func_g++;
 
-    LOG_INFO("Successfully added builtin function %s %s\n", 
-            func_name, (dev == PDC_TF_CPU_DEVICE) ? "CPU" : "GPU");
+    LOG_INFO("Successfully added builtin function %s %s\n", func_name,
+             (dev == PDC_TF_CPU_DEVICE) ? "CPU" : "GPU");
 
 done:
     FUNC_LEAVE(ret_value);
@@ -268,9 +268,11 @@ PDCtf_init_builtin_funcs()
     if (PDCtf_add_builtin_func("zfp_decompress", pdc_tf_builtin_zfp_decompress, PDC_TF_CPU_DEVICE) != SUCCEED)
         PGOTO_ERROR(FAIL, "Failed to add builtin func zfp_decompress CPU");
 #ifdef CUDA_ENABLED
-    if (PDCtf_add_builtin_func("zfp_compress", pdc_tf_builtin_zfp_compress_cuda, PDC_TF_GPU_DEVICE) != SUCCEED)
+    if (PDCtf_add_builtin_func("zfp_compress", pdc_tf_builtin_zfp_compress_cuda, PDC_TF_GPU_DEVICE) !=
+        SUCCEED)
         PGOTO_ERROR(FAIL, "Failed to add builtin func zfp_compress GPU");
-    if (PDCtf_add_builtin_func("zfp_decompress", pdc_tf_builtin_zfp_decompress_cuda, PDC_TF_GPU_DEVICE) != SUCCEED)
+    if (PDCtf_add_builtin_func("zfp_decompress", pdc_tf_builtin_zfp_decompress_cuda, PDC_TF_GPU_DEVICE) !=
+        SUCCEED)
         PGOTO_ERROR(FAIL, "Failed to add builtin func zfp_decompress GPU");
 #endif // CUDA_ENABLED
 #endif // ENABLE_TF_ZFP_COMPRESSION
