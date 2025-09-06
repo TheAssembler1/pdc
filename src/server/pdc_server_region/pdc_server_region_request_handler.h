@@ -769,8 +769,6 @@ HG_TEST_RPC_CB(transfer_request, handle)
             LOG_INFO("Region transfer client state: %s\n", in.pdc_tf_pkg.client_state);
             LOG_INFO("Region transfer stored state: %s\n", in.pdc_tf_pkg.store_state);
 
-            assert(PDC_get_var_type_size(in.pdc_tf_pkg.pdc_var_type) != 0);
-
             if (PDCtf_store_json_mapping(in.obj_id, in.pdc_tf_pkg.json_filepath, in.pdc_tf_pkg.cur_state,
                                          in.pdc_tf_pkg.client_state, in.pdc_tf_pkg.store_state,
                                          in.remote_region.start, in.remote_region.count,

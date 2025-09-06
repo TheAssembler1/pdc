@@ -9,8 +9,8 @@
 #include "pdc_tf_server.h"
 #include "pdc_tf_common.h"
 
+//static pdc_region_writeout_strategy storage_strategy_g = STORE_FLATTENED_REGION_PER_FILE;
 static pdc_region_writeout_strategy storage_strategy_g = STORE_FLATTENED_REGION_PER_FILE;
-// static pdc_region_writeout_strategy storage_strategy_g = STORE_REGION_BY_REGION_SINGLE_FILE;
 
 int
 can_reset_dims()
@@ -656,7 +656,7 @@ done:
     FUNC_LEAVE(ret_value);
 }
 
-static perr_t
+perr_t
 PDC_Server_data_io_region_per_file_transformations(uint64_t obj_id, int obj_ndim, const uint64_t *obj_dims,
                                                    struct pdc_region_info *region_info, void *buf,
                                                    size_t unit, int is_write, bool *ran_transformation)
@@ -676,7 +676,7 @@ PDC_Server_data_io_region_per_file_transformations(uint64_t obj_id, int obj_ndim
     }
 
     assert(dg != NULL);
-    assert(PDC_get_var_type_size(region_mapping->conceptual_region.pdc_var_type) != 0);
+    PDC_get_var_type_size(region_mapping->conceptual_region.pdc_var_type);
 
     pdc_tf_region_t output_region;
     pdc_tf_region_t input_region;
@@ -709,7 +709,7 @@ PDC_Server_data_io_region_per_file_transformations(uint64_t obj_id, int obj_ndim
         PDCtf_get_flat_conceptual_offset(obj_ndim, region_mapping->conceptual_offset, obj_dims);
 
     // We can now execute the directed graph
-    assert(PDC_get_var_type_size(input_region.pdc_var_type) != 0);
+    PDC_get_var_type_size(input_region.pdc_var_type);
     if (PDCtf_exec_graph(dg, flat_conceptual_offset, region_mapping->region_state.cur_state, desired_state,
                          input_region, &output_region, &buf, is_write) != SUCCEED) {
         PGOTO_ERROR(FAIL, "Error with PDCtf_exec_graph");
@@ -943,7 +943,7 @@ parse_bulk_data(void *buf, transfer_request_all_data *request_data, pdc_access_t
             LOG_INFO("Region transfer client state: %s\n", request_data->client_state_str[i]);
             LOG_INFO("Region transfer stored state: %s\n", request_data->store_state_str[i]);
 
-            assert(PDC_get_var_type_size(request_data->var_types[i]) != 0);
+            PDC_get_var_type_size(request_data->var_types[i]);
 
             if (PDCtf_store_json_mapping(request_data->obj_id[i], request_data->json_filepaths[i],
                                          request_data->cur_state_str[i], request_data->client_state_str[i],

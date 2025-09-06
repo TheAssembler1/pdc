@@ -20,7 +20,7 @@ PDCtf_set_tf_region_t(pdc_tf_region_t *dest, uint8_t ndim, pdc_var_type_t pdc_va
 {
     FUNC_ENTER(NULL);
 
-    assert(PDC_get_var_type_size(pdc_var_type) != 0);
+    PDC_get_var_type_size(pdc_var_type);
 
     dest->ndim         = ndim;
     dest->pdc_var_type = pdc_var_type;
@@ -94,6 +94,8 @@ PDCtf_get_func_param(pdc_dg_t *dg, char *func_name, pdc_tf_dev_t dev, uint64_t f
 
     perr_t ret_value = SUCCEED;
 
+    LOG_INFO("HERE");
+
     // Find edge with name
     for (int i = 0; i < dg->edge_count; i++) {
         pdc_dg_edge_t *edge = dg->edges[i];
@@ -106,6 +108,8 @@ PDCtf_get_func_param(pdc_dg_t *dg, char *func_name, pdc_tf_dev_t dev, uint64_t f
                  params_list_index++) {
                 pdc_tf_dg_params_t *pdc_dg_params = &tf_func->pdc_tf_dg_params_list[params_list_index];
                 if (pdc_dg_params->flat_conceptual_offset == flat_conceptual_offset) {
+                    LOG_INFO("Found params for func_name %s by flat conceptual offset %lu\n", func_name,
+                             flat_conceptual_offset);
                     *params      = pdc_dg_params->params;
                     *params_size = pdc_dg_params->params_size;
                     PGOTO_DONE(SUCCEED);
@@ -309,7 +313,7 @@ PDCtf_region_has_attached_graph(struct pdc_tf_obj_t *tf_obj, int ndim, size_t un
 
         // check if client ndim, offset, dims, unit match
         bool ndim_matches = conceptual_region->ndim == ndim;
-        assert(PDC_get_var_type_size(conceptual_region->pdc_var_type) != 0);
+        PDC_get_var_type_size(conceptual_region->pdc_var_type);
         bool unit_matches = PDC_get_var_type_size(conceptual_region->pdc_var_type) == unit;
 
         // note these return 0 on match so ! is needed

@@ -134,6 +134,7 @@ pdc_tf_builtin_zfp_compress_helper(pdc_tf_internal_param internal_param, char *p
     // Update output region dims to reflect compressed data size (1D)
     output_region->ndim         = 1;
     output_region->pdc_var_type = PDC_CHAR;
+    LOG_INFO("PDC CHAR VALUE =%d\n", output_region->pdc_var_type);
     output_region->size[0]      = compressed_size;
 
     // Free zfp structures
@@ -142,9 +143,19 @@ pdc_tf_builtin_zfp_compress_helper(pdc_tf_internal_param internal_param, char *p
     stream_close(stream);
 
     // Set output params
-    zfp_compress_params_t *out_params = (zfp_compress_params_t *)malloc(sizeof(zfp_compress_params_t));
+    zfp_compress_params_t *out_params = (zfp_compress_params_t *)PDC_malloc(sizeof(zfp_compress_params_t));
+    assert(out_params != NULL);
+    LOG_INFO("TYPE AFTERCOMPRESS =%d\n", input_region.pdc_var_type);
     PDCtf_copy_tf_region_t(&input_region, &out_params->decompressed_region);
     SET_FUNC_PARAMS("zfp_compress", PDC_TF_CPU_DEVICE, out_params, sizeof(zfp_compress_params_t));
+
+    LOG_INFO("MAKING SURE CAN READ BACK PARAMS\n");
+    zfp_compress_params_t *in_params = NULL;
+    uint64_t               in_params_size;
+    GET_FUNC_PARAMS("zfp_compress", PDC_TF_CPU_DEVICE, (void **)&in_params, &in_params_size);
+    // set datatype based on params
+    LOG_INFO("TYPE BEFORE DECOMPRESS =%d\n", in_params->decompressed_region.pdc_var_type);
+    LOG_INFO("END======\n");
 
     LOG_INFO("ZFP compression succeeded, compressed size bytes: %zu bytes\n", compressed_size);
 
@@ -161,10 +172,11 @@ pdc_tf_builtin_zfp_decompress_helper(pdc_tf_internal_param internal_param, char 
     PDCtf_log_pdc_region_t(input_region);
 
     // Get params
-    zfp_compress_params_t *in_params;
+    zfp_compress_params_t *in_params = NULL;
     uint64_t               in_params_size;
     GET_FUNC_PARAMS("zfp_compress", PDC_TF_CPU_DEVICE, (void **)&in_params, &in_params_size);
     // set datatype based on params
+    LOG_INFO("TYPE BEFORE DECOMPRESS =%d\n", in_params->decompressed_region.pdc_var_type);
     zfp_type z_type;
     uint8_t  bits_per_value = 0;
     switch (in_params->decompressed_region.pdc_var_type) {
@@ -186,7 +198,7 @@ pdc_tf_builtin_zfp_decompress_helper(pdc_tf_internal_param internal_param, char 
             bits_per_value = 32; // ~2:1 from 64
             break;
         default:
-            LOG_ERROR("Invalid element type %d\n", input_region.pdc_var_type);
+            LOG_ERROR("Invalid element type %d\n", in_params->decompressed_region.pdc_var_type);
             return false;
     }
     print_ztype(z_type);
@@ -232,9 +244,6 @@ pdc_tf_builtin_zfp_decompress_helper(pdc_tf_internal_param internal_param, char 
             break;
         default:
             LOG_ERROR("Unsupported ndim: %d\n", in_params->decompressed_region.ndim);
-            free(buf);
-            zfp_stream_close(zfp);
-            stream_close(stream);
             return false;
     }
 
@@ -321,8 +330,8 @@ pdc_tf_builtin_zfp_compress_cuda_helper(pdc_tf_internal_param internal_param, ch
     // Allocate device memory for input and output
     void *dev_in  = NULL;
     void *dev_out = NULL;
-    assert(cudaMalloc(&dev_in, num_bytes) == cudaSuccess);
-    assert(cudaMemcpy(dev_in, *region_data, num_bytes, cudaMemcpyHostToDevice) == cudaSuccess);
+    cudaMalloc(&dev_in, num_bytes);
+    cudaMemcpy(dev_in, *region_data, num_bytes, cudaMemcpyHostToDevice);
 
     // Create zfp field on device
     zfp_field *field = NULL;
@@ -349,12 +358,12 @@ pdc_tf_builtin_zfp_compress_cuda_helper(pdc_tf_internal_param internal_param, ch
 
     zfp_stream *zfp     = zfp_stream_open(NULL);
     size_t      bufsize = zfp_stream_maximum_size(zfp, field);
-    assert(cudaMalloc(&dev_out, bufsize) == cudaSuccess);
+    cudaMalloc(&dev_out, bufsize);
 
     bitstream *stream = stream_open(dev_out, bufsize);
     zfp_stream_set_bit_stream(zfp, stream);
     zfp_stream_set_rate(zfp, (double)bits_per_value, z_type, input_region.ndim, 0);
-    assert(zfp_stream_set_execution(zfp, zfp_exec_cuda));
+    zfp_stream_set_execution(zfp, zfp_exec_cuda);
     zfp_stream_rewind(zfp);
 
     size_t compressed_size = zfp_compress(zfp, field);
@@ -362,7 +371,7 @@ pdc_tf_builtin_zfp_compress_cuda_helper(pdc_tf_internal_param internal_param, ch
 
     // Copy compressed data back to host
     void *host_compressed = malloc(compressed_size);
-    assert(cudaMemcpy(host_compressed, dev_out, compressed_size, cudaMemcpyDeviceToHost) == cudaSuccess);
+    cudaMemcpy(host_compressed, dev_out, compressed_size, cudaMemcpyDeviceToHost);
 
     // Cleanup device
     cudaFree(dev_in);
@@ -434,9 +443,9 @@ pdc_tf_builtin_zfp_decompress_cuda_helper(pdc_tf_internal_param internal_param, 
     // Allocate device buffers
     void *dev_compressed   = NULL;
     void *dev_uncompressed = NULL;
-    assert(cudaMalloc(&dev_compressed, compressed_size) == cudaSuccess);
-    assert(cudaMalloc(&dev_uncompressed, uncompressed_size) == cudaSuccess);
-    assert(cudaMemcpy(dev_compressed, *region_data, compressed_size, cudaMemcpyHostToDevice) == cudaSuccess);
+    cudaMalloc(&dev_compressed, compressed_size);
+    cudaMalloc(&dev_uncompressed, uncompressed_size);
+    cudaMemcpy(dev_compressed, *region_data, compressed_size, cudaMemcpyHostToDevice);
 
     // Create zfp field on device
     zfp_field *field  = NULL;
@@ -471,7 +480,7 @@ pdc_tf_builtin_zfp_decompress_cuda_helper(pdc_tf_internal_param internal_param, 
     bitstream * stream = stream_open(dev_compressed, compressed_size);
     zfp_stream_set_bit_stream(zfp, stream);
     zfp_stream_set_rate(zfp, bits_per_value, z_type, in_params->decompressed_region.ndim, 0);
-    assert(zfp_stream_set_execution(zfp, zfp_exec_cuda));
+    zfp_stream_set_execution(zfp, zfp_exec_cuda);
     zfp_stream_rewind(zfp);
 
     size_t decompressed_size = zfp_decompress(zfp, field);
@@ -479,7 +488,7 @@ pdc_tf_builtin_zfp_decompress_cuda_helper(pdc_tf_internal_param internal_param, 
 
     // Copy decompressed data back to host
     void *host_buf = malloc(uncompressed_size);
-    assert(cudaMemcpy(host_buf, dev_uncompressed, uncompressed_size, cudaMemcpyDeviceToHost) == cudaSuccess);
+    cudaMemcpy(host_buf, dev_uncompressed, uncompressed_size, cudaMemcpyDeviceToHost);
 
     // Cleanup device
     cudaFree(dev_compressed);

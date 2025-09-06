@@ -105,7 +105,7 @@ PDCtf_store_json_mapping(pdcid_t obj_id, char *json_filepath, char *cur_state, c
     pdc_tf_region_t *conceptual_region = &region_mapping->conceptual_region;
     uint64_t *       conceptual_offset = region_mapping->conceptual_offset;
 
-    assert(PDC_get_var_type_size(pdc_var_type) != 0);
+    PDC_get_var_type_size(pdc_var_type);
 
     // copy region information into conceptual region
     conceptual_region->ndim         = ndim;
@@ -119,7 +119,7 @@ PDCtf_store_json_mapping(pdcid_t obj_id, char *json_filepath, char *cur_state, c
     region_mapping->region_state.store_state  = strdup(store_state);
     region_mapping->region_state.dg_id        = cur_graph;
 
-    assert(PDC_get_var_type_size(conceptual_region->pdc_var_type) != 0);
+    PDC_get_var_type_size(conceptual_region->pdc_var_type);
 
 done:
     LOG_INFO("Cur number of objs with region mappings: %d\n", num_objs_with_dg);
@@ -136,7 +136,7 @@ PDCtf_exec_graph(pdc_dg_t *dg, uint64_t flat_conceptual_offset, char *cur_state,
 
     LOG_INFO("PDCtf_exec_graph was called\n");
 
-    assert(PDC_get_var_type_size(input_region.pdc_var_type) != 0);
+    PDC_get_var_type_size(input_region.pdc_var_type);
 
     /**
      * Setup input and output states
