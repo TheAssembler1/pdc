@@ -311,7 +311,7 @@ add_test(NAME compression_transform WORKING_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIR
 add_test(NAME compression_transform_2D WORKING_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY} COMMAND run_test.sh ./compression_transform_2D)
 add_test(NAME compression_transform_3D WORKING_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY} COMMAND run_test.sh ./compression_transform_3D)
 # Transformations region transfer compression
-if(defined CUDA_ROOT)
+if(CUDA_ROOT)
 add_test(NAME compression_transform_gpu WORKING_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY} COMMAND run_test.sh ./compression_transform_gpu)
 endif()
 # Transformations attached to object region transfer compression
@@ -436,7 +436,7 @@ set_tests_properties(compression_transform     PROPERTIES LABELS transform)
 set_tests_properties(compression_transform_2D     PROPERTIES LABELS transform)
 set_tests_properties(compression_transform_3D     PROPERTIES LABELS transform)
 # Transformations region transfer compression GPU
-if(defined CUDA_ROOT)
+if(CUDA_ROOT)
 set_tests_properties(compression_transform     PROPERTIES LABELS transform_gpu)
 endif()
 # Transformations attached to object region transfer compression
