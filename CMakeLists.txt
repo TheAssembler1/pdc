@@ -22,8 +22,27 @@ foreach(p
   endif()
 endforeach()
 
-# ZFP (explicit paths)
-set(ZFP_ROOT "/pscratch/sd/n/nlewi26/src/work_space/install/zfp")
+# Dependencies directories
+# ZFP
+if(NOT DEFINED ENV{ZFP_ROOT_DIR} OR "$ENV{ZFP_ROOT_DIR}" STREQUAL "")
+    message(FATAL_ERROR "Environment variable ZFP_ROOT_DIR is not set")
+endif()
+set(ZFP_ROOT $ENV{ZFP_ROOT_DIR})
+# JSON-C
+if(NOT DEFINED ENV{JSONC_ROOT_DIR} OR "$ENV{JSONC_ROOT_DIR}" STREQUAL "")
+    message(FATAL_ERROR "Environment variable JSONC_ROOT_DIR is not set")
+endif()
+set(JSONC_ROOT $ENV{JSONC_ROOT_DIR})
+# libsodium
+if(NOT DEFINED ENV{LIBSODIUM_ROOT_DIR} OR "$ENV{LIBSODIUM_ROOT_DIR}" STREQUAL "")
+    message(FATAL_ERROR "Environment variable LIBSODIUM_ROOT_DIR is not set")
+endif()
+set(LIBSODIUM_ROOT $ENV{LIBSODIUM_ROOT_DIR})
+if(DEFINED ENV{CUDA_ROOT_DIR} AND NOT "$ENV{CUDA_ROOT_DIR}" STREQUAL "")
+  set(CUDA_ROOT $ENV{CUDA_ROOT_DIR})
+endif()
+
+# ZFP
 find_path(ZFP_INCLUDE_DIR NAMES zfp.h PATHS "${ZFP_ROOT}/include")
 find_library(ZFP_LIBRARY NAMES zfp PATHS "${ZFP_ROOT}/lib64")
 if(NOT ZFP_INCLUDE_DIR)
@@ -35,8 +54,7 @@ endif()
 include_directories(${ZFP_INCLUDE_DIR})
 link_libraries(${ZFP_LIBRARY})
 
-# JSON-C (explicit paths)
-set(JSONC_ROOT "/pscratch/sd/n/nlewi26/src/work_space/install/json-c")
+# JSONC
 find_path(JSONC_INCLUDE_DIR NAMES json-c/json.h PATHS "${JSONC_ROOT}/include")
 find_library(JSONC_LIBRARY NAMES json-c PATHS "${JSONC_ROOT}/lib64")
 if(NOT JSONC_INCLUDE_DIR)
@@ -48,8 +66,7 @@ endif()
 include_directories(${JSONC_INCLUDE_DIR})
 link_libraries(${JSONC_LIBRARY})
 
-# libsodium (explicit paths)
-set(LIBSODIUM_ROOT "/pscratch/sd/n/nlewi26/src/work_space/install/libsodium")
+# LIBSODIUM
 find_path(LIBSODIUM_INCLUDE_DIR NAMES sodium.h PATHS "${LIBSODIUM_ROOT}/include")
 find_library(LIBSODIUM_LIBRARY NAMES sodium PATHS "${LIBSODIUM_ROOT}/lib")
 if(NOT LIBSODIUM_INCLUDE_DIR)
@@ -62,24 +79,24 @@ include_directories(${LIBSODIUM_INCLUDE_DIR})
 link_libraries(${LIBSODIUM_LIBRARY})
 
 # CUDA 
-# Explicit CUDA path
-set(CUDA_ROOT "/opt/nvidia/hpc_sdk/Linux_x86_64/24.5/cuda/12.4")
-# Find include directory
-find_path(CUDA_INCLUDE_DIR NAMES cuda_runtime.h PATHS "${CUDA_ROOT}/include")
-# Find runtime library
-find_library(CUDA_RUNTIME_LIBRARY NAMES cudart PATHS "${CUDA_ROOT}/lib64" "${CUDA_ROOT}/lib")
-if(NOT CUDA_INCLUDE_DIR)
-    message(FATAL_ERROR "Could not find CUDA headers in ${CUDA_ROOT}/include")
-endif()
-if(NOT CUDA_RUNTIME_LIBRARY)
-    message(FATAL_ERROR "Could not find CUDA runtime library in ${CUDA_ROOT}/lib64 or ${CUDA_ROOT}/lib")
-endif()
-include_directories(${CUDA_INCLUDE_DIR})
-link_libraries(${CUDA_RUNTIME_LIBRARY})
-set(CUDA_ENABLED 1 CACHE BOOL "Enable CUDA globally")
-if(CUDA_ENABLED)
-  add_compile_definitions(CUDA_ENABLED=1)
+if(CUDA_ROOT)
+  # Find include directory
+  find_path(CUDA_INCLUDE_DIR NAMES cuda_runtime.h PATHS "${CUDA_ROOT}/include")
+  # Find runtime library
+  find_library(CUDA_RUNTIME_LIBRARY NAMES cudart PATHS "${CUDA_ROOT}/lib64" "${CUDA_ROOT}/lib")
+  if(NOT CUDA_INCLUDE_DIR)
+      message(FATAL_ERROR "Could not find CUDA headers in ${CUDA_ROOT}/include")
+  endif()
+  if(NOT CUDA_RUNTIME_LIBRARY)
+      message(FATAL_ERROR "Could not find CUDA runtime library in ${CUDA_ROOT}/lib64 or ${CUDA_ROOT}/lib")
+  endif()
+  include_directories(${CUDA_INCLUDE_DIR})
+  link_libraries(${CUDA_RUNTIME_LIBRARY})
+  set(CUDA_ENABLED 1 CACHE BOOL "Enable CUDA globally")
+  if(CUDA_ENABLED)
+    add_compile_definitions(CUDA_ENABLED=1)
     add_definitions(-DUSE_CUDA)
+  endif()
 endif()
 
 
