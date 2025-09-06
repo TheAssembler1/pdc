@@ -138,7 +138,7 @@ insert_kv_to_index(char *kv, uint64_t obj_id)
         }
         input.attr_key = substring(key, i, strlen(key));
         input.vnode_id = 1;
-            PDC_Server_dart_perform_one_server(&input, &output, NULL, NULL);
+        PDC_Server_dart_perform_one_server(&input, &output, NULL, NULL);
     }
 
 #endif

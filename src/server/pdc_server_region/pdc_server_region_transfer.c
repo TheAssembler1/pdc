@@ -9,7 +9,7 @@
 #include "pdc_tf_server.h"
 #include "pdc_tf_common.h"
 
-//static pdc_region_writeout_strategy storage_strategy_g = STORE_FLATTENED_REGION_PER_FILE;
+// static pdc_region_writeout_strategy storage_strategy_g = STORE_FLATTENED_REGION_PER_FILE;
 static pdc_region_writeout_strategy storage_strategy_g = STORE_FLATTENED_REGION_PER_FILE;
 
 int
