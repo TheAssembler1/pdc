@@ -33,7 +33,7 @@ PDCtf_store_json_mapping(pdcid_t obj_id, char *json_filepath, char *cur_state, c
 {
     FUNC_ENTER(NULL);
 
-    LOG_INFO("PDCtf_store_json_mapping was called\n");
+    LOG_DEBUG("PDCtf_store_json_mapping was called\n");
 
     perr_t ret_value = SUCCEED;
 
@@ -62,7 +62,7 @@ PDCtf_store_json_mapping(pdcid_t obj_id, char *json_filepath, char *cur_state, c
 
     // If object doesn't have a directed graph create a new one
     if (!obj_id_has_dg) {
-        LOG_INFO("Creating directed graph for object\n");
+        LOG_DEBUG("Creating directed graph for object\n");
 
         pdc_dg_t *dg = PDCtf_dg_json_create_common(json_filepath);
         if (dg == NULL)
@@ -83,7 +83,7 @@ PDCtf_store_json_mapping(pdcid_t obj_id, char *json_filepath, char *cur_state, c
     // At this point there is a mapping from object to graph
     pdc_tf_obj_id_to_dg_t *obj_to_dg = &pdc_tf_obj_id_to_dg_list[obj_to_dg_list_index];
 
-    LOG_INFO("Cur num region mappings for object: %lu\n", obj_to_dg->pdc_tf_obj.num_region_mappings);
+    LOG_DEBUG("Cur num region mappings for object: %lu\n", obj_to_dg->pdc_tf_obj.num_region_mappings);
 
     // Check if this mapping already exists
     if (region_mapping == NULL) {
@@ -122,7 +122,7 @@ PDCtf_store_json_mapping(pdcid_t obj_id, char *json_filepath, char *cur_state, c
     PDC_get_var_type_size(conceptual_region->pdc_var_type);
 
 done:
-    LOG_INFO("Cur number of objs with region mappings: %d\n", num_objs_with_dg);
+    LOG_DEBUG("Cur number of objs with region mappings: %d\n", num_objs_with_dg);
     FUNC_LEAVE(ret_value);
 }
 
@@ -134,7 +134,7 @@ PDCtf_exec_graph(pdc_dg_t *dg, uint64_t flat_conceptual_offset, char *cur_state,
 
     perr_t ret_value = SUCCEED;
 
-    LOG_INFO("PDCtf_exec_graph was called\n");
+    LOG_DEBUG("PDCtf_exec_graph was called\n");
 
     PDC_get_var_type_size(input_region.pdc_var_type);
 
@@ -151,7 +151,7 @@ PDCtf_exec_graph(pdc_dg_t *dg, uint64_t flat_conceptual_offset, char *cur_state,
     uint32_t       num_edges;
 
     if (PDCdg_shortest_path(dg, input_state, output_state, &edges_out, &num_edges)) {
-        LOG_INFO("Path was found:\n");
+        LOG_DEBUG("Path was found:\n");
         for (uint32_t j = 0; j < num_edges; j++) {
             pdc_dg_edge_t   e  = edges_out[j];
             pdc_tf_state_t *v1 = (pdc_tf_state_t *)(dg->vertices[e.v1_id]->data);
@@ -164,13 +164,13 @@ PDCtf_exec_graph(pdc_dg_t *dg, uint64_t flat_conceptual_offset, char *cur_state,
             internal_params.flat_conceptual_offset = flat_conceptual_offset;
 
             // Run the transformation
-            LOG_JUST_PRINT("--------------------------TRANSFORM_START--------------------------\n");
+            LOG_DEBUG("--------------------------TRANSFORM_START--------------------------\n");
             void *prev_input = *input;
 
             if (f->c_func(internal_params, f->params_str, input, input_region, output_region) == false)
                 PGOTO_ERROR(FAIL, "Error when running transformation, %s", f->name);
             else
-                LOG_INFO("Transformation %s(%s) = %s ran successfully\n", f->name, v1->name, v2->name);
+                LOG_DEBUG("Transformation %s(%s) = %s ran successfully\n", f->name, v1->name, v2->name);
             /**
              * The transformation malloced a new buffer
              * The buffer associated with the original bulk handle (i.e. j != 0)
@@ -180,13 +180,13 @@ PDCtf_exec_graph(pdc_dg_t *dg, uint64_t flat_conceptual_offset, char *cur_state,
             if (!(is_write && j == 0) && prev_input != *input)
                 prev_input = PDC_free(prev_input);
 
-            LOG_JUST_PRINT("--------------------------TRANSFORM_DONE--------------------------\n");
+            LOG_DEBUG("--------------------------TRANSFORM_DONE--------------------------\n");
 
             // Set previous output region as input region for next transformation
             if (j + 1 != num_edges)
                 memcpy(&input_region, output_region, sizeof(pdc_tf_region_t));
         }
-        LOG_INFO("Done running transformations\n");
+        LOG_DEBUG("Done running transformations\n");
     }
     else
         PGOTO_ERROR(FAIL, "No path to desired states");

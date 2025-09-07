@@ -329,7 +329,7 @@ PDCregion_transfer_create(void *buf, pdc_access_t access_type, pdcid_t obj_id, p
 
     // Check if graph is attached to object
     if (obj->pdc_tf_obj != NULL && obj->pdc_tf_obj->attach_to_all_regions) {
-        LOG_INFO("Found graph attached to entire obj\n");
+        LOG_DEBUG("Found graph attached to entire obj\n");
 
         pdcid_t dg_id        = obj->pdc_tf_obj->all_regions_state.dg_id;
         char *  client_state = obj->pdc_tf_obj->all_regions_state.client_state;
@@ -341,7 +341,7 @@ PDCregion_transfer_create(void *buf, pdc_access_t access_type, pdcid_t obj_id, p
         if (PDCtf_attach_to_region(dg_id, obj_id, remote_reg, client_state, store_state) != SUCCEED)
             PGOTO_ERROR(0, "Failed to attach graph to region");
     } else {
-        LOG_INFO("Entire obj does not have attached graph\n");
+        LOG_DEBUG("Entire obj does not have attached graph\n");
     }
 
     if (PDCregion_transfer_init_bulk_handles(p) != SUCCEED)
@@ -1336,7 +1336,7 @@ PDC_Client_pack_all_requests(int n_objs, pdc_transfer_request_start_all_pkg **tr
             PDCtf_region_has_attached_graph(obj_pointer->pdc_tf_obj, remote_ndim, unit, remote_offset,
                                             remote_size, &region_mapping)) {
 
-            LOG_INFO("Region transfer as an attached graph\n");
+            LOG_DEBUG("Region transfer as an attached graph\n");
             pdcid_t   dg_id = region_mapping->region_state.dg_id;
             pdc_dg_t *dg    = PDCtf_get_dg(dg_id);
 
@@ -1344,10 +1344,10 @@ PDC_Client_pack_all_requests(int n_objs, pdc_transfer_request_start_all_pkg **tr
 
             json_filepath = (char *)dg->data;
 
-            LOG_INFO("Region transfer json filepath: %s\n", json_filepath);
-            LOG_INFO("Region transfer current state: %s\n", region_mapping->region_state.cur_state);
-            LOG_INFO("Region transfer store state: %s\n", region_mapping->region_state.store_state);
-            LOG_INFO("Region transfer client state: %s\n", region_mapping->region_state.client_state);
+            LOG_DEBUG("Region transfer json filepath: %s\n", json_filepath);
+            LOG_DEBUG("Region transfer current state: %s\n", region_mapping->region_state.cur_state);
+            LOG_DEBUG("Region transfer store state: %s\n", region_mapping->region_state.store_state);
+            LOG_DEBUG("Region transfer client state: %s\n", region_mapping->region_state.client_state);
 
             cur_state_str = (access_type == PDC_WRITE) ? region_mapping->region_state.client_state
                                                        : region_mapping->region_state.store_state;
@@ -1355,7 +1355,7 @@ PDC_Client_pack_all_requests(int n_objs, pdc_transfer_request_start_all_pkg **tr
             store_state_str  = region_mapping->region_state.store_state;
         }
         else
-            LOG_INFO("Region transfer does NOT have an attached graph\n");
+            LOG_DEBUG("Region transfer does NOT have an attached graph\n");
 
         MEMCPY_INC(json_filepath ? json_filepath : "", strlen(json_filepath ? json_filepath : "") + 1);
         MEMCPY_INC(cur_state_str ? cur_state_str : "", strlen(cur_state_str ? cur_state_str : "") + 1);
@@ -1667,8 +1667,6 @@ region_transfer_start_common_helper(pdcid_t transfer_request_id,
 #endif
 {
     FUNC_ENTER(NULL);
-
-    LOG_INFO("region_transfer_start_common_helper called\n");
 
     perr_t                ret_value = SUCCEED;
     struct _pdc_id_info * transfer_info;

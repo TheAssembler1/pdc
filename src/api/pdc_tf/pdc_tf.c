@@ -122,7 +122,7 @@ PDCtf_attach_to_region(pdcid_t dg_id, pdcid_t obj_id, pdcid_t remote_reg, char *
 {
     FUNC_ENTER(NULL);
 
-    LOG_INFO("PDCtf_attach_to_region was called\n");
+    LOG_DEBUG("PDCtf_attach_to_region was called\n");
 
     perr_t ret_value = SUCCEED;
 
@@ -166,7 +166,7 @@ PDCtf_attach_to_obj(pdcid_t dg_id, pdcid_t obj_id, char *client_state, char *sto
 {
     FUNC_ENTER(NULL);
 
-    LOG_INFO("PDCtf_attach_to_obj was called\n");
+    LOG_DEBUG("PDCtf_attach_to_obj was called\n");
 
     perr_t ret_value = SUCCEED;
 

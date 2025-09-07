@@ -757,12 +757,12 @@ HG_TEST_RPC_CB(transfer_request, handle)
     ret_value = HG_Respond(handle, NULL, NULL, &out);
     if (in.access_type == PDC_WRITE) {
         if (in.pdc_tf_pkg.json_filepath != NULL && strlen(in.pdc_tf_pkg.json_filepath) > 0) {
-            LOG_INFO("RPC recieved region transfer with attached graph\n");
+            LOG_DEBUG("RPC recieved region transfer with attached graph\n");
 
-            LOG_INFO("Region transfer json filepath: %s\n", in.pdc_tf_pkg.json_filepath);
-            LOG_INFO("Region transfer current state: %s\n", in.pdc_tf_pkg.cur_state);
-            LOG_INFO("Region transfer client state: %s\n", in.pdc_tf_pkg.client_state);
-            LOG_INFO("Region transfer stored state: %s\n", in.pdc_tf_pkg.store_state);
+            LOG_DEBUG("Region transfer json filepath: %s\n", in.pdc_tf_pkg.json_filepath);
+            LOG_DEBUG("Region transfer current state: %s\n", in.pdc_tf_pkg.cur_state);
+            LOG_DEBUG("Region transfer client state: %s\n", in.pdc_tf_pkg.client_state);
+            LOG_DEBUG("Region transfer stored state: %s\n", in.pdc_tf_pkg.store_state);
 
             if (PDCtf_store_json_mapping(in.obj_id, in.pdc_tf_pkg.json_filepath, in.pdc_tf_pkg.cur_state,
                                          in.pdc_tf_pkg.client_state, in.pdc_tf_pkg.store_state,

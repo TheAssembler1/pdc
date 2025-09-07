@@ -3315,7 +3315,7 @@ PDC_Client_transfer_request(hg_bulk_t *bulk_handle, void *buf, pdcid_t obj_id, u
         PDCtf_region_has_attached_graph(obj_pointer->pdc_tf_obj, remote_ndim, unit, remote_offset,
                                         remote_size, &region_mapping)) {
 
-        LOG_INFO("Region transfer as an attached graph\n");
+        LOG_DEBUG("Region transfer as an attached graph\n");
         pdcid_t   dg_id = region_mapping->region_state.dg_id;
         pdc_dg_t *dg    = PDCtf_get_dg(dg_id);
 
@@ -3324,10 +3324,10 @@ PDC_Client_transfer_request(hg_bulk_t *bulk_handle, void *buf, pdcid_t obj_id, u
 
         char *json_filepath = (char *)dg->data;
 
-        LOG_INFO("Region transfer json filepath: %s\n", json_filepath);
-        LOG_INFO("Region transfer current state: %s\n", region_mapping->region_state.cur_state);
-        LOG_INFO("Region transfer store state: %s\n", region_mapping->region_state.store_state);
-        LOG_INFO("Region transfer client state: %s\n", region_mapping->region_state.client_state);
+        LOG_DEBUG("Region transfer json filepath: %s\n", json_filepath);
+        LOG_DEBUG("Region transfer current state: %s\n", region_mapping->region_state.cur_state);
+        LOG_DEBUG("Region transfer store state: %s\n", region_mapping->region_state.store_state);
+        LOG_DEBUG("Region transfer client state: %s\n", region_mapping->region_state.client_state);
 
         in.pdc_tf_pkg.pdc_var_type  = obj_pointer->obj_pt->obj_prop_pub->type;
         in.pdc_tf_pkg.json_filepath = json_filepath;

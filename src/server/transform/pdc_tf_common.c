@@ -52,7 +52,7 @@ PDCtf_set_func_param(pdc_dg_t *dg, char *func_name, pdc_tf_dev_t dev, uint64_t f
 
     perr_t ret_value = SUCCEED;
 
-    LOG_INFO("Setting params for func_name %s by flat conceptual offset %lu\n", func_name,
+    LOG_DEBUG("Setting params for func_name %s by flat conceptual offset %lu\n", func_name,
                              flat_conceptual_offset);
 
     // Find edge with name
@@ -100,7 +100,7 @@ PDCtf_get_func_param(pdc_dg_t *dg, char *func_name, pdc_tf_dev_t dev, uint64_t f
 
     perr_t ret_value = SUCCEED;
 
-    LOG_INFO("Getting params for func_name %s by flat conceptual offset %lu\n", func_name,
+    LOG_DEBUG("Getting params for func_name %s by flat conceptual offset %lu\n", func_name,
                              flat_conceptual_offset);
 
     // Find edge with name
@@ -140,7 +140,7 @@ PDCtf_set_state_param(pdc_dg_t *dg, char *state_name, uint64_t flat_conceptual_o
 
     perr_t ret_value = SUCCEED;
 
-    LOG_INFO("Setting params for state_name %s by flat conceptual offset %lu\n", state_name,
+    LOG_DEBUG("Setting params for state_name %s by flat conceptual offset %lu\n", state_name,
                             flat_conceptual_offset);
 
     // Get state from graph
@@ -188,7 +188,7 @@ PDCtf_get_state_param(pdc_dg_t *dg, char *state_name, uint64_t flat_conceptual_o
 
     perr_t ret_value = SUCCEED;
 
-    LOG_INFO("Getting params for state_name %s by flat conceptual offset %lu\n", state_name,
+    LOG_DEBUG("Getting params for state_name %s by flat conceptual offset %lu\n", state_name,
                         flat_conceptual_offset);
 
     // Get state from graph
@@ -236,7 +236,7 @@ PDCtf_add_builtin_func(char *func_name, c_func_t c_func, pdc_tf_dev_t dev)
 
     pdc_tf_builtin_cur_func_g++;
 
-    LOG_INFO("Successfully added builtin function %s %s\n", func_name,
+    LOG_DEBUG("Successfully added builtin function %s %s\n", func_name,
              (dev == PDC_TF_CPU_DEVICE) ? "CPU" : "GPU");
 
 done:
@@ -420,7 +420,7 @@ graph_free(void *data)
 {
     FUNC_ENTER(NULL);
 
-    LOG_INFO("graph_free called\n");
+    LOG_DEBUG("graph_free called\n");
 
     char *json_filepath = (char *)data;
     json_filepath       = PDC_free(data);
@@ -433,7 +433,7 @@ edge_free(void *data)
 {
     FUNC_ENTER(NULL);
 
-    LOG_INFO("edge_free called\n");
+    LOG_DEBUG("edge_free called\n");
 
     pdc_tf_func_t *f = (pdc_tf_func_t *)data;
     if (f->params_str != NULL)
@@ -449,7 +449,7 @@ vertex_free(void *data)
 {
     FUNC_ENTER(NULL);
 
-    LOG_INFO("vertex_free called\n");
+    LOG_DEBUG("vertex_free called\n");
 
     pdc_tf_state_t *s = (pdc_tf_state_t *)data;
     for (int i = 0; i < s->cur_num_params; i++) {
@@ -683,15 +683,15 @@ PDCtf_log_pdc_region_t(pdc_tf_region_t reg)
     FUNC_ENTER(NULL);
 
     if(reg.ndim <= 0 || reg.ndim > 4) {
-        LOG_INFO("Invalid region ndim: %lu\n", reg.ndim);
+        LOG_DEBUG("Invalid region ndim: %lu\n", reg.ndim);
         abort();
     }
 
-    LOG_INFO("region ndim: %lu\n", reg.ndim);
-    LOG_INFO("region unit: %lu\n", PDC_get_var_type_size(reg.pdc_var_type));
+    LOG_DEBUG("region ndim: %lu\n", reg.ndim);
+    LOG_DEBUG("region unit: %lu\n", PDC_get_var_type_size(reg.pdc_var_type));
     for (int i = 0; i < reg.ndim; i++)
-        LOG_INFO("\tsize[%d] = %lu\n", i + 1, reg.size[0]);
-    LOG_INFO("region bytes: %zu\n", PDCtf_get_pdc_region_t_bytes(reg));
+        LOG_DEBUG("\tsize[%d] = %lu\n", i + 1, reg.size[0]);
+    LOG_DEBUG("region bytes: %zu\n", PDCtf_get_pdc_region_t_bytes(reg));
 
     FUNC_LEAVE_VOID();
 }
@@ -711,18 +711,18 @@ PDCtf_print_exec_path_common(pdc_dg_t *dg, char *cur_state, char *desired_state)
     uint32_t       num_edges;
 
     if (PDCdg_shortest_path(dg, &tf_cur_state, &tf_desired_state, &edges_out, &num_edges)) {
-        LOG_INFO("Path was found:\n");
+        LOG_DEBUG("Path was found:\n");
         for (uint32_t j = 0; j < num_edges; j++) {
             pdc_dg_edge_t e = edges_out[j];
 
             pdc_tf_state_t *v1 = (pdc_tf_state_t *)(dg->vertices[e.v1_id]->data);
             pdc_tf_state_t *v2 = (pdc_tf_state_t *)(dg->vertices[e.v2_id]->data);
 
-            LOG_INFO("%d: %s(%s) = %s\n", j + 1, ((pdc_tf_func_t *)(e.data))->name, v1->name, v2->name);
+            LOG_DEBUG("%d: %s(%s) = %s\n", j + 1, ((pdc_tf_func_t *)(e.data))->name, v1->name, v2->name);
         }
     }
     else
-        LOG_INFO("No path found\n");
+        LOG_DEBUG("No path found\n");
 
     FUNC_LEAVE_VOID();
 }
