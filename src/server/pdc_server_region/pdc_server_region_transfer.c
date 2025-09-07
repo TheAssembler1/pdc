@@ -702,6 +702,7 @@ PDC_Server_data_io_region_per_file_transformations(uint64_t obj_id, int obj_ndim
         uint64_t bytes_to_read = PDC_get_region_desc_size_bytes(
             input_region.size, PDC_get_var_type_size(input_region.pdc_var_type), input_region.ndim);
         buf = PDC_malloc(bytes_to_read);
+        LOG_INFO("Reading %lu bytes from %s\n", bytes_to_read, storage_location);
         PDC_POSIX_IO(fd, buf, bytes_to_read, 0);
         close(fd);
     }
@@ -725,7 +726,8 @@ PDC_Server_data_io_region_per_file_transformations(uint64_t obj_id, int obj_ndim
         int   fd                = open(storage_location, O_CREAT | O_WRONLY | O_TRUNC, 0644);
         uint64_t bytes_to_write = PDC_get_region_desc_size_bytes(
             output_region.size, PDC_get_var_type_size(output_region.pdc_var_type), output_region.ndim);
-        PDC_POSIX_IO(fd, buf, bytes_to_write, 1);
+        LOG_INFO("Writing %lu bytes from %s\n", bytes_to_write, storage_location);
+            PDC_POSIX_IO(fd, buf, bytes_to_write, 1);
         close(fd);
 
         // Update actual region mapping

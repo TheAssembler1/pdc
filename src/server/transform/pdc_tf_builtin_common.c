@@ -135,7 +135,7 @@ pdc_tf_builtin_zfp_compress_helper(pdc_tf_internal_param internal_param, char *p
     // Update output region dims to reflect compressed data size (1D)
     output_region->ndim         = 1;
     output_region->pdc_var_type = PDC_CHAR;
-    output_region->size[0] = 500;
+    output_region->size[0] = compressed_size;
 
     // Free zfp structures
     zfp_field_free(field);

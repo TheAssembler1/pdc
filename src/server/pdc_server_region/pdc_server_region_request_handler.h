@@ -775,8 +775,6 @@ HG_TEST_RPC_CB(transfer_request, handle)
             in.pdc_tf_pkg.json_filepath = NULL;
             in.pdc_tf_pkg.cur_state     = NULL;
             in.pdc_tf_pkg.store_state   = NULL;
-
-            LOG_INFO("No transformation associated with region\n");
         }
 
         ret_value = HG_Bulk_create(info->hg_class, 1, &(local_bulk_args->data_buf),
