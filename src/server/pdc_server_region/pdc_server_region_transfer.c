@@ -380,7 +380,7 @@ done:
  * Constructs file name for STORE_FLATTENED_REGION_PER_FILE storage strategy
  * The returned pointer is heap allocated caller must free
  */
-static inline char *
+static char *
 get_storage_location_region_per_file(int obj_id, int obj_ndim, const uint64_t *indices)
 {
     FUNC_ENTER(NULL);
@@ -671,12 +671,14 @@ PDC_Server_data_io_region_per_file_transformations(uint64_t obj_id, int obj_ndim
     pdc_tf_region_mapping_t *region_mapping;
     if (!PDCtf_region_has_attached_graph(tf_obj, region_info->ndim, unit, region_info->offset,
                                          region_info->size, &region_mapping)) {
+        LOG_INFO("No region mapping found for obj_id %" PRIu64 "\n", obj_id);
         *ran_transformation = false;
         PGOTO_DONE(SUCCEED);
+    } else {
+        LOG_INFO("Found region mapping for obj_id %" PRIu64 "\n", obj_id);
     }
 
     assert(dg != NULL);
-    PDC_get_var_type_size(region_mapping->conceptual_region.pdc_var_type);
 
     pdc_tf_region_t output_region;
     pdc_tf_region_t input_region;
@@ -709,7 +711,6 @@ PDC_Server_data_io_region_per_file_transformations(uint64_t obj_id, int obj_ndim
         PDCtf_get_flat_conceptual_offset(obj_ndim, region_mapping->conceptual_offset, obj_dims);
 
     // We can now execute the directed graph
-    PDC_get_var_type_size(input_region.pdc_var_type);
     if (PDCtf_exec_graph(dg, flat_conceptual_offset, region_mapping->region_state.cur_state, desired_state,
                          input_region, &output_region, &buf, is_write) != SUCCEED) {
         PGOTO_ERROR(FAIL, "Error with PDCtf_exec_graph");
@@ -790,6 +791,20 @@ PDC_Server_transfer_request_io(uint64_t obj_id, int obj_ndim, const uint64_t *ob
 
     perr_t ret_value = SUCCEED;
 
+    // --- Validate input parameters ---
+    if(obj_id == 0)
+        PGOTO_ERROR(FAIL, "obj_id is zero");
+    if (!region_info)
+        PGOTO_ERROR(FAIL, "region_info is NULL");
+    if (obj_ndim < 0 || obj_ndim > DIM_MAX)
+        PGOTO_ERROR(FAIL, "obj_ndim (%d) is invalid", obj_ndim);
+    if (!obj_dims && obj_ndim > 0)
+        PGOTO_ERROR(FAIL, "obj_dims is NULL but obj_ndim > 0");
+    if (!buf)
+        PGOTO_ERROR(FAIL, "buf is NULL");
+    if (unit == 0)
+        PGOTO_ERROR(FAIL, "unit is zero");
+
     /**
      * Switch between storage strategies and hand off to correct handler
      */
@@ -815,6 +830,7 @@ PDC_Server_transfer_request_io(uint64_t obj_id, int obj_ndim, const uint64_t *ob
          */
         // check if the obj has transformations
         bool ran_transformation = false;
+        LOG_INFO("Checking for transformations for obj_id %" PRIu64 "\n", obj_id);
         if (PDC_Server_data_io_region_per_file_transformations(obj_id, obj_ndim, obj_dims, region_info, buf,
                                                                unit, is_write,
                                                                &ran_transformation) != SUCCEED) {
@@ -829,7 +845,7 @@ PDC_Server_transfer_request_io(uint64_t obj_id, int obj_ndim, const uint64_t *ob
         uint64_t temp_file_dims[DIM_MAX];
         if (PDC_shrink_file_dims(temp_file_dims, obj_dims, obj_ndim, unit) != SUCCEED)
             PGOTO_ERROR(FAIL, "Error with PDC_shrink_file_dims");
-
+        
         LOG_INFO("Running storage strategy STORE_FLATTENED_REGION_PER_FILE\n");
         PGOTO_DONE(PDC_Server_data_io_region_per_file(obj_id, obj_ndim, obj_dims, temp_file_dims, region_info,
                                                       buf, unit, is_write));
@@ -904,19 +920,19 @@ parse_bulk_data(void *buf, transfer_request_all_data *request_data, pdc_access_t
 
         // Parse and print strings immediately after unit
         request_data->json_filepaths[i] = ptr;
-        printf("Object %d json_filepath: %s\n", i, request_data->json_filepaths[i]);
+        LOG_INFO("Object %d json_filepath: %s\n", i, request_data->json_filepaths[i]);
         ptr += strlen(ptr) + 1;
 
         request_data->cur_state_str[i] = ptr;
-        printf("Object %d cur_state: %s\n", i, request_data->cur_state_str[i]);
+        LOG_INFO("Object %d cur_state: %s\n", i, request_data->cur_state_str[i]);
         ptr += strlen(ptr) + 1;
 
         request_data->client_state_str[i] = ptr;
-        printf("Object %d client_state: %s\n", i, request_data->client_state_str[i]);
+        LOG_INFO("Object %d client_state: %s\n", i, request_data->client_state_str[i]);
         ptr += strlen(ptr) + 1;
 
         request_data->store_state_str[i] = ptr;
-        printf("Object %d store_state: %s\n", i, request_data->store_state_str[i]);
+        LOG_INFO("Object %d store_state: %s\n", i, request_data->store_state_str[i]);
         ptr += strlen(ptr) + 1;
     }
     /*

@@ -226,8 +226,6 @@ PDC_get_var_type_size(pdc_var_type_t dtype)
 {
     FUNC_ENTER(NULL);
 
-    LOG_INFO("PDC_get_var_type_size: dtype = %d\n", dtype);
-
     int ret_value = 0;
 
     /* TODO: How to determine the size of compound types and or

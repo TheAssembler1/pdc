@@ -1,6 +1,7 @@
 #include <unistd.h>
 #include <errno.h>
 #include <assert.h>
+#include <stdlib.h>
 
 #include "common_io.h"
 #include "pdc_malloc.h"
@@ -24,7 +25,8 @@ PDCtf_set_tf_region_t(pdc_tf_region_t *dest, uint8_t ndim, pdc_var_type_t pdc_va
 
     dest->ndim         = ndim;
     dest->pdc_var_type = pdc_var_type;
-    memcpy(dest->size, size, PDC_get_var_type_size(pdc_var_type) * sizeof(uint64_t));
+    for(int i = 0; i < ndim;i ++)
+        dest->size[i] = size[i];
 
     FUNC_LEAVE(SUCCEED);
 }
@@ -36,7 +38,8 @@ PDCtf_copy_tf_region_t(pdc_tf_region_t *src, pdc_tf_region_t *dest)
 
     dest->ndim         = src->ndim;
     dest->pdc_var_type = src->pdc_var_type;
-    memcpy(dest->size, src->size, PDC_get_var_type_size(src->pdc_var_type) * sizeof(uint64_t));
+    for(int i = 0; i < src->ndim; i++)
+        dest->size[i] = src->size[i];
 
     FUNC_LEAVE(SUCCEED);
 }
@@ -48,6 +51,9 @@ PDCtf_set_func_param(pdc_dg_t *dg, char *func_name, pdc_tf_dev_t dev, uint64_t f
     FUNC_ENTER(NULL);
 
     perr_t ret_value = SUCCEED;
+
+    LOG_INFO("Setting params for func_name %s by flat conceptual offset %lu\n", func_name,
+                             flat_conceptual_offset);
 
     // Find edge with name
     for (int i = 0; i < dg->edge_count; i++) {
@@ -94,7 +100,8 @@ PDCtf_get_func_param(pdc_dg_t *dg, char *func_name, pdc_tf_dev_t dev, uint64_t f
 
     perr_t ret_value = SUCCEED;
 
-    LOG_INFO("HERE");
+    LOG_INFO("Getting params for func_name %s by flat conceptual offset %lu\n", func_name,
+                             flat_conceptual_offset);
 
     // Find edge with name
     for (int i = 0; i < dg->edge_count; i++) {
@@ -108,8 +115,6 @@ PDCtf_get_func_param(pdc_dg_t *dg, char *func_name, pdc_tf_dev_t dev, uint64_t f
                  params_list_index++) {
                 pdc_tf_dg_params_t *pdc_dg_params = &tf_func->pdc_tf_dg_params_list[params_list_index];
                 if (pdc_dg_params->flat_conceptual_offset == flat_conceptual_offset) {
-                    LOG_INFO("Found params for func_name %s by flat conceptual offset %lu\n", func_name,
-                             flat_conceptual_offset);
                     *params      = pdc_dg_params->params;
                     *params_size = pdc_dg_params->params_size;
                     PGOTO_DONE(SUCCEED);
@@ -134,6 +139,9 @@ PDCtf_set_state_param(pdc_dg_t *dg, char *state_name, uint64_t flat_conceptual_o
     FUNC_ENTER(NULL);
 
     perr_t ret_value = SUCCEED;
+
+    LOG_INFO("Setting params for state_name %s by flat conceptual offset %lu\n", state_name,
+                            flat_conceptual_offset);
 
     // Get state from graph
     pdc_tf_state_t query_stat;
@@ -179,6 +187,9 @@ PDCtf_get_state_param(pdc_dg_t *dg, char *state_name, uint64_t flat_conceptual_o
     FUNC_ENTER(NULL);
 
     perr_t ret_value = SUCCEED;
+
+    LOG_INFO("Getting params for state_name %s by flat conceptual offset %lu\n", state_name,
+                        flat_conceptual_offset);
 
     // Get state from graph
     pdc_tf_state_t query_stat = {.name = state_name};
@@ -299,12 +310,8 @@ PDCtf_region_has_attached_graph(struct pdc_tf_obj_t *tf_obj, int ndim, size_t un
 
     bool ret_value = false;
 
-    if (tf_obj == NULL) {
-        LOG_INFO("tf_obj was NULL\n");
+    if (tf_obj == NULL)
         PGOTO_DONE(false);
-    }
-
-    LOG_INFO("num_region_mappings: %d\n", tf_obj->num_region_mappings);
 
     for (int i = 0; i < tf_obj->num_region_mappings; i++) {
         *region_mapping                    = &tf_obj->region_mappings[i];
@@ -319,13 +326,6 @@ PDCtf_region_has_attached_graph(struct pdc_tf_obj_t *tf_obj, int ndim, size_t un
         // note these return 0 on match so ! is needed
         bool offset_matches = !memcmp(conceptual_offset, offset, ndim * sizeof(uint64_t));
         bool size_matches   = !memcmp(conceptual_region->size, size, ndim * sizeof(uint64_t));
-
-        for (int j = 0; j < ndim; j++) {
-            LOG_INFO("stored[%d] %lu, passed %lu\n", j, conceptual_offset[j], offset[j]);
-        }
-
-        LOG_INFO("ndim_matches: %d, unit matches: %d, offset_matches: %d, size_matches: %d\n", ndim_matches,
-                 unit_matches, offset_matches, size_matches);
 
         if (ndim_matches && offset_matches && size_matches && unit_matches)
             PGOTO_DONE(true);
@@ -681,6 +681,11 @@ void
 PDCtf_log_pdc_region_t(pdc_tf_region_t reg)
 {
     FUNC_ENTER(NULL);
+
+    if(reg.ndim <= 0 || reg.ndim > 4) {
+        LOG_INFO("Invalid region ndim: %lu\n", reg.ndim);
+        abort();
+    }
 
     LOG_INFO("region ndim: %lu\n", reg.ndim);
     LOG_INFO("region unit: %lu\n", PDC_get_var_type_size(reg.pdc_var_type));

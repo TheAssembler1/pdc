@@ -105,23 +105,16 @@ set(PROGRAMS
   region/region_transfer_set_dims_3D
   query/query_data
   misc/producer_waitall
-  # Transformations region transfer compression
+  
   transformation/compression_transform
   transformation/compression_transform_2D
   transformation/compression_transform_3D
-  # Transformations region transfer compression
-if(defined CUDA_ROOT)
   transformation/compression_transform_gpu
-endif()
-  # Transformations attached to object region transfer compression
   transformation/attach_obj_compression_transform
-  # Transformations multi-region transfer
   transformation/multi_region_transform
-  # Transformations region transfer compression encryption
   transformation/compression_encryption_transform
   transformation/compression_encryption_transform_2D
   transformation/compression_encryption_transform_3D
-  # Transformations region transfer compression all
   transformation/all_compression_transform
 )
 
@@ -132,10 +125,6 @@ endif()
 # else ()
 #   message(FATAL_ERROR "Could not find HDF5, please make sure that HDF5 has been compiled with shared libraries enabled.")
 # endif()
-
-
-# FIXME: NOAH
-find_package(ZFP REQUIRED)
 
 if(TARGET ZFP::zfp)
     set(ZFP_LIB ZFP::zfp)

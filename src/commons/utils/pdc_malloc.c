@@ -60,6 +60,11 @@ PDC_malloc(size_t size)
     if (ret_value)
         PDC_mem_usage_g += size;
 
+    if(ret_value == NULL) {
+        LOG_ERROR("PDC_malloc failed to allocate %zu bytes\n", size);
+        abort();
+    }
+
     FUNC_LEAVE(ret_value);
 }
 
@@ -92,6 +97,11 @@ PDC_calloc(size_t count, size_t size)
 
     if (ret_value)
         PDC_mem_usage_g += size;
+
+    if(ret_value == NULL) {
+        LOG_ERROR("PDC_calloc failed to allocate %zu bytes\n", count * size);
+        abort();
+    }
 
     FUNC_LEAVE(ret_value);
 }
@@ -141,7 +151,14 @@ PDC_realloc(void *ptr, size_t size)
 #ifdef HAVE_MALLOC_USABLE_SIZE
     _old_size = malloc_usable_size(ptr);
 #endif
-    FUNC_LEAVE(PDC_realloc_knowing_oldsize(ptr, size, _old_size));
+
+    void* ret = PDC_realloc_knowing_oldsize(ptr, size, _old_size);
+    if(ret == NULL) {
+        LOG_ERROR("PDC_realloc failed to allocate %zu bytes\n", size);
+        abort();
+    }
+
+    FUNC_LEAVE(ret);
 }
 
 void *

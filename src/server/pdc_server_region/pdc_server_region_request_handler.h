@@ -202,8 +202,7 @@ transfer_request_all_bulk_transfer_write_cb(const struct hg_cb_info *info)
         PDC_Server_transfer_request_io(request_data.obj_id[i], request_data.obj_ndim[i],
                                        request_data.obj_dims[i], remote_reg_info,
                                        (void *)request_data.data_buf[i], request_data.unit[i], 1);
-#endif
-
+#endif  
         pthread_mutex_lock(&transfer_request_status_mutex);
         PDC_finish_request(local_bulk_args->transfer_request_id[i]);
         pthread_mutex_unlock(&transfer_request_status_mutex);
@@ -233,7 +232,6 @@ transfer_request_all_bulk_transfer_write_cb(const struct hg_cb_info *info)
     pdc_server_timings->PDCreg_transfer_request_inner_write_all_bulk_rpc += end - start;
     pdc_timestamp_register(pdc_transfer_request_inner_write_all_bulk_timestamps, start, end);
 #endif
-
     FUNC_LEAVE(ret);
 }
 
@@ -347,7 +345,6 @@ done:
     pthread_mutex_lock(&transfer_request_status_mutex);
     PDC_finish_request(local_bulk_args->transfer_request_id);
     pthread_mutex_unlock(&transfer_request_status_mutex);
-    local_bulk_args->data_buf = (void *)PDC_free(local_bulk_args->data_buf);
     remote_reg_info           = (struct pdc_region_info *)PDC_free(remote_reg_info);
 
     HG_Bulk_free(local_bulk_args->bulk_handle);
@@ -357,7 +354,6 @@ done:
     pdc_server_timings->PDCreg_transfer_request_inner_write_bulk_rpc += end - start;
     pdc_timestamp_register(pdc_transfer_request_inner_write_bulk_timestamps, start, end);
 #endif
-
     FUNC_LEAVE(ret_value);
 }
 
@@ -596,7 +592,6 @@ HG_TEST_RPC_CB(transfer_request_all, handle)
         pdc_timestamp_register(pdc_transfer_request_start_all_write_timestamps, start, end);
     }
 #endif
-
     FUNC_LEAVE(ret_value);
 }
 
@@ -854,7 +849,6 @@ done:
         pdc_timestamp_register(pdc_transfer_request_start_write_timestamps, start, end);
     }
 #endif
-
     FUNC_LEAVE(ret_value);
 }
 

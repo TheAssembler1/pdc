@@ -197,4 +197,4 @@ done:
 
     FUNC_LEAVE(ret_value);
 }
-#endif // #ifndef IS_PDC_SERVER
+#endif // IS_PDC_SERVER

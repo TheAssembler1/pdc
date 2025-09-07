@@ -3212,7 +3212,6 @@ PDC_Client_transfer_request_wait_all(hg_bulk_t *bulk_handle, int n_objs, pdcid_t
     in.total_buf_size = sizeof(pdcid_t) * n_objs;
 
     // Compute metadata server id
-
     debug_server_id_count[data_server_id]++;
 
     hg_class = HG_Context_get_class(send_context_g);
@@ -3230,7 +3229,6 @@ PDC_Client_transfer_request_wait_all(hg_bulk_t *bulk_handle, int n_objs, pdcid_t
     *bulk_handle = in.local_bulk_handle;
     if (hg_ret != HG_SUCCESS)
         PGOTO_ERROR(FAIL, "Could not create local bulk data handle");
-
     hg_ret = HG_Forward(client_send_transfer_request_wait_all_handle,
                         client_send_transfer_request_wait_all_rpc_cb, &transfer_args, &in);
 
@@ -3242,7 +3240,6 @@ PDC_Client_transfer_request_wait_all(hg_bulk_t *bulk_handle, int n_objs, pdcid_t
         PGOTO_ERROR(FAIL, "Could not start HG_Forward");
     hg_atomic_set32(&atomic_work_todo_g, 1);
     PDC_Client_check_response(&send_context_g);
-
     if (transfer_args.ret != 1)
         PGOTO_ERROR(FAIL, "Transfer request wait all failed");
 
@@ -3322,7 +3319,8 @@ PDC_Client_transfer_request(hg_bulk_t *bulk_handle, void *buf, pdcid_t obj_id, u
         pdcid_t   dg_id = region_mapping->region_state.dg_id;
         pdc_dg_t *dg    = PDCtf_get_dg(dg_id);
 
-        assert(dg != NULL);
+        if(dg == NULL)
+            PGOTO_ERROR(FAIL, "dg was NULL");
 
         char *json_filepath = (char *)dg->data;
 

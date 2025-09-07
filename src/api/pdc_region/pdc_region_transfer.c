@@ -329,7 +329,7 @@ PDCregion_transfer_create(void *buf, pdc_access_t access_type, pdcid_t obj_id, p
 
     // Check if graph is attached to object
     if (obj->pdc_tf_obj != NULL && obj->pdc_tf_obj->attach_to_all_regions) {
-        LOG_INFO("Found graph attached to obj\n");
+        LOG_INFO("Found graph attached to entire obj\n");
 
         pdcid_t dg_id        = obj->pdc_tf_obj->all_regions_state.dg_id;
         char *  client_state = obj->pdc_tf_obj->all_regions_state.client_state;
@@ -340,6 +340,8 @@ PDCregion_transfer_create(void *buf, pdc_access_t access_type, pdcid_t obj_id, p
 
         if (PDCtf_attach_to_region(dg_id, obj_id, remote_reg, client_state, store_state) != SUCCEED)
             PGOTO_ERROR(0, "Failed to attach graph to region");
+    } else {
+        LOG_INFO("Entire obj does not have attached graph\n");
     }
 
     if (PDCregion_transfer_init_bulk_handles(p) != SUCCEED)
@@ -1193,34 +1195,31 @@ PDCcompute_region_transformation_metadata_size(struct _pdc_obj_info *obj_pointer
                                                size_t unit, uint64_t *remote_offset, uint64_t *remote_size,
                                                pdc_access_t access_type)
 {
-    size_t size = 0;
+    FUNC_ENTER(NULL);
 
-    // json_filepath
-    size += 1; // always include null terminator
-
-    if (!obj_pointer || !obj_pointer->pdc_tf_obj) {
-        // include only the null terminators for the state strings
-        size += 3; // cur_state, client_state, store_state
-        return size;
-    }
+    // at least terminators for cur_state, client_state, store_state, json filepath
+    size_t ret_value = 4;
 
     pdc_tf_region_mapping_t *region_mapping = NULL;
-    if (!PDCtf_region_has_attached_graph(obj_pointer->pdc_tf_obj, remote_ndim, unit, remote_offset,
+    if (!obj_pointer || 
+        !obj_pointer->pdc_tf_obj || 
+        !PDCtf_region_has_attached_graph(obj_pointer->pdc_tf_obj, remote_ndim, unit, remote_offset,
                                          remote_size, &region_mapping)) {
-        size += 3; // cur_state, client_state, store_state
-        return size;
+        PGOTO_DONE(ret_value);
     }
 
     pdc_dg_t *dg = PDCtf_get_dg(region_mapping->region_state.dg_id);
-    if (dg && dg->data)
-        size += strlen((char *)dg->data); // add the length (we already counted +1 above)
-
+    if(dg == NULL)
+        PGOTO_ERROR(ret_value, "Failed to PDCtf_get_dg in PDCcompute_region_transformation_metadata_size\n");
+    // json filepath
+    ret_value += strlen((char *)dg->data); // add the length (we already counted +1 above)
     // current, client, store state
-    size += strlen(region_mapping->region_state.cur_state);
-    size += strlen(region_mapping->region_state.client_state);
-    size += strlen(region_mapping->region_state.store_state);
+    ret_value += strlen(region_mapping->region_state.cur_state);
+    ret_value += strlen(region_mapping->region_state.client_state);
+    ret_value += strlen(region_mapping->region_state.store_state);
 
-    return size + 4; // add null terminators for all 4 strings
+done:
+    FUNC_LEAVE(ret_value); 
 }
 
 static perr_t
@@ -1669,6 +1668,8 @@ region_transfer_start_common_helper(pdcid_t transfer_request_id,
 {
     FUNC_ENTER(NULL);
 
+    LOG_INFO("region_transfer_start_common_helper called\n");
+
     perr_t                ret_value = SUCCEED;
     struct _pdc_id_info * transfer_info;
     pdc_transfer_request *transfer_request;
@@ -1764,9 +1765,8 @@ region_transfer_start_common_helper(pdcid_t transfer_request_id,
     }
 
     // For POSIX consistency, we block here until the data is received by the server
-    if (transfer_request->consistency == PDC_CONSISTENCY_POSIX) {
+    if (transfer_request->consistency == PDC_CONSISTENCY_POSIX)
         PDCregion_transfer_wait(transfer_request_id);
-    }
 
 done:
     FUNC_LEAVE(ret_value);
@@ -1781,14 +1781,7 @@ PDCregion_transfer_start_common(pdcid_t transfer_request_id,
 #endif
 {
     FUNC_ENTER(NULL);
-
-    perr_t ret_value                 = SUCCEED;
-    bool   should_run_transfer_start = false;
-
-    PGOTO_DONE(region_transfer_start_common_helper(transfer_request_id, comm));
-
-done:
-    FUNC_LEAVE(ret_value);
+    FUNC_LEAVE(region_transfer_start_common_helper(transfer_request_id, comm));
 }
 
 perr_t
@@ -2217,7 +2210,6 @@ PDCregion_transfer_wait(pdcid_t transfer_request_id)
         unit = transfer_request->unit;
 
         if (transfer_request->region_partition == PDC_REGION_STATIC) {
-
             for (i = 0; i < transfer_request->n_obj_servers; ++i) {
                 ret_value = PDC_Client_transfer_request_wait(transfer_request->metadata_id[i],
                                                              transfer_request->obj_servers[i],

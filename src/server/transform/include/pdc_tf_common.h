@@ -8,7 +8,7 @@
 #include "pdc_region.h"
 #include "pdc_obj_pkg.h"
 
-#define MAX_REGIONS 10
+#define MAX_REGIONS 100
 
 typedef struct pdc_tf_region_t {
     size_t         ndim;
@@ -80,7 +80,7 @@ typedef enum pdc_tf_granularities_t {
 extern char *pdc_tf_granularity_strs[];
 
 // FIXME: this should be a dynamic array
-#define MAX_PDC_DG_PARAMS 10
+#define MAX_PDC_DG_PARAMS 100
 
 /**
  * Used to store parameters for states and edges
@@ -155,8 +155,8 @@ typedef struct pdc_tf_pkg_t {
 } pdc_tf_pkg_t;
 
 // FIXME: we could store this in a dynamically allocated buf
-#define PDC_TF_MAX_FUNC_NAME_LEN 100
-#define PDC_TF_MAX_BUILTIN_FUNCS 100
+#define PDC_TF_MAX_FUNC_NAME_LEN 400
+#define PDC_TF_MAX_BUILTIN_FUNCS 400
 
 /**
  * This structure used to store our builtin functions

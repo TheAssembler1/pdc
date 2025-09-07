@@ -20,7 +20,7 @@ typedef struct pdc_tf_obj_id_to_dg_t {
 } pdc_tf_obj_id_to_dg_t;
 
 // FIXME: this should be dynamic
-#define MAX_TF_OBJECT_ID_TO_DG_MAPPINGS 100
+#define MAX_TF_OBJECT_ID_TO_DG_MAPPINGS 400
 
 extern pdc_tf_obj_id_to_dg_t pdc_tf_obj_id_to_dg_list[MAX_TF_OBJECT_ID_TO_DG_MAPPINGS];
 extern uint32_t              num_objs_with_dg;
