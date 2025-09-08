@@ -4,6 +4,9 @@
 #include "pdc_tf_common.h"
 #include "pdc_logger.h"
 #include "pdc_timing.h"
+#include "pdc_vector.h"
+
+extern PDC_VECTOR* tf_obj_id_to_dg_vector_g;
 
 /**
  * This is similar to the client side pdc_tf_obj_t
@@ -18,12 +21,6 @@ typedef struct pdc_tf_obj_id_to_dg_t {
     struct pdc_tf_obj_t pdc_tf_obj;
     pdc_dg_t *          dg;
 } pdc_tf_obj_id_to_dg_t;
-
-// FIXME: this should be dynamic
-#define MAX_TF_OBJECT_ID_TO_DG_MAPPINGS 400
-
-extern pdc_tf_obj_id_to_dg_t pdc_tf_obj_id_to_dg_list[MAX_TF_OBJECT_ID_TO_DG_MAPPINGS];
-extern uint32_t              num_objs_with_dg;
 
 /**
  * These functions should only be used on the

@@ -3,9 +3,9 @@
 #include "pdc_tf_server.h"
 #include "pdc_malloc.h"
 #include "pdc_client_server_common.h"
+#include "pdc_vector.h"
 
-pdc_tf_obj_id_to_dg_t pdc_tf_obj_id_to_dg_list[MAX_TF_OBJECT_ID_TO_DG_MAPPINGS];
-uint32_t              num_objs_with_dg = 0;
+PDC_VECTOR* tf_obj_id_to_dg_vector_g = NULL;
 
 #ifndef IS_PDC_SERVER
 perr_t
@@ -37,20 +37,27 @@ PDCtf_store_json_mapping(pdcid_t obj_id, char *json_filepath, char *cur_state, c
 
     perr_t ret_value = SUCCEED;
 
-    // check if object has directed graph
-    bool obj_id_has_dg        = false;
-    int  obj_to_dg_list_index = 0;
-    for (obj_to_dg_list_index = 0; obj_to_dg_list_index < num_objs_with_dg; obj_to_dg_list_index++) {
-        if (pdc_tf_obj_id_to_dg_list[obj_to_dg_list_index].obj_id == obj_id) {
-            obj_id_has_dg = true;
+    if(tf_obj_id_to_dg_vector_g == NULL)
+        tf_obj_id_to_dg_vector_g = pdc_vector_create(8, 2.0);
+    if(tf_obj_id_to_dg_vector_g == NULL)
+        PGOTO_ERROR(FAIL, "tf_obj_id_to_dg_vector_g was NULL");
+
+    // Find object in mapping if it exists
+    pdc_tf_obj_id_to_dg_t* obj_id_to_dg = NULL;
+    PDC_VECTOR_ITERATOR* tf_obj_id_to_dg_vector_iter = pdc_vector_iterator_new(tf_obj_id_to_dg_vector_g);
+    while(pdc_vector_iterator_has_next(tf_obj_id_to_dg_vector_iter)) {
+        pdc_tf_obj_id_to_dg_t* cur_obj_id_to_dg 
+            = (pdc_tf_obj_id_to_dg_t*)pdc_vector_iterator_next(tf_obj_id_to_dg_vector_iter);
+        if(cur_obj_id_to_dg->obj_id == obj_id) {
+            obj_id_to_dg = cur_obj_id_to_dg;
             break;
         }
     }
+    pdc_vector_iterator_destroy(tf_obj_id_to_dg_vector_iter);
 
     // If object has attached graph make sure it is the same as the passed in graph
-    if (obj_id_has_dg) {
-        char *graph_json_filepath = (char *)(pdc_tf_obj_id_to_dg_list[obj_to_dg_list_index].dg->data);
-        assert(graph_json_filepath != NULL);
+    if (obj_id_to_dg != NULL) {
+        char *graph_json_filepath = (char *)(obj_id_to_dg->dg->data);
         if (strcmp(json_filepath, graph_json_filepath)) {
             PGOTO_ERROR(FAIL, "Passed graph filepath %s didn't match stored filepath %s", json_filepath,
                         graph_json_filepath);
@@ -61,36 +68,29 @@ PDCtf_store_json_mapping(pdcid_t obj_id, char *json_filepath, char *cur_state, c
     pdc_tf_region_mapping_t *region_mapping = NULL;
 
     // If object doesn't have a directed graph create a new one
-    if (!obj_id_has_dg) {
+    if (obj_id_to_dg == NULL) {
         LOG_DEBUG("Creating directed graph for object\n");
 
         pdc_dg_t *dg = PDCtf_dg_json_create_common(json_filepath);
         if (dg == NULL)
             PGOTO_ERROR(FAIL, "Failed to load JSON\n");
 
-        pdc_tf_obj_id_to_dg_list[num_objs_with_dg].dg                             = dg;
-        pdc_tf_obj_id_to_dg_list[num_objs_with_dg].obj_id                         = obj_id;
-        pdc_tf_obj_id_to_dg_list[num_objs_with_dg].pdc_tf_obj.num_region_mappings = 1;
-        region_mapping = &pdc_tf_obj_id_to_dg_list[num_objs_with_dg].pdc_tf_obj.region_mappings[0];
+        // Create new obj id to dg and append to vector
+        obj_id_to_dg = PDC_malloc(sizeof(pdc_tf_obj_id_to_dg_t));
+        pdc_vector_add(tf_obj_id_to_dg_vector_g, obj_id_to_dg);
 
-        // Set this as the current obj_to_dg_list index
-        obj_to_dg_list_index = num_objs_with_dg;
-
-        // Increment the number of objects with attached graphs
-        num_objs_with_dg++;
+        obj_id_to_dg->dg                             = dg;
+        obj_id_to_dg->obj_id                        = obj_id;
+        obj_id_to_dg->pdc_tf_obj.num_region_mappings = 1;
+        region_mapping = &(obj_id_to_dg->pdc_tf_obj.region_mappings[0]);
     }
-
-    // At this point there is a mapping from object to graph
-    pdc_tf_obj_id_to_dg_t *obj_to_dg = &pdc_tf_obj_id_to_dg_list[obj_to_dg_list_index];
-
-    LOG_DEBUG("Cur num region mappings for object: %lu\n", obj_to_dg->pdc_tf_obj.num_region_mappings);
 
     // Check if this mapping already exists
     if (region_mapping == NULL) {
-        for (int i = 0; i < obj_to_dg->pdc_tf_obj.num_region_mappings; i++) {
-            uint64_t *conceptual_offset = obj_to_dg->pdc_tf_obj.region_mappings[i].conceptual_offset;
+        for (int i = 0; i < obj_id_to_dg->pdc_tf_obj.num_region_mappings; i++) {
+            uint64_t *conceptual_offset = obj_id_to_dg->pdc_tf_obj.region_mappings[i].conceptual_offset;
             if (memcmp(offset, conceptual_offset, ndim * sizeof(uint64_t)) == 0) {
-                region_mapping = &obj_to_dg->pdc_tf_obj.region_mappings[i];
+                region_mapping = &obj_id_to_dg->pdc_tf_obj.region_mappings[i];
                 break;
             }
         }
@@ -98,8 +98,8 @@ PDCtf_store_json_mapping(pdcid_t obj_id, char *json_filepath, char *cur_state, c
 
     // If this is null we need to append this mapping
     if (region_mapping == NULL) {
-        region_mapping = &obj_to_dg->pdc_tf_obj.region_mappings[obj_to_dg->pdc_tf_obj.num_region_mappings];
-        obj_to_dg->pdc_tf_obj.num_region_mappings++;
+        region_mapping = &obj_id_to_dg->pdc_tf_obj.region_mappings[obj_id_to_dg->pdc_tf_obj.num_region_mappings];
+        obj_id_to_dg->pdc_tf_obj.num_region_mappings++;
     }
 
     pdc_tf_region_t *conceptual_region = &region_mapping->conceptual_region;
@@ -119,10 +119,7 @@ PDCtf_store_json_mapping(pdcid_t obj_id, char *json_filepath, char *cur_state, c
     region_mapping->region_state.store_state  = strdup(store_state);
     region_mapping->region_state.dg_id        = cur_graph;
 
-    PDC_get_var_type_size(conceptual_region->pdc_var_type);
-
 done:
-    LOG_DEBUG("Cur number of objs with region mappings: %d\n", num_objs_with_dg);
     FUNC_LEAVE(ret_value);
 }
 

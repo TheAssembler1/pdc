@@ -8,6 +8,7 @@
 #include "pdc_malloc.h"
 #include "pdc_tf_server.h"
 #include "pdc_tf_common.h"
+#include "pdc_vector.h"
 
 static pdc_region_writeout_strategy storage_strategy_g = STORE_REGION_BY_REGION_SINGLE_FILE;
 
@@ -644,14 +645,20 @@ PDCtf_get_region_mapping(pdcid_t obj_id, pdc_dg_t **dg)
     FUNC_ENTER(NULL);
 
     struct pdc_tf_obj_t *ret_value = NULL;
-    for (int i = 0; i < num_objs_with_dg; i++) {
-        if (obj_id == pdc_tf_obj_id_to_dg_list[i].obj_id) {
-            *dg = pdc_tf_obj_id_to_dg_list[i].dg;
-            PGOTO_DONE(&pdc_tf_obj_id_to_dg_list[i].pdc_tf_obj);
+    pdc_tf_obj_id_to_dg_t* obj_id_to_dg = NULL;
+    PDC_VECTOR_ITERATOR* tf_obj_id_to_dg_vector_iter = pdc_vector_iterator_new(tf_obj_id_to_dg_vector_g);
+
+    while(pdc_vector_iterator_has_next(tf_obj_id_to_dg_vector_iter)) {
+        pdc_tf_obj_id_to_dg_t* cur_obj_id_to_dg 
+            = (pdc_tf_obj_id_to_dg_t*)pdc_vector_iterator_next(tf_obj_id_to_dg_vector_iter);
+        if(cur_obj_id_to_dg->obj_id == obj_id) {
+            *dg = cur_obj_id_to_dg->dg;
+            PGOTO_DONE(&(cur_obj_id_to_dg->pdc_tf_obj));
         }
     }
 
 done:
+    pdc_vector_iterator_destroy(tf_obj_id_to_dg_vector_iter);
     FUNC_LEAVE(ret_value);
 }
 

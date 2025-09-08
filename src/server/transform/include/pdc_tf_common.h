@@ -80,7 +80,7 @@ typedef enum pdc_tf_granularities_t {
 extern char *pdc_tf_granularity_strs[];
 
 // FIXME: this should be a dynamic array
-#define MAX_PDC_DG_PARAMS 100
+#define MAX_PDC_DG_PARAMS 10000
 
 /**
  * Used to store parameters for states and edges

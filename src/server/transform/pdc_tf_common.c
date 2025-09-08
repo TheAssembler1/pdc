@@ -82,6 +82,12 @@ PDCtf_set_func_param(pdc_dg_t *dg, char *func_name, pdc_tf_dev_t dev, uint64_t f
             pdc_dg_params->params_size            = params_size;
 
             tf_func->cur_num_params++;
+
+            if(tf_func->cur_num_params >= MAX_PDC_DG_PARAMS) {
+                LOG_ERROR("tf_func->cur_num_params >= MAX_PDC_DG_PARAMS\n");
+                abort();
+            }
+
             PGOTO_DONE(SUCCEED);
         }
     }
@@ -175,6 +181,11 @@ PDCtf_set_state_param(pdc_dg_t *dg, char *state_name, uint64_t flat_conceptual_o
 
     // Params were not found need to append params to list
     tf_state->cur_num_params++;
+
+    if(tf_state->cur_num_params >= MAX_PDC_DG_PARAMS) {
+        LOG_ERROR("tf_func->cur_num_params >= MAX_PDC_DG_PARAMS\n");
+        abort();
+    }
 
 done:
     FUNC_LEAVE(ret_value);
