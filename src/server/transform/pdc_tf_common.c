@@ -49,8 +49,8 @@ PDCtf_set_func_param(pdc_dg_t *dg, char *func_name, pdc_tf_dev_t dev, uint64_t f
 {
     FUNC_ENTER(NULL);
 
-    perr_t ret_value = SUCCEED;
-    PDC_VECTOR_ITERATOR* dg_params_iter = NULL;
+    perr_t               ret_value      = SUCCEED;
+    PDC_VECTOR_ITERATOR *dg_params_iter = NULL;
 
     LOG_DEBUG("Setting params for func_name %s by flat conceptual offset %lu\n", func_name,
               flat_conceptual_offset);
@@ -63,13 +63,13 @@ PDCtf_set_func_param(pdc_dg_t *dg, char *func_name, pdc_tf_dev_t dev, uint64_t f
 
         if (!strcmp(func_name, tf_func->name)) {
             // Create vector if vector is NULL
-            if(tf_func->pdc_tf_dg_params_vector == NULL)
+            if (tf_func->pdc_tf_dg_params_vector == NULL)
                 tf_func->pdc_tf_dg_params_vector = pdc_vector_create(8, 2.0);
 
             // Locate the params by conceptual offset
             pdc_tf_dg_params_t *pdc_dg_params = NULL;
-            dg_params_iter = pdc_vector_iterator_new(tf_func->pdc_tf_dg_params_vector);
-            while(pdc_vector_iterator_has_next(dg_params_iter)) {
+            dg_params_iter                    = pdc_vector_iterator_new(tf_func->pdc_tf_dg_params_vector);
+            while (pdc_vector_iterator_has_next(dg_params_iter)) {
                 pdc_dg_params = pdc_vector_iterator_next(dg_params_iter);
                 if (pdc_dg_params->flat_conceptual_offset == flat_conceptual_offset) {
                     pdc_dg_params->params      = params;
@@ -93,7 +93,7 @@ PDCtf_set_func_param(pdc_dg_t *dg, char *func_name, pdc_tf_dev_t dev, uint64_t f
     PGOTO_ERROR(FAIL, "Edge %s not found\n", func_name);
 
 done:
-    if(dg_params_iter != NULL)
+    if (dg_params_iter != NULL)
         pdc_vector_iterator_destroy(dg_params_iter);
     FUNC_LEAVE(ret_value);
 }
@@ -104,8 +104,8 @@ PDCtf_get_func_param(pdc_dg_t *dg, char *func_name, pdc_tf_dev_t dev, uint64_t f
 {
     FUNC_ENTER(NULL);
 
-    perr_t ret_value = SUCCEED;
-    PDC_VECTOR_ITERATOR* dg_params_iter = NULL;
+    perr_t               ret_value      = SUCCEED;
+    PDC_VECTOR_ITERATOR *dg_params_iter = NULL;
 
     LOG_DEBUG("Getting params for func_name %s by flat conceptual offset %lu\n", func_name,
               flat_conceptual_offset);
@@ -117,12 +117,12 @@ PDCtf_get_func_param(pdc_dg_t *dg, char *func_name, pdc_tf_dev_t dev, uint64_t f
         pdc_tf_func_t *tf_func = edge->data;
         if (!strcmp(func_name, tf_func->name) && tf_func->dev == dev) {
             // Check if vector is NULL
-            if(tf_func->pdc_tf_dg_params_vector == NULL)
+            if (tf_func->pdc_tf_dg_params_vector == NULL)
                 PGOTO_ERROR(FAIL, "tf_func->pdc_tf_dg_params_vector was NULL");
 
             // Locate the params by conceptual offset
             dg_params_iter = pdc_vector_iterator_new(tf_func->pdc_tf_dg_params_vector);
-            while(pdc_vector_iterator_has_next(dg_params_iter)) {
+            while (pdc_vector_iterator_has_next(dg_params_iter)) {
                 pdc_tf_dg_params_t *pdc_dg_params = pdc_vector_iterator_next(dg_params_iter);
                 if (pdc_dg_params->flat_conceptual_offset == flat_conceptual_offset) {
                     *params      = pdc_dg_params->params;
@@ -138,7 +138,7 @@ PDCtf_get_func_param(pdc_dg_t *dg, char *func_name, pdc_tf_dev_t dev, uint64_t f
     PGOTO_ERROR(FAIL, "Edge %s not found\n", func_name);
 
 done:
-    if(dg_params_iter != NULL)
+    if (dg_params_iter != NULL)
         pdc_vector_iterator_destroy(dg_params_iter);
     FUNC_LEAVE(ret_value);
 }
@@ -149,8 +149,8 @@ PDCtf_set_state_param(pdc_dg_t *dg, char *state_name, uint64_t flat_conceptual_o
 {
     FUNC_ENTER(NULL);
 
-    perr_t ret_value = SUCCEED;
-    PDC_VECTOR_ITERATOR* dg_params_iter = NULL;
+    perr_t               ret_value      = SUCCEED;
+    PDC_VECTOR_ITERATOR *dg_params_iter = NULL;
 
     LOG_DEBUG("Setting params for state_name %s by flat conceptual offset %lu\n", state_name,
               flat_conceptual_offset);
@@ -169,13 +169,13 @@ PDCtf_set_state_param(pdc_dg_t *dg, char *state_name, uint64_t flat_conceptual_o
         PGOTO_ERROR(FAIL, "Vertex data was NULL");
 
     // Create vector if vector is NULL
-    if(tf_state->pdc_tf_dg_params_vector == NULL)
+    if (tf_state->pdc_tf_dg_params_vector == NULL)
         tf_state->pdc_tf_dg_params_vector = pdc_vector_create(8, 2.0);
 
     // Locate the params by conceptual offset
     pdc_tf_dg_params_t *pdc_dg_params = NULL;
-    dg_params_iter = pdc_vector_iterator_new(tf_state->pdc_tf_dg_params_vector);
-    while(pdc_vector_iterator_has_next(dg_params_iter)) {
+    dg_params_iter                    = pdc_vector_iterator_new(tf_state->pdc_tf_dg_params_vector);
+    while (pdc_vector_iterator_has_next(dg_params_iter)) {
         pdc_dg_params = pdc_vector_iterator_next(dg_params_iter);
         if (pdc_dg_params->flat_conceptual_offset == flat_conceptual_offset) {
             pdc_dg_params->params      = params;
@@ -192,7 +192,7 @@ PDCtf_set_state_param(pdc_dg_t *dg, char *state_name, uint64_t flat_conceptual_o
     pdc_dg_params->flat_conceptual_offset = flat_conceptual_offset;
 
 done:
-    if(dg_params_iter != NULL)
+    if (dg_params_iter != NULL)
         pdc_vector_iterator_destroy(dg_params_iter);
     FUNC_LEAVE(ret_value);
 }
@@ -203,8 +203,8 @@ PDCtf_get_state_param(pdc_dg_t *dg, char *state_name, uint64_t flat_conceptual_o
 {
     FUNC_ENTER(NULL);
 
-    perr_t ret_value = SUCCEED;
-    PDC_VECTOR_ITERATOR* dg_params_iter = NULL;
+    perr_t               ret_value      = SUCCEED;
+    PDC_VECTOR_ITERATOR *dg_params_iter = NULL;
 
     LOG_DEBUG("Getting params for state_name %s by flat conceptual offset %lu\n", state_name,
               flat_conceptual_offset);
@@ -222,12 +222,12 @@ PDCtf_get_state_param(pdc_dg_t *dg, char *state_name, uint64_t flat_conceptual_o
         PGOTO_ERROR(FAIL, "Vertex data was NULL");
 
     // Check if vector is NULL
-    if(tf_state->pdc_tf_dg_params_vector == NULL)
+    if (tf_state->pdc_tf_dg_params_vector == NULL)
         PGOTO_ERROR(FAIL, "tf_state->pdc_tf_dg_params_vector was NULL");
 
     // Locate the params by conceptual offset
     dg_params_iter = pdc_vector_iterator_new(tf_state->pdc_tf_dg_params_vector);
-    while(pdc_vector_iterator_has_next(dg_params_iter)) {
+    while (pdc_vector_iterator_has_next(dg_params_iter)) {
         pdc_tf_dg_params_t *pdc_dg_params = pdc_vector_iterator_next(dg_params_iter);
         if (pdc_dg_params->flat_conceptual_offset == flat_conceptual_offset) {
             *params      = pdc_dg_params->params;
@@ -240,7 +240,7 @@ PDCtf_get_state_param(pdc_dg_t *dg, char *state_name, uint64_t flat_conceptual_o
                 flat_conceptual_offset);
 
 done:
-    if(dg_params_iter != NULL)
+    if (dg_params_iter != NULL)
         pdc_vector_iterator_destroy(dg_params_iter);
     FUNC_LEAVE(ret_value);
 }
@@ -473,10 +473,10 @@ edge_free(void *data)
 
     LOG_DEBUG("edge_free called\n");
 
-    pdc_tf_func_t *f = (pdc_tf_func_t *)data;
-    PDC_VECTOR_ITERATOR* dg_params_iter = pdc_vector_iterator_new(f->pdc_tf_dg_params_vector);
-    while(pdc_vector_iterator_has_next(dg_params_iter)) {
-        pdc_tf_dg_params_t* cur_param = pdc_vector_iterator_next(dg_params_iter);
+    pdc_tf_func_t *      f              = (pdc_tf_func_t *)data;
+    PDC_VECTOR_ITERATOR *dg_params_iter = pdc_vector_iterator_new(f->pdc_tf_dg_params_vector);
+    while (pdc_vector_iterator_has_next(dg_params_iter)) {
+        pdc_tf_dg_params_t *cur_param = pdc_vector_iterator_next(dg_params_iter);
         if (cur_param != NULL)
             cur_param = PDC_free(cur_param);
     }
@@ -496,10 +496,10 @@ vertex_free(void *data)
 
     LOG_DEBUG("vertex_free called\n");
 
-    pdc_tf_state_t *s = (pdc_tf_state_t *)data;
-    PDC_VECTOR_ITERATOR* dg_params_iter = pdc_vector_iterator_new(s->pdc_tf_dg_params_vector);
-    while(pdc_vector_iterator_has_next(dg_params_iter)) {
-        pdc_tf_dg_params_t* cur_param = pdc_vector_iterator_next(dg_params_iter);
+    pdc_tf_state_t *     s              = (pdc_tf_state_t *)data;
+    PDC_VECTOR_ITERATOR *dg_params_iter = pdc_vector_iterator_new(s->pdc_tf_dg_params_vector);
+    while (pdc_vector_iterator_has_next(dg_params_iter)) {
+        pdc_tf_dg_params_t *cur_param = pdc_vector_iterator_next(dg_params_iter);
         if (cur_param != NULL)
             cur_param = PDC_free(cur_param);
     }

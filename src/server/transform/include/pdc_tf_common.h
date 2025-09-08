@@ -96,7 +96,7 @@ typedef struct pdc_tf_dg_params_t {
 
 typedef struct pdc_tf_state_t {
     char *                 name;
-    PDC_VECTOR*     pdc_tf_dg_params_vector;
+    PDC_VECTOR *           pdc_tf_dg_params_vector;
     pdc_tf_granularities_t granularity;
 } pdc_tf_state_t;
 
@@ -131,13 +131,13 @@ typedef enum pdc_tf_location_t { PDC_TF_BUILTIN, PDC_TF_EXTERNAL, PDC_TF_NUM_LOC
 extern char *pdc_tf_location_strs[];
 
 typedef struct pdc_tf_func_t {
-    pdc_tf_dev_t       dev;
-    pdc_tf_location_t  location;
-    char *             name;
-    PDC_VECTOR* pdc_tf_dg_params_vector;
-    uint32_t           cur_num_params;
-    char *             params_str;
-    c_func_t           c_func;
+    pdc_tf_dev_t      dev;
+    pdc_tf_location_t location;
+    char *            name;
+    PDC_VECTOR *      pdc_tf_dg_params_vector;
+    uint32_t          cur_num_params;
+    char *            params_str;
+    c_func_t          c_func;
 } pdc_tf_func_t;
 
 /**
