@@ -7,6 +7,7 @@
 #include "pdc_dg.h"
 #include "pdc_region.h"
 #include "pdc_obj_pkg.h"
+#include "pdc_vector.h"
 
 #define MAX_REGIONS 100
 
@@ -154,10 +155,6 @@ typedef struct pdc_tf_pkg_t {
     hg_string_t store_state;
 } pdc_tf_pkg_t;
 
-// FIXME: we could store this in a dynamically allocated buf
-#define PDC_TF_MAX_FUNC_NAME_LEN 400
-#define PDC_TF_MAX_BUILTIN_FUNCS 400
-
 /**
  * This structure used to store our builtin functions
  * Functions are unique according to name and device
@@ -165,14 +162,13 @@ typedef struct pdc_tf_pkg_t {
  * Such as zfp compression on the CPU and zfp compression on the GPU
  */
 typedef struct pdc_tf_builtin_func_t {
-    char         name[PDC_TF_MAX_FUNC_NAME_LEN];
+    char*         name;
     pdc_tf_dev_t dev;
     c_func_t     c_func;
 } pdc_tf_builtin_func_t;
 
 // this is our global array of builtin functions
-extern pdc_tf_builtin_func_t pdc_tf_builtin_funcs_g[PDC_TF_MAX_BUILTIN_FUNCS];
-extern uint32_t              pdc_tf_builtin_cur_func_g;
+extern PDC_VECTOR* pdc_tf_builtin_funcs_vector_g;
 
 perr_t PDCtf_set_tf_region_t(pdc_tf_region_t *dest, uint8_t ndim, pdc_var_type_t pdc_var_type,
                              uint64_t *size);

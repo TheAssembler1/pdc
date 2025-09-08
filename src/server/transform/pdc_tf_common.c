@@ -13,8 +13,7 @@
 #include "pdc_interface.h"
 #include "json-c/json.h"
 
-pdc_tf_builtin_func_t pdc_tf_builtin_funcs_g[PDC_TF_MAX_BUILTIN_FUNCS];
-uint32_t              pdc_tf_builtin_cur_func_g = 0;
+PDC_VECTOR* pdc_tf_builtin_funcs_vector_g = NULL;
 
 perr_t
 PDCtf_set_tf_region_t(pdc_tf_region_t *dest, uint8_t ndim, pdc_var_type_t pdc_var_type, uint64_t *size)
@@ -240,12 +239,15 @@ PDCtf_add_builtin_func(char *func_name, c_func_t c_func, pdc_tf_dev_t dev)
 
     if (func_name == NULL)
         PGOTO_ERROR(FAIL, "func_name was NULL");
+    if(c_func == NULL)
+        PGOTO_ERROR(FAIL, "c_func was NULL");
 
-    strcpy(pdc_tf_builtin_funcs_g[pdc_tf_builtin_cur_func_g].name, func_name);
-    pdc_tf_builtin_funcs_g[pdc_tf_builtin_cur_func_g].c_func = c_func;
-    pdc_tf_builtin_funcs_g[pdc_tf_builtin_cur_func_g].dev    = dev;
+    pdc_tf_builtin_func_t* builtin_func = PDC_malloc(sizeof(pdc_tf_builtin_func_t));
+    pdc_vector_add(pdc_tf_builtin_funcs_vector_g, builtin_func);
 
-    pdc_tf_builtin_cur_func_g++;
+    builtin_func->name = strdup(func_name);
+    builtin_func->c_func = c_func;
+    builtin_func->dev    = dev;
 
     LOG_DEBUG("Successfully added builtin function %s %s\n", func_name,
              (dev == PDC_TF_CPU_DEVICE) ? "CPU" : "GPU");
@@ -267,12 +269,18 @@ PDCtf_link_builtin_func(char *func_name, pdc_tf_dev_t dev, pdc_tf_func_t *f)
     if (f == NULL)
         PGOTO_ERROR(FAIL, "f was NULL");
 
-    for (int i = 0; i < pdc_tf_builtin_cur_func_g; i++) {
-        if (strcmp(pdc_tf_builtin_funcs_g[i].name, func_name) == 0 && pdc_tf_builtin_funcs_g[i].dev == dev) {
+    PDC_VECTOR_ITERATOR* builtin_func_iter 
+        = pdc_vector_iterator_new(pdc_tf_builtin_funcs_vector_g);
+    while (pdc_vector_iterator_has_next(builtin_func_iter)) {
+        pdc_tf_builtin_func_t* builtin_func = pdc_vector_iterator_next(builtin_func_iter);
+        if(builtin_func == NULL)
+            PGOTO_ERROR(FAIL, "builtin_func was NULL");
+        if (strcmp(builtin_func->name, func_name) == 0 && builtin_func->dev == dev) {
             found     = true;
-            f->c_func = pdc_tf_builtin_funcs_g[i].c_func;
+            f->c_func = builtin_func->c_func;
         }
     }
+    pdc_vector_iterator_destroy(builtin_func_iter);
 
     if (!found)
         PGOTO_ERROR(FAIL, "Builtin function not found");
@@ -287,6 +295,11 @@ PDCtf_init_builtin_funcs()
     FUNC_ENTER(NULL);
 
     perr_t ret_value = SUCCEED;
+
+    if(pdc_tf_builtin_funcs_vector_g == NULL)
+        pdc_tf_builtin_funcs_vector_g = pdc_vector_create(8, 2.0);
+    if(pdc_tf_builtin_funcs_vector_g == NULL)
+        PGOTO_ERROR(FAIL, "pdc_tf_builtin_funcs_vector_g was NULL");
 
 #ifdef ENABLE_TF_ZFP_COMPRESSION
     if (PDCtf_add_builtin_func("zfp_compress", pdc_tf_builtin_zfp_compress, PDC_TF_CPU_DEVICE) != SUCCEED)
