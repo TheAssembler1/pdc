@@ -9,7 +9,7 @@
 #include "pdc_obj_pkg.h"
 #include "pdc_vector.h"
 
-#define MAX_REGIONS 100
+#define MAX_REGIONS 10000
 
 typedef struct pdc_tf_region_t {
     size_t         ndim;
@@ -32,19 +32,6 @@ typedef struct pdc_tf_region_mapping_t {
 
     // This is the region information for storing on disk
     pdc_tf_region_t actual_region;
-
-    /**
-     * In the directed graph, both edges and nodes can have associated void* states.
-     * These states are specific to each region mapping, so to locate the correct
-     * void* for a given state/edge you need three pieces of information:
-     *   1. the object ID
-     *   2. the region mapping ID
-     *   3. the state/edge identifier
-     *
-     * In other words, each conceptual region can have its own distinct void*
-     * associated with each state/edge in the graph.
-     */
-    uint32_t cur_region_mapping_id;
 } pdc_tf_region_mapping_t;
 
 /**
@@ -134,7 +121,7 @@ typedef struct pdc_tf_func_t {
     pdc_tf_dev_t       dev;
     pdc_tf_location_t  location;
     char *             name;
-    PDC_VECTOR* pdc_tf_dg_params_vector;
+    PDC_VECTOR*        pdc_tf_dg_params_vector;
     uint32_t           cur_num_params;
     char *             params_str;
     c_func_t           c_func;
@@ -158,13 +145,13 @@ typedef struct pdc_tf_pkg_t {
  * Such as zfp compression on the CPU and zfp compression on the GPU
  */
 typedef struct pdc_tf_builtin_func_t {
-    char *       name;
+    char*         name;
     pdc_tf_dev_t dev;
     c_func_t     c_func;
 } pdc_tf_builtin_func_t;
 
 // this is our global array of builtin functions
-extern PDC_VECTOR *pdc_tf_builtin_funcs_vector_g;
+extern PDC_VECTOR* pdc_tf_builtin_funcs_vector_g;
 
 perr_t PDCtf_set_tf_region_t(pdc_tf_region_t *dest, uint8_t ndim, pdc_var_type_t pdc_var_type,
                              uint64_t *size);
