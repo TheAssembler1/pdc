@@ -83,7 +83,7 @@ typedef struct pdc_tf_dg_params_t {
 
 typedef struct pdc_tf_state_t {
     char *                 name;
-    PDC_VECTOR*     pdc_tf_dg_params_vector;
+    PDC_VECTOR *           pdc_tf_dg_params_vector;
     pdc_tf_granularities_t granularity;
 } pdc_tf_state_t;
 
