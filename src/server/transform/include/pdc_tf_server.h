@@ -6,7 +6,7 @@
 #include "pdc_timing.h"
 #include "pdc_vector.h"
 
-extern PDC_VECTOR* tf_obj_id_to_dg_vector_g;
+extern PDC_VECTOR *tf_obj_id_to_dg_vector_g;
 
 /**
  * This is similar to the client side pdc_tf_obj_t

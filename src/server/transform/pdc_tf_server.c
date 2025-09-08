@@ -5,7 +5,7 @@
 #include "pdc_client_server_common.h"
 #include "pdc_vector.h"
 
-PDC_VECTOR* tf_obj_id_to_dg_vector_g = NULL;
+PDC_VECTOR *tf_obj_id_to_dg_vector_g = NULL;
 
 #ifndef IS_PDC_SERVER
 perr_t
@@ -37,18 +37,18 @@ PDCtf_store_json_mapping(pdcid_t obj_id, char *json_filepath, char *cur_state, c
 
     perr_t ret_value = SUCCEED;
 
-    if(tf_obj_id_to_dg_vector_g == NULL)
+    if (tf_obj_id_to_dg_vector_g == NULL)
         tf_obj_id_to_dg_vector_g = pdc_vector_create(8, 2.0);
-    if(tf_obj_id_to_dg_vector_g == NULL)
+    if (tf_obj_id_to_dg_vector_g == NULL)
         PGOTO_ERROR(FAIL, "tf_obj_id_to_dg_vector_g was NULL");
 
     // Find object in mapping if it exists
-    pdc_tf_obj_id_to_dg_t* obj_id_to_dg = NULL;
-    PDC_VECTOR_ITERATOR* tf_obj_id_to_dg_vector_iter = pdc_vector_iterator_new(tf_obj_id_to_dg_vector_g);
-    while(pdc_vector_iterator_has_next(tf_obj_id_to_dg_vector_iter)) {
-        pdc_tf_obj_id_to_dg_t* cur_obj_id_to_dg 
-            = (pdc_tf_obj_id_to_dg_t*)pdc_vector_iterator_next(tf_obj_id_to_dg_vector_iter);
-        if(cur_obj_id_to_dg->obj_id == obj_id) {
+    pdc_tf_obj_id_to_dg_t *obj_id_to_dg                = NULL;
+    PDC_VECTOR_ITERATOR *  tf_obj_id_to_dg_vector_iter = pdc_vector_iterator_new(tf_obj_id_to_dg_vector_g);
+    while (pdc_vector_iterator_has_next(tf_obj_id_to_dg_vector_iter)) {
+        pdc_tf_obj_id_to_dg_t *cur_obj_id_to_dg =
+            (pdc_tf_obj_id_to_dg_t *)pdc_vector_iterator_next(tf_obj_id_to_dg_vector_iter);
+        if (cur_obj_id_to_dg->obj_id == obj_id) {
             obj_id_to_dg = cur_obj_id_to_dg;
             break;
         }
@@ -80,9 +80,9 @@ PDCtf_store_json_mapping(pdcid_t obj_id, char *json_filepath, char *cur_state, c
         pdc_vector_add(tf_obj_id_to_dg_vector_g, obj_id_to_dg);
 
         obj_id_to_dg->dg                             = dg;
-        obj_id_to_dg->obj_id                        = obj_id;
+        obj_id_to_dg->obj_id                         = obj_id;
         obj_id_to_dg->pdc_tf_obj.num_region_mappings = 1;
-        region_mapping = &(obj_id_to_dg->pdc_tf_obj.region_mappings[0]);
+        region_mapping                               = &(obj_id_to_dg->pdc_tf_obj.region_mappings[0]);
     }
 
     // Check if this mapping already exists
@@ -98,7 +98,8 @@ PDCtf_store_json_mapping(pdcid_t obj_id, char *json_filepath, char *cur_state, c
 
     // If this is null we need to append this mapping
     if (region_mapping == NULL) {
-        region_mapping = &obj_id_to_dg->pdc_tf_obj.region_mappings[obj_id_to_dg->pdc_tf_obj.num_region_mappings];
+        region_mapping =
+            &obj_id_to_dg->pdc_tf_obj.region_mappings[obj_id_to_dg->pdc_tf_obj.num_region_mappings];
         obj_id_to_dg->pdc_tf_obj.num_region_mappings++;
     }
 

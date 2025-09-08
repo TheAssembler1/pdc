@@ -158,13 +158,13 @@ typedef struct pdc_tf_pkg_t {
  * Such as zfp compression on the CPU and zfp compression on the GPU
  */
 typedef struct pdc_tf_builtin_func_t {
-    char*         name;
+    char *       name;
     pdc_tf_dev_t dev;
     c_func_t     c_func;
 } pdc_tf_builtin_func_t;
 
 // this is our global array of builtin functions
-extern PDC_VECTOR* pdc_tf_builtin_funcs_vector_g;
+extern PDC_VECTOR *pdc_tf_builtin_funcs_vector_g;
 
 perr_t PDCtf_set_tf_region_t(pdc_tf_region_t *dest, uint8_t ndim, pdc_var_type_t pdc_var_type,
                              uint64_t *size);

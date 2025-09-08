@@ -13,7 +13,7 @@
 #include "pdc_interface.h"
 #include "json-c/json.h"
 
-PDC_VECTOR* pdc_tf_builtin_funcs_vector_g = NULL;
+PDC_VECTOR *pdc_tf_builtin_funcs_vector_g = NULL;
 
 perr_t
 PDCtf_set_tf_region_t(pdc_tf_region_t *dest, uint8_t ndim, pdc_var_type_t pdc_var_type, uint64_t *size)
@@ -24,7 +24,7 @@ PDCtf_set_tf_region_t(pdc_tf_region_t *dest, uint8_t ndim, pdc_var_type_t pdc_va
 
     dest->ndim         = ndim;
     dest->pdc_var_type = pdc_var_type;
-    for(int i = 0; i < ndim;i ++)
+    for (int i = 0; i < ndim; i++)
         dest->size[i] = size[i];
 
     FUNC_LEAVE(SUCCEED);
@@ -37,7 +37,7 @@ PDCtf_copy_tf_region_t(pdc_tf_region_t *src, pdc_tf_region_t *dest)
 
     dest->ndim         = src->ndim;
     dest->pdc_var_type = src->pdc_var_type;
-    for(int i = 0; i < src->ndim; i++)
+    for (int i = 0; i < src->ndim; i++)
         dest->size[i] = src->size[i];
 
     FUNC_LEAVE(SUCCEED);
@@ -53,7 +53,7 @@ PDCtf_set_func_param(pdc_dg_t *dg, char *func_name, pdc_tf_dev_t dev, uint64_t f
     PDC_VECTOR_ITERATOR* dg_params_iter = NULL;
 
     LOG_DEBUG("Setting params for func_name %s by flat conceptual offset %lu\n", func_name,
-                             flat_conceptual_offset);
+              flat_conceptual_offset);
 
     // Find edge with name
     for (int i = 0; i < dg->edge_count; i++) {
@@ -108,7 +108,7 @@ PDCtf_get_func_param(pdc_dg_t *dg, char *func_name, pdc_tf_dev_t dev, uint64_t f
     PDC_VECTOR_ITERATOR* dg_params_iter = NULL;
 
     LOG_DEBUG("Getting params for func_name %s by flat conceptual offset %lu\n", func_name,
-                             flat_conceptual_offset);
+              flat_conceptual_offset);
 
     // Find edge with name
     for (int i = 0; i < dg->edge_count; i++) {
@@ -153,7 +153,7 @@ PDCtf_set_state_param(pdc_dg_t *dg, char *state_name, uint64_t flat_conceptual_o
     PDC_VECTOR_ITERATOR* dg_params_iter = NULL;
 
     LOG_DEBUG("Setting params for state_name %s by flat conceptual offset %lu\n", state_name,
-                            flat_conceptual_offset);
+              flat_conceptual_offset);
 
     // Get state from graph
     pdc_tf_state_t query_stat;
@@ -207,7 +207,7 @@ PDCtf_get_state_param(pdc_dg_t *dg, char *state_name, uint64_t flat_conceptual_o
     PDC_VECTOR_ITERATOR* dg_params_iter = NULL;
 
     LOG_DEBUG("Getting params for state_name %s by flat conceptual offset %lu\n", state_name,
-                        flat_conceptual_offset);
+              flat_conceptual_offset);
 
     // Get state from graph
     pdc_tf_state_t query_stat = {.name = state_name};
@@ -254,18 +254,18 @@ PDCtf_add_builtin_func(char *func_name, c_func_t c_func, pdc_tf_dev_t dev)
 
     if (func_name == NULL)
         PGOTO_ERROR(FAIL, "func_name was NULL");
-    if(c_func == NULL)
+    if (c_func == NULL)
         PGOTO_ERROR(FAIL, "c_func was NULL");
 
-    pdc_tf_builtin_func_t* builtin_func = PDC_malloc(sizeof(pdc_tf_builtin_func_t));
+    pdc_tf_builtin_func_t *builtin_func = PDC_malloc(sizeof(pdc_tf_builtin_func_t));
     pdc_vector_add(pdc_tf_builtin_funcs_vector_g, builtin_func);
 
-    builtin_func->name = strdup(func_name);
+    builtin_func->name   = strdup(func_name);
     builtin_func->c_func = c_func;
     builtin_func->dev    = dev;
 
     LOG_DEBUG("Successfully added builtin function %s %s\n", func_name,
-             (dev == PDC_TF_CPU_DEVICE) ? "CPU" : "GPU");
+              (dev == PDC_TF_CPU_DEVICE) ? "CPU" : "GPU");
 
 done:
     FUNC_LEAVE(ret_value);
@@ -284,11 +284,10 @@ PDCtf_link_builtin_func(char *func_name, pdc_tf_dev_t dev, pdc_tf_func_t *f)
     if (f == NULL)
         PGOTO_ERROR(FAIL, "f was NULL");
 
-    PDC_VECTOR_ITERATOR* builtin_func_iter 
-        = pdc_vector_iterator_new(pdc_tf_builtin_funcs_vector_g);
+    PDC_VECTOR_ITERATOR *builtin_func_iter = pdc_vector_iterator_new(pdc_tf_builtin_funcs_vector_g);
     while (pdc_vector_iterator_has_next(builtin_func_iter)) {
-        pdc_tf_builtin_func_t* builtin_func = pdc_vector_iterator_next(builtin_func_iter);
-        if(builtin_func == NULL)
+        pdc_tf_builtin_func_t *builtin_func = pdc_vector_iterator_next(builtin_func_iter);
+        if (builtin_func == NULL)
             PGOTO_ERROR(FAIL, "builtin_func was NULL");
         if (strcmp(builtin_func->name, func_name) == 0 && builtin_func->dev == dev) {
             found     = true;
@@ -311,9 +310,9 @@ PDCtf_init_builtin_funcs()
 
     perr_t ret_value = SUCCEED;
 
-    if(pdc_tf_builtin_funcs_vector_g == NULL)
+    if (pdc_tf_builtin_funcs_vector_g == NULL)
         pdc_tf_builtin_funcs_vector_g = pdc_vector_create(8, 2.0);
-    if(pdc_tf_builtin_funcs_vector_g == NULL)
+    if (pdc_tf_builtin_funcs_vector_g == NULL)
         PGOTO_ERROR(FAIL, "pdc_tf_builtin_funcs_vector_g was NULL");
 
 #ifdef ENABLE_TF_ZFP_COMPRESSION
@@ -731,7 +730,7 @@ PDCtf_log_pdc_region_t(pdc_tf_region_t reg)
 {
     FUNC_ENTER(NULL);
 
-    if(reg.ndim <= 0 || reg.ndim > 4) {
+    if (reg.ndim <= 0 || reg.ndim > 4) {
         LOG_DEBUG("Invalid region ndim: %lu\n", reg.ndim);
         abort();
     }
