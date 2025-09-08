@@ -644,14 +644,14 @@ PDCtf_get_region_mapping(pdcid_t obj_id, pdc_dg_t **dg)
 {
     FUNC_ENTER(NULL);
 
-    struct pdc_tf_obj_t *ret_value = NULL;
-    pdc_tf_obj_id_to_dg_t* obj_id_to_dg = NULL;
-    PDC_VECTOR_ITERATOR* tf_obj_id_to_dg_vector_iter = pdc_vector_iterator_new(tf_obj_id_to_dg_vector_g);
+    struct pdc_tf_obj_t *  ret_value                   = NULL;
+    pdc_tf_obj_id_to_dg_t *obj_id_to_dg                = NULL;
+    PDC_VECTOR_ITERATOR *  tf_obj_id_to_dg_vector_iter = pdc_vector_iterator_new(tf_obj_id_to_dg_vector_g);
 
-    while(pdc_vector_iterator_has_next(tf_obj_id_to_dg_vector_iter)) {
-        pdc_tf_obj_id_to_dg_t* cur_obj_id_to_dg 
-            = (pdc_tf_obj_id_to_dg_t*)pdc_vector_iterator_next(tf_obj_id_to_dg_vector_iter);
-        if(cur_obj_id_to_dg->obj_id == obj_id) {
+    while (pdc_vector_iterator_has_next(tf_obj_id_to_dg_vector_iter)) {
+        pdc_tf_obj_id_to_dg_t *cur_obj_id_to_dg =
+            (pdc_tf_obj_id_to_dg_t *)pdc_vector_iterator_next(tf_obj_id_to_dg_vector_iter);
+        if (cur_obj_id_to_dg->obj_id == obj_id) {
             *dg = cur_obj_id_to_dg->dg;
             PGOTO_DONE(&(cur_obj_id_to_dg->pdc_tf_obj));
         }
@@ -680,7 +680,8 @@ PDC_Server_data_io_region_per_file_transformations(uint64_t obj_id, int obj_ndim
         LOG_DEBUG("No region mapping found for obj_id %" PRIu64 "\n", obj_id);
         *ran_transformation = false;
         PGOTO_DONE(SUCCEED);
-    } else {
+    }
+    else {
         LOG_DEBUG("Found region mapping for obj_id %" PRIu64 "\n", obj_id);
     }
 
@@ -733,7 +734,7 @@ PDC_Server_data_io_region_per_file_transformations(uint64_t obj_id, int obj_ndim
         uint64_t bytes_to_write = PDC_get_region_desc_size_bytes(
             output_region.size, PDC_get_var_type_size(output_region.pdc_var_type), output_region.ndim);
         LOG_DEBUG("Writing %lu bytes from %s\n", bytes_to_write, storage_location);
-            PDC_POSIX_IO(fd, buf, bytes_to_write, 1);
+        PDC_POSIX_IO(fd, buf, bytes_to_write, 1);
         close(fd);
 
         // Update actual region mapping
@@ -798,10 +799,10 @@ PDC_Server_transfer_request_io(uint64_t obj_id, int obj_ndim, const uint64_t *ob
     LOG_DEBUG("PDC_Server_transfer_request_io was called\n");
 
     perr_t ret_value = SUCCEED;
-    int my_rank = PDC_get_rank();
+    int    my_rank   = PDC_get_rank();
 
     // --- Validate input parameters ---
-    if(obj_id == 0)
+    if (obj_id == 0)
         PGOTO_ERROR(FAIL, "obj_id is zero");
     if (!region_info)
         PGOTO_ERROR(FAIL, "region_info is NULL");
@@ -815,22 +816,21 @@ PDC_Server_transfer_request_io(uint64_t obj_id, int obj_ndim, const uint64_t *ob
         PGOTO_ERROR(FAIL, "unit is zero");
 
     /**
-        * FIMXE: If running transformation need to validate that
-        * region info size and offset is flush with file_dims and
-        * has the same size as file_dimes.
-        *
-        * In addition, need a way for user's to set the file_dims
-        */
+     * FIMXE: If running transformation need to validate that
+     * region info size and offset is flush with file_dims and
+     * has the same size as file_dimes.
+     *
+     * In addition, need a way for user's to set the file_dims
+     */
     // check if the obj has transformations
     bool ran_transformation = false;
     LOG_DEBUG("Checking for transformations for obj_id %" PRIu64 "\n", obj_id);
-    if (PDC_Server_data_io_region_per_file_transformations(obj_id, obj_ndim, obj_dims, region_info, buf,
-                                                            unit, is_write,
-                                                            &ran_transformation) != SUCCEED) {
+    if (PDC_Server_data_io_region_per_file_transformations(obj_id, obj_ndim, obj_dims, region_info, buf, unit,
+                                                           is_write, &ran_transformation) != SUCCEED) {
         PGOTO_ERROR(FAIL, "Error with PDC_Server_data_io_region_per_file_transformations");
     }
     if (ran_transformation) {
-        if(my_rank == 0)
+        if (my_rank == 0)
             LOG_INFO("Ran storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION\n");
         PGOTO_DONE(SUCCEED);
     }
@@ -839,7 +839,7 @@ PDC_Server_transfer_request_io(uint64_t obj_id, int obj_ndim, const uint64_t *ob
      * Switch between storage strategies and hand off to correct handler
      */
     if (storage_strategy_g == STORE_REGION_BY_REGION_SINGLE_FILE || obj_ndim == 0) {
-        if(my_rank == 0)
+        if (my_rank == 0)
             LOG_INFO("Running storage strategy STORE_REGION_BY_REGION_SINGLE_FILE\n");
         if (is_write)
             PGOTO_DONE(PDC_Server_data_write_out(obj_id, region_info, buf, unit));
@@ -847,7 +847,7 @@ PDC_Server_transfer_request_io(uint64_t obj_id, int obj_ndim, const uint64_t *ob
             PGOTO_DONE(PDC_Server_data_read_from(obj_id, region_info, buf, unit));
     }
     else if (storage_strategy_g == STORE_FLATTENED_SINGLE_FILE) {
-        if(my_rank == 0)
+        if (my_rank == 0)
             LOG_INFO("Running storage strategy STORE_FLATTENED_SINGLE_FILE\n");
         PGOTO_DONE(
             PDC_Server_data_io_flattened(obj_id, obj_ndim, obj_dims, region_info, buf, unit, is_write));
@@ -857,8 +857,8 @@ PDC_Server_transfer_request_io(uint64_t obj_id, int obj_ndim, const uint64_t *ob
         uint64_t temp_file_dims[DIM_MAX];
         if (PDC_shrink_file_dims(temp_file_dims, obj_dims, obj_ndim, unit) != SUCCEED)
             PGOTO_ERROR(FAIL, "Error with PDC_shrink_file_dims");
-        
-        if(my_rank == 0)
+
+        if (my_rank == 0)
             LOG_INFO("Running storage strategy STORE_FLATTENED_REGION_PER_FILE\n");
         PGOTO_DONE(PDC_Server_data_io_region_per_file(obj_id, obj_ndim, obj_dims, temp_file_dims, region_info,
                                                       buf, unit, is_write));

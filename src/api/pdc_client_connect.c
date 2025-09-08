@@ -3319,7 +3319,7 @@ PDC_Client_transfer_request(hg_bulk_t *bulk_handle, void *buf, pdcid_t obj_id, u
         pdcid_t   dg_id = region_mapping->region_state.dg_id;
         pdc_dg_t *dg    = PDCtf_get_dg(dg_id);
 
-        if(dg == NULL)
+        if (dg == NULL)
             PGOTO_ERROR(FAIL, "dg was NULL");
 
         char *json_filepath = (char *)dg->data;

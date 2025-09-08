@@ -340,7 +340,8 @@ PDCregion_transfer_create(void *buf, pdc_access_t access_type, pdcid_t obj_id, p
 
         if (PDCtf_attach_to_region(dg_id, obj_id, remote_reg, client_state, store_state) != SUCCEED)
             PGOTO_ERROR(0, "Failed to attach graph to region");
-    } else {
+    }
+    else {
         LOG_DEBUG("Entire obj does not have attached graph\n");
     }
 
@@ -1201,15 +1202,14 @@ PDCcompute_region_transformation_metadata_size(struct _pdc_obj_info *obj_pointer
     size_t ret_value = 4;
 
     pdc_tf_region_mapping_t *region_mapping = NULL;
-    if (!obj_pointer || 
-        !obj_pointer->pdc_tf_obj || 
+    if (!obj_pointer || !obj_pointer->pdc_tf_obj ||
         !PDCtf_region_has_attached_graph(obj_pointer->pdc_tf_obj, remote_ndim, unit, remote_offset,
                                          remote_size, &region_mapping)) {
         PGOTO_DONE(ret_value);
     }
 
     pdc_dg_t *dg = PDCtf_get_dg(region_mapping->region_state.dg_id);
-    if(dg == NULL)
+    if (dg == NULL)
         PGOTO_ERROR(ret_value, "Failed to PDCtf_get_dg in PDCcompute_region_transformation_metadata_size\n");
     // json filepath
     ret_value += strlen((char *)dg->data); // add the length (we already counted +1 above)
@@ -1219,7 +1219,7 @@ PDCcompute_region_transformation_metadata_size(struct _pdc_obj_info *obj_pointer
     ret_value += strlen(region_mapping->region_state.store_state);
 
 done:
-    FUNC_LEAVE(ret_value); 
+    FUNC_LEAVE(ret_value);
 }
 
 static perr_t

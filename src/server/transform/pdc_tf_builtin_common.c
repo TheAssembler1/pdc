@@ -114,9 +114,9 @@ pdc_tf_builtin_zfp_compress_helper(pdc_tf_internal_param internal_param, char *p
     zfp_stream *zfp = zfp_stream_open(NULL);
 
     // Allocate buffer for compressed data
-    size_t bufsize           = zfp_stream_maximum_size(zfp, field);
+    size_t bufsize = zfp_stream_maximum_size(zfp, field);
     LOG_DEBUG("Max compressed size: %zu bytes\n", bufsize);
-    void * compressed_buffer = PDC_malloc(bufsize);
+    void *compressed_buffer = PDC_malloc(bufsize);
 
     // Create bitstream backed by the compressed buffer
     bitstream *stream = stream_open(compressed_buffer, bufsize);
@@ -135,7 +135,7 @@ pdc_tf_builtin_zfp_compress_helper(pdc_tf_internal_param internal_param, char *p
     // Update output region dims to reflect compressed data size (1D)
     output_region->ndim         = 1;
     output_region->pdc_var_type = PDC_CHAR;
-    output_region->size[0] = compressed_size;
+    output_region->size[0]      = compressed_size;
 
     // Free zfp structures
     zfp_field_free(field);

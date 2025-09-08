@@ -202,7 +202,7 @@ transfer_request_all_bulk_transfer_write_cb(const struct hg_cb_info *info)
         PDC_Server_transfer_request_io(request_data.obj_id[i], request_data.obj_ndim[i],
                                        request_data.obj_dims[i], remote_reg_info,
                                        (void *)request_data.data_buf[i], request_data.unit[i], 1);
-#endif  
+#endif
         pthread_mutex_lock(&transfer_request_status_mutex);
         PDC_finish_request(local_bulk_args->transfer_request_id[i]);
         pthread_mutex_unlock(&transfer_request_status_mutex);
@@ -345,7 +345,7 @@ done:
     pthread_mutex_lock(&transfer_request_status_mutex);
     PDC_finish_request(local_bulk_args->transfer_request_id);
     pthread_mutex_unlock(&transfer_request_status_mutex);
-    remote_reg_info           = (struct pdc_region_info *)PDC_free(remote_reg_info);
+    remote_reg_info = (struct pdc_region_info *)PDC_free(remote_reg_info);
 
     HG_Bulk_free(local_bulk_args->bulk_handle);
 
