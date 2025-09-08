@@ -80,9 +80,6 @@ typedef enum pdc_tf_granularities_t {
 } pdc_tf_granularities_t;
 extern char *pdc_tf_granularity_strs[];
 
-// FIXME: this should be a dynamic array
-#define MAX_PDC_DG_PARAMS 10000
-
 /**
  * Used to store parameters for states and edges
  * within the directed graph.
@@ -99,8 +96,7 @@ typedef struct pdc_tf_dg_params_t {
 
 typedef struct pdc_tf_state_t {
     char *                 name;
-    pdc_tf_dg_params_t     pdc_tf_dg_params_list[MAX_PDC_DG_PARAMS];
-    uint32_t               cur_num_params;
+    PDC_VECTOR*     pdc_tf_dg_params_vector;
     pdc_tf_granularities_t granularity;
 } pdc_tf_state_t;
 
@@ -138,7 +134,7 @@ typedef struct pdc_tf_func_t {
     pdc_tf_dev_t       dev;
     pdc_tf_location_t  location;
     char *             name;
-    pdc_tf_dg_params_t pdc_tf_dg_params_list[MAX_PDC_DG_PARAMS];
+    PDC_VECTOR* pdc_tf_dg_params_vector;
     uint32_t           cur_num_params;
     char *             params_str;
     c_func_t           c_func;

@@ -50,6 +50,7 @@ PDCtf_set_func_param(pdc_dg_t *dg, char *func_name, pdc_tf_dev_t dev, uint64_t f
     FUNC_ENTER(NULL);
 
     perr_t ret_value = SUCCEED;
+    PDC_VECTOR_ITERATOR* dg_params_iter = NULL;
 
     LOG_DEBUG("Setting params for func_name %s by flat conceptual offset %lu\n", func_name,
                              flat_conceptual_offset);
@@ -61,11 +62,15 @@ PDCtf_set_func_param(pdc_dg_t *dg, char *func_name, pdc_tf_dev_t dev, uint64_t f
         pdc_tf_func_t *tf_func = edge->data;
 
         if (!strcmp(func_name, tf_func->name)) {
+            // Create vector if vector is NULL
+            if(tf_func->pdc_tf_dg_params_vector == NULL)
+                tf_func->pdc_tf_dg_params_vector = pdc_vector_create(8, 2.0);
+
             // Locate the params by conceptual offset
             pdc_tf_dg_params_t *pdc_dg_params = NULL;
-            for (int params_list_index = 0; params_list_index < tf_func->cur_num_params;
-                 params_list_index++) {
-                pdc_dg_params = &tf_func->pdc_tf_dg_params_list[params_list_index];
+            dg_params_iter = pdc_vector_iterator_new(tf_func->pdc_tf_dg_params_vector);
+            while(pdc_vector_iterator_has_next(dg_params_iter)) {
+                pdc_dg_params = pdc_vector_iterator_next(dg_params_iter);
                 if (pdc_dg_params->flat_conceptual_offset == flat_conceptual_offset) {
                     pdc_dg_params->params      = params;
                     pdc_dg_params->params_size = params_size;
@@ -74,18 +79,12 @@ PDCtf_set_func_param(pdc_dg_t *dg, char *func_name, pdc_tf_dev_t dev, uint64_t f
             }
 
             // Append new entry
-            pdc_dg_params = &tf_func->pdc_tf_dg_params_list[tf_func->cur_num_params];
-            assert(pdc_dg_params != NULL);
+            pdc_dg_params = PDC_calloc(1, sizeof(pdc_tf_dg_params_t));
+            pdc_vector_add(tf_func->pdc_tf_dg_params_vector, pdc_dg_params);
+
             pdc_dg_params->flat_conceptual_offset = flat_conceptual_offset;
             pdc_dg_params->params                 = params;
             pdc_dg_params->params_size            = params_size;
-
-            tf_func->cur_num_params++;
-
-            if(tf_func->cur_num_params >= MAX_PDC_DG_PARAMS) {
-                LOG_ERROR("tf_func->cur_num_params >= MAX_PDC_DG_PARAMS\n");
-                abort();
-            }
 
             PGOTO_DONE(SUCCEED);
         }
@@ -94,6 +93,8 @@ PDCtf_set_func_param(pdc_dg_t *dg, char *func_name, pdc_tf_dev_t dev, uint64_t f
     PGOTO_ERROR(FAIL, "Edge %s not found\n", func_name);
 
 done:
+    if(dg_params_iter != NULL)
+        pdc_vector_iterator_destroy(dg_params_iter);
     FUNC_LEAVE(ret_value);
 }
 
@@ -104,6 +105,7 @@ PDCtf_get_func_param(pdc_dg_t *dg, char *func_name, pdc_tf_dev_t dev, uint64_t f
     FUNC_ENTER(NULL);
 
     perr_t ret_value = SUCCEED;
+    PDC_VECTOR_ITERATOR* dg_params_iter = NULL;
 
     LOG_DEBUG("Getting params for func_name %s by flat conceptual offset %lu\n", func_name,
                              flat_conceptual_offset);
@@ -113,19 +115,21 @@ PDCtf_get_func_param(pdc_dg_t *dg, char *func_name, pdc_tf_dev_t dev, uint64_t f
         pdc_dg_edge_t *edge = dg->edges[i];
         assert(edge != NULL && edge->data != NULL);
         pdc_tf_func_t *tf_func = edge->data;
-
         if (!strcmp(func_name, tf_func->name) && tf_func->dev == dev) {
+            // Check if vector is NULL
+            if(tf_func->pdc_tf_dg_params_vector == NULL)
+                PGOTO_ERROR(FAIL, "tf_func->pdc_tf_dg_params_vector was NULL");
+
             // Locate the params by conceptual offset
-            for (int params_list_index = 0; params_list_index < tf_func->cur_num_params;
-                 params_list_index++) {
-                pdc_tf_dg_params_t *pdc_dg_params = &tf_func->pdc_tf_dg_params_list[params_list_index];
+            dg_params_iter = pdc_vector_iterator_new(tf_func->pdc_tf_dg_params_vector);
+            while(pdc_vector_iterator_has_next(dg_params_iter)) {
+                pdc_tf_dg_params_t *pdc_dg_params = pdc_vector_iterator_next(dg_params_iter);
                 if (pdc_dg_params->flat_conceptual_offset == flat_conceptual_offset) {
                     *params      = pdc_dg_params->params;
                     *params_size = pdc_dg_params->params_size;
                     PGOTO_DONE(SUCCEED);
                 }
             }
-
             PGOTO_ERROR(FAIL, "Failed to locate params in func_name %s by flat conceptual offset %lu\n",
                         func_name, flat_conceptual_offset);
         }
@@ -134,6 +138,8 @@ PDCtf_get_func_param(pdc_dg_t *dg, char *func_name, pdc_tf_dev_t dev, uint64_t f
     PGOTO_ERROR(FAIL, "Edge %s not found\n", func_name);
 
 done:
+    if(dg_params_iter != NULL)
+        pdc_vector_iterator_destroy(dg_params_iter);
     FUNC_LEAVE(ret_value);
 }
 
@@ -144,6 +150,7 @@ PDCtf_set_state_param(pdc_dg_t *dg, char *state_name, uint64_t flat_conceptual_o
     FUNC_ENTER(NULL);
 
     perr_t ret_value = SUCCEED;
+    PDC_VECTOR_ITERATOR* dg_params_iter = NULL;
 
     LOG_DEBUG("Setting params for state_name %s by flat conceptual offset %lu\n", state_name,
                             flat_conceptual_offset);
@@ -161,10 +168,15 @@ PDCtf_set_state_param(pdc_dg_t *dg, char *state_name, uint64_t flat_conceptual_o
     if (tf_state == NULL)
         PGOTO_ERROR(FAIL, "Vertex data was NULL");
 
+    // Create vector if vector is NULL
+    if(tf_state->pdc_tf_dg_params_vector == NULL)
+        tf_state->pdc_tf_dg_params_vector = pdc_vector_create(8, 2.0);
+
     // Locate the params by conceptual offset
     pdc_tf_dg_params_t *pdc_dg_params = NULL;
-    for (int params_list_index = 0; params_list_index < tf_state->cur_num_params; params_list_index++) {
-        pdc_dg_params = &tf_state->pdc_tf_dg_params_list[params_list_index];
+    dg_params_iter = pdc_vector_iterator_new(tf_state->pdc_tf_dg_params_vector);
+    while(pdc_vector_iterator_has_next(dg_params_iter)) {
+        pdc_dg_params = pdc_vector_iterator_next(dg_params_iter);
         if (pdc_dg_params->flat_conceptual_offset == flat_conceptual_offset) {
             pdc_dg_params->params      = params;
             pdc_dg_params->params_size = params_size;
@@ -172,21 +184,16 @@ PDCtf_set_state_param(pdc_dg_t *dg, char *state_name, uint64_t flat_conceptual_o
         }
     }
 
-    pdc_dg_params = &tf_state->pdc_tf_dg_params_list[tf_state->cur_num_params];
-    assert(pdc_dg_params != NULL);
+    pdc_dg_params = PDC_calloc(1, sizeof(pdc_tf_dg_params_t));
+    pdc_vector_add(tf_state->pdc_tf_dg_params_vector, pdc_dg_params);
+
     pdc_dg_params->params                 = params;
     pdc_dg_params->params_size            = params_size;
     pdc_dg_params->flat_conceptual_offset = flat_conceptual_offset;
 
-    // Params were not found need to append params to list
-    tf_state->cur_num_params++;
-
-    if(tf_state->cur_num_params >= MAX_PDC_DG_PARAMS) {
-        LOG_ERROR("tf_func->cur_num_params >= MAX_PDC_DG_PARAMS\n");
-        abort();
-    }
-
 done:
+    if(dg_params_iter != NULL)
+        pdc_vector_iterator_destroy(dg_params_iter);
     FUNC_LEAVE(ret_value);
 }
 
@@ -197,6 +204,7 @@ PDCtf_get_state_param(pdc_dg_t *dg, char *state_name, uint64_t flat_conceptual_o
     FUNC_ENTER(NULL);
 
     perr_t ret_value = SUCCEED;
+    PDC_VECTOR_ITERATOR* dg_params_iter = NULL;
 
     LOG_DEBUG("Getting params for state_name %s by flat conceptual offset %lu\n", state_name,
                         flat_conceptual_offset);
@@ -213,9 +221,14 @@ PDCtf_get_state_param(pdc_dg_t *dg, char *state_name, uint64_t flat_conceptual_o
     if (tf_state == NULL)
         PGOTO_ERROR(FAIL, "Vertex data was NULL");
 
+    // Check if vector is NULL
+    if(tf_state->pdc_tf_dg_params_vector == NULL)
+        PGOTO_ERROR(FAIL, "tf_state->pdc_tf_dg_params_vector was NULL");
+
     // Locate the params by conceptual offset
-    for (int params_list_index = 0; params_list_index < tf_state->cur_num_params; params_list_index++) {
-        pdc_tf_dg_params_t *pdc_dg_params = &tf_state->pdc_tf_dg_params_list[params_list_index];
+    dg_params_iter = pdc_vector_iterator_new(tf_state->pdc_tf_dg_params_vector);
+    while(pdc_vector_iterator_has_next(dg_params_iter)) {
+        pdc_tf_dg_params_t *pdc_dg_params = pdc_vector_iterator_next(dg_params_iter);
         if (pdc_dg_params->flat_conceptual_offset == flat_conceptual_offset) {
             *params      = pdc_dg_params->params;
             *params_size = pdc_dg_params->params_size;
@@ -227,6 +240,8 @@ PDCtf_get_state_param(pdc_dg_t *dg, char *state_name, uint64_t flat_conceptual_o
                 flat_conceptual_offset);
 
 done:
+    if(dg_params_iter != NULL)
+        pdc_vector_iterator_destroy(dg_params_iter);
     FUNC_LEAVE(ret_value);
 }
 
@@ -460,6 +475,13 @@ edge_free(void *data)
     LOG_DEBUG("edge_free called\n");
 
     pdc_tf_func_t *f = (pdc_tf_func_t *)data;
+    PDC_VECTOR_ITERATOR* dg_params_iter = pdc_vector_iterator_new(f->pdc_tf_dg_params_vector);
+    while(pdc_vector_iterator_has_next(dg_params_iter)) {
+        pdc_tf_dg_params_t* cur_param = pdc_vector_iterator_next(dg_params_iter);
+        if (cur_param != NULL)
+            cur_param = PDC_free(cur_param);
+    }
+    pdc_vector_iterator_destroy(dg_params_iter);
     if (f->params_str != NULL)
         f->params_str = PDC_free(f->params_str);
     f->name = PDC_free(f->name);
@@ -476,10 +498,13 @@ vertex_free(void *data)
     LOG_DEBUG("vertex_free called\n");
 
     pdc_tf_state_t *s = (pdc_tf_state_t *)data;
-    for (int i = 0; i < s->cur_num_params; i++) {
-        if (s->pdc_tf_dg_params_list[i].params != NULL)
-            s->pdc_tf_dg_params_list[i].params = PDC_free(s->pdc_tf_dg_params_list[i].params);
+    PDC_VECTOR_ITERATOR* dg_params_iter = pdc_vector_iterator_new(s->pdc_tf_dg_params_vector);
+    while(pdc_vector_iterator_has_next(dg_params_iter)) {
+        pdc_tf_dg_params_t* cur_param = pdc_vector_iterator_next(dg_params_iter);
+        if (cur_param != NULL)
+            cur_param = PDC_free(cur_param);
     }
+    pdc_vector_iterator_destroy(dg_params_iter);
     s->name = PDC_free(s->name);
     s       = PDC_free(s);
 
