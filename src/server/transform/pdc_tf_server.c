@@ -79,22 +79,22 @@ PDCtf_store_json_mapping(pdcid_t obj_id, char *json_filepath, char *cur_state, c
         obj_id_to_dg = PDC_malloc(sizeof(pdc_tf_obj_id_to_dg_t));
         pdc_vector_add(tf_obj_id_to_dg_vector_g, obj_id_to_dg);
 
-        obj_id_to_dg->dg                             = dg;
-        obj_id_to_dg->obj_id                         = obj_id;
+        obj_id_to_dg->dg     = dg;
+        obj_id_to_dg->obj_id = obj_id;
 
         // Create a new region mapping vector and mapping entry
         obj_id_to_dg->pdc_tf_obj.region_mappings_vector = pdc_vector_create(8, 2.0);
-        region_mapping = PDC_calloc(1, sizeof(pdc_tf_region_mapping_t));
+        region_mapping                                  = PDC_calloc(1, sizeof(pdc_tf_region_mapping_t));
         pdc_vector_add(obj_id_to_dg->pdc_tf_obj.region_mappings_vector, region_mapping);
     }
 
     // Check if this mapping already exists
     if (region_mapping == NULL) {
-        PDC_VECTOR_ITERATOR* region_mapping_iter 
-            = pdc_vector_iterator_new(obj_id_to_dg->pdc_tf_obj.region_mappings_vector);
-        while(pdc_vector_iterator_has_next(region_mapping_iter)) {
-            pdc_tf_region_mapping_t* cur_region_mapping = pdc_vector_iterator_next(region_mapping_iter);
-            if(cur_region_mapping == NULL)
+        PDC_VECTOR_ITERATOR *region_mapping_iter =
+            pdc_vector_iterator_new(obj_id_to_dg->pdc_tf_obj.region_mappings_vector);
+        while (pdc_vector_iterator_has_next(region_mapping_iter)) {
+            pdc_tf_region_mapping_t *cur_region_mapping = pdc_vector_iterator_next(region_mapping_iter);
+            if (cur_region_mapping == NULL)
                 PGOTO_ERROR(FAIL, "cur_region_mapping was NULL");
             uint64_t *conceptual_offset = cur_region_mapping->conceptual_offset;
             if (memcmp(offset, conceptual_offset, ndim * sizeof(uint64_t)) == 0) {

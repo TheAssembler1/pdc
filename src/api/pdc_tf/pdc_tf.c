@@ -138,17 +138,17 @@ PDCtf_attach_to_region(pdcid_t dg_id, pdcid_t obj_id, pdcid_t remote_reg, char *
     struct pdc_region_info *region_info = region_id_info->obj_ptr;
 
     // Create region mapping vector if needed
-    if(pdc_tf_obj->region_mappings_vector == NULL)
+    if (pdc_tf_obj->region_mappings_vector == NULL)
         pdc_tf_obj->region_mappings_vector = pdc_vector_create(8, 2.0);
 
-    // Add region mapping 
+    // Add region mapping
     // FIXME: if this is called twice on the same region should it overwrite or error
     // need to look at this on the server side as well...
-    pdc_tf_region_mapping_t *region_mapping    = PDC_calloc(1, sizeof(pdc_tf_region_mapping_t));
+    pdc_tf_region_mapping_t *region_mapping = PDC_calloc(1, sizeof(pdc_tf_region_mapping_t));
     pdc_vector_add(pdc_tf_obj->region_mappings_vector, region_mapping);
 
-    pdc_tf_region_t *        conceptual_region = &region_mapping->conceptual_region;
-    uint64_t *               conceptual_offset = region_mapping->conceptual_offset;
+    pdc_tf_region_t *conceptual_region = &region_mapping->conceptual_region;
+    uint64_t *       conceptual_offset = region_mapping->conceptual_offset;
 
     // Copy region information into conceptual region
     PDCtf_set_tf_region_t(conceptual_region, region_info->ndim, pdc_obj_info->obj_pt->obj_prop_pub->type,

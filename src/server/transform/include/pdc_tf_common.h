@@ -52,7 +52,7 @@ typedef struct pdc_tf_obj_t {
     pdc_tf_region_state_t all_regions_state;
 
     // This field is used to attach graphs to individual regions
-    PDC_VECTOR* region_mappings_vector;
+    PDC_VECTOR *region_mappings_vector;
 } pdc_obj_tf_t;
 
 typedef enum pdc_tf_granularities_t {
@@ -113,13 +113,13 @@ typedef enum pdc_tf_location_t { PDC_TF_BUILTIN, PDC_TF_EXTERNAL, PDC_TF_NUM_LOC
 extern char *pdc_tf_location_strs[];
 
 typedef struct pdc_tf_func_t {
-    pdc_tf_dev_t       dev;
-    pdc_tf_location_t  location;
-    char *             name;
-    PDC_VECTOR*        pdc_tf_dg_params_vector;
-    uint32_t           cur_num_params;
-    char *             params_str;
-    c_func_t           c_func;
+    pdc_tf_dev_t      dev;
+    pdc_tf_location_t location;
+    char *            name;
+    PDC_VECTOR *      pdc_tf_dg_params_vector;
+    uint32_t          cur_num_params;
+    char *            params_str;
+    c_func_t          c_func;
 } pdc_tf_func_t;
 
 /**
@@ -140,13 +140,13 @@ typedef struct pdc_tf_pkg_t {
  * Such as zfp compression on the CPU and zfp compression on the GPU
  */
 typedef struct pdc_tf_builtin_func_t {
-    char*         name;
+    char *       name;
     pdc_tf_dev_t dev;
     c_func_t     c_func;
 } pdc_tf_builtin_func_t;
 
 // this is our global array of builtin functions
-extern PDC_VECTOR* pdc_tf_builtin_funcs_vector_g;
+extern PDC_VECTOR *pdc_tf_builtin_funcs_vector_g;
 
 perr_t PDCtf_set_tf_region_t(pdc_tf_region_t *dest, uint8_t ndim, pdc_var_type_t pdc_var_type,
                              uint64_t *size);
