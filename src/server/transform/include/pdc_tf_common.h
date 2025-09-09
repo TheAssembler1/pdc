@@ -9,8 +9,6 @@
 #include "pdc_obj_pkg.h"
 #include "pdc_vector.h"
 
-#define MAX_REGIONS 10000
-
 typedef struct pdc_tf_region_t {
     size_t         ndim;
     pdc_var_type_t pdc_var_type;
@@ -53,11 +51,8 @@ typedef struct pdc_tf_obj_t {
     bool                  attach_to_all_regions;
     pdc_tf_region_state_t all_regions_state;
 
-    /**
-     * These fields are used to attach graphs to individual regions
-     */
-    pdc_tf_region_mapping_t region_mappings[MAX_REGIONS];
-    uint32_t                num_region_mappings;
+    // This field is used to attach graphs to individual regions
+    PDC_VECTOR* region_mappings_vector;
 } pdc_obj_tf_t;
 
 typedef enum pdc_tf_granularities_t {
@@ -128,7 +123,7 @@ typedef struct pdc_tf_func_t {
 } pdc_tf_func_t;
 
 /**
- * Strings need by server to run transformation
+ * Strings needed by server to run transformation
  */
 typedef struct pdc_tf_pkg_t {
     uint32_t    pdc_var_type;

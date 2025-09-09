@@ -670,11 +670,14 @@ PDC_Server_data_io_region_per_file_transformations(uint64_t obj_id, int obj_ndim
     FUNC_ENTER(NULL);
 
     perr_t    ret_value = SUCCEED;
-    void *    cpy_buf   = buf;
+    void *    cpy_buf   = NULL;
     pdc_dg_t *dg        = NULL;
+    struct pdc_tf_obj_t *    tf_obj = NULL;
+    pdc_tf_region_mapping_t *region_mapping = NULL;
 
-    struct pdc_tf_obj_t *    tf_obj = PDCtf_get_region_mapping(obj_id, &dg);
-    pdc_tf_region_mapping_t *region_mapping;
+    cpy_buf   = buf;
+
+    tf_obj = PDCtf_get_region_mapping(obj_id, &dg);
     if (!PDCtf_region_has_attached_graph(tf_obj, region_info->ndim, unit, region_info->offset,
                                          region_info->size, &region_mapping)) {
         LOG_DEBUG("No region mapping found for obj_id %" PRIu64 "\n", obj_id);

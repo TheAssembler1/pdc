@@ -130,7 +130,6 @@ PDCtf_attach_to_region(pdcid_t dg_id, pdcid_t obj_id, pdcid_t remote_reg, char *
     struct _pdc_obj_info *pdc_obj_info = NULL;
     if (locate_and_set_pdc_tf_obj_t(obj_id, &pdc_obj_info, &pdc_tf_obj) != SUCCEED)
         PGOTO_ERROR(FAIL, "Error with locate_and_set_pdc_tf_obj_t");
-    const uint32_t cur_region_map = pdc_tf_obj->num_region_mappings;
 
     // Get region information
     struct _pdc_id_info *region_id_info = PDC_find_id(remote_reg);
@@ -138,8 +137,16 @@ PDCtf_attach_to_region(pdcid_t dg_id, pdcid_t obj_id, pdcid_t remote_reg, char *
         PGOTO_ERROR(FAIL, "Cannot locate remote region ID");
     struct pdc_region_info *region_info = region_id_info->obj_ptr;
 
-    // Get region mapping fields from object
-    pdc_tf_region_mapping_t *region_mapping    = &pdc_tf_obj->region_mappings[cur_region_map];
+    // Create region mapping vector if needed
+    if(pdc_tf_obj->region_mappings_vector == NULL)
+        pdc_tf_obj->region_mappings_vector = pdc_vector_create(8, 2.0);
+
+    // Add region mapping 
+    // FIXME: if this is called twice on the same region should it overwrite or error
+    // need to look at this on the server side as well...
+    pdc_tf_region_mapping_t *region_mapping    = PDC_calloc(1, sizeof(pdc_tf_region_mapping_t));
+    pdc_vector_add(pdc_tf_obj->region_mappings_vector, region_mapping);
+
     pdc_tf_region_t *        conceptual_region = &region_mapping->conceptual_region;
     uint64_t *               conceptual_offset = region_mapping->conceptual_offset;
 
@@ -153,9 +160,6 @@ PDCtf_attach_to_region(pdcid_t dg_id, pdcid_t obj_id, pdcid_t remote_reg, char *
     region_mapping->region_state.cur_state    = strdup(client_state);
     region_mapping->region_state.store_state  = strdup(store_state);
     region_mapping->region_state.dg_id        = dg_id;
-
-    // Increase the current region mapping
-    pdc_tf_obj->num_region_mappings++;
 done:
     FUNC_LEAVE(ret_value);
 }

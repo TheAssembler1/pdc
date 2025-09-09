@@ -81,26 +81,34 @@ PDCtf_store_json_mapping(pdcid_t obj_id, char *json_filepath, char *cur_state, c
 
         obj_id_to_dg->dg                             = dg;
         obj_id_to_dg->obj_id                         = obj_id;
-        obj_id_to_dg->pdc_tf_obj.num_region_mappings = 1;
-        region_mapping                               = &(obj_id_to_dg->pdc_tf_obj.region_mappings[0]);
+
+        // Create a new region mapping vector and mapping entry
+        obj_id_to_dg->pdc_tf_obj.region_mappings_vector = pdc_vector_create(8, 2.0);
+        region_mapping = PDC_calloc(1, sizeof(pdc_tf_region_mapping_t));
+        pdc_vector_add(obj_id_to_dg->pdc_tf_obj.region_mappings_vector, region_mapping);
     }
 
     // Check if this mapping already exists
     if (region_mapping == NULL) {
-        for (int i = 0; i < obj_id_to_dg->pdc_tf_obj.num_region_mappings; i++) {
-            uint64_t *conceptual_offset = obj_id_to_dg->pdc_tf_obj.region_mappings[i].conceptual_offset;
+        PDC_VECTOR_ITERATOR* region_mapping_iter 
+            = pdc_vector_iterator_new(obj_id_to_dg->pdc_tf_obj.region_mappings_vector);
+        while(pdc_vector_iterator_has_next(region_mapping_iter)) {
+            pdc_tf_region_mapping_t* cur_region_mapping = pdc_vector_iterator_next(region_mapping_iter);
+            if(cur_region_mapping == NULL)
+                PGOTO_ERROR(FAIL, "cur_region_mapping was NULL");
+            uint64_t *conceptual_offset = cur_region_mapping->conceptual_offset;
             if (memcmp(offset, conceptual_offset, ndim * sizeof(uint64_t)) == 0) {
-                region_mapping = &obj_id_to_dg->pdc_tf_obj.region_mappings[i];
+                region_mapping = cur_region_mapping;
                 break;
             }
         }
+        pdc_vector_iterator_destroy(region_mapping_iter);
     }
 
     // If this is null we need to append this mapping
     if (region_mapping == NULL) {
-        region_mapping =
-            &obj_id_to_dg->pdc_tf_obj.region_mappings[obj_id_to_dg->pdc_tf_obj.num_region_mappings];
-        obj_id_to_dg->pdc_tf_obj.num_region_mappings++;
+        region_mapping = PDC_calloc(1, sizeof(pdc_tf_region_mapping_t));
+        pdc_vector_add(obj_id_to_dg->pdc_tf_obj.region_mappings_vector, region_mapping);
     }
 
     pdc_tf_region_t *conceptual_region = &region_mapping->conceptual_region;

@@ -3273,7 +3273,7 @@ PDC_Client_transfer_request(hg_bulk_t *bulk_handle, void *buf, pdcid_t obj_id, u
     hg_handle_t                       client_send_transfer_request_handle;
     struct _pdc_transfer_request_args transfer_args;
     char                              cur_time[64];
-    pdc_tf_region_mapping_t *         region_mapping;
+    pdc_tf_region_mapping_t *         region_mapping = NULL;
 
     FUNC_ENTER(NULL);
 #ifdef PDC_TIMING

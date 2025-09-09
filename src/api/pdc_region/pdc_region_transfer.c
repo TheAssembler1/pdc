@@ -1200,8 +1200,8 @@ PDCcompute_region_transformation_metadata_size(struct _pdc_obj_info *obj_pointer
 
     // at least terminators for cur_state, client_state, store_state, json filepath
     size_t ret_value = 4;
-
     pdc_tf_region_mapping_t *region_mapping = NULL;
+
     if (!obj_pointer || !obj_pointer->pdc_tf_obj ||
         !PDCtf_region_has_attached_graph(obj_pointer->pdc_tf_obj, remote_ndim, unit, remote_offset,
                                          remote_size, &region_mapping)) {
@@ -1321,7 +1321,7 @@ PDC_Client_pack_all_requests(int n_objs, pdc_transfer_request_start_all_pkg **tr
         assert(transfer_requests[i]->transfer_request->obj_pointer != NULL);
 
         // Checked for transformations associated with region
-        pdc_tf_region_mapping_t *region_mapping;
+        pdc_tf_region_mapping_t *region_mapping = NULL;
         struct _pdc_obj_info *   obj_pointer   = transfer_requests[i]->transfer_request->obj_pointer;
         int                      remote_ndim   = transfer_requests[i]->transfer_request->remote_region_ndim;
         uint64_t *               remote_offset = transfer_requests[i]->transfer_request->remote_region_offset;
