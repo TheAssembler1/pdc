@@ -17,9 +17,9 @@ typedef struct pdc_tf_region_t {
 
 typedef struct pdc_tf_region_state_t {
     pdcid_t dg_id;
-    char   *cur_state;
-    char   *client_state;
-    char   *store_state;
+    char *  cur_state;
+    char *  client_state;
+    char *  store_state;
 } pdc_tf_region_state_t;
 
 typedef struct pdc_tf_region_mapping_t {
@@ -71,13 +71,13 @@ extern char *pdc_tf_granularity_strs[];
  */
 typedef struct pdc_tf_dg_params_t {
     uint64_t flat_conceptual_offset;
-    void    *params;
+    void *   params;
     uint64_t params_size;
 } pdc_tf_dg_params_t;
 
 typedef struct pdc_tf_state_t {
-    char                  *name;
-    PDC_VECTOR            *pdc_tf_dg_params_vector;
+    char *                 name;
+    PDC_VECTOR *           pdc_tf_dg_params_vector;
     pdc_tf_granularities_t granularity;
 } pdc_tf_state_t;
 
@@ -114,10 +114,10 @@ extern char *pdc_tf_location_strs[];
 typedef struct pdc_tf_func_t {
     pdc_tf_dev_t      dev;
     pdc_tf_location_t location;
-    char             *name;
-    PDC_VECTOR       *pdc_tf_dg_params_vector;
+    char *            name;
+    PDC_VECTOR *      pdc_tf_dg_params_vector;
     uint32_t          cur_num_params;
-    char             *params_str;
+    char *            params_str;
     c_func_t          c_func;
 } pdc_tf_func_t;
 
@@ -139,7 +139,7 @@ typedef struct pdc_tf_pkg_t {
  * Such as zfp compression on the CPU and zfp compression on the GPU
  */
 typedef struct pdc_tf_builtin_func_t {
-    char        *name;
+    char *       name;
     pdc_tf_dev_t dev;
     c_func_t     c_func;
 } pdc_tf_builtin_func_t;
