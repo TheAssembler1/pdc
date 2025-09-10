@@ -18,7 +18,7 @@
 #endif
 
 typedef struct pdc_region_cache {
-    struct pdc_region_info * region_cache_info;
+    struct pdc_region_info  *region_cache_info;
     struct pdc_region_cache *next;
 } pdc_region_cache;
 
@@ -26,9 +26,9 @@ typedef struct pdc_obj_cache {
     struct pdc_obj_cache *next;
     uint64_t              obj_id;
     int                   ndim;
-    uint64_t *            dims;
-    pdc_region_cache *    region_cache;
-    pdc_region_cache *    region_cache_end;
+    uint64_t             *dims;
+    pdc_region_cache     *region_cache;
+    pdc_region_cache     *region_cache_end;
     int                   region_cache_size;
     struct timeval        timestamp;
 } pdc_obj_cache;
@@ -248,7 +248,7 @@ PDC_region_merge(const char *buf, const char *buf2, const uint64_t *offset, cons
 
     int      connect_flag, i, j;
     uint64_t tmp_buf_size;
-    char *   buf_merged;
+    char    *buf_merged;
     connect_flag = -1;
     // Detect if two regions are connected. This means one dimension is fully connected and all other
     // dimensions are identical.
@@ -367,7 +367,7 @@ PDC_region_cache_copy(char *buf, char *buf2, const uint64_t *offset, const uint6
 {
     FUNC_ENTER(NULL);
 
-    char *    src, *dst;
+    char     *src, *dst;
     uint64_t  i, j;
     uint64_t *local_offset = (uint64_t *)PDC_malloc(sizeof(uint64_t) * ndim);
     memcpy(local_offset, offset2, sizeof(uint64_t) * ndim);
@@ -440,7 +440,7 @@ PDC_region_cache_register(uint64_t obj_id, int obj_ndim, const uint64_t *obj_dim
 {
     FUNC_ENTER(NULL);
 
-    pdc_obj_cache *         obj_cache_iter, *obj_cache = NULL;
+    pdc_obj_cache          *obj_cache_iter, *obj_cache = NULL;
     struct pdc_region_info *region_cache_info;
     if (obj_ndim != ndim && obj_ndim > 0) {
         LOG_INFO("reports obj_ndim != ndim, %d != %d\n", obj_ndim, ndim);
@@ -533,7 +533,7 @@ PDC_region_cache_free()
 {
     FUNC_ENTER(NULL);
 
-    pdc_obj_cache *   obj_cache_iter, *obj_temp;
+    pdc_obj_cache    *obj_cache_iter, *obj_temp;
     pdc_region_cache *region_cache_iter, *region_temp;
     obj_cache_iter = obj_cache_list;
     while (obj_cache_iter != NULL) {
@@ -561,9 +561,9 @@ PDC_transfer_request_data_write_out(uint64_t obj_id, int obj_ndim, const uint64_
 
     // flag indicates whether the input region is fully contained in another cached region.
     int               flag;
-    pdc_obj_cache *   obj_cache, *obj_cache_iter;
+    pdc_obj_cache    *obj_cache, *obj_cache_iter;
     pdc_region_cache *region_cache_iter;
-    uint64_t *        overlap_offset, *overlap_size;
+    uint64_t         *overlap_offset, *overlap_size;
     perr_t            ret_value = SUCCEED;
     char              cur_time[64];
 
@@ -639,7 +639,7 @@ merge_requests(uint64_t *start, uint64_t *end, int request_size, char **buf, uin
 
     int      i, index;
     int      merged_requests = 1;
-    char *   ptr;
+    char    *ptr;
     size_t   total_data_size = end[0] - start[0];
     uint64_t prev_end        = end[0];
 
@@ -712,11 +712,11 @@ PDC_region_cache_flush_by_pointer(uint64_t obj_id, pdc_obj_cache *obj_cache, int
     FUNC_ENTER(NULL);
 
     int                      i, nflush = 0;
-    pdc_region_cache *       region_cache_iter, *region_cache_temp;
-    struct pdc_region_info * region_cache_info;
+    pdc_region_cache        *region_cache_iter, *region_cache_temp;
+    struct pdc_region_info  *region_cache_info;
     uint64_t                 write_size = 0;
-    char **                  buf, **new_buf, *buf_ptr = NULL, *env_char;
-    uint64_t *               start, *end, *new_start, *new_end;
+    char                   **buf, **new_buf, *buf_ptr = NULL, *env_char;
+    uint64_t                *start, *end, *new_start, *new_end;
     int                      merged_request_size = 0;
     uint64_t                 unit;
     struct pdc_region_info **obj_regions;
@@ -738,7 +738,7 @@ PDC_region_cache_flush_by_pointer(uint64_t obj_id, pdc_obj_cache *obj_cache, int
 
         // Sort the regions based on start index
         obj_regions       = (struct pdc_region_info **)PDC_malloc(sizeof(struct pdc_region_info *) *
-                                                            obj_cache->region_cache_size);
+                                                                  obj_cache->region_cache_size);
         unit              = obj_cache->region_cache->region_cache_info->unit;
         region_cache_iter = obj_cache->region_cache;
         i                 = 0;
@@ -897,7 +897,7 @@ PDC_region_cache_clock_cycle(void *ptr)
     int            nflush = 0;
     double         elapsed_time;
     time_t         t;
-    struct tm *    tm;
+    struct tm     *tm;
     char           cur_time[64];
 
     if (ptr == NULL) {
@@ -994,7 +994,7 @@ PDC_region_fetch(uint64_t obj_id, int obj_ndim, const uint64_t *obj_dims, struct
     int            flag      = 0;
     // size_t                  j;
     pdc_region_cache *region_cache_iter;
-    uint64_t *        overlap_offset, *overlap_size;
+    uint64_t         *overlap_offset, *overlap_size;
 
     obj_cache_iter = obj_cache_list;
     while (obj_cache_iter != NULL) {
