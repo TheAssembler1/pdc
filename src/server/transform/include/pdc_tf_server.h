@@ -40,7 +40,6 @@ extern PDC_VECTOR *tf_obj_id_to_dg_vector_g;
  * object id. We need to keep track of it on the server side.
  * Hence the extra obj_id field here.
  */
-
 typedef struct pdc_tf_obj_id_to_dg_t {
     pdcid_t             obj_id;
     struct pdc_tf_obj_t pdc_tf_obj;

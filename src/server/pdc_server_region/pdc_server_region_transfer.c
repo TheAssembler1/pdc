@@ -669,13 +669,13 @@ PDC_Server_data_io_region_per_file_transformations(uint64_t obj_id, int obj_ndim
 {
     FUNC_ENTER(NULL);
 
-    perr_t    ret_value = SUCCEED;
-    void *    cpy_buf   = NULL;
-    pdc_dg_t *dg        = NULL;
-    struct pdc_tf_obj_t *    tf_obj = NULL;
+    perr_t                   ret_value      = SUCCEED;
+    void *                   cpy_buf        = NULL;
+    pdc_dg_t *               dg             = NULL;
+    struct pdc_tf_obj_t *    tf_obj         = NULL;
     pdc_tf_region_mapping_t *region_mapping = NULL;
 
-    cpy_buf   = buf;
+    cpy_buf = buf;
 
     tf_obj = PDCtf_get_region_mapping(obj_id, &dg);
     if (!PDCtf_region_has_attached_graph(tf_obj, region_info->ndim, unit, region_info->offset,
@@ -701,8 +701,9 @@ PDC_Server_data_io_region_per_file_transformations(uint64_t obj_id, int obj_ndim
     }
 
     char *desired_state;
-    if (is_write)
+    if (is_write) {
         desired_state = region_mapping->region_state.store_state;
+    }
     else {
         desired_state = region_mapping->region_state.client_state;
 
@@ -762,8 +763,11 @@ PDC_Server_data_io_region_per_file_transformations(uint64_t obj_id, int obj_ndim
     else
         memcpy(cpy_buf, buf, PDCtf_get_pdc_region_t_bytes(output_region));
 
-    // Updating the current state to the desired state
-    region_mapping->region_state.cur_state = desired_state;
+    // Updating the current state to the desired state on a write
+    if (is_write) {
+        region_mapping->region_state.cur_state = PDC_free(region_mapping->region_state.cur_state);
+        region_mapping->region_state.cur_state = strdup(desired_state);
+    }
 
 done:
     FUNC_LEAVE(ret_value);
@@ -850,7 +854,8 @@ PDC_Server_transfer_request_io(uint64_t obj_id, int obj_ndim, const uint64_t *ob
     }
     if (ran_transformation) {
         if (my_rank == 0)
-            LOG_INFO("Ran storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION\n");
+            LOG_INFO("Ran %s storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION\n",
+                     (is_write) ? "write" : "read");
         PGOTO_DONE(SUCCEED);
     }
 
@@ -859,7 +864,8 @@ PDC_Server_transfer_request_io(uint64_t obj_id, int obj_ndim, const uint64_t *ob
      */
     if (storage_strategy_g == STORE_REGION_BY_REGION_SINGLE_FILE || obj_ndim == 0) {
         if (my_rank == 0)
-            LOG_INFO("Running storage strategy STORE_REGION_BY_REGION_SINGLE_FILE\n");
+            LOG_INFO("Running %s storage strategy STORE_REGION_BY_REGION_SINGLE_FILE\n",
+                     (is_write) ? "write" : "read");
         if (is_write)
             PGOTO_DONE(PDC_Server_data_write_out(obj_id, region_info, buf, unit));
         else
@@ -867,7 +873,8 @@ PDC_Server_transfer_request_io(uint64_t obj_id, int obj_ndim, const uint64_t *ob
     }
     else if (storage_strategy_g == STORE_FLATTENED_SINGLE_FILE) {
         if (my_rank == 0)
-            LOG_INFO("Running storage strategy STORE_FLATTENED_SINGLE_FILE\n");
+            LOG_INFO("Running %s storage strategy STORE_FLATTENED_SINGLE_FILE\n",
+                     (is_write) ? "write" : "read");
         PGOTO_DONE(
             PDC_Server_data_io_flattened(obj_id, obj_ndim, obj_dims, region_info, buf, unit, is_write));
     }
@@ -878,7 +885,8 @@ PDC_Server_transfer_request_io(uint64_t obj_id, int obj_ndim, const uint64_t *ob
             PGOTO_ERROR(FAIL, "Error with PDC_shrink_file_dims");
 
         if (my_rank == 0)
-            LOG_INFO("Running storage strategy STORE_FLATTENED_REGION_PER_FILE\n");
+            LOG_INFO("Running %s storage strategy STORE_FLATTENED_REGION_PER_FILE\n",
+                     (is_write) ? "write" : "read");
         PGOTO_DONE(PDC_Server_data_io_region_per_file(obj_id, obj_ndim, obj_dims, temp_file_dims, region_info,
                                                       buf, unit, is_write));
     }

@@ -57,6 +57,7 @@
 #include "pdc_server_region_transfer_metadata_query.h"
 #include "pdc_logger.h"
 #include "pdc_malloc.h"
+#include "pdc_tf_server.h"
 
 #ifdef PDC_HAS_CRAY_DRC
 #include <rdmacred.h>
@@ -1173,6 +1174,8 @@ PDC_Server_checkpoint()
 {
     FUNC_ENTER(NULL);
 
+    LOG_DEBUG("PDC_Server_checkpoint was called\n");
+
     perr_t                       ret_value = SUCCEED;
     pdc_metadata_t *             elt;
     region_list_t *              region_elt;
@@ -1323,6 +1326,225 @@ PDC_Server_checkpoint()
     fwrite(&checkpoint_size, sizeof(uint64_t), 1, file);
     fwrite(checkpoint, checkpoint_size, 1, file);
 
+    /**
+     * Directed graph checkpoint format
+     * num_objs
+     * foreach obj:
+     *     json_filepath_str
+     *     num_region_mappings
+     *     foreach region
+     *         dg_id
+     *         cur_state_str
+     *         client_state_str
+     *         store_state_str
+     *
+     *         conceptual_region_ndim
+     *         pdc_var_type
+     *         conceptual_region_offset[DIM_MAX]
+     *         conceptual_region_size
+     *
+     *         actual_region_ndim
+     *         pdc_var_type
+     *         actual_region_size[DIM_MAX]
+     *
+     *         foreach state_param
+     *             state_id
+     *             name
+     *             conceptual_flat_offset
+     *             state_param_size
+     *             state_param_data
+     *
+     *         foreach func_param
+     *             func_id
+     *             name
+     *             params_str
+     *             conceptual_flat_offset
+     *             func_param_size
+     *             func_param_data
+     */
+
+    // FIXME: We don't store whether graph is attached to entire object...
+
+    // Checkpoint the region transformations
+    LOG_DEBUG("Checkpointing transformations\n");
+    size_t num_objs = pdc_vector_size(tf_obj_id_to_dg_vector_g);
+    LOG_JUST_PRINT("num_objs: %lu\n", num_objs);
+    PDC_VECTOR_ITERATOR *obj_id_to_dg_iter = pdc_vector_iterator_new(tf_obj_id_to_dg_vector_g);
+    while (pdc_vector_iterator_has_next(obj_id_to_dg_iter)) {
+        pdc_tf_obj_id_to_dg_t *cur_obj_id_to_dg = pdc_vector_iterator_next(obj_id_to_dg_iter);
+        LOG_JUST_PRINT("obj_id: %d\n", cur_obj_id_to_dg->obj_id);
+        LOG_JUST_PRINT("\tobj[%d] json_filepath_str: %s\n", cur_obj_id_to_dg->obj_id,
+                       (char *)cur_obj_id_to_dg->dg->data);
+
+        // Checkpoint region mapping
+        LOG_JUST_PRINT("\tnum_region_mappings: %lu\n",
+                       pdc_vector_size(cur_obj_id_to_dg->pdc_tf_obj.region_mappings_vector));
+        PDC_VECTOR_ITERATOR *region_mapping_iter =
+            pdc_vector_iterator_new(cur_obj_id_to_dg->pdc_tf_obj.region_mappings_vector);
+        while (pdc_vector_iterator_has_next(region_mapping_iter)) {
+            pdc_tf_region_mapping_t *cur_region_mapping = pdc_vector_iterator_next(region_mapping_iter);
+            LOG_JUST_PRINT("\t\tdg_id: %d\n", cur_region_mapping->region_state.dg_id);
+
+            LOG_JUST_PRINT("\t\tcur_state_str: %s\n", cur_region_mapping->region_state.cur_state);
+            LOG_JUST_PRINT("\t\tclient_state_str: %s\n", cur_region_mapping->region_state.client_state);
+            LOG_JUST_PRINT("\t\tstore_state_str: %s\n", cur_region_mapping->region_state.store_state);
+
+            LOG_JUST_PRINT("\t\tconceptual_region_ndim: %d\n", cur_region_mapping->conceptual_region.ndim);
+            LOG_JUST_PRINT("\t\tpdc_var_type: %d, size: %d\n",
+                           cur_region_mapping->conceptual_region.pdc_var_type,
+                           PDC_get_var_type_size(cur_region_mapping->conceptual_region.pdc_var_type));
+            LOG_JUST_PRINT("\t\tconceptual_region_offset:\n");
+            for (int i = 0; i < cur_region_mapping->conceptual_region.ndim; i++) {
+                LOG_JUST_PRINT("\t\t\toffset[%d]=%lu\n", i, cur_region_mapping->conceptual_offset[i]);
+            }
+            LOG_JUST_PRINT("\t\tconceptual_region_size:\n");
+            for (int i = 0; i < cur_region_mapping->conceptual_region.ndim; i++) {
+                LOG_JUST_PRINT("\t\t\tsize[%d]=%lu\n", i, cur_region_mapping->conceptual_region.size[i]);
+            }
+
+            LOG_JUST_PRINT("\t\tactual_region_ndim: %d\n", cur_region_mapping->actual_region.ndim);
+            LOG_JUST_PRINT("\t\tpdc_var_type %d, size: %d\n", cur_region_mapping->actual_region.pdc_var_type,
+                           PDC_get_var_type_size(cur_region_mapping->actual_region.pdc_var_type));
+            LOG_JUST_PRINT("\t\tactual_region_size:\n");
+            for (int i = 0; i < cur_region_mapping->actual_region.ndim; i++) {
+                LOG_JUST_PRINT("\t\t\tsize[%d]=%lu\n", i, cur_region_mapping->actual_region.size[i]);
+            }
+        }
+        pdc_vector_iterator_destroy(region_mapping_iter);
+
+        // Checkpoint state and func params for dg
+        for (int i = 0; i < cur_obj_id_to_dg->dg->edge_count; i++) {
+            pdc_tf_func_t *f = cur_obj_id_to_dg->dg->edges[i]->data;
+            LOG_JUST_PRINT("\t\tfunc_name: %s\n", f->name);
+            LOG_JUST_PRINT("\t\t\tparams_str: %s\n",
+                           (f->params_str && strlen(f->params_str) > 0) ? f->params_str : "none");
+            LOG_JUST_PRINT("\t\t\tnum_params: %d\n", pdc_vector_size(f->pdc_tf_dg_params_vector));
+            PDC_VECTOR_ITERATOR *cur_param_iter = pdc_vector_iterator_new(f->pdc_tf_dg_params_vector);
+            while (pdc_vector_iterator_has_next(cur_param_iter)) {
+                pdc_tf_dg_params_t *cur_param = pdc_vector_iterator_next(cur_param_iter);
+                LOG_JUST_PRINT("\t\t\tconceptual_flat_offset: %lu\n", cur_param->flat_conceptual_offset);
+                LOG_JUST_PRINT("\t\t\tparams_size: %d\n", cur_param->params_size);
+            }
+            pdc_vector_iterator_destroy(cur_param_iter);
+        }
+
+        for (int i = 0; i < cur_obj_id_to_dg->dg->vertex_count; i++) {
+            pdc_tf_state_t *s = cur_obj_id_to_dg->dg->vertices[i]->data;
+            LOG_JUST_PRINT("\t\tstate_name: %s\n", s->name);
+            LOG_JUST_PRINT("\t\t\tnum_params: %d\n", pdc_vector_size(s->pdc_tf_dg_params_vector));
+            PDC_VECTOR_ITERATOR *cur_param_iter = pdc_vector_iterator_new(s->pdc_tf_dg_params_vector);
+            while (pdc_vector_iterator_has_next(cur_param_iter)) {
+                pdc_tf_dg_params_t *cur_param = pdc_vector_iterator_next(cur_param_iter);
+                LOG_JUST_PRINT("\t\t\tconceptual_flat_offset: %lu\n", cur_param->flat_conceptual_offset);
+                LOG_JUST_PRINT("\t\t\tparams_size: %d\n", cur_param->params_size);
+            }
+            pdc_vector_iterator_destroy(cur_param_iter);
+        }
+    }
+    pdc_vector_iterator_destroy(obj_id_to_dg_iter);
+
+    num_objs = pdc_vector_size(tf_obj_id_to_dg_vector_g);
+    fwrite(&num_objs, sizeof(size_t), 1, file);
+
+    obj_id_to_dg_iter = pdc_vector_iterator_new(tf_obj_id_to_dg_vector_g);
+    while (pdc_vector_iterator_has_next(obj_id_to_dg_iter)) {
+        pdc_tf_obj_id_to_dg_t *cur_obj_id_to_dg = pdc_vector_iterator_next(obj_id_to_dg_iter);
+        // Write object ID
+        fwrite(&cur_obj_id_to_dg->obj_id, sizeof(pdcid_t), 1, file);
+        // Write JSON filepath string length and data
+        size_t json_path_len = strlen((char *)cur_obj_id_to_dg->dg->data) + 1;
+        fwrite(&json_path_len, sizeof(size_t), 1, file);
+        fwrite(cur_obj_id_to_dg->dg->data, sizeof(char), json_path_len, file);
+
+        // Region mappings
+        size_t num_region_mappings = pdc_vector_size(cur_obj_id_to_dg->pdc_tf_obj.region_mappings_vector);
+        fwrite(&num_region_mappings, sizeof(size_t), 1, file);
+
+        PDC_VECTOR_ITERATOR *region_mapping_iter =
+            pdc_vector_iterator_new(cur_obj_id_to_dg->pdc_tf_obj.region_mappings_vector);
+        while (pdc_vector_iterator_has_next(region_mapping_iter)) {
+            pdc_tf_region_mapping_t *cur_region_mapping = pdc_vector_iterator_next(region_mapping_iter);
+
+            // Write dg_id
+            fwrite(&cur_region_mapping->region_state.dg_id, sizeof(pdcid_t), 1, file);
+
+            // Write cur_state_str
+            size_t cur_state_len = strlen(cur_region_mapping->region_state.cur_state) + 1;
+            LOG_DEBUG("cur_state_len: %d\n", cur_state_len);
+            fwrite(&cur_state_len, sizeof(size_t), 1, file);
+            fwrite(cur_region_mapping->region_state.cur_state, sizeof(char), cur_state_len, file);
+
+            // Write client_state_str
+            size_t client_state_len = strlen(cur_region_mapping->region_state.client_state) + 1;
+            fwrite(&client_state_len, sizeof(size_t), 1, file);
+            fwrite(cur_region_mapping->region_state.client_state, sizeof(char), client_state_len, file);
+
+            // Write store_state_str
+            size_t store_state_len = strlen(cur_region_mapping->region_state.store_state) + 1;
+            fwrite(&store_state_len, sizeof(size_t), 1, file);
+            fwrite(cur_region_mapping->region_state.store_state, sizeof(char), store_state_len, file);
+
+            // Write conceptual region
+            fwrite(&cur_region_mapping->conceptual_region.ndim, sizeof(size_t), 1, file);
+            fwrite(&cur_region_mapping->conceptual_region.pdc_var_type, sizeof(pdc_var_type_t), 1, file);
+            fwrite(cur_region_mapping->conceptual_region.size, sizeof(uint64_t),
+                   cur_region_mapping->conceptual_region.ndim, file);
+
+            // Write conceptual offset
+            fwrite(cur_region_mapping->conceptual_offset, sizeof(uint64_t),
+                   cur_region_mapping->conceptual_region.ndim, file);
+
+            // Write actual region
+            fwrite(&cur_region_mapping->actual_region.ndim, sizeof(size_t), 1, file);
+            fwrite(&cur_region_mapping->actual_region.pdc_var_type, sizeof(pdc_var_type_t), 1, file);
+            fwrite(cur_region_mapping->actual_region.size, sizeof(uint64_t),
+                   cur_region_mapping->actual_region.ndim, file);
+        }
+        pdc_vector_iterator_destroy(region_mapping_iter);
+
+        // Checkpoint function parameters
+        for (int i = 0; i < cur_obj_id_to_dg->dg->edge_count; i++) {
+            pdc_tf_func_t *f = cur_obj_id_to_dg->dg->edges[i]->data;
+
+            // Write number of params
+            size_t num_params = pdc_vector_size(f->pdc_tf_dg_params_vector);
+            fwrite(&num_params, sizeof(size_t), 1, file);
+            PDC_VECTOR_ITERATOR *cur_param_iter = pdc_vector_iterator_new(f->pdc_tf_dg_params_vector);
+            while (pdc_vector_iterator_has_next(cur_param_iter)) {
+                pdc_tf_dg_params_t *cur_param = pdc_vector_iterator_next(cur_param_iter);
+
+                // Write conceptual_flat_offset and params_size;
+                fwrite(&(cur_param->flat_conceptual_offset), sizeof(uint64_t), 1, file);
+                fwrite(&(cur_param->params_size), sizeof(uint64_t), 1, file);
+                // Write param data
+                fwrite(cur_param->params, cur_param->params_size, 1, file);
+            }
+            pdc_vector_iterator_destroy(cur_param_iter);
+        }
+
+        // Checkpoint state parameters
+        for (int i = 0; i < cur_obj_id_to_dg->dg->vertex_count; i++) {
+            pdc_tf_state_t *s = cur_obj_id_to_dg->dg->vertices[i]->data;
+
+            // Write number of params
+            size_t num_params = pdc_vector_size(s->pdc_tf_dg_params_vector);
+            fwrite(&num_params, sizeof(size_t), 1, file);
+
+            PDC_VECTOR_ITERATOR *cur_param_iter = pdc_vector_iterator_new(s->pdc_tf_dg_params_vector);
+            while (pdc_vector_iterator_has_next(cur_param_iter)) {
+                pdc_tf_dg_params_t *cur_param = pdc_vector_iterator_next(cur_param_iter);
+
+                // Write conceptual_flat_offset and params_size
+                fwrite(&(cur_param->flat_conceptual_offset), sizeof(uint64_t), 1, file);
+                fwrite(&(cur_param->params_size), sizeof(uint64_t), 1, file);
+                // Write param data
+                fwrite(cur_param->params, cur_param->params_size, 1, file);
+            }
+            pdc_vector_iterator_destroy(cur_param_iter);
+        }
+    }
+    pdc_vector_iterator_destroy(obj_id_to_dg_iter);
+
     fclose(file);
 
     if (use_tmpfs) {
@@ -1381,6 +1603,18 @@ region_cmp(region_list_t *a, region_list_t *b)
     FUNC_LEAVE(memcmp(a->start, b->start, unit_size));
 }
 
+static size_t read_checkpoint_str_len;
+
+#define READ_CHECKPOINT_STR(file, str_ptr)                                                                   \
+    do {                                                                                                     \
+        fread(&read_checkpoint_str_len, sizeof(size_t), 1, (file));                                          \
+        LOG_DEBUG("read_checkpoint_str_len: %d\n", read_checkpoint_str_len);                                 \
+        if (read_checkpoint_str_len > 0) {                                                                   \
+            (str_ptr) = PDC_calloc(1, read_checkpoint_str_len);                                              \
+            fread((str_ptr), read_checkpoint_str_len, 1, (file));                                            \
+        }                                                                                                    \
+    } while (0)
+
 /*
  * Load metadata from checkpoint file in persistant storage
  *
@@ -1419,9 +1653,8 @@ PDC_Server_restart(char *filename)
         PGOTO_ERROR(FAIL, "Error with fopen, filename: [%s]", filename);
 
     char *slurm_jobid = getenv("SLURM_JOB_ID");
-    if (slurm_jobid == NULL) {
-        LOG_ERROR("Error getting slurm job id from SLURM_JOB_ID\n");
-    }
+    if (slurm_jobid == NULL)
+        LOG_INFO("SLURM_JOB_ID not found\n");
 
     if (fread(&n_cont, sizeof(int), 1, file) != 1) {
         LOG_ERROR("Read failed for n_count\n");
@@ -1663,6 +1896,134 @@ PDC_Server_restart(char *filename)
     }
     transfer_request_metadata_query_init(pdc_server_size_g, checkpoint_buf);
     checkpoint_buf = (char *)PDC_free(checkpoint_buf);
+
+    // FIXME: this has to go somehwere else...
+    PDCtf_init_builtin_funcs();
+
+    LOG_DEBUG("Reading checkpoint transformations\n");
+    size_t num_objs;
+    fread(&num_objs, sizeof(size_t), 1, file);
+    LOG_JUST_PRINT("num_objs: %lu\n", num_objs);
+    tf_obj_id_to_dg_vector_g = pdc_vector_create(PDC_MAX(num_objs, 8), 2.0);
+    for (int _o = 0; _o < num_objs; _o++) {
+        pdc_tf_obj_id_to_dg_t *cur_obj_id_to_dg = PDC_calloc(1, sizeof(pdc_tf_obj_id_to_dg_t));
+        pdc_vector_add(tf_obj_id_to_dg_vector_g, cur_obj_id_to_dg);
+
+        fread(&cur_obj_id_to_dg->obj_id, sizeof(pdcid_t), 1, file);
+        LOG_DEBUG("obj_id: %d\n", cur_obj_id_to_dg->obj_id);
+
+        char *json_filepath;
+        READ_CHECKPOINT_STR(file, json_filepath);
+        LOG_JUST_PRINT("\tobj[%d] json_filepath_str: %s\n", cur_obj_id_to_dg->obj_id, json_filepath);
+
+        // Read checkpoint region mapping
+        size_t num_region_mappings;
+        fread(&num_region_mappings, sizeof(size_t), 1, file);
+        LOG_JUST_PRINT("\tnum_region_mappings: %lu\n", num_region_mappings);
+        cur_obj_id_to_dg->pdc_tf_obj.region_mappings_vector =
+            pdc_vector_create(PDC_MAX(num_region_mappings, 8), 2.0);
+        for (int _r = 0; _r < num_region_mappings; _r++) {
+            pdc_tf_region_mapping_t *cur_region_mapping = PDC_calloc(1, sizeof(pdc_tf_region_mapping_t));
+            pdc_vector_add(cur_obj_id_to_dg->pdc_tf_obj.region_mappings_vector, cur_region_mapping);
+
+            pdcid_t dg_id;
+            fread(&dg_id, sizeof(pdcid_t), 1, file);
+            cur_region_mapping->region_state.dg_id = dg_id;
+            LOG_JUST_PRINT("\t\tdg_id: %d\n", cur_region_mapping->region_state.dg_id);
+
+            READ_CHECKPOINT_STR(file, cur_region_mapping->region_state.cur_state);
+            READ_CHECKPOINT_STR(file, cur_region_mapping->region_state.client_state);
+            READ_CHECKPOINT_STR(file, cur_region_mapping->region_state.store_state);
+
+            LOG_JUST_PRINT("\t\tcur_state_str: %s\n", cur_region_mapping->region_state.cur_state);
+            LOG_JUST_PRINT("\t\tclient_state_str: %s\n", cur_region_mapping->region_state.client_state);
+            LOG_JUST_PRINT("\t\tstore_state_str: %s\n", cur_region_mapping->region_state.store_state);
+
+            fread(&(cur_region_mapping->conceptual_region.ndim), sizeof(size_t), 1, file);
+            fread(&(cur_region_mapping->conceptual_region.pdc_var_type), sizeof(pdc_var_type_t), 1, file);
+            fread(cur_region_mapping->conceptual_region.size, sizeof(uint64_t),
+                  cur_region_mapping->conceptual_region.ndim, file);
+            fread(cur_region_mapping->conceptual_offset, sizeof(uint64_t),
+                  cur_region_mapping->conceptual_region.ndim, file);
+
+            LOG_JUST_PRINT("\t\tconceptual_region_ndim: %d\n", cur_region_mapping->conceptual_region.ndim);
+            LOG_JUST_PRINT("\t\tpdc_var_type: %d, size: %d\n",
+                           cur_region_mapping->conceptual_region.pdc_var_type,
+                           PDC_get_var_type_size(cur_region_mapping->conceptual_region.pdc_var_type));
+            LOG_JUST_PRINT("\t\tconceptual_region_offset:\n");
+            for (i = 0; i < cur_region_mapping->conceptual_region.ndim; i++) {
+                LOG_JUST_PRINT("\t\t\toffset[%d]=%lu\n", i, cur_region_mapping->conceptual_offset[i]);
+            }
+            LOG_JUST_PRINT("\t\tconceptual_region_size:\n");
+            for (i = 0; i < cur_region_mapping->conceptual_region.ndim; i++) {
+                LOG_JUST_PRINT("\t\t\tsize[%d]=%lu\n", i, cur_region_mapping->conceptual_region.size[i]);
+            }
+
+            fread(&(cur_region_mapping->actual_region.ndim), sizeof(size_t), 1, file);
+            fread(&(cur_region_mapping->actual_region.pdc_var_type), sizeof(pdc_var_type_t), 1, file);
+            fread(cur_region_mapping->actual_region.size, sizeof(uint64_t),
+                  cur_region_mapping->actual_region.ndim, file);
+
+            LOG_JUST_PRINT("\t\tactual_region_ndim: %d\n", cur_region_mapping->actual_region.ndim);
+            LOG_JUST_PRINT("\t\tpdc_var_type %d, size: %d\n", cur_region_mapping->actual_region.pdc_var_type,
+                           PDC_get_var_type_size(cur_region_mapping->actual_region.pdc_var_type));
+            LOG_JUST_PRINT("\t\tactual_region_size:\n");
+            for (i = 0; i < cur_region_mapping->actual_region.ndim; i++) {
+                LOG_JUST_PRINT("\t\t\tsize[%d]=%lu\n", i, cur_region_mapping->actual_region.size[i]);
+            }
+        }
+
+        cur_obj_id_to_dg->dg = PDCtf_dg_json_create_common(json_filepath);
+
+        // Checkpoint state and func params for dg
+        for (int e_index = 0; e_index < cur_obj_id_to_dg->dg->edge_count; e_index++) {
+            pdc_tf_func_t *f = cur_obj_id_to_dg->dg->edges[e_index]->data;
+            size_t         num_params;
+            fread(&num_params, sizeof(size_t), 1, file);
+            LOG_JUST_PRINT("\t\tfunc_name: %s\n", f->name);
+            LOG_JUST_PRINT("\t\t\tparams_str: %s\n",
+                           (f->params_str && strlen(f->params_str) > 0) ? f->params_str : "none");
+            LOG_JUST_PRINT("\t\t\tnum_params: %d\n", num_params);
+            f->pdc_tf_dg_params_vector = pdc_vector_create(PDC_MAX(num_params, 2), 2.0);
+            for (int _n = 0; _n < num_params; _n++) {
+                pdc_tf_dg_params_t *cur_param = PDC_calloc(1, sizeof(pdc_tf_dg_params_t));
+                pdc_vector_add(f->pdc_tf_dg_params_vector, cur_param);
+
+                // Read conceptual_flat_offset and params_size
+                fread(&(cur_param->flat_conceptual_offset), sizeof(uint64_t), 1, file);
+                fread(&(cur_param->params_size), sizeof(uint64_t), 1, file);
+                // Read param data
+                cur_param->params = PDC_calloc(1, cur_param->params_size);
+                fread(cur_param->params, cur_param->params_size, 1, file);
+
+                LOG_JUST_PRINT("\t\t\tconceptual_flat_offset: %lu\n", cur_param->flat_conceptual_offset);
+                LOG_JUST_PRINT("\t\t\tparams_size: %d\n", cur_param->params_size);
+            }
+        }
+
+        for (int v_index = 0; v_index < cur_obj_id_to_dg->dg->vertex_count; v_index++) {
+            pdc_tf_state_t *s = cur_obj_id_to_dg->dg->vertices[v_index]->data;
+            size_t          num_params;
+            fread(&num_params, sizeof(size_t), 1, file);
+            LOG_JUST_PRINT("\t\tstate_name: %s\n", s->name);
+            LOG_JUST_PRINT("\t\t\tnum_params: %d\n", num_params);
+            s->pdc_tf_dg_params_vector = pdc_vector_create(PDC_MAX(num_params, 2), 2.0);
+            for (int _n = 0; _n < num_params; _n++) {
+                pdc_tf_dg_params_t *cur_param = PDC_calloc(1, sizeof(pdc_tf_dg_params_t));
+                pdc_vector_add(s->pdc_tf_dg_params_vector, cur_param);
+
+                // Read conceptual_flat_offset and params_size
+                fread(&(cur_param->flat_conceptual_offset), sizeof(uint64_t), 1, file);
+                fread(&(cur_param->params_size), sizeof(uint64_t), 1, file);
+                // Read param data
+                cur_param->params = PDC_calloc(1, cur_param->params_size);
+                fread(cur_param->params, cur_param->params_size, 1, file);
+
+                LOG_JUST_PRINT("\t\t\tconceptual_flat_offset: %lu\n", cur_param->flat_conceptual_offset);
+                LOG_JUST_PRINT("\t\t\tparams_size: %d\n", cur_param->params_size);
+            }
+        }
+    }
 
     fclose(file);
     file = NULL;

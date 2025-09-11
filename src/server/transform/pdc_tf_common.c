@@ -346,16 +346,16 @@ PDCtf_region_has_attached_graph(struct pdc_tf_obj_t *tf_obj, int ndim, size_t un
 {
     FUNC_ENTER(NULL);
 
-    bool ret_value = false;
-    PDC_VECTOR_ITERATOR* region_mappings_iter = NULL;
+    bool                 ret_value            = false;
+    PDC_VECTOR_ITERATOR *region_mappings_iter = NULL;
 
     if (tf_obj == NULL)
         PGOTO_DONE(false);
-    if(tf_obj->region_mappings_vector == NULL)
+    if (tf_obj->region_mappings_vector == NULL)
         PGOTO_DONE(false);
 
     region_mappings_iter = pdc_vector_iterator_new(tf_obj->region_mappings_vector);
-    while(pdc_vector_iterator_has_next(region_mappings_iter)) {
+    while (pdc_vector_iterator_has_next(region_mappings_iter)) {
         *region_mapping                    = pdc_vector_iterator_next(region_mappings_iter);
         pdc_tf_region_t *conceptual_region = &((*region_mapping)->conceptual_region);
         uint64_t *       conceptual_offset = (*region_mapping)->conceptual_offset;
@@ -374,7 +374,7 @@ PDCtf_region_has_attached_graph(struct pdc_tf_obj_t *tf_obj, int ndim, size_t un
     }
 
 done:
-    if(region_mappings_iter != NULL)
+    if (region_mappings_iter != NULL)
         pdc_vector_iterator_destroy(region_mappings_iter);
     FUNC_LEAVE(ret_value);
 }
