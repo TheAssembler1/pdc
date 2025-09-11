@@ -173,11 +173,13 @@ PDCtf_exec_graph(pdc_dg_t *dg, uint64_t flat_conceptual_offset, char *cur_state,
             LOG_DEBUG("--------------------------TRANSFORM_START--------------------------\n");
             void *prev_input = *input;
 
+            GRAPH_TIMER_START();
             if (f->c_func(internal_params, f->params_str, input, input_region, output_region) == false)
                 PGOTO_ERROR(FAIL, "Error when running transformation, %s", f->name);
             else
                 LOG_DEBUG("Transformation %s(%s) = %s ran successfully\n", f->name, v1->name, v2->name);
-            /**
+            GRAPH_TIMER_STOP(f->name);
+                /**
              * The transformation malloced a new buffer
              * The buffer associated with the original bulk handle (i.e. j != 0)
              * should not be freed as this is freed by a higher up caller
@@ -194,8 +196,11 @@ PDCtf_exec_graph(pdc_dg_t *dg, uint64_t flat_conceptual_offset, char *cur_state,
         }
         LOG_DEBUG("Done running transformations\n");
     }
-    else
-        PGOTO_ERROR(FAIL, "No path to desired states");
+    else {
+        LOG_ERROR("JSON filepath %s\n", (char*)dg->data);
+        LOG_ERROR("Curent state %s, desired state %s\n", cur_state, desired_state);
+        PGOTO_ERROR(FAIL, "No path to desired state");
+    }
 
 done:
     if (edges_out != NULL)

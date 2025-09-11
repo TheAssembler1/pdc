@@ -708,24 +708,34 @@ PDC_Server_data_io_region_per_file_transformations(uint64_t obj_id, int obj_ndim
 
         // Read in data for transformation
         char *storage_location = get_storage_location_region_per_file(obj_id, obj_ndim, region_info->offset);
+        TIMER_START();
         int   fd               = open(storage_location, O_RDONLY);
+        TIMER_STOP("open");
         uint64_t bytes_to_read = PDC_get_region_desc_size_bytes(
             input_region.size, PDC_get_var_type_size(input_region.pdc_var_type), input_region.ndim);
         buf = PDC_malloc(bytes_to_read);
         LOG_DEBUG("Reading %lu bytes from %s\n", bytes_to_read, storage_location);
+        TIMER_START();
         PDC_POSIX_IO(fd, buf, bytes_to_read, 0);
+        TIMER_STOP("read");
+        TIMER_START();
         close(fd);
+        TIMER_STOP("close");
     }
 
     // Get the flat conceptual offset of the region
     uint64_t flat_conceptual_offset =
         PDCtf_get_flat_conceptual_offset(obj_ndim, region_mapping->conceptual_offset, obj_dims);
 
+    if(PDC_get_rank() == 0)
+        LOG_INFO("Executing graph with json filepath %s\n", dg->data);
     // We can now execute the directed graph
+    TIMER_START();
     if (PDCtf_exec_graph(dg, flat_conceptual_offset, region_mapping->region_state.cur_state, desired_state,
                          input_region, &output_region, &buf, is_write) != SUCCEED) {
         PGOTO_ERROR(FAIL, "Error with PDCtf_exec_graph");
     }
+    TIMER_STOP("PDCtf_exec_graph");
 
     // At this point we have run the transformation
     *ran_transformation = true;
@@ -733,12 +743,18 @@ PDC_Server_data_io_region_per_file_transformations(uint64_t obj_id, int obj_ndim
     if (is_write) {
         // Write out data after transformation
         char *storage_location  = get_storage_location_region_per_file(obj_id, obj_ndim, region_info->offset);
+        TIMER_START();
         int   fd                = open(storage_location, O_CREAT | O_WRONLY | O_TRUNC, 0644);
+        TIMER_STOP("open");
         uint64_t bytes_to_write = PDC_get_region_desc_size_bytes(
             output_region.size, PDC_get_var_type_size(output_region.pdc_var_type), output_region.ndim);
         LOG_DEBUG("Writing %lu bytes from %s\n", bytes_to_write, storage_location);
+        TIMER_START();
         PDC_POSIX_IO(fd, buf, bytes_to_write, 1);
+        TIMER_STOP("write");
+        TIMER_START();
         close(fd);
+        TIMER_STOP("close");
 
         // Update actual region mapping
         PDCtf_copy_tf_region_t(&output_region, &region_mapping->actual_region);

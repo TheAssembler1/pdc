@@ -147,7 +147,7 @@ pdc_tf_builtin_zfp_compress_helper(pdc_tf_internal_param internal_param, char *p
     PDCtf_copy_tf_region_t(&input_region, &out_params->decompressed_region);
     SET_FUNC_PARAMS("zfp_compress", PDC_TF_CPU_DEVICE, out_params, sizeof(zfp_compress_params_t));
 
-    LOG_DEBUG("ZFP compression succeeded, compressed size bytes: %zu bytes\n", compressed_size);
+    LOG_INFO("ZFP compression succeeded, compressed size bytes: %zu bytes\n", compressed_size);
 
     return true;
 }
