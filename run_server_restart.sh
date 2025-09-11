@@ -11,5 +11,5 @@ rm -rf /home/nlewi26/src/work_space/source/pdc/build/bin/pdc_data
 
 pushd ./build/bin
 export PDC_DEBUG=1
-$1 ./pdc_server
+./pdc_server restart
 popd

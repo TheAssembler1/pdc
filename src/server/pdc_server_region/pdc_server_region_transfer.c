@@ -88,7 +88,7 @@ PDC_finish_request(uint64_t transfer_request_id)
 {
     FUNC_ENTER(NULL);
 
-    pdc_transfer_request_status *   ptr, *tmp = NULL;
+    pdc_transfer_request_status    *ptr, *tmp = NULL;
     perr_t                          ret_value = SUCCEED;
     transfer_request_wait_out_t     out;
     transfer_request_wait_all_out_t out_all;
@@ -294,7 +294,7 @@ PDC_Server_data_io_flattened(uint64_t obj_id, int obj_ndim, const uint64_t *obj_
 
     perr_t   ret_value = SUCCEED;
     int      fd;
-    char *   data_path = NULL;
+    char    *data_path = NULL;
     char     storage_location[ADDR_MAX];
     ssize_t  io_size;
     uint64_t i, j;
@@ -644,9 +644,9 @@ PDCtf_get_region_mapping(pdcid_t obj_id, pdc_dg_t **dg)
 {
     FUNC_ENTER(NULL);
 
-    struct pdc_tf_obj_t *  ret_value                   = NULL;
+    struct pdc_tf_obj_t   *ret_value                   = NULL;
     pdc_tf_obj_id_to_dg_t *obj_id_to_dg                = NULL;
-    PDC_VECTOR_ITERATOR *  tf_obj_id_to_dg_vector_iter = pdc_vector_iterator_new(tf_obj_id_to_dg_vector_g);
+    PDC_VECTOR_ITERATOR   *tf_obj_id_to_dg_vector_iter = pdc_vector_iterator_new(tf_obj_id_to_dg_vector_g);
 
     while (pdc_vector_iterator_has_next(tf_obj_id_to_dg_vector_iter)) {
         pdc_tf_obj_id_to_dg_t *cur_obj_id_to_dg =
@@ -670,9 +670,9 @@ PDC_Server_data_io_region_per_file_transformations(uint64_t obj_id, int obj_ndim
     FUNC_ENTER(NULL);
 
     perr_t                   ret_value      = SUCCEED;
-    void *                   cpy_buf        = NULL;
-    pdc_dg_t *               dg             = NULL;
-    struct pdc_tf_obj_t *    tf_obj         = NULL;
+    void                    *cpy_buf        = NULL;
+    pdc_dg_t                *dg             = NULL;
+    struct pdc_tf_obj_t     *tf_obj         = NULL;
     pdc_tf_region_mapping_t *region_mapping = NULL;
 
     cpy_buf = buf;
@@ -897,7 +897,7 @@ parse_bulk_data(void *buf, transfer_request_all_data *request_data, pdc_access_t
 {
     FUNC_ENTER(NULL);
 
-    char *   ptr = (char *)buf;
+    char    *ptr = (char *)buf;
     int      i, j;
     uint64_t data_size;
 
