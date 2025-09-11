@@ -701,8 +701,9 @@ PDC_Server_data_io_region_per_file_transformations(uint64_t obj_id, int obj_ndim
     }
 
     char *desired_state;
-    if (is_write)
+    if (is_write) {
         desired_state = region_mapping->region_state.store_state;
+    }
     else {
         desired_state = region_mapping->region_state.client_state;
 
