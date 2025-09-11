@@ -157,9 +157,6 @@ main(int argc, char **argv)
             PGOTO_ERROR(FAIL, "Wrong value at index %d!=%d", data_read[i], i);
     }
 
-    LOG_INFO("Sleeping for 1 s\n");
-    sleep(1);
-
     // close tf graph
     TASSERT(PDCtf_close_dg(dg_id) >= 0, "Call to PDCtf_close_dg succeeded", "Call to PDCtf_close_dg failed");
     // close regions
