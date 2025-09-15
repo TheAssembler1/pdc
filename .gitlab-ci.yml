@@ -64,6 +64,8 @@ perlmutter-authorize:
 
 perlmutter-no-cache-build:
     stage: build
+    rules:
+        - if: '$METRICS == null'
     needs:
         - perlmutter-authorize
     id_tokens:
@@ -91,11 +93,13 @@ perlmutter-no-cache-build:
 
 perlmutter-cache-build:
     stage: build
-    needs:
-        - perlmutter-authorize
     id_tokens:
         SITE_ID_TOKEN:
             aud: https://gitlab.com/
+    rules:
+        - if: '$METRICS == null'
+    needs:
+        - perlmutter-authorize
     allow_failure: false
     tags:
         - perlmutter
@@ -278,6 +282,7 @@ perlmutter-cache-parallel-pdc:
         - if: '$METRICS == null'
     needs:
         - perlmutter-cache-build
+    allow_failure: false
     tags:
         - perlmutter
     variables:
