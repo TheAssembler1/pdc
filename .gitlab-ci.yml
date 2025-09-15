@@ -51,7 +51,7 @@ perlmutter-authorize:
     stage: authorize
     rules:
         - if: '$METRICS == null'
-            when: manual
+    when: manual
     script:
         - |
             curl -L \
