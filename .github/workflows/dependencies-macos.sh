@@ -4,6 +4,8 @@ set -eu -o pipefail
 
 brew install open-mpi automake m4 libtool
 
+export CMAKE_POLICY_VERSION_MINIMUM=3.5
+
 # libfabric
 wget https://github.com/ofiwg/libfabric/archive/refs/tags/v1.15.2.tar.gz
 tar xf v1.15.2.tar.gz
