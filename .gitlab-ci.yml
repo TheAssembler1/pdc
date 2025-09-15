@@ -50,8 +50,8 @@ failure:
 perlmutter-authorize:
     stage: authorize
     rules:
-    - if: '$METRICS == null'
-        when: manual
+        - if: '$METRICS == null'
+            when: manual
     script:
         - |
             curl -L \
@@ -127,7 +127,7 @@ perlmutter-no-cache-parallel-pdc:
         SITE_ID_TOKEN:
             aud: https://gitlab.com/
     rules:
-    - if: '$METRICS == null'
+        - if: '$METRICS == null'
     needs:
         - perlmutter-no-cache-build
     tags:
@@ -150,7 +150,7 @@ perlmutter-no-cache-parallel-obj:
         SITE_ID_TOKEN:
             aud: https://gitlab.com/
     rules:
-    - if: '$METRICS == null'
+        - if: '$METRICS == null'
     needs:
         - perlmutter-no-cache-build
         - perlmutter-no-cache-parallel-pdc
@@ -174,7 +174,7 @@ perlmutter-no-cache-parallel-cont:
         SITE_ID_TOKEN:
             aud: https://gitlab.com/
     rules:
-    - if: '$METRICS == null'
+        - if: '$METRICS == null'
     needs:
         - perlmutter-no-cache-build
         - perlmutter-no-cache-parallel-pdc
@@ -198,7 +198,7 @@ perlmutter-no-cache-parallel-prop:
         SITE_ID_TOKEN:
             aud: https://gitlab.com/
     rules:
-    - if: '$METRICS == null'
+        - if: '$METRICS == null'
     needs:
         - perlmutter-no-cache-build
         - perlmutter-no-cache-parallel-pdc
@@ -222,7 +222,7 @@ perlmutter-no-cache-parallel-region:
         SITE_ID_TOKEN:
             aud: https://gitlab.com/
     rules:
-    - if: '$METRICS == null'
+        - if: '$METRICS == null'
     needs:
         - perlmutter-no-cache-build
         - perlmutter-no-cache-parallel-pdc
@@ -246,7 +246,7 @@ perlmutter-no-cache-parallel-region-all:
         SITE_ID_TOKEN:
             aud: https://gitlab.com/
     rules:
-    - if: '$METRICS == null'
+        - if: '$METRICS == null'
     needs:
         - perlmutter-no-cache-build
         - perlmutter-no-cache-parallel-pdc
@@ -275,7 +275,7 @@ perlmutter-cache-parallel-pdc:
         SITE_ID_TOKEN:
             aud: https://gitlab.com/
     rules:
-    - if: '$METRICS == null'
+        - if: '$METRICS == null'
     needs:
         - perlmutter-cache-build
     tags:
@@ -298,7 +298,7 @@ perlmutter-cache-parallel-obj:
         SITE_ID_TOKEN:
             aud: https://gitlab.com/
     rules:
-    - if: '$METRICS == null'
+        - if: '$METRICS == null'
     needs:
         - perlmutter-cache-build
         - perlmutter-cache-parallel-pdc
@@ -322,7 +322,7 @@ perlmutter-cache-parallel-cont:
         SITE_ID_TOKEN:
             aud: https://gitlab.com/
     rules:
-    - if: '$METRICS == null'
+        - if: '$METRICS == null'
     needs:
         - perlmutter-cache-build
         - perlmutter-cache-parallel-pdc
@@ -346,7 +346,7 @@ perlmutter-cache-parallel-prop:
         SITE_ID_TOKEN:
             aud: https://gitlab.com/
     rules:
-    - if: '$METRICS == null'
+        - if: '$METRICS == null'
     needs:
         - perlmutter-cache-build
         - perlmutter-cache-parallel-pdc
@@ -370,7 +370,7 @@ perlmutter-cache-parallel-region:
         SITE_ID_TOKEN:
             aud: https://gitlab.com/
     rules:
-    - if: '$METRICS == null'
+        - if: '$METRICS == null'
     needs:
         - perlmutter-cache-build
         - perlmutter-cache-parallel-pdc
@@ -394,7 +394,7 @@ perlmutter-cache-parallel-region-all:
         SITE_ID_TOKEN:
             aud: https://gitlab.com/
     rules:
-    - if: '$METRICS == null'
+        - if: '$METRICS == null'
     needs:
         - perlmutter-cache-build
         - perlmutter-cache-parallel-pdc
