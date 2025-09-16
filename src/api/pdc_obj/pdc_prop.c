@@ -60,9 +60,9 @@ PDCprop_create(pdc_prop_type_t type, pdcid_t pdcid)
 
     pdcid_t                ret_value = 0;
     struct _pdc_cont_prop *p         = NULL;
-    struct _pdc_obj_prop * q         = NULL;
-    struct _pdc_id_info *  id_info   = NULL;
-    struct _pdc_class *    pdc_class;
+    struct _pdc_obj_prop  *q         = NULL;
+    struct _pdc_id_info   *id_info   = NULL;
+    struct _pdc_class     *pdc_class;
     pdcid_t                new_id_c;
     pdcid_t                new_id_o;
 
@@ -134,7 +134,7 @@ PDCprop_obj_dup(pdcid_t prop_id)
     pdcid_t               ret_value = 0;
     struct _pdc_obj_prop *q         = NULL;
     struct _pdc_obj_prop *info      = NULL;
-    struct _pdc_id_info * prop      = NULL;
+    struct _pdc_id_info  *prop      = NULL;
     pdcid_t               new_id;
     size_t                i;
 
@@ -163,6 +163,7 @@ PDCprop_obj_dup(pdcid_t prop_id)
     q->obj_prop_pub->dims             = (uint64_t *)PDC_malloc(info->obj_prop_pub->ndim * sizeof(uint64_t));
     q->obj_prop_pub->type             = PDC_UNKNOWN;
     q->obj_prop_pub->region_partition = info->obj_prop_pub->region_partition;
+    q->obj_prop_pub->consistency      = info->obj_prop_pub->consistency;
     for (i = 0; i < info->obj_prop_pub->ndim; i++)
         (q->obj_prop_pub->dims)[i] = (info->obj_prop_pub->dims)[i];
 
@@ -292,7 +293,7 @@ PDCcont_prop_get_info(pdcid_t cont_prop)
 
     struct _pdc_cont_prop *ret_value = NULL;
     struct _pdc_cont_prop *info      = NULL;
-    struct _pdc_id_info *  prop;
+    struct _pdc_id_info   *prop;
 
     if ((prop = PDC_find_id(cont_prop)) == NULL)
         PGOTO_ERROR(NULL, "Failed to find PDC ID: %d", cont_prop);
@@ -320,9 +321,9 @@ PDCobj_prop_get_info(pdcid_t obj_prop)
 {
     FUNC_ENTER(NULL);
 
-    struct pdc_obj_prop * ret_value = NULL;
+    struct pdc_obj_prop  *ret_value = NULL;
     struct _pdc_obj_prop *info      = NULL;
-    struct _pdc_id_info * prop;
+    struct _pdc_id_info  *prop;
     size_t                i;
 
     if ((prop = PDC_find_id(obj_prop)) == NULL)
@@ -351,7 +352,7 @@ PDC_obj_prop_get_info(pdcid_t obj_prop)
 
     struct _pdc_obj_prop *ret_value = NULL;
     struct _pdc_obj_prop *info      = NULL;
-    struct _pdc_id_info * prop;
+    struct _pdc_id_info  *prop;
     size_t                i;
 
     if ((prop = PDC_find_id(obj_prop)) == NULL)
