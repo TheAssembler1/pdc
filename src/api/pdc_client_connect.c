@@ -1254,20 +1254,20 @@ PDC_Client_mercury_init(hg_class_t **hg_class, hg_context_t **hg_context, int po
 #endif
 
     if ((hg_transport = getenv("HG_TRANSPORT")) == NULL) {
-        if(pdc_client_mpi_rank_g == 0)
+        if (pdc_client_mpi_rank_g == 0)
             LOG_INFO("Environment variable HG_TRANSPORT was NOT set\n");
         hg_transport = default_hg_transport;
     }
-    else if(pdc_client_mpi_rank_g == 0)
+    else if (pdc_client_mpi_rank_g == 0)
         LOG_INFO("Environment variable HG_TRANSPORT was set\n");
     if ((hostname = getenv("HG_HOST")) == NULL) {
-        if(pdc_client_mpi_rank_g == 0)
+        if (pdc_client_mpi_rank_g == 0)
             LOG_INFO("Environment variable HG_HOST was NOT set\n");
         hostname = PDC_calloc(1, HOSTNAME_LEN);
         gethostname(hostname, HOSTNAME_LEN - 1);
         free_hostname = true;
     }
-    else if(pdc_client_mpi_rank_g == 0)
+    else if (pdc_client_mpi_rank_g == 0)
         LOG_INFO("Environment variable HG_HOST was set\n");
 
     sprintf(na_info_string, "%s://%s:%d", hg_transport, hostname, port);
