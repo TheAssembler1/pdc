@@ -314,7 +314,6 @@ add_test(NAME read_obj_int16   WORKING_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTOR
 add_test(NAME read_obj_int8    WORKING_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY} COMMAND run_test.sh ./read_obj o 1 int8)
 add_test(NAME vpicio_bdcats_transfer_request     WORKING_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY} COMMAND run_multiple_test.sh ./vpicio ./bdcats)
 
-
 set_tests_properties(pdc_init           PROPERTIES LABELS serial)
 set_tests_properties(dup_prop           PROPERTIES LABELS serial)
 set_tests_properties(open_cont          PROPERTIES LABELS serial)
