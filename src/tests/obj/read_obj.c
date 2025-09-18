@@ -7,6 +7,7 @@
 #include <unistd.h>
 #include <sys/time.h>
 #include "pdc.h"
+#include "pdc_client_server_common.h"
 #include "test_helper.h"
 
 void
@@ -26,7 +27,7 @@ main(int argc, char **argv)
 #ifdef ENABLE_MPI
     MPI_Comm comm;
 #else
-    int comm   = 1;
+    int comm = 1;
 #endif
     struct timeval pdc_timer_start;
     struct timeval pdc_timer_end;
@@ -38,7 +39,7 @@ main(int argc, char **argv)
     uint64_t *offset, *local_offset;
     uint64_t *mysize;
     int       i, j;
-    char *    mydata;
+    char     *mydata;
     char      obj_name[128], cont_name[128];
 
     uint64_t my_data_size;
