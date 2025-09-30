@@ -675,6 +675,7 @@ PDC_Server_data_io_region_per_file_transformations(uint64_t obj_id, int obj_ndim
     struct pdc_tf_obj_t *    tf_obj         = NULL;
     pdc_tf_region_mapping_t *region_mapping = NULL;
 
+    // Check if we are already the desired
     cpy_buf = buf;
 
     tf_obj = PDCtf_get_region_mapping(obj_id, &dg);
@@ -732,7 +733,11 @@ PDC_Server_data_io_region_per_file_transformations(uint64_t obj_id, int obj_ndim
         LOG_INFO("Executing graph with json filepath %s\n", dg->data);
     // We can now execute the directed graph
     TIMER_START();
-    if (PDCtf_exec_graph(dg, flat_conceptual_offset, region_mapping->region_state.cur_state, desired_state,
+    if (strcmp(region_mapping->region_state.cur_state, desired_state) == 0) {
+        LOG_WARNING("Current state was equal to desired state\n");
+	*ran_transformation = true;
+	PGOTO_DONE(SUCCEED);
+    } else if (PDCtf_exec_graph(dg, flat_conceptual_offset, region_mapping->region_state.cur_state, desired_state,
                          input_region, &output_region, &buf, is_write) != SUCCEED) {
         PGOTO_ERROR(FAIL, "Error with PDCtf_exec_graph");
     }
@@ -959,21 +964,24 @@ parse_bulk_data(void *buf, transfer_request_all_data *request_data, pdc_access_t
         ptr += sizeof(pdc_var_type_t);
 
         // Parse and print strings immediately after unit
-        request_data->json_filepaths[i] = ptr;
-        LOG_DEBUG("Object %d json_filepath: %s\n", i, request_data->json_filepaths[i]);
-        ptr += strlen(ptr) + 1;
+	if(access_type == PDC_WRITE) {
+		request_data->json_filepaths[i] = ptr;
+		LOG_DEBUG("Object %d json_filepath: %s\n", i, request_data->json_filepaths[i]);
+		ptr += strlen(ptr) + 1;
 
-        request_data->cur_state_str[i] = ptr;
-        LOG_DEBUG("Object %d cur_state: %s\n", i, request_data->cur_state_str[i]);
-        ptr += strlen(ptr) + 1;
+		request_data->cur_state_str[i] = ptr;
+		LOG_DEBUG("Object %d cur_state: %s\n", i, request_data->cur_state_str[i]);
+		ptr += strlen(ptr) + 1;
 
-        request_data->client_state_str[i] = ptr;
-        LOG_DEBUG("Object %d client_state: %s\n", i, request_data->client_state_str[i]);
-        ptr += strlen(ptr) + 1;
+		request_data->client_state_str[i] = ptr;
+		LOG_DEBUG("Object %d client_state: %s\n", i, request_data->client_state_str[i]);
+		ptr += strlen(ptr) + 1;
 
-        request_data->store_state_str[i] = ptr;
-        LOG_DEBUG("Object %d store_state: %s\n", i, request_data->store_state_str[i]);
-        ptr += strlen(ptr) + 1;
+		request_data->store_state_str[i] = ptr;
+		LOG_DEBUG("Object %d store_state: %s\n", i, request_data->store_state_str[i]);
+		ptr += strlen(ptr) + 1;
+        } else 
+		ptr += 4;
     }
     /*
      * For each of objects
@@ -994,10 +1002,10 @@ parse_bulk_data(void *buf, transfer_request_all_data *request_data, pdc_access_t
         if (request_data->json_filepaths[i] != NULL && strlen(request_data->json_filepaths[i]) > 0) {
             LOG_DEBUG("RPC recieved region transfer with attached graph\n");
 
-            LOG_DEBUG("Region transfer json filepath: %s\n", request_data->json_filepaths[i]);
-            LOG_DEBUG("Region transfer current state: %s\n", request_data->cur_state_str[i]);
-            LOG_DEBUG("Region transfer client state: %s\n", request_data->client_state_str[i]);
-            LOG_DEBUG("Region transfer stored state: %s\n", request_data->store_state_str[i]);
+            LOG_DEBUG("Parse region transfer json filepath: %s\n", request_data->json_filepaths[i]);
+            LOG_DEBUG("Parse region transfer current state: %s\n", request_data->cur_state_str[i]);
+            LOG_DEBUG("Parse region transfer client state: %s\n", request_data->client_state_str[i]);
+            LOG_DEBUG("Parse region transfer stored state: %s\n", request_data->store_state_str[i]);
 
             PDC_get_var_type_size(request_data->var_types[i]);
 
