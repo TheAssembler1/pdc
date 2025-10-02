@@ -12,26 +12,26 @@ static double __timer_start;
 static double __graph_timer_start;
 
 #define TIMER_START()                                                                                        \
-    do {                                                                                                     \
+/*    do {                                                                                                     \
         __timer_start = MPI_Wtime();                                                                         \
-    } while (0)
+    } while (0)*/
 
 #define TIMER_STOP(name)                                                                                     \
-    do {                                                                                                     \
+    /*(do {                                                                                                     \
         double __timer_end = MPI_Wtime();                                                                    \
         LOG_INFO("[TIMER] %s time_elapsed: %lf s\n", name, __timer_end - __timer_start);                     \
-    } while (0)
+    } while (0)*/
 
 #define GRAPH_TIMER_START()                                                                                  \
-    do {                                                                                                     \
+    /*do {                                                                                                     \
         __graph_timer_start = MPI_Wtime();                                                                   \
-    } while (0)
+    } while (0)*/
 
 #define GRAPH_TIMER_STOP(name)                                                                               \
-    do {                                                                                                     \
+    /*do {                                                                                                     \
         double __timer_end = MPI_Wtime();                                                                    \
         LOG_INFO("[TIMER] %s time_elapsed: %lf s\n", name, __timer_end - __graph_timer_start);               \
-    } while (0)
+    } while (0)*/
 
 extern PDC_VECTOR *tf_obj_id_to_dg_vector_g;
 

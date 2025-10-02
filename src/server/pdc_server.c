@@ -1366,6 +1366,8 @@ PDC_Server_checkpoint()
     // FIXME: We don't store whether graph is attached to entire object...
 
     // Checkpoint the region transformations
+#undef PRINT_DEBUG_TRANSFORMATION_CHECKPOINTING
+#ifdef PRINT_DEBUG_TRANSFORMATION_CHECKPOINTING
     LOG_DEBUG("Checkpointing transformations\n");
     size_t num_objs = pdc_vector_size(tf_obj_id_to_dg_vector_g);
     LOG_JUST_PRINT("num_objs: %lu\n", num_objs);
@@ -1442,11 +1444,12 @@ PDC_Server_checkpoint()
         }
     }
     pdc_vector_iterator_destroy(obj_id_to_dg_iter);
+#endif
 
-    num_objs = pdc_vector_size(tf_obj_id_to_dg_vector_g);
+    size_t num_objs = pdc_vector_size(tf_obj_id_to_dg_vector_g);
     fwrite(&num_objs, sizeof(size_t), 1, file);
 
-    obj_id_to_dg_iter = pdc_vector_iterator_new(tf_obj_id_to_dg_vector_g);
+    PDC_VECTOR_ITERATOR* obj_id_to_dg_iter = pdc_vector_iterator_new(tf_obj_id_to_dg_vector_g);
     while (pdc_vector_iterator_has_next(obj_id_to_dg_iter)) {
         pdc_tf_obj_id_to_dg_t *cur_obj_id_to_dg = pdc_vector_iterator_next(obj_id_to_dg_iter);
         // Write object ID
