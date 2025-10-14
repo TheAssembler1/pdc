@@ -1,0 +1,600 @@
+[INFO] PDC_CLIENT[0]: Writing 8388608 number of particles for 1 steps with 64 clients.
+[INFO] PDC_CLIENT[16]: PDCtf_init called
+[INFO] PDC_CLIENT[3]: PDCtf_init called
+[INFO] PDC_CLIENT[5]: PDCtf_init called
+[INFO] PDC_CLIENT[57]: PDCtf_init called
+[INFO] PDC_CLIENT[29]: PDCtf_init called
+[INFO] PDC_CLIENT[7]: PDCtf_init called
+[INFO] PDC_CLIENT[11]: PDCtf_init called
+[INFO] PDC_CLIENT[15]: PDCtf_init called
+[INFO] PDC_CLIENT[25]: PDCtf_init called
+[INFO] PDC_CLIENT[31]: PDCtf_init called
+[INFO] PDC_CLIENT[19]: PDCtf_init called
+[INFO] PDC_CLIENT[59]: PDCtf_init called
+[INFO] PDC_CLIENT[26]: PDCtf_init called
+[INFO] PDC_CLIENT[37]: PDCtf_init called
+[INFO] PDC_CLIENT[14]: PDCtf_init called
+[INFO] PDC_CLIENT[38]: PDCtf_init called
+[INFO] PDC_CLIENT[20]: PDCtf_init called
+[INFO] PDC_CLIENT[39]: PDCtf_init called
+[INFO] PDC_CLIENT[6]: PDCtf_init called
+[INFO] PDC_CLIENT[17]: PDCtf_init called
+[INFO] PDC_CLIENT[40]: PDCtf_init called
+[INFO] PDC_CLIENT[13]: PDCtf_init called
+[INFO] PDC_CLIENT[41]: PDCtf_init called
+[INFO] PDC_CLIENT[21]: PDCtf_init called
+[INFO] PDC_CLIENT[43]: PDCtf_init called
+[INFO] PDC_CLIENT[30]: PDCtf_init called
+[INFO] PDC_CLIENT[44]: PDCtf_init called
+[INFO] PDC_CLIENT[2]: PDCtf_init called
+[INFO] PDC_CLIENT[47]: PDCtf_init called
+[INFO] PDC_CLIENT[8]: PDCtf_init called
+[INFO] PDC_CLIENT[48]: PDCtf_init called
+[INFO] PDC_CLIENT[9]: PDCtf_init called
+[INFO] PDC_CLIENT[50]: PDCtf_init called
+[INFO] PDC_CLIENT[10]: PDCtf_init called
+[INFO] PDC_CLIENT[53]: PDCtf_init called
+[INFO] PDC_CLIENT[22]: PDCtf_init called
+[INFO] PDC_CLIENT[60]: PDCtf_init called
+[INFO] PDC_CLIENT[24]: PDCtf_init called
+[INFO] PDC_CLIENT[62]: PDCtf_init called
+[INFO] PDC_CLIENT[27]: PDCtf_init called
+[INFO] PDC_CLIENT[32]: PDCtf_init called
+[INFO] PDC_CLIENT[28]: PDCtf_init called
+[INFO] PDC_CLIENT[33]: PDCtf_init called
+[INFO] PDC_CLIENT[1]: PDCtf_init called
+[INFO] PDC_CLIENT[34]: PDCtf_init called
+[INFO] PDC_CLIENT[4]: PDCtf_init called
+[INFO] PDC_CLIENT[35]: PDCtf_init called
+[INFO] PDC_CLIENT[12]: PDCtf_init called
+[INFO] PDC_CLIENT[36]: PDCtf_init called
+[INFO] PDC_CLIENT[18]: PDCtf_init called
+[INFO] PDC_CLIENT[42]: PDCtf_init called
+[INFO] PDC_CLIENT[23]: PDCtf_init called
+[INFO] PDC_CLIENT[45]: PDCtf_init called
+[INFO] PDC_CLIENT[0]: PDCtf_init called
+[INFO] PDC_CLIENT[46]: PDCtf_init called
+[INFO] PDC_CLIENT[49]: PDCtf_init called
+[INFO] PDC_CLIENT[51]: PDCtf_init called
+[INFO] PDC_CLIENT[52]: PDCtf_init called
+[INFO] PDC_CLIENT[54]: PDCtf_init called
+[INFO] PDC_CLIENT[55]: PDCtf_init called
+[INFO] PDC_CLIENT[56]: PDCtf_init called
+[INFO] PDC_CLIENT[61]: PDCtf_init called
+[INFO] PDC_CLIENT[63]: PDCtf_init called
+[INFO] PDC_CLIENT[58]: PDCtf_init called
+[INFO] PDC_CLIENT[0]: PDC_DEBUG set to 0
+[INFO] PDC_CLIENT[0]: Found 2 PDC Metadata servers, running with 64 PDC clients
+[INFO] PDC_CLIENT[0]: Environment variable HG_TRANSPORT was NOT set
+[INFO] PDC_CLIENT[0]: Environment variable HG_HOST was NOT set
+[INFO] PDC_CLIENT[0]: Connection string: ofi+tcp://nid005389:8000
+[INFO] PDC_CLIENT[0]: Using [./pdc_tmp] as tmp dir, 32 clients per server
+[INFO] PDC_CLIENT[0]: 
+[2025-10-07 13:52:16.068851] #Step  0
+[INFO] PDC_CLIENT[0]: [2025-10-07 13:52:16.073863] Obj create time: 4.78437e-03
+[INFO] PDC_CLIENT[4]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[4]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[4]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[32]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[32]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[32]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[32]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[32]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[32]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[8]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[8]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[8]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[8]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[8]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[33]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[33]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[33]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[33]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[33]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[33]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[33]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[33]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[35]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[4]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[4]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[4]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[4]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[4]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[38]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[38]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[38]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[38]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[38]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[38]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[38]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[38]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[6]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[6]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[39]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[39]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[39]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[39]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[39]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[39]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[39]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[39]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[8]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[8]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[8]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[32]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[32]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[18]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[18]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[18]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[18]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[18]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[18]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[18]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[18]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[34]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[34]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[34]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[19]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[19]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[19]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[19]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[19]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[19]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[19]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[19]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[35]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[35]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[35]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[35]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[35]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[35]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[35]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[21]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[36]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[36]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[36]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[36]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[36]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[36]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[36]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[36]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[27]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[27]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[27]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[27]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[27]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[37]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[37]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[37]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[37]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[37]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[37]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[37]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[37]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[1]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[1]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[1]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[1]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[1]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[1]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[1]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[1]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[40]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[40]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[40]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[40]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[40]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[40]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[40]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[40]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[2]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[2]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[2]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[2]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[2]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[41]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[41]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[41]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[41]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[41]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[41]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[41]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[41]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[3]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[3]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[3]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[3]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[3]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[3]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[3]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[3]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[44]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[44]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[44]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[44]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[44]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[44]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[44]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[44]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[5]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[5]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[5]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[5]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[5]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[5]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[5]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[45]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[45]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[45]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[45]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[45]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[45]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[45]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[45]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[6]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[6]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[6]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[6]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[6]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[6]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[46]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[46]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[46]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[46]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[46]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[46]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[46]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[46]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[7]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[7]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[7]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[7]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[47]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[47]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[47]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[47]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[47]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[47]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[47]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[47]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[9]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[9]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[9]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[48]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[48]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[48]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[48]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[48]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[48]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[48]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[48]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[10]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[10]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[10]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[10]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[10]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[10]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[10]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[10]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[49]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[49]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[49]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[49]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[49]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[49]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[49]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[49]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[11]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[11]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[11]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[11]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[11]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[11]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[11]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[11]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[50]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[50]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[50]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[50]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[50]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[50]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[50]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[50]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[12]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[12]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[12]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[12]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[12]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[12]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[12]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[12]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[51]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[51]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[51]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[51]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[51]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[51]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[51]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[51]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[13]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[13]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[13]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[13]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[13]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[13]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[13]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[13]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[52]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[52]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[52]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[52]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[52]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[52]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[52]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[52]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[14]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[14]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[14]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[14]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[14]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[14]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[14]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[14]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[53]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[53]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[53]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[53]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[53]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[53]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[53]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[53]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[15]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[15]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[15]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[15]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[15]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[15]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[15]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[15]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[54]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[54]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[54]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[54]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[54]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[54]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[54]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[54]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[16]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[16]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[16]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[16]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[16]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[16]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[16]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[16]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[55]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[55]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[55]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[55]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[55]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[55]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[55]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[55]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[17]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[17]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[17]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[17]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[17]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[17]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[17]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[17]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[56]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[56]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[56]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[56]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[56]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[56]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[56]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[56]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[20]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[20]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[20]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[20]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[20]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[20]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[20]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[20]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[57]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[57]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[57]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[57]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[57]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[57]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[57]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[57]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[21]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[21]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[21]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[21]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[21]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[21]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[21]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[58]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[58]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[58]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[58]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[58]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[58]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[58]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[58]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[22]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[22]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[22]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[22]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[22]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[22]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[22]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[22]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[60]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[60]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[60]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[60]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[60]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[60]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[60]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[60]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[23]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[23]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[23]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[23]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[23]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[23]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[23]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[23]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[61]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[61]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[61]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[61]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[61]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[61]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[61]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[61]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[24]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[24]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[24]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[24]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[24]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[24]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[24]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[24]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[62]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[62]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[62]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[62]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[62]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[62]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[62]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[62]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[25]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[25]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[25]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[25]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[25]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[25]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[25]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[25]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[63]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[63]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[63]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[63]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[63]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[63]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[63]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[63]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[26]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[26]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[26]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[26]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[26]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[26]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[26]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[26]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[34]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[34]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[34]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[34]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[34]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[27]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[27]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[27]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[42]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[42]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[42]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[42]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[42]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[42]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[42]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[42]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[28]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[28]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[28]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[28]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[28]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[28]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[28]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[28]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[43]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[43]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[43]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[43]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[43]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[43]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[43]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[43]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[29]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[29]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[29]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[29]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[29]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[29]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[29]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[29]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[59]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[59]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[59]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[59]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[59]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[59]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[59]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[59]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[30]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[30]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[30]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[30]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[30]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[30]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[30]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[30]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[31]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[31]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[31]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[31]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[31]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[31]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[31]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[31]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[2]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[2]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[2]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[5]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[7]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[7]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[7]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[7]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[9]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[9]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[9]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[9]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[9]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[0]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[0]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[0]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[0]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[0]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[0]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[0]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[0]: Found graph attached to entire obj
+[INFO] PDC_CLIENT[0]: [2025-10-07 13:52:16.074368] Transfer create time: 5.04838e-04
+[INFO] PDC_CLIENT[0]: [2025-10-07 13:52:17.092173] Transfer start time: 1.01780e+00
+[INFO] PDC_CLIENT[0]: [2025-10-07 13:52:20.332501] Transfer wait time: 3.24028e+00
+[INFO] PDC_CLIENT[0]: [2025-10-07 13:52:20.446574] Transfer close time: 1.14077e-01
+[INFO] PDC_CLIENT[0]: [2025-10-07 13:52:20.446636] Obj close time: 6.18300e-05
+[INFO] PDC_CLIENT[0]: 
+[2025-10-07 13:52:20.446650] #Step  0
+[INFO] PDC_CLIENT[0]: [2025-10-07 13:52:20.448739] Obj create time: 2.08270e-03
+[INFO] PDC_CLIENT[0]: [2025-10-07 13:52:20.448765] Transfer create time: 2.65320e-05
+[INFO] PDC_CLIENT[0]: [2025-10-07 13:52:20.612469] Transfer start time: 1.63703e-01
+[INFO] PDC_CLIENT[0]: [2025-10-07 13:52:25.948501] Transfer wait time: 5.29778e+00
+[INFO] PDC_CLIENT[0]: [2025-10-07 13:52:26.046707] Transfer close time: 9.82092e-02
+[INFO] PDC_CLIENT[0]: [2025-10-07 13:52:26.046751] Obj close time: 4.39960e-05
+[INFO] PDC_CLIENT[0]: Data was validated successfully

@@ -1,0 +1,1552 @@
+[INFO] PDC_SERVER[0]: Using [./pdc_tmp/] as tmp dir, 1 OSTs, 1 OSTs per data file, 0% to BB
+[INFO] PDC_SERVER[0]: Environment variable HG_TRANSPORT was NOT set
+[INFO] PDC_SERVER[0]: Environment variable HG_HOST was NOT set
+[INFO] PDC_SERVER[0]: Connection string: ofi+tcp://nid006573:7000
+[INFO] PDC_SERVER[1]: Environment variable HG_TRANSPORT was NOT set
+[INFO] PDC_SERVER[1]: Environment variable HG_HOST was NOT set
+[INFO] PDC_SERVER[0]: Without multi-thread
+[INFO] PDC_SERVER[0]: Successfully established connection to 1 other PDC servers
+[INFO] PDC_SERVER[0]: Server ready!
+
+
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: ZFP compression succeeded, compressed size bytes: 32801848 bytes
+[INFO] PDC_SERVER[0]: Ran write storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[1]: ZFP compression succeeded, compressed size bytes: 32801848 bytes
+[INFO] PDC_SERVER[0]: ZFP compression succeeded, compressed size bytes: 32806384 bytes
+[INFO] PDC_SERVER[0]: Ran write storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[1]: ZFP compression succeeded, compressed size bytes: 32806384 bytes
+[INFO] PDC_SERVER[0]: ZFP compression succeeded, compressed size bytes: 17214128 bytes
+[INFO] PDC_SERVER[0]: Ran write storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[1]: ZFP compression succeeded, compressed size bytes: 17214128 bytes
+[INFO] PDC_SERVER[0]: ZFP compression succeeded, compressed size bytes: 32804768 bytes
+[INFO] PDC_SERVER[0]: Ran write storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[1]: ZFP compression succeeded, compressed size bytes: 32804768 bytes
+[INFO] PDC_SERVER[0]: ZFP compression succeeded, compressed size bytes: 32802608 bytes
+[INFO] PDC_SERVER[0]: Ran write storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[1]: ZFP compression succeeded, compressed size bytes: 32802608 bytes
+[INFO] PDC_SERVER[0]: ZFP compression succeeded, compressed size bytes: 17214128 bytes
+[INFO] PDC_SERVER[0]: Ran write storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[1]: ZFP compression succeeded, compressed size bytes: 17214128 bytes
+[INFO] PDC_SERVER[0]: ZFP compression succeeded, compressed size bytes: 16573328 bytes
+[INFO] PDC_SERVER[0]: Ran write storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: ZFP compression succeeded, compressed size bytes: 16544200 bytes
+[INFO] PDC_SERVER[1]: ZFP compression succeeded, compressed size bytes: 16573328 bytes
+[INFO] PDC_SERVER[0]: Ran write storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[1]: ZFP compression succeeded, compressed size bytes: 16544200 bytes
+[INFO] PDC_SERVER[1]: ZFP compression succeeded, compressed size bytes: 32801848 bytes
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[1]: ZFP compression succeeded, compressed size bytes: 32806384 bytes
+[INFO] PDC_SERVER[0]: ZFP compression succeeded, compressed size bytes: 32801848 bytes
+[INFO] PDC_SERVER[0]: Ran write storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[1]: ZFP compression succeeded, compressed size bytes: 17214128 bytes
+[INFO] PDC_SERVER[0]: ZFP compression succeeded, compressed size bytes: 32806384 bytes
+[INFO] PDC_SERVER[0]: Ran write storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[1]: ZFP compression succeeded, compressed size bytes: 32804768 bytes
+[INFO] PDC_SERVER[0]: ZFP compression succeeded, compressed size bytes: 17214128 bytes
+[INFO] PDC_SERVER[0]: Ran write storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[1]: ZFP compression succeeded, compressed size bytes: 32802608 bytes
+[INFO] PDC_SERVER[0]: ZFP compression succeeded, compressed size bytes: 32804768 bytes
+[INFO] PDC_SERVER[0]: Ran write storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[1]: ZFP compression succeeded, compressed size bytes: 17214128 bytes
+[INFO] PDC_SERVER[0]: ZFP compression succeeded, compressed size bytes: 32802608 bytes
+[INFO] PDC_SERVER[0]: Ran write storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[1]: ZFP compression succeeded, compressed size bytes: 16573328 bytes
+[INFO] PDC_SERVER[0]: ZFP compression succeeded, compressed size bytes: 17214128 bytes
+[INFO] PDC_SERVER[0]: Ran write storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[1]: ZFP compression succeeded, compressed size bytes: 16544200 bytes
+[INFO] PDC_SERVER[0]: ZFP compression succeeded, compressed size bytes: 16573328 bytes
+[INFO] PDC_SERVER[0]: Ran write storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: ZFP compression succeeded, compressed size bytes: 16544200 bytes
+[INFO] PDC_SERVER[0]: Ran write storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: ZFP compression succeeded, compressed size bytes: 32801848 bytes
+[INFO] PDC_SERVER[1]: ZFP compression succeeded, compressed size bytes: 32801848 bytes
+[INFO] PDC_SERVER[0]: Ran write storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: ZFP compression succeeded, compressed size bytes: 32806384 bytes
+[INFO] PDC_SERVER[0]: Ran write storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[1]: ZFP compression succeeded, compressed size bytes: 32806384 bytes
+[INFO] PDC_SERVER[0]: ZFP compression succeeded, compressed size bytes: 17214128 bytes
+[INFO] PDC_SERVER[0]: Ran write storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[1]: ZFP compression succeeded, compressed size bytes: 17214128 bytes
+[INFO] PDC_SERVER[0]: ZFP compression succeeded, compressed size bytes: 32804768 bytes
+[INFO] PDC_SERVER[0]: Ran write storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[1]: ZFP compression succeeded, compressed size bytes: 32804768 bytes
+[INFO] PDC_SERVER[0]: ZFP compression succeeded, compressed size bytes: 32802608 bytes
+[INFO] PDC_SERVER[0]: Ran write storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[1]: ZFP compression succeeded, compressed size bytes: 32802608 bytes
+[INFO] PDC_SERVER[0]: ZFP compression succeeded, compressed size bytes: 17214128 bytes
+[INFO] PDC_SERVER[0]: Ran write storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[1]: ZFP compression succeeded, compressed size bytes: 17214128 bytes
+[INFO] PDC_SERVER[0]: ZFP compression succeeded, compressed size bytes: 16573328 bytes
+[INFO] PDC_SERVER[0]: Ran write storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[1]: ZFP compression succeeded, compressed size bytes: 16573328 bytes
+[INFO] PDC_SERVER[0]: ZFP compression succeeded, compressed size bytes: 16544200 bytes
+[INFO] PDC_SERVER[0]: Ran write storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[1]: ZFP compression succeeded, compressed size bytes: 16544200 bytes
+[INFO] PDC_SERVER[0]: ZFP compression succeeded, compressed size bytes: 32801848 bytes
+[INFO] PDC_SERVER[0]: Ran write storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[1]: ZFP compression succeeded, compressed size bytes: 32801848 bytes
+[INFO] PDC_SERVER[0]: ZFP compression succeeded, compressed size bytes: 32806384 bytes
+[INFO] PDC_SERVER[0]: Ran write storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[1]: ZFP compression succeeded, compressed size bytes: 32806384 bytes
+[INFO] PDC_SERVER[0]: ZFP compression succeeded, compressed size bytes: 17214128 bytes
+[INFO] PDC_SERVER[0]: Ran write storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[1]: ZFP compression succeeded, compressed size bytes: 17214128 bytes
+[INFO] PDC_SERVER[0]: ZFP compression succeeded, compressed size bytes: 32804768 bytes
+[INFO] PDC_SERVER[0]: Ran write storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[1]: ZFP compression succeeded, compressed size bytes: 32804768 bytes
+[INFO] PDC_SERVER[0]: ZFP compression succeeded, compressed size bytes: 32802608 bytes
+[INFO] PDC_SERVER[0]: Ran write storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[1]: ZFP compression succeeded, compressed size bytes: 32802608 bytes
+[INFO] PDC_SERVER[0]: ZFP compression succeeded, compressed size bytes: 17214128 bytes
+[INFO] PDC_SERVER[0]: Ran write storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[1]: ZFP compression succeeded, compressed size bytes: 17214128 bytes
+[INFO] PDC_SERVER[0]: ZFP compression succeeded, compressed size bytes: 16573328 bytes
+[INFO] PDC_SERVER[0]: Ran write storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[1]: ZFP compression succeeded, compressed size bytes: 16573328 bytes
+[INFO] PDC_SERVER[0]: ZFP compression succeeded, compressed size bytes: 16544200 bytes
+[INFO] PDC_SERVER[0]: Ran write storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[1]: ZFP compression succeeded, compressed size bytes: 16544200 bytes
+[INFO] PDC_SERVER[0]: ZFP compression succeeded, compressed size bytes: 32801848 bytes
+[INFO] PDC_SERVER[0]: Ran write storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[1]: ZFP compression succeeded, compressed size bytes: 32801848 bytes
+[INFO] PDC_SERVER[0]: ZFP compression succeeded, compressed size bytes: 32806384 bytes
+[INFO] PDC_SERVER[0]: Ran write storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[1]: ZFP compression succeeded, compressed size bytes: 32806384 bytes
+[INFO] PDC_SERVER[0]: ZFP compression succeeded, compressed size bytes: 17214128 bytes
+[INFO] PDC_SERVER[0]: Ran write storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[1]: ZFP compression succeeded, compressed size bytes: 17214128 bytes
+[INFO] PDC_SERVER[0]: ZFP compression succeeded, compressed size bytes: 32804768 bytes
+[INFO] PDC_SERVER[0]: Ran write storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[1]: ZFP compression succeeded, compressed size bytes: 32804768 bytes
+[INFO] PDC_SERVER[0]: ZFP compression succeeded, compressed size bytes: 32802608 bytes
+[INFO] PDC_SERVER[0]: Ran write storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[1]: ZFP compression succeeded, compressed size bytes: 32802608 bytes
+[INFO] PDC_SERVER[0]: ZFP compression succeeded, compressed size bytes: 17214128 bytes
+[INFO] PDC_SERVER[0]: Ran write storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[1]: ZFP compression succeeded, compressed size bytes: 17214128 bytes
+[INFO] PDC_SERVER[0]: ZFP compression succeeded, compressed size bytes: 16573328 bytes
+[INFO] PDC_SERVER[0]: Ran write storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[1]: ZFP compression succeeded, compressed size bytes: 16573328 bytes
+[INFO] PDC_SERVER[0]: ZFP compression succeeded, compressed size bytes: 16544200 bytes
+[INFO] PDC_SERVER[0]: Ran write storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[1]: ZFP compression succeeded, compressed size bytes: 16544200 bytes
+[INFO] PDC_SERVER[0]: ZFP compression succeeded, compressed size bytes: 32801848 bytes
+[INFO] PDC_SERVER[0]: Ran write storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[1]: ZFP compression succeeded, compressed size bytes: 32801848 bytes
+[INFO] PDC_SERVER[0]: ZFP compression succeeded, compressed size bytes: 32806384 bytes
+[INFO] PDC_SERVER[0]: Ran write storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[1]: ZFP compression succeeded, compressed size bytes: 32806384 bytes
+[INFO] PDC_SERVER[0]: ZFP compression succeeded, compressed size bytes: 17214128 bytes
+[INFO] PDC_SERVER[0]: Ran write storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[1]: ZFP compression succeeded, compressed size bytes: 17214128 bytes
+[INFO] PDC_SERVER[0]: ZFP compression succeeded, compressed size bytes: 32804768 bytes
+[INFO] PDC_SERVER[0]: Ran write storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[1]: ZFP compression succeeded, compressed size bytes: 32804768 bytes
+[INFO] PDC_SERVER[0]: ZFP compression succeeded, compressed size bytes: 32802608 bytes
+[INFO] PDC_SERVER[0]: Ran write storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[1]: ZFP compression succeeded, compressed size bytes: 32802608 bytes
+[INFO] PDC_SERVER[0]: ZFP compression succeeded, compressed size bytes: 17214128 bytes
+[INFO] PDC_SERVER[0]: Ran write storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[1]: ZFP compression succeeded, compressed size bytes: 17214128 bytes
+[INFO] PDC_SERVER[0]: ZFP compression succeeded, compressed size bytes: 16573328 bytes
+[INFO] PDC_SERVER[0]: Ran write storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[1]: ZFP compression succeeded, compressed size bytes: 16573328 bytes
+[INFO] PDC_SERVER[0]: ZFP compression succeeded, compressed size bytes: 16544200 bytes
+[INFO] PDC_SERVER[0]: Ran write storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[1]: ZFP compression succeeded, compressed size bytes: 16544200 bytes
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[1]: ZFP compression succeeded, compressed size bytes: 32801848 bytes
+[INFO] PDC_SERVER[0]: ZFP compression succeeded, compressed size bytes: 32801848 bytes
+[INFO] PDC_SERVER[0]: Ran write storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[1]: ZFP compression succeeded, compressed size bytes: 32806384 bytes
+[INFO] PDC_SERVER[1]: ZFP compression succeeded, compressed size bytes: 17214128 bytes
+[INFO] PDC_SERVER[0]: ZFP compression succeeded, compressed size bytes: 32806384 bytes
+[INFO] PDC_SERVER[0]: Ran write storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: ZFP compression succeeded, compressed size bytes: 17214128 bytes
+[INFO] PDC_SERVER[1]: ZFP compression succeeded, compressed size bytes: 32804768 bytes
+[INFO] PDC_SERVER[0]: Ran write storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: ZFP compression succeeded, compressed size bytes: 32804768 bytes
+[INFO] PDC_SERVER[1]: ZFP compression succeeded, compressed size bytes: 32802608 bytes
+[INFO] PDC_SERVER[0]: Ran write storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: ZFP compression succeeded, compressed size bytes: 32802608 bytes
+[INFO] PDC_SERVER[1]: ZFP compression succeeded, compressed size bytes: 17214128 bytes
+[INFO] PDC_SERVER[0]: Ran write storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[1]: ZFP compression succeeded, compressed size bytes: 16573328 bytes
+[INFO] PDC_SERVER[0]: ZFP compression succeeded, compressed size bytes: 17214128 bytes
+[INFO] PDC_SERVER[0]: Ran write storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[1]: ZFP compression succeeded, compressed size bytes: 16544200 bytes
+[INFO] PDC_SERVER[0]: ZFP compression succeeded, compressed size bytes: 16573328 bytes
+[INFO] PDC_SERVER[0]: Ran write storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: ZFP compression succeeded, compressed size bytes: 16544200 bytes
+[INFO] PDC_SERVER[0]: Ran write storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: ZFP compression succeeded, compressed size bytes: 32801848 bytes
+[INFO] PDC_SERVER[0]: Ran write storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[1]: ZFP compression succeeded, compressed size bytes: 32801848 bytes
+[INFO] PDC_SERVER[0]: ZFP compression succeeded, compressed size bytes: 32806384 bytes
+[INFO] PDC_SERVER[0]: Ran write storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[1]: ZFP compression succeeded, compressed size bytes: 32806384 bytes
+[INFO] PDC_SERVER[0]: ZFP compression succeeded, compressed size bytes: 17214128 bytes
+[INFO] PDC_SERVER[0]: Ran write storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[1]: ZFP compression succeeded, compressed size bytes: 17214128 bytes
+[INFO] PDC_SERVER[0]: ZFP compression succeeded, compressed size bytes: 32804768 bytes
+[INFO] PDC_SERVER[0]: Ran write storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[1]: ZFP compression succeeded, compressed size bytes: 32804768 bytes
+[INFO] PDC_SERVER[0]: ZFP compression succeeded, compressed size bytes: 32802608 bytes
+[INFO] PDC_SERVER[0]: Ran write storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[1]: ZFP compression succeeded, compressed size bytes: 32802608 bytes
+[INFO] PDC_SERVER[0]: ZFP compression succeeded, compressed size bytes: 17214128 bytes
+[INFO] PDC_SERVER[0]: Ran write storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[1]: ZFP compression succeeded, compressed size bytes: 17214128 bytes
+[INFO] PDC_SERVER[0]: ZFP compression succeeded, compressed size bytes: 16573328 bytes
+[INFO] PDC_SERVER[0]: Ran write storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[1]: ZFP compression succeeded, compressed size bytes: 16573328 bytes
+[INFO] PDC_SERVER[0]: ZFP compression succeeded, compressed size bytes: 16544200 bytes
+[INFO] PDC_SERVER[0]: Ran write storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[1]: ZFP compression succeeded, compressed size bytes: 16544200 bytes
+[INFO] PDC_SERVER[0]: ZFP compression succeeded, compressed size bytes: 32801848 bytes
+[INFO] PDC_SERVER[0]: Ran write storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[1]: ZFP compression succeeded, compressed size bytes: 32801848 bytes
+[INFO] PDC_SERVER[0]: ZFP compression succeeded, compressed size bytes: 32806384 bytes
+[INFO] PDC_SERVER[0]: Ran write storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[1]: ZFP compression succeeded, compressed size bytes: 32806384 bytes
+[INFO] PDC_SERVER[0]: ZFP compression succeeded, compressed size bytes: 17214128 bytes
+[INFO] PDC_SERVER[0]: Ran write storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[1]: ZFP compression succeeded, compressed size bytes: 17214128 bytes
+[INFO] PDC_SERVER[0]: ZFP compression succeeded, compressed size bytes: 32804768 bytes
+[INFO] PDC_SERVER[0]: Ran write storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[1]: ZFP compression succeeded, compressed size bytes: 32804768 bytes
+[INFO] PDC_SERVER[0]: ZFP compression succeeded, compressed size bytes: 32802608 bytes
+[INFO] PDC_SERVER[0]: Ran write storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[1]: ZFP compression succeeded, compressed size bytes: 32802608 bytes
+[INFO] PDC_SERVER[0]: ZFP compression succeeded, compressed size bytes: 17214128 bytes
+[INFO] PDC_SERVER[0]: Ran write storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[1]: ZFP compression succeeded, compressed size bytes: 17214128 bytes
+[INFO] PDC_SERVER[0]: ZFP compression succeeded, compressed size bytes: 16573328 bytes
+[INFO] PDC_SERVER[0]: Ran write storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[1]: ZFP compression succeeded, compressed size bytes: 16573328 bytes
+[INFO] PDC_SERVER[0]: ZFP compression succeeded, compressed size bytes: 16544200 bytes
+[INFO] PDC_SERVER[0]: Ran write storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[1]: ZFP compression succeeded, compressed size bytes: 16544200 bytes
+[INFO] PDC_SERVER[0]: ZFP compression succeeded, compressed size bytes: 32801848 bytes
+[INFO] PDC_SERVER[0]: Ran write storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[1]: ZFP compression succeeded, compressed size bytes: 32801848 bytes
+[INFO] PDC_SERVER[0]: ZFP compression succeeded, compressed size bytes: 32806384 bytes
+[INFO] PDC_SERVER[0]: Ran write storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[1]: ZFP compression succeeded, compressed size bytes: 32806384 bytes
+[INFO] PDC_SERVER[0]: ZFP compression succeeded, compressed size bytes: 17214128 bytes
+[INFO] PDC_SERVER[0]: Ran write storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[1]: ZFP compression succeeded, compressed size bytes: 17214128 bytes
+[INFO] PDC_SERVER[0]: ZFP compression succeeded, compressed size bytes: 32804768 bytes
+[INFO] PDC_SERVER[0]: Ran write storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[1]: ZFP compression succeeded, compressed size bytes: 32804768 bytes
+[INFO] PDC_SERVER[0]: ZFP compression succeeded, compressed size bytes: 32802608 bytes
+[INFO] PDC_SERVER[0]: Ran write storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[1]: ZFP compression succeeded, compressed size bytes: 32802608 bytes
+[INFO] PDC_SERVER[0]: ZFP compression succeeded, compressed size bytes: 17214128 bytes
+[INFO] PDC_SERVER[0]: Ran write storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[1]: ZFP compression succeeded, compressed size bytes: 17214128 bytes
+[INFO] PDC_SERVER[0]: ZFP compression succeeded, compressed size bytes: 16573328 bytes
+[INFO] PDC_SERVER[0]: Ran write storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[1]: ZFP compression succeeded, compressed size bytes: 16573328 bytes
+[INFO] PDC_SERVER[0]: ZFP compression succeeded, compressed size bytes: 16544200 bytes
+[INFO] PDC_SERVER[0]: Ran write storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[1]: ZFP compression succeeded, compressed size bytes: 16544200 bytes
+[INFO] PDC_SERVER[0]: ZFP compression succeeded, compressed size bytes: 32801848 bytes
+[INFO] PDC_SERVER[0]: Ran write storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[1]: ZFP compression succeeded, compressed size bytes: 32801848 bytes
+[INFO] PDC_SERVER[0]: ZFP compression succeeded, compressed size bytes: 32806384 bytes
+[INFO] PDC_SERVER[0]: Ran write storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[1]: ZFP compression succeeded, compressed size bytes: 32806384 bytes
+[INFO] PDC_SERVER[0]: ZFP compression succeeded, compressed size bytes: 17214128 bytes
+[INFO] PDC_SERVER[0]: Ran write storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[1]: ZFP compression succeeded, compressed size bytes: 17214128 bytes
+[INFO] PDC_SERVER[0]: ZFP compression succeeded, compressed size bytes: 32804768 bytes
+[INFO] PDC_SERVER[0]: Ran write storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[1]: ZFP compression succeeded, compressed size bytes: 32804768 bytes
+[INFO] PDC_SERVER[0]: ZFP compression succeeded, compressed size bytes: 32802608 bytes
+[INFO] PDC_SERVER[0]: Ran write storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[1]: ZFP compression succeeded, compressed size bytes: 32802608 bytes
+[INFO] PDC_SERVER[0]: ZFP compression succeeded, compressed size bytes: 17214128 bytes
+[INFO] PDC_SERVER[0]: Ran write storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[1]: ZFP compression succeeded, compressed size bytes: 17214128 bytes
+[INFO] PDC_SERVER[0]: ZFP compression succeeded, compressed size bytes: 16573328 bytes
+[INFO] PDC_SERVER[0]: Ran write storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[1]: ZFP compression succeeded, compressed size bytes: 16573328 bytes
+[INFO] PDC_SERVER[0]: ZFP compression succeeded, compressed size bytes: 16544200 bytes
+[INFO] PDC_SERVER[0]: Ran write storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[1]: ZFP compression succeeded, compressed size bytes: 16544200 bytes
+[INFO] PDC_SERVER[0]: ZFP compression succeeded, compressed size bytes: 32801848 bytes
+[INFO] PDC_SERVER[0]: Ran write storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[1]: ZFP compression succeeded, compressed size bytes: 32801848 bytes
+[INFO] PDC_SERVER[0]: ZFP compression succeeded, compressed size bytes: 32806384 bytes
+[INFO] PDC_SERVER[0]: Ran write storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[1]: ZFP compression succeeded, compressed size bytes: 32806384 bytes
+[INFO] PDC_SERVER[0]: ZFP compression succeeded, compressed size bytes: 17214128 bytes
+[INFO] PDC_SERVER[0]: Ran write storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[1]: ZFP compression succeeded, compressed size bytes: 17214128 bytes
+[INFO] PDC_SERVER[0]: ZFP compression succeeded, compressed size bytes: 32804768 bytes
+[INFO] PDC_SERVER[0]: Ran write storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[1]: ZFP compression succeeded, compressed size bytes: 32804768 bytes
+[INFO] PDC_SERVER[0]: ZFP compression succeeded, compressed size bytes: 32802608 bytes
+[INFO] PDC_SERVER[0]: Ran write storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[1]: ZFP compression succeeded, compressed size bytes: 32802608 bytes
+[INFO] PDC_SERVER[0]: ZFP compression succeeded, compressed size bytes: 17214128 bytes
+[INFO] PDC_SERVER[0]: Ran write storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[1]: ZFP compression succeeded, compressed size bytes: 17214128 bytes
+[INFO] PDC_SERVER[0]: ZFP compression succeeded, compressed size bytes: 16573328 bytes
+[INFO] PDC_SERVER[0]: Ran write storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[1]: ZFP compression succeeded, compressed size bytes: 16573328 bytes
+[INFO] PDC_SERVER[0]: ZFP compression succeeded, compressed size bytes: 16544200 bytes
+[INFO] PDC_SERVER[0]: Ran write storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[1]: ZFP compression succeeded, compressed size bytes: 16544200 bytes
+[INFO] PDC_SERVER[0]: ZFP compression succeeded, compressed size bytes: 32801848 bytes
+[INFO] PDC_SERVER[0]: Ran write storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[1]: ZFP compression succeeded, compressed size bytes: 32801848 bytes
+[INFO] PDC_SERVER[0]: ZFP compression succeeded, compressed size bytes: 32806384 bytes
+[INFO] PDC_SERVER[0]: Ran write storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: ZFP compression succeeded, compressed size bytes: 17214128 bytes
+[INFO] PDC_SERVER[0]: Ran write storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[1]: ZFP compression succeeded, compressed size bytes: 32806384 bytes
+[INFO] PDC_SERVER[1]: ZFP compression succeeded, compressed size bytes: 17214128 bytes
+[INFO] PDC_SERVER[0]: ZFP compression succeeded, compressed size bytes: 32804768 bytes
+[INFO] PDC_SERVER[0]: Ran write storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[1]: ZFP compression succeeded, compressed size bytes: 32804768 bytes
+[INFO] PDC_SERVER[0]: ZFP compression succeeded, compressed size bytes: 32802608 bytes
+[INFO] PDC_SERVER[0]: Ran write storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: ZFP compression succeeded, compressed size bytes: 17214128 bytes
+[INFO] PDC_SERVER[1]: ZFP compression succeeded, compressed size bytes: 32802608 bytes
+[INFO] PDC_SERVER[0]: Ran write storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: ZFP compression succeeded, compressed size bytes: 16573328 bytes
+[INFO] PDC_SERVER[0]: Ran write storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[1]: ZFP compression succeeded, compressed size bytes: 17214128 bytes
+[INFO] PDC_SERVER[0]: ZFP compression succeeded, compressed size bytes: 16544200 bytes
+[INFO] PDC_SERVER[0]: Ran write storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[1]: ZFP compression succeeded, compressed size bytes: 16573328 bytes
+[INFO] PDC_SERVER[0]: ZFP compression succeeded, compressed size bytes: 32801848 bytes
+[INFO] PDC_SERVER[1]: ZFP compression succeeded, compressed size bytes: 16544200 bytes
+[INFO] PDC_SERVER[0]: Ran write storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[1]: ZFP compression succeeded, compressed size bytes: 32801848 bytes
+[INFO] PDC_SERVER[0]: ZFP compression succeeded, compressed size bytes: 32806384 bytes
+[INFO] PDC_SERVER[0]: Ran write storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: ZFP compression succeeded, compressed size bytes: 17214128 bytes
+[INFO] PDC_SERVER[0]: Ran write storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[1]: ZFP compression succeeded, compressed size bytes: 32806384 bytes
+[INFO] PDC_SERVER[0]: ZFP compression succeeded, compressed size bytes: 32804768 bytes
+[INFO] PDC_SERVER[1]: ZFP compression succeeded, compressed size bytes: 17214128 bytes
+[INFO] PDC_SERVER[0]: Ran write storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[1]: ZFP compression succeeded, compressed size bytes: 32804768 bytes
+[INFO] PDC_SERVER[0]: ZFP compression succeeded, compressed size bytes: 32802608 bytes
+[INFO] PDC_SERVER[0]: Ran write storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: ZFP compression succeeded, compressed size bytes: 17214128 bytes
+[INFO] PDC_SERVER[0]: Ran write storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[1]: ZFP compression succeeded, compressed size bytes: 32802608 bytes
+[INFO] PDC_SERVER[0]: ZFP compression succeeded, compressed size bytes: 16573328 bytes
+[INFO] PDC_SERVER[0]: Ran write storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[1]: ZFP compression succeeded, compressed size bytes: 17214128 bytes
+[INFO] PDC_SERVER[0]: ZFP compression succeeded, compressed size bytes: 16544200 bytes
+[INFO] PDC_SERVER[0]: Ran write storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[1]: ZFP compression succeeded, compressed size bytes: 16573328 bytes
+[INFO] PDC_SERVER[1]: ZFP compression succeeded, compressed size bytes: 16544200 bytes
+[INFO] PDC_SERVER[0]: ZFP compression succeeded, compressed size bytes: 32801848 bytes
+[INFO] PDC_SERVER[0]: Ran write storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[1]: ZFP compression succeeded, compressed size bytes: 32801848 bytes
+[INFO] PDC_SERVER[0]: ZFP compression succeeded, compressed size bytes: 32806384 bytes
+[INFO] PDC_SERVER[0]: Ran write storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: ZFP compression succeeded, compressed size bytes: 17214128 bytes
+[INFO] PDC_SERVER[0]: Ran write storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[1]: ZFP compression succeeded, compressed size bytes: 32806384 bytes
+[INFO] PDC_SERVER[0]: ZFP compression succeeded, compressed size bytes: 32804768 bytes
+[INFO] PDC_SERVER[1]: ZFP compression succeeded, compressed size bytes: 17214128 bytes
+[INFO] PDC_SERVER[0]: Ran write storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[1]: ZFP compression succeeded, compressed size bytes: 32804768 bytes
+[INFO] PDC_SERVER[0]: ZFP compression succeeded, compressed size bytes: 32802608 bytes
+[INFO] PDC_SERVER[0]: Ran write storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: ZFP compression succeeded, compressed size bytes: 17214128 bytes
+[INFO] PDC_SERVER[0]: Ran write storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[1]: ZFP compression succeeded, compressed size bytes: 32802608 bytes
+[INFO] PDC_SERVER[0]: ZFP compression succeeded, compressed size bytes: 16573328 bytes
+[INFO] PDC_SERVER[0]: Ran write storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[1]: ZFP compression succeeded, compressed size bytes: 17214128 bytes
+[INFO] PDC_SERVER[0]: ZFP compression succeeded, compressed size bytes: 16544200 bytes
+[INFO] PDC_SERVER[0]: Ran write storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[1]: ZFP compression succeeded, compressed size bytes: 16573328 bytes
+[INFO] PDC_SERVER[0]: ZFP compression succeeded, compressed size bytes: 32801848 bytes
+[INFO] PDC_SERVER[1]: ZFP compression succeeded, compressed size bytes: 16544200 bytes
+[INFO] PDC_SERVER[0]: Ran write storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[1]: ZFP compression succeeded, compressed size bytes: 32801848 bytes
+[INFO] PDC_SERVER[0]: ZFP compression succeeded, compressed size bytes: 32806384 bytes
+[INFO] PDC_SERVER[0]: Ran write storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: ZFP compression succeeded, compressed size bytes: 17214128 bytes
+[INFO] PDC_SERVER[0]: Ran write storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[1]: ZFP compression succeeded, compressed size bytes: 32806384 bytes
+[INFO] PDC_SERVER[0]: ZFP compression succeeded, compressed size bytes: 32804768 bytes
+[INFO] PDC_SERVER[1]: ZFP compression succeeded, compressed size bytes: 17214128 bytes
+[INFO] PDC_SERVER[0]: Ran write storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: ZFP compression succeeded, compressed size bytes: 32802608 bytes
+[INFO] PDC_SERVER[1]: ZFP compression succeeded, compressed size bytes: 32804768 bytes
+[INFO] PDC_SERVER[0]: Ran write storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: ZFP compression succeeded, compressed size bytes: 17214128 bytes
+[INFO] PDC_SERVER[0]: Ran write storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[1]: ZFP compression succeeded, compressed size bytes: 32802608 bytes
+[INFO] PDC_SERVER[0]: ZFP compression succeeded, compressed size bytes: 16573328 bytes
+[INFO] PDC_SERVER[0]: Ran write storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[1]: ZFP compression succeeded, compressed size bytes: 17214128 bytes
+[INFO] PDC_SERVER[0]: ZFP compression succeeded, compressed size bytes: 16544200 bytes
+[INFO] PDC_SERVER[0]: Ran write storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[1]: ZFP compression succeeded, compressed size bytes: 16573328 bytes
+[INFO] PDC_SERVER[0]: ZFP compression succeeded, compressed size bytes: 32801848 bytes
+[INFO] PDC_SERVER[0]: Ran write storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[1]: ZFP compression succeeded, compressed size bytes: 16544200 bytes
+[INFO] PDC_SERVER[0]: ZFP compression succeeded, compressed size bytes: 32806384 bytes
+[INFO] PDC_SERVER[1]: ZFP compression succeeded, compressed size bytes: 32801848 bytes
+[INFO] PDC_SERVER[0]: Ran write storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: ZFP compression succeeded, compressed size bytes: 17214128 bytes
+[INFO] PDC_SERVER[0]: Ran write storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[1]: ZFP compression succeeded, compressed size bytes: 32806384 bytes
+[INFO] PDC_SERVER[0]: ZFP compression succeeded, compressed size bytes: 32804768 bytes
+[INFO] PDC_SERVER[0]: Ran write storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[1]: ZFP compression succeeded, compressed size bytes: 17214128 bytes
+[INFO] PDC_SERVER[0]: ZFP compression succeeded, compressed size bytes: 32802608 bytes
+[INFO] PDC_SERVER[1]: ZFP compression succeeded, compressed size bytes: 32804768 bytes
+[INFO] PDC_SERVER[0]: Ran write storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: ZFP compression succeeded, compressed size bytes: 17214128 bytes
+[INFO] PDC_SERVER[0]: Ran write storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[1]: ZFP compression succeeded, compressed size bytes: 32802608 bytes
+[INFO] PDC_SERVER[0]: ZFP compression succeeded, compressed size bytes: 16573328 bytes
+[INFO] PDC_SERVER[0]: Ran write storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[1]: ZFP compression succeeded, compressed size bytes: 17214128 bytes
+[INFO] PDC_SERVER[0]: ZFP compression succeeded, compressed size bytes: 16544200 bytes
+[INFO] PDC_SERVER[0]: Ran write storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[1]: ZFP compression succeeded, compressed size bytes: 16573328 bytes
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[1]: ZFP compression succeeded, compressed size bytes: 16544200 bytes
+[INFO] PDC_SERVER[0]: ZFP compression succeeded, compressed size bytes: 32801848 bytes
+[INFO] PDC_SERVER[0]: Ran write storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[1]: ZFP compression succeeded, compressed size bytes: 32801848 bytes
+[INFO] PDC_SERVER[0]: ZFP compression succeeded, compressed size bytes: 32806384 bytes
+[INFO] PDC_SERVER[0]: Ran write storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[1]: ZFP compression succeeded, compressed size bytes: 32806384 bytes
+[INFO] PDC_SERVER[0]: ZFP compression succeeded, compressed size bytes: 17214128 bytes
+[INFO] PDC_SERVER[0]: Ran write storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[1]: ZFP compression succeeded, compressed size bytes: 17214128 bytes
+[INFO] PDC_SERVER[0]: ZFP compression succeeded, compressed size bytes: 32804768 bytes
+[INFO] PDC_SERVER[0]: Ran write storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[1]: ZFP compression succeeded, compressed size bytes: 32804768 bytes
+[INFO] PDC_SERVER[0]: ZFP compression succeeded, compressed size bytes: 32802608 bytes
+[INFO] PDC_SERVER[0]: Ran write storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[1]: ZFP compression succeeded, compressed size bytes: 32802608 bytes
+[INFO] PDC_SERVER[0]: ZFP compression succeeded, compressed size bytes: 17214128 bytes
+[INFO] PDC_SERVER[0]: Ran write storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[1]: ZFP compression succeeded, compressed size bytes: 17214128 bytes
+[INFO] PDC_SERVER[0]: ZFP compression succeeded, compressed size bytes: 16573328 bytes
+[INFO] PDC_SERVER[0]: Ran write storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[1]: ZFP compression succeeded, compressed size bytes: 16573328 bytes
+[INFO] PDC_SERVER[0]: ZFP compression succeeded, compressed size bytes: 16544200 bytes
+[INFO] PDC_SERVER[0]: Ran write storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[1]: ZFP compression succeeded, compressed size bytes: 16544200 bytes
+[INFO] PDC_SERVER[0]: ZFP compression succeeded, compressed size bytes: 32801848 bytes
+[INFO] PDC_SERVER[0]: Ran write storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[1]: ZFP compression succeeded, compressed size bytes: 32801848 bytes
+[INFO] PDC_SERVER[0]: ZFP compression succeeded, compressed size bytes: 32806384 bytes
+[INFO] PDC_SERVER[0]: Ran write storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[1]: ZFP compression succeeded, compressed size bytes: 32806384 bytes
+[INFO] PDC_SERVER[0]: ZFP compression succeeded, compressed size bytes: 17214128 bytes
+[INFO] PDC_SERVER[0]: Ran write storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[1]: ZFP compression succeeded, compressed size bytes: 17214128 bytes
+[INFO] PDC_SERVER[0]: ZFP compression succeeded, compressed size bytes: 32804768 bytes
+[INFO] PDC_SERVER[0]: Ran write storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[1]: ZFP compression succeeded, compressed size bytes: 32804768 bytes
+[INFO] PDC_SERVER[0]: ZFP compression succeeded, compressed size bytes: 32802608 bytes
+[INFO] PDC_SERVER[0]: Ran write storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[1]: ZFP compression succeeded, compressed size bytes: 32802608 bytes
+[INFO] PDC_SERVER[0]: ZFP compression succeeded, compressed size bytes: 17214128 bytes
+[INFO] PDC_SERVER[0]: Ran write storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[1]: ZFP compression succeeded, compressed size bytes: 17214128 bytes
+[INFO] PDC_SERVER[0]: ZFP compression succeeded, compressed size bytes: 16573328 bytes
+[INFO] PDC_SERVER[0]: Ran write storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[1]: ZFP compression succeeded, compressed size bytes: 16573328 bytes
+[INFO] PDC_SERVER[0]: ZFP compression succeeded, compressed size bytes: 16544200 bytes
+[INFO] PDC_SERVER[0]: Ran write storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[1]: ZFP compression succeeded, compressed size bytes: 16544200 bytes
+[INFO] PDC_SERVER[0]: ZFP compression succeeded, compressed size bytes: 32801848 bytes
+[INFO] PDC_SERVER[0]: Ran write storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[1]: ZFP compression succeeded, compressed size bytes: 32801848 bytes
+[INFO] PDC_SERVER[0]: ZFP compression succeeded, compressed size bytes: 32806384 bytes
+[INFO] PDC_SERVER[0]: Ran write storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[1]: ZFP compression succeeded, compressed size bytes: 32806384 bytes
+[INFO] PDC_SERVER[0]: ZFP compression succeeded, compressed size bytes: 17214128 bytes
+[INFO] PDC_SERVER[0]: Ran write storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[1]: ZFP compression succeeded, compressed size bytes: 17214128 bytes
+[INFO] PDC_SERVER[0]: ZFP compression succeeded, compressed size bytes: 32804768 bytes
+[INFO] PDC_SERVER[0]: Ran write storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[1]: ZFP compression succeeded, compressed size bytes: 32804768 bytes
+[INFO] PDC_SERVER[0]: ZFP compression succeeded, compressed size bytes: 32802608 bytes
+[INFO] PDC_SERVER[0]: Ran write storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[1]: ZFP compression succeeded, compressed size bytes: 32802608 bytes
+[INFO] PDC_SERVER[0]: ZFP compression succeeded, compressed size bytes: 17214128 bytes
+[INFO] PDC_SERVER[0]: Ran write storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[1]: ZFP compression succeeded, compressed size bytes: 17214128 bytes
+[INFO] PDC_SERVER[0]: ZFP compression succeeded, compressed size bytes: 16573328 bytes
+[INFO] PDC_SERVER[0]: Ran write storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[1]: ZFP compression succeeded, compressed size bytes: 16573328 bytes
+[INFO] PDC_SERVER[0]: ZFP compression succeeded, compressed size bytes: 16544200 bytes
+[INFO] PDC_SERVER[0]: Ran write storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[1]: ZFP compression succeeded, compressed size bytes: 16544200 bytes
+[INFO] PDC_SERVER[0]: ZFP compression succeeded, compressed size bytes: 32801848 bytes
+[INFO] PDC_SERVER[0]: Ran write storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[1]: ZFP compression succeeded, compressed size bytes: 32801848 bytes
+[INFO] PDC_SERVER[0]: ZFP compression succeeded, compressed size bytes: 32806384 bytes
+[INFO] PDC_SERVER[0]: Ran write storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[1]: ZFP compression succeeded, compressed size bytes: 32806384 bytes
+[INFO] PDC_SERVER[0]: ZFP compression succeeded, compressed size bytes: 17214128 bytes
+[INFO] PDC_SERVER[0]: Ran write storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[1]: ZFP compression succeeded, compressed size bytes: 17214128 bytes
+[INFO] PDC_SERVER[0]: ZFP compression succeeded, compressed size bytes: 32804768 bytes
+[INFO] PDC_SERVER[0]: Ran write storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[1]: ZFP compression succeeded, compressed size bytes: 32804768 bytes
+[INFO] PDC_SERVER[0]: ZFP compression succeeded, compressed size bytes: 32802608 bytes
+[INFO] PDC_SERVER[0]: Ran write storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[1]: ZFP compression succeeded, compressed size bytes: 32802608 bytes
+[INFO] PDC_SERVER[0]: ZFP compression succeeded, compressed size bytes: 17214128 bytes
+[INFO] PDC_SERVER[0]: Ran write storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[1]: ZFP compression succeeded, compressed size bytes: 17214128 bytes
+[INFO] PDC_SERVER[0]: ZFP compression succeeded, compressed size bytes: 16573328 bytes
+[INFO] PDC_SERVER[0]: Ran write storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[1]: ZFP compression succeeded, compressed size bytes: 16573328 bytes
+[INFO] PDC_SERVER[0]: ZFP compression succeeded, compressed size bytes: 16544200 bytes
+[INFO] PDC_SERVER[0]: Ran write storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[1]: ZFP compression succeeded, compressed size bytes: 16544200 bytes
+[INFO] PDC_SERVER[0]: ZFP compression succeeded, compressed size bytes: 32801848 bytes
+[INFO] PDC_SERVER[0]: Ran write storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[1]: ZFP compression succeeded, compressed size bytes: 32801848 bytes
+[INFO] PDC_SERVER[0]: ZFP compression succeeded, compressed size bytes: 32806384 bytes
+[INFO] PDC_SERVER[0]: Ran write storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[1]: ZFP compression succeeded, compressed size bytes: 32806384 bytes
+[INFO] PDC_SERVER[0]: ZFP compression succeeded, compressed size bytes: 17214128 bytes
+[INFO] PDC_SERVER[0]: Ran write storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[1]: ZFP compression succeeded, compressed size bytes: 17214128 bytes
+[INFO] PDC_SERVER[0]: ZFP compression succeeded, compressed size bytes: 32804768 bytes
+[INFO] PDC_SERVER[0]: Ran write storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[1]: ZFP compression succeeded, compressed size bytes: 32804768 bytes
+[INFO] PDC_SERVER[0]: ZFP compression succeeded, compressed size bytes: 32802608 bytes
+[INFO] PDC_SERVER[0]: Ran write storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[1]: ZFP compression succeeded, compressed size bytes: 32802608 bytes
+[INFO] PDC_SERVER[0]: ZFP compression succeeded, compressed size bytes: 17214128 bytes
+[INFO] PDC_SERVER[0]: Ran write storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[1]: ZFP compression succeeded, compressed size bytes: 17214128 bytes
+[INFO] PDC_SERVER[0]: ZFP compression succeeded, compressed size bytes: 16573328 bytes
+[INFO] PDC_SERVER[0]: Ran write storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: ZFP compression succeeded, compressed size bytes: 16544200 bytes
+[INFO] PDC_SERVER[1]: ZFP compression succeeded, compressed size bytes: 16573328 bytes
+[INFO] PDC_SERVER[0]: Ran write storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[1]: ZFP compression succeeded, compressed size bytes: 16544200 bytes
+[INFO] PDC_SERVER[0]: ZFP compression succeeded, compressed size bytes: 32801848 bytes
+[INFO] PDC_SERVER[0]: Ran write storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[1]: ZFP compression succeeded, compressed size bytes: 32801848 bytes
+[INFO] PDC_SERVER[0]: ZFP compression succeeded, compressed size bytes: 32806384 bytes
+[INFO] PDC_SERVER[0]: Ran write storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[1]: ZFP compression succeeded, compressed size bytes: 32806384 bytes
+[INFO] PDC_SERVER[0]: ZFP compression succeeded, compressed size bytes: 17214128 bytes
+[INFO] PDC_SERVER[0]: Ran write storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[1]: ZFP compression succeeded, compressed size bytes: 17214128 bytes
+[INFO] PDC_SERVER[0]: ZFP compression succeeded, compressed size bytes: 32804768 bytes
+[INFO] PDC_SERVER[0]: Ran write storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[1]: ZFP compression succeeded, compressed size bytes: 32804768 bytes
+[INFO] PDC_SERVER[0]: ZFP compression succeeded, compressed size bytes: 32802608 bytes
+[INFO] PDC_SERVER[0]: Ran write storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[1]: ZFP compression succeeded, compressed size bytes: 32802608 bytes
+[INFO] PDC_SERVER[0]: ZFP compression succeeded, compressed size bytes: 17214128 bytes
+[INFO] PDC_SERVER[0]: Ran write storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[1]: ZFP compression succeeded, compressed size bytes: 17214128 bytes
+[INFO] PDC_SERVER[0]: ZFP compression succeeded, compressed size bytes: 16573328 bytes
+[INFO] PDC_SERVER[0]: Ran write storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[1]: ZFP compression succeeded, compressed size bytes: 16573328 bytes
+[INFO] PDC_SERVER[0]: ZFP compression succeeded, compressed size bytes: 16544200 bytes
+[INFO] PDC_SERVER[0]: Ran write storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[1]: ZFP compression succeeded, compressed size bytes: 16544200 bytes
+[INFO] PDC_SERVER[0]: ZFP compression succeeded, compressed size bytes: 32801848 bytes
+[INFO] PDC_SERVER[0]: Ran write storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[1]: ZFP compression succeeded, compressed size bytes: 32801848 bytes
+[INFO] PDC_SERVER[0]: ZFP compression succeeded, compressed size bytes: 32806384 bytes
+[INFO] PDC_SERVER[0]: Ran write storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[1]: ZFP compression succeeded, compressed size bytes: 32806384 bytes
+[INFO] PDC_SERVER[0]: ZFP compression succeeded, compressed size bytes: 17214128 bytes
+[INFO] PDC_SERVER[0]: Ran write storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[1]: ZFP compression succeeded, compressed size bytes: 17214128 bytes
+[INFO] PDC_SERVER[0]: ZFP compression succeeded, compressed size bytes: 32804768 bytes
+[INFO] PDC_SERVER[0]: Ran write storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[1]: ZFP compression succeeded, compressed size bytes: 32804768 bytes
+[INFO] PDC_SERVER[0]: ZFP compression succeeded, compressed size bytes: 32802608 bytes
+[INFO] PDC_SERVER[0]: Ran write storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[1]: ZFP compression succeeded, compressed size bytes: 32802608 bytes
+[INFO] PDC_SERVER[0]: ZFP compression succeeded, compressed size bytes: 17214128 bytes
+[INFO] PDC_SERVER[0]: Ran write storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[1]: ZFP compression succeeded, compressed size bytes: 17214128 bytes
+[INFO] PDC_SERVER[0]: ZFP compression succeeded, compressed size bytes: 16573328 bytes
+[INFO] PDC_SERVER[0]: Ran write storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[1]: ZFP compression succeeded, compressed size bytes: 16573328 bytes
+[INFO] PDC_SERVER[0]: ZFP compression succeeded, compressed size bytes: 16544200 bytes
+[INFO] PDC_SERVER[0]: Ran write storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[1]: ZFP compression succeeded, compressed size bytes: 16544200 bytes
+[INFO] PDC_SERVER[0]: ZFP compression succeeded, compressed size bytes: 32801848 bytes
+[INFO] PDC_SERVER[0]: Ran write storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[1]: ZFP compression succeeded, compressed size bytes: 32801848 bytes
+[INFO] PDC_SERVER[0]: ZFP compression succeeded, compressed size bytes: 32806384 bytes
+[INFO] PDC_SERVER[0]: Ran write storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[1]: ZFP compression succeeded, compressed size bytes: 32806384 bytes
+[INFO] PDC_SERVER[0]: ZFP compression succeeded, compressed size bytes: 17214128 bytes
+[INFO] PDC_SERVER[0]: Ran write storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[1]: ZFP compression succeeded, compressed size bytes: 17214128 bytes
+[INFO] PDC_SERVER[0]: ZFP compression succeeded, compressed size bytes: 32804768 bytes
+[INFO] PDC_SERVER[0]: Ran write storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[1]: ZFP compression succeeded, compressed size bytes: 32804768 bytes
+[INFO] PDC_SERVER[0]: ZFP compression succeeded, compressed size bytes: 32802608 bytes
+[INFO] PDC_SERVER[0]: Ran write storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[1]: ZFP compression succeeded, compressed size bytes: 32802608 bytes
+[INFO] PDC_SERVER[0]: ZFP compression succeeded, compressed size bytes: 17214128 bytes
+[INFO] PDC_SERVER[0]: Ran write storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[1]: ZFP compression succeeded, compressed size bytes: 17214128 bytes
+[INFO] PDC_SERVER[0]: ZFP compression succeeded, compressed size bytes: 16573328 bytes
+[INFO] PDC_SERVER[0]: Ran write storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[1]: ZFP compression succeeded, compressed size bytes: 16573328 bytes
+[INFO] PDC_SERVER[0]: ZFP compression succeeded, compressed size bytes: 16544200 bytes
+[INFO] PDC_SERVER[0]: Ran write storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[1]: ZFP compression succeeded, compressed size bytes: 16544200 bytes
+[INFO] PDC_SERVER[0]: ZFP compression succeeded, compressed size bytes: 32801848 bytes
+[INFO] PDC_SERVER[0]: Ran write storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[1]: ZFP compression succeeded, compressed size bytes: 32801848 bytes
+[INFO] PDC_SERVER[0]: ZFP compression succeeded, compressed size bytes: 32806384 bytes
+[INFO] PDC_SERVER[0]: Ran write storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[1]: ZFP compression succeeded, compressed size bytes: 32806384 bytes
+[INFO] PDC_SERVER[0]: ZFP compression succeeded, compressed size bytes: 17214128 bytes
+[INFO] PDC_SERVER[0]: Ran write storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[1]: ZFP compression succeeded, compressed size bytes: 17214128 bytes
+[INFO] PDC_SERVER[0]: ZFP compression succeeded, compressed size bytes: 32804768 bytes
+[INFO] PDC_SERVER[0]: Ran write storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[1]: ZFP compression succeeded, compressed size bytes: 32804768 bytes
+[INFO] PDC_SERVER[0]: ZFP compression succeeded, compressed size bytes: 32802608 bytes
+[INFO] PDC_SERVER[0]: Ran write storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[1]: ZFP compression succeeded, compressed size bytes: 32802608 bytes
+[INFO] PDC_SERVER[0]: ZFP compression succeeded, compressed size bytes: 17214128 bytes
+[INFO] PDC_SERVER[0]: Ran write storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[1]: ZFP compression succeeded, compressed size bytes: 17214128 bytes
+[INFO] PDC_SERVER[0]: ZFP compression succeeded, compressed size bytes: 16573328 bytes
+[INFO] PDC_SERVER[0]: Ran write storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[1]: ZFP compression succeeded, compressed size bytes: 16573328 bytes
+[INFO] PDC_SERVER[0]: ZFP compression succeeded, compressed size bytes: 16544200 bytes
+[INFO] PDC_SERVER[0]: Ran write storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[1]: ZFP compression succeeded, compressed size bytes: 16544200 bytes
+[INFO] PDC_SERVER[0]: ZFP compression succeeded, compressed size bytes: 32801848 bytes
+[INFO] PDC_SERVER[0]: Ran write storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[1]: ZFP compression succeeded, compressed size bytes: 32801848 bytes
+[INFO] PDC_SERVER[0]: ZFP compression succeeded, compressed size bytes: 32806384 bytes
+[INFO] PDC_SERVER[0]: Ran write storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[1]: ZFP compression succeeded, compressed size bytes: 32806384 bytes
+[INFO] PDC_SERVER[0]: ZFP compression succeeded, compressed size bytes: 17214128 bytes
+[INFO] PDC_SERVER[0]: Ran write storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[1]: ZFP compression succeeded, compressed size bytes: 17214128 bytes
+[INFO] PDC_SERVER[0]: ZFP compression succeeded, compressed size bytes: 32804768 bytes
+[INFO] PDC_SERVER[0]: Ran write storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[1]: ZFP compression succeeded, compressed size bytes: 32804768 bytes
+[INFO] PDC_SERVER[0]: ZFP compression succeeded, compressed size bytes: 32802608 bytes
+[INFO] PDC_SERVER[0]: Ran write storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[1]: ZFP compression succeeded, compressed size bytes: 32802608 bytes
+[INFO] PDC_SERVER[0]: ZFP compression succeeded, compressed size bytes: 17214128 bytes
+[INFO] PDC_SERVER[0]: Ran write storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[1]: ZFP compression succeeded, compressed size bytes: 17214128 bytes
+[INFO] PDC_SERVER[0]: ZFP compression succeeded, compressed size bytes: 16573328 bytes
+[INFO] PDC_SERVER[0]: Ran write storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[1]: ZFP compression succeeded, compressed size bytes: 16573328 bytes
+[INFO] PDC_SERVER[0]: ZFP compression succeeded, compressed size bytes: 16544200 bytes
+[INFO] PDC_SERVER[0]: Ran write storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[1]: ZFP compression succeeded, compressed size bytes: 16544200 bytes
+[INFO] PDC_SERVER[0]: ZFP compression succeeded, compressed size bytes: 32801848 bytes
+[INFO] PDC_SERVER[0]: Ran write storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[1]: ZFP compression succeeded, compressed size bytes: 32801848 bytes
+[INFO] PDC_SERVER[0]: ZFP compression succeeded, compressed size bytes: 32806384 bytes
+[INFO] PDC_SERVER[0]: Ran write storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[1]: ZFP compression succeeded, compressed size bytes: 32806384 bytes
+[INFO] PDC_SERVER[0]: ZFP compression succeeded, compressed size bytes: 17214128 bytes
+[INFO] PDC_SERVER[0]: Ran write storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[1]: ZFP compression succeeded, compressed size bytes: 17214128 bytes
+[INFO] PDC_SERVER[0]: ZFP compression succeeded, compressed size bytes: 32804768 bytes
+[INFO] PDC_SERVER[0]: Ran write storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[1]: ZFP compression succeeded, compressed size bytes: 32804768 bytes
+[INFO] PDC_SERVER[0]: ZFP compression succeeded, compressed size bytes: 32802608 bytes
+[INFO] PDC_SERVER[0]: Ran write storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[1]: ZFP compression succeeded, compressed size bytes: 32802608 bytes
+[INFO] PDC_SERVER[0]: ZFP compression succeeded, compressed size bytes: 17214128 bytes
+[INFO] PDC_SERVER[0]: Ran write storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[1]: ZFP compression succeeded, compressed size bytes: 17214128 bytes
+[INFO] PDC_SERVER[0]: ZFP compression succeeded, compressed size bytes: 16573328 bytes
+[INFO] PDC_SERVER[0]: Ran write storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[1]: ZFP compression succeeded, compressed size bytes: 16573328 bytes
+[INFO] PDC_SERVER[0]: ZFP compression succeeded, compressed size bytes: 16544200 bytes
+[INFO] PDC_SERVER[0]: Ran write storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[1]: ZFP compression succeeded, compressed size bytes: 16544200 bytes
+[INFO] PDC_SERVER[0]: ZFP compression succeeded, compressed size bytes: 32801848 bytes
+[INFO] PDC_SERVER[0]: Ran write storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[1]: ZFP compression succeeded, compressed size bytes: 32801848 bytes
+[INFO] PDC_SERVER[0]: ZFP compression succeeded, compressed size bytes: 32806384 bytes
+[INFO] PDC_SERVER[0]: Ran write storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[1]: ZFP compression succeeded, compressed size bytes: 32806384 bytes
+[INFO] PDC_SERVER[0]: ZFP compression succeeded, compressed size bytes: 17214128 bytes
+[INFO] PDC_SERVER[0]: Ran write storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[1]: ZFP compression succeeded, compressed size bytes: 17214128 bytes
+[INFO] PDC_SERVER[0]: ZFP compression succeeded, compressed size bytes: 32804768 bytes
+[INFO] PDC_SERVER[0]: Ran write storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[1]: ZFP compression succeeded, compressed size bytes: 32804768 bytes
+[INFO] PDC_SERVER[0]: ZFP compression succeeded, compressed size bytes: 32802608 bytes
+[INFO] PDC_SERVER[0]: Ran write storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: ZFP compression succeeded, compressed size bytes: 17214128 bytes
+[INFO] PDC_SERVER[0]: Ran write storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: ZFP compression succeeded, compressed size bytes: 16573328 bytes
+[INFO] PDC_SERVER[0]: Ran write storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: ZFP compression succeeded, compressed size bytes: 16544200 bytes
+[INFO] PDC_SERVER[0]: Ran write storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: ZFP compression succeeded, compressed size bytes: 32801848 bytes
+[INFO] PDC_SERVER[0]: Ran write storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: ZFP compression succeeded, compressed size bytes: 32806384 bytes
+[INFO] PDC_SERVER[0]: Ran write storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: ZFP compression succeeded, compressed size bytes: 17214128 bytes
+[INFO] PDC_SERVER[0]: Ran write storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: ZFP compression succeeded, compressed size bytes: 32804768 bytes
+[INFO] PDC_SERVER[0]: Ran write storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: ZFP compression succeeded, compressed size bytes: 32802608 bytes
+[INFO] PDC_SERVER[0]: Ran write storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: ZFP compression succeeded, compressed size bytes: 17214128 bytes
+[INFO] PDC_SERVER[0]: Ran write storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: ZFP compression succeeded, compressed size bytes: 16573328 bytes
+[INFO] PDC_SERVER[0]: Ran write storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: ZFP compression succeeded, compressed size bytes: 16544200 bytes
+[INFO] PDC_SERVER[0]: Ran write storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: ZFP compression succeeded, compressed size bytes: 32801848 bytes
+[INFO] PDC_SERVER[0]: Ran write storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: ZFP compression succeeded, compressed size bytes: 32806384 bytes
+[INFO] PDC_SERVER[0]: Ran write storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: ZFP compression succeeded, compressed size bytes: 17214128 bytes
+[INFO] PDC_SERVER[0]: Ran write storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: ZFP compression succeeded, compressed size bytes: 32804768 bytes
+[INFO] PDC_SERVER[0]: Ran write storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: ZFP compression succeeded, compressed size bytes: 32802608 bytes
+[INFO] PDC_SERVER[0]: Ran write storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: ZFP compression succeeded, compressed size bytes: 17214128 bytes
+[INFO] PDC_SERVER[0]: Ran write storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: ZFP compression succeeded, compressed size bytes: 16573328 bytes
+[INFO] PDC_SERVER[0]: Ran write storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: ZFP compression succeeded, compressed size bytes: 16544200 bytes
+[INFO] PDC_SERVER[0]: Ran write storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: ZFP compression succeeded, compressed size bytes: 32801848 bytes
+[INFO] PDC_SERVER[0]: Ran write storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: ZFP compression succeeded, compressed size bytes: 32806384 bytes
+[INFO] PDC_SERVER[0]: Ran write storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: ZFP compression succeeded, compressed size bytes: 17214128 bytes
+[INFO] PDC_SERVER[0]: Ran write storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: ZFP compression succeeded, compressed size bytes: 32804768 bytes
+[INFO] PDC_SERVER[0]: Ran write storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: ZFP compression succeeded, compressed size bytes: 32802608 bytes
+[INFO] PDC_SERVER[0]: Ran write storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: ZFP compression succeeded, compressed size bytes: 17214128 bytes
+[INFO] PDC_SERVER[0]: Ran write storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: ZFP compression succeeded, compressed size bytes: 16573328 bytes
+[INFO] PDC_SERVER[0]: Ran write storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: ZFP compression succeeded, compressed size bytes: 16544200 bytes
+[INFO] PDC_SERVER[0]: Ran write storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[1]: ZFP compression succeeded, compressed size bytes: 32802608 bytes
+[INFO] PDC_SERVER[1]: ZFP compression succeeded, compressed size bytes: 17214128 bytes
+[INFO] PDC_SERVER[1]: ZFP compression succeeded, compressed size bytes: 16573328 bytes
+[INFO] PDC_SERVER[1]: ZFP compression succeeded, compressed size bytes: 16544200 bytes
+[INFO] PDC_SERVER[1]: ZFP compression succeeded, compressed size bytes: 32801848 bytes
+[INFO] PDC_SERVER[1]: ZFP compression succeeded, compressed size bytes: 32806384 bytes
+[INFO] PDC_SERVER[1]: ZFP compression succeeded, compressed size bytes: 17214128 bytes
+[INFO] PDC_SERVER[1]: ZFP compression succeeded, compressed size bytes: 32804768 bytes
+[INFO] PDC_SERVER[1]: ZFP compression succeeded, compressed size bytes: 32802608 bytes
+[INFO] PDC_SERVER[1]: ZFP compression succeeded, compressed size bytes: 17214128 bytes
+[INFO] PDC_SERVER[1]: ZFP compression succeeded, compressed size bytes: 16573328 bytes
+[INFO] PDC_SERVER[1]: ZFP compression succeeded, compressed size bytes: 16544200 bytes
+[INFO] PDC_SERVER[1]: ZFP compression succeeded, compressed size bytes: 32801848 bytes
+[INFO] PDC_SERVER[1]: ZFP compression succeeded, compressed size bytes: 32806384 bytes
+[INFO] PDC_SERVER[1]: ZFP compression succeeded, compressed size bytes: 17214128 bytes
+[INFO] PDC_SERVER[1]: ZFP compression succeeded, compressed size bytes: 32804768 bytes
+[INFO] PDC_SERVER[1]: ZFP compression succeeded, compressed size bytes: 32802608 bytes
+[INFO] PDC_SERVER[1]: ZFP compression succeeded, compressed size bytes: 17214128 bytes
+[INFO] PDC_SERVER[1]: ZFP compression succeeded, compressed size bytes: 16573328 bytes
+[INFO] PDC_SERVER[1]: ZFP compression succeeded, compressed size bytes: 16544200 bytes
+[INFO] PDC_SERVER[1]: ZFP compression succeeded, compressed size bytes: 32801848 bytes
+[INFO] PDC_SERVER[1]: ZFP compression succeeded, compressed size bytes: 32806384 bytes
+[INFO] PDC_SERVER[1]: ZFP compression succeeded, compressed size bytes: 17214128 bytes
+[INFO] PDC_SERVER[1]: ZFP compression succeeded, compressed size bytes: 32804768 bytes
+[INFO] PDC_SERVER[1]: ZFP compression succeeded, compressed size bytes: 32802608 bytes
+[INFO] PDC_SERVER[1]: ZFP compression succeeded, compressed size bytes: 17214128 bytes
+[INFO] PDC_SERVER[1]: ZFP compression succeeded, compressed size bytes: 16573328 bytes
+[INFO] PDC_SERVER[1]: ZFP compression succeeded, compressed size bytes: 16544200 bytes
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: Ran read storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: Ran read storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: Ran read storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: Ran read storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: Ran read storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: Ran read storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: Ran read storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: Ran read storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: Ran read storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: Ran read storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: Ran read storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: Ran read storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: Ran read storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: Ran read storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: Ran read storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: Ran read storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: Ran read storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: Ran read storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: Ran read storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: Ran read storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: Ran read storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: Ran read storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: Ran read storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: Ran read storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: Ran read storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: Ran read storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: Ran read storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: Ran read storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: Ran read storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: Ran read storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: Ran read storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: Ran read storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: Ran read storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: Ran read storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: Ran read storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: Ran read storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: Ran read storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: Ran read storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: Ran read storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: Ran read storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: Ran read storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: Ran read storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: Ran read storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: Ran read storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: Ran read storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: Ran read storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: Ran read storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: Ran read storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: Ran read storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: Ran read storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: Ran read storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: Ran read storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: Ran read storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: Ran read storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: Ran read storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: Ran read storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: Ran read storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: Ran read storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: Ran read storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: Ran read storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: Ran read storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: Ran read storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: Ran read storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: Ran read storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: Ran read storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: Ran read storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: Ran read storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: Ran read storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: Ran read storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: Ran read storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: Ran read storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: Ran read storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: Ran read storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: Ran read storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: Ran read storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: Ran read storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: Ran read storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: Ran read storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: Ran read storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: Ran read storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: Ran read storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: Ran read storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: Ran read storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: Ran read storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: Ran read storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: Ran read storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: Ran read storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: Ran read storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: Ran read storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: Ran read storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: Ran read storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: Ran read storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: Ran read storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: Ran read storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: Ran read storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: Ran read storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: Ran read storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: Ran read storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: Ran read storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: Ran read storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: Ran read storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: Ran read storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: Ran read storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: Ran read storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: Ran read storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: Ran read storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: Ran read storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: Ran read storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: Ran read storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: Ran read storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: Ran read storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: Ran read storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: Ran read storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: Ran read storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: Ran read storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: Ran read storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: Ran read storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: Ran read storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: Ran read storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: Ran read storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: Ran read storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: Ran read storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: Ran read storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: Ran read storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: Ran read storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: Ran read storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: Ran read storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: Ran read storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: Ran read storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: Ran read storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: Ran read storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: Ran read storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: Ran read storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: Ran read storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: Ran read storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: Ran read storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: Ran read storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: Ran read storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: Ran read storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: Ran read storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: Ran read storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: Ran read storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: Ran read storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: Ran read storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: Ran read storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: Ran read storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: Ran read storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: Ran read storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: Ran read storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: Ran read storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: Ran read storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: Ran read storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: Ran read storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: Ran read storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: Ran read storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: Ran read storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: Ran read storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: Ran read storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: Ran read storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: Ran read storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: Ran read storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: Ran read storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: Ran read storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: Ran read storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: Ran read storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: Ran read storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: Ran read storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: Ran read storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: Ran read storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: Ran read storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: Ran read storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: Ran read storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: Ran read storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: Ran read storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: Ran read storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: Ran read storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: Ran read storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: Ran read storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: Ran read storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: Ran read storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: Ran read storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: Ran read storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: Ran read storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: Ran read storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: Ran read storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: Ran read storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: Ran read storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: Ran read storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: Ran read storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: Ran read storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: Ran read storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: Ran read storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: Ran read storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: Ran read storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: Ran read storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: Ran read storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: Ran read storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: Ran read storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: Ran read storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: Ran read storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: Ran read storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: Ran read storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: Ran read storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: Ran read storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: Ran read storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: Ran read storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: Ran read storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: Ran read storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: Ran read storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: Ran read storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: Ran read storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: Ran read storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: Ran read storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: Ran read storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: Ran read storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: Ran read storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: Ran read storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: Ran read storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: Ran read storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: Ran read storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: Ran read storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: Ran read storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: Ran read storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: Ran read storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: Ran read storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: Ran read storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: Ran read storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: Ran read storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: Ran read storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: Ran read storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: Ran read storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: Ran read storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: Ran read storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: Ran read storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: Ran read storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: Ran read storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: Ran read storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: Ran read storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: Ran read storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: Ran read storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: Ran read storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: Ran read storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: Ran read storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: Ran read storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: Ran read storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: Ran read storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: Ran read storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: Ran read storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: Ran read storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: Ran read storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: Ran read storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: Ran read storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: Ran read storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: Ran read storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: Ran read storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Executing graph with json filepath /pscratch/sd/n/nlewi26/src/work_space/source/pdc/tf_graphs/compression.json
+[INFO] PDC_SERVER[0]: Ran read storage strategy STORE_FLATTENED_REGION_PER_FILE_TRANSFORMATION
+[INFO] PDC_SERVER[0]: Checkpoint file [./pdc_tmp//0/metadata_checkpoint.0]
+[INFO] PDC_SERVER[0]: Checkpointed          8 objects, with          0 regions 
+[INFO] PDC_CLIENT[0]: Writing DART info to file_name: ./pdc_tmp//dart_info.bin
+[INFO] PDC_CLIENT[1]: [IDIOMS_Index_Dump_1] Timer to dump index = 9.0000 microseconds
+[INFO] PDC_CLIENT[0]: [IDIOMS_Index_Dump_0] Timer to dump index = 1343.0000 microseconds

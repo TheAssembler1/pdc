@@ -13,9 +13,9 @@
 
 typedef enum { LOG_LEVEL_ERROR, LOG_LEVEL_WARNING, LOG_LEVEL_INFO, LOG_LEVEL_DEBUG } PDC_LogLevel;
 
-static FILE *       logFiles[4] = {NULL}; // Log files for each log level
+static FILE        *logFiles[4] = {NULL}; // Log files for each log level
 static char         logFilenames[4][MAX_LOG_FILE_NAME_LENGTH];
-static PDC_LogLevel logLevel = LOG_LEVEL_ERROR;
+static PDC_LogLevel logLevel = LOG_LEVEL_INFO;
 
 void setLogFile(PDC_LogLevel level, const char *fileName);
 void setLogLevel(PDC_LogLevel level);

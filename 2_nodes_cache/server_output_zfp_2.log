@@ -1,0 +1,58 @@
+[INFO] PDC_SERVER[0]: Using [./pdc_tmp/] as tmp dir, 1 OSTs, 1 OSTs per data file, 0% to BB
+[INFO] PDC_SERVER[0]: Environment variable HG_TRANSPORT was NOT set
+[INFO] PDC_SERVER[0]: Environment variable HG_HOST was NOT set
+[INFO] PDC_SERVER[0]: Connection string: ofi+tcp://nid005389:7000
+[INFO] PDC_SERVER[1]: Environment variable HG_TRANSPORT was NOT set
+[INFO] PDC_SERVER[1]: Environment variable HG_HOST was NOT set
+[INFO] PDC_SERVER[0]: Without multi-thread
+[INFO] PDC_SERVER[0]: Read cache enabled
+[INFO] PDC_SERVER[0]: Max cache size: 34359738368
+[INFO] PDC_SERVER[0]: Successfully established connection to 1 other PDC servers
+[INFO] PDC_SERVER[0]: Server ready!
+
+
+[INFO] PDC_SERVER[0]: Running write storage strategy STORE_REGION_BY_REGION_SINGLE_FILE
+[INFO] PDC_SERVER[0]: Server flushed 1024.0 / 8192.0 MB to storage
+[INFO] PDC_SERVER[0]: Flushed 2 regions to storage, took 2.1487s
+[INFO] PDC_SERVER[1]: Server flushed 1024.0 / 8192.0 MB to storage
+[INFO] PDC_SERVER[1]: Flushed 2 regions to storage, took 2.1155s
+[INFO] PDC_SERVER[0]: Running write storage strategy STORE_REGION_BY_REGION_SINGLE_FILE
+[INFO] PDC_SERVER[0]: Server flushed 1024.0 / 7168.0 MB to storage
+[INFO] PDC_SERVER[0]: Flushed 2 regions to storage, took 1.6044s
+[INFO] PDC_SERVER[1]: Server flushed 1024.0 / 7168.0 MB to storage
+[INFO] PDC_SERVER[1]: Flushed 2 regions to storage, took 1.5021s
+[INFO] PDC_SERVER[0]: Running write storage strategy STORE_REGION_BY_REGION_SINGLE_FILE
+[INFO] PDC_SERVER[0]: Server flushed 1024.0 / 6144.0 MB to storage
+[INFO] PDC_SERVER[0]: Flushed 2 regions to storage, took 1.1832s
+[INFO] PDC_SERVER[1]: Server flushed 1024.0 / 6144.0 MB to storage
+[INFO] PDC_SERVER[1]: Flushed 2 regions to storage, took 1.1974s
+[INFO] PDC_SERVER[0]: Running write storage strategy STORE_REGION_BY_REGION_SINGLE_FILE
+[INFO] PDC_SERVER[0]: Server flushed 1024.0 / 5120.0 MB to storage
+[INFO] PDC_SERVER[0]: Flushed 2 regions to storage, took 1.1875s
+[INFO] PDC_SERVER[1]: Server flushed 1024.0 / 5120.0 MB to storage
+[INFO] PDC_SERVER[1]: Flushed 2 regions to storage, took 1.1910s
+[INFO] PDC_SERVER[0]: Running write storage strategy STORE_REGION_BY_REGION_SINGLE_FILE
+[INFO] PDC_SERVER[0]: Server flushed 1024.0 / 4096.0 MB to storage
+[INFO] PDC_SERVER[0]: Flushed 2 regions to storage, took 1.1803s
+[INFO] PDC_SERVER[1]: Server flushed 1024.0 / 4096.0 MB to storage
+[INFO] PDC_SERVER[1]: Flushed 2 regions to storage, took 1.1768s
+[INFO] PDC_SERVER[0]: Running write storage strategy STORE_REGION_BY_REGION_SINGLE_FILE
+[INFO] PDC_SERVER[0]: Server flushed 1024.0 / 3072.0 MB to storage
+[INFO] PDC_SERVER[0]: Flushed 2 regions to storage, took 1.1796s
+[INFO] PDC_SERVER[1]: Server flushed 1024.0 / 3072.0 MB to storage
+[INFO] PDC_SERVER[1]: Flushed 2 regions to storage, took 1.1833s
+[INFO] PDC_SERVER[0]: Running write storage strategy STORE_REGION_BY_REGION_SINGLE_FILE
+[INFO] PDC_SERVER[0]: Server flushed 1024.0 / 2048.0 MB to storage
+[INFO] PDC_SERVER[0]: Flushed 2 regions to storage, took 1.1630s
+[INFO] PDC_SERVER[1]: Server flushed 1024.0 / 2048.0 MB to storage
+[INFO] PDC_SERVER[1]: Flushed 2 regions to storage, took 1.1823s
+[INFO] PDC_SERVER[0]: Running write storage strategy STORE_REGION_BY_REGION_SINGLE_FILE
+[INFO] PDC_SERVER[0]: Server flushed 1024.0 / 1024.0 MB to storage
+[INFO] PDC_SERVER[0]: Flushed 2 regions to storage, took 1.1468s
+[INFO] PDC_SERVER[1]: Server flushed 1024.0 / 1024.0 MB to storage
+[INFO] PDC_SERVER[1]: Flushed 2 regions to storage, took 1.1550s
+[INFO] PDC_SERVER[0]: Checkpoint file [./pdc_tmp//0/metadata_checkpoint.0]
+[INFO] PDC_SERVER[0]: Checkpointed          8 objects, with          0 regions 
+[INFO] PDC_CLIENT[0]: Writing DART info to file_name: ./pdc_tmp//dart_info.bin
+[INFO] PDC_CLIENT[1]: [IDIOMS_Index_Dump_1] Timer to dump index = 8.0000 microseconds
+[INFO] PDC_CLIENT[0]: [IDIOMS_Index_Dump_0] Timer to dump index = 1477.0000 microseconds

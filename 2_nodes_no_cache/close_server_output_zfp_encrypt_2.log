@@ -1,0 +1,9 @@
+[INFO] PDC_CLIENT[0]: PDCtf_init called
+[INFO] PDC_CLIENT[0]: PDC_DEBUG set to 0
+[INFO] PDC_CLIENT[1]: PDCtf_init called
+[INFO] PDC_CLIENT[0]: Found 2 PDC Metadata servers, running with 2 PDC clients
+[INFO] PDC_CLIENT[0]: Environment variable HG_TRANSPORT was NOT set
+[INFO] PDC_CLIENT[0]: Environment variable HG_HOST was NOT set
+[INFO] PDC_CLIENT[0]: Connection string: ofi+tcp://nid006573:8000
+[INFO] PDC_CLIENT[0]: Using [./pdc_tmp] as tmp dir, 1 clients per server
+[INFO] PDC_CLIENT[0]: total close time = 0.120081

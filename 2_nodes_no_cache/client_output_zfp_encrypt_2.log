@@ -1,0 +1,88 @@
+[INFO] PDC_CLIENT[0]: Writing 8388608 number of particles for 1 steps with 64 clients.
+[INFO] PDC_CLIENT[2]: PDCtf_init called
+[INFO] PDC_CLIENT[45]: PDCtf_init called
+[INFO] PDC_CLIENT[3]: PDCtf_init called
+[INFO] PDC_CLIENT[57]: PDCtf_init called
+[INFO] PDC_CLIENT[4]: PDCtf_init called
+[INFO] PDC_CLIENT[34]: PDCtf_init called
+[INFO] PDC_CLIENT[9]: PDCtf_init called
+[INFO] PDC_CLIENT[35]: PDCtf_init called
+[INFO] PDC_CLIENT[15]: PDCtf_init called
+[INFO] PDC_CLIENT[37]: PDCtf_init called
+[INFO] PDC_CLIENT[18]: PDCtf_init called
+[INFO] PDC_CLIENT[41]: PDCtf_init called
+[INFO] PDC_CLIENT[27]: PDCtf_init called
+[INFO] PDC_CLIENT[46]: PDCtf_init called
+[INFO] PDC_CLIENT[8]: PDCtf_init called
+[INFO] PDC_CLIENT[51]: PDCtf_init called
+[INFO] PDC_CLIENT[10]: PDCtf_init called
+[INFO] PDC_CLIENT[53]: PDCtf_init called
+[INFO] PDC_CLIENT[11]: PDCtf_init called
+[INFO] PDC_CLIENT[58]: PDCtf_init called
+[INFO] PDC_CLIENT[12]: PDCtf_init called
+[INFO] PDC_CLIENT[62]: PDCtf_init called
+[INFO] PDC_CLIENT[13]: PDCtf_init called
+[INFO] PDC_CLIENT[63]: PDCtf_init called
+[INFO] PDC_CLIENT[16]: PDCtf_init called
+[INFO] PDC_CLIENT[32]: PDCtf_init called
+[INFO] PDC_CLIENT[17]: PDCtf_init called
+[INFO] PDC_CLIENT[33]: PDCtf_init called
+[INFO] PDC_CLIENT[19]: PDCtf_init called
+[INFO] PDC_CLIENT[36]: PDCtf_init called
+[INFO] PDC_CLIENT[20]: PDCtf_init called
+[INFO] PDC_CLIENT[38]: PDCtf_init called
+[INFO] PDC_CLIENT[25]: PDCtf_init called
+[INFO] PDC_CLIENT[39]: PDCtf_init called
+[INFO] PDC_CLIENT[26]: PDCtf_init called
+[INFO] PDC_CLIENT[42]: PDCtf_init called
+[INFO] PDC_CLIENT[28]: PDCtf_init called
+[INFO] PDC_CLIENT[44]: PDCtf_init called
+[INFO] PDC_CLIENT[1]: PDCtf_init called
+[INFO] PDC_CLIENT[47]: PDCtf_init called
+[INFO] PDC_CLIENT[5]: PDCtf_init called
+[INFO] PDC_CLIENT[48]: PDCtf_init called
+[INFO] PDC_CLIENT[6]: PDCtf_init called
+[INFO] PDC_CLIENT[49]: PDCtf_init called
+[INFO] PDC_CLIENT[7]: PDCtf_init called
+[INFO] PDC_CLIENT[55]: PDCtf_init called
+[INFO] PDC_CLIENT[14]: PDCtf_init called
+[INFO] PDC_CLIENT[59]: PDCtf_init called
+[INFO] PDC_CLIENT[21]: PDCtf_init called
+[INFO] PDC_CLIENT[60]: PDCtf_init called
+[INFO] PDC_CLIENT[22]: PDCtf_init called
+[INFO] PDC_CLIENT[40]: PDCtf_init called
+[INFO] PDC_CLIENT[23]: PDCtf_init called
+[INFO] PDC_CLIENT[24]: PDCtf_init called
+[INFO] PDC_CLIENT[29]: PDCtf_init called
+[INFO] PDC_CLIENT[30]: PDCtf_init called
+[INFO] PDC_CLIENT[43]: PDCtf_init called
+[INFO] PDC_CLIENT[31]: PDCtf_init called
+[INFO] PDC_CLIENT[50]: PDCtf_init called
+[INFO] PDC_CLIENT[0]: PDCtf_init called
+[INFO] PDC_CLIENT[52]: PDCtf_init called
+[INFO] PDC_CLIENT[0]: PDC_DEBUG set to 0
+[INFO] PDC_CLIENT[54]: PDCtf_init called
+[INFO] PDC_CLIENT[56]: PDCtf_init called
+[INFO] PDC_CLIENT[61]: PDCtf_init called
+[INFO] PDC_CLIENT[0]: Found 2 PDC Metadata servers, running with 64 PDC clients
+[INFO] PDC_CLIENT[0]: Environment variable HG_TRANSPORT was NOT set
+[INFO] PDC_CLIENT[0]: Environment variable HG_HOST was NOT set
+[INFO] PDC_CLIENT[0]: Connection string: ofi+tcp://nid006573:8000
+[INFO] PDC_CLIENT[0]: Using [./pdc_tmp] as tmp dir, 32 clients per server
+[INFO] PDC_CLIENT[0]: 
+[2025-10-07 14:13:20.324146] #Step  0
+[INFO] PDC_CLIENT[0]: [2025-10-07 14:13:20.327916] Obj create time: 3.51196e-03
+[INFO] PDC_CLIENT[0]: [2025-10-07 14:13:20.328146] Transfer create time: 2.30177e-04
+[INFO] PDC_CLIENT[0]: [2025-10-07 14:13:21.339649] Transfer start time: 1.01150e+00
+[INFO] PDC_CLIENT[0]: [2025-10-07 14:14:37.750792] Transfer wait time: 7.64109e+01
+[INFO] PDC_CLIENT[0]: [2025-10-07 14:14:37.851167] Transfer close time: 1.00378e-01
+[INFO] PDC_CLIENT[0]: [2025-10-07 14:14:37.851295] Obj close time: 1.28239e-04
+[INFO] PDC_CLIENT[0]: 
+[2025-10-07 14:14:37.851380] #Step  0
+[INFO] PDC_CLIENT[0]: [2025-10-07 14:14:37.853145] Obj create time: 1.68589e-03
+[INFO] PDC_CLIENT[0]: [2025-10-07 14:14:37.853256] Transfer create time: 1.11656e-04
+[INFO] PDC_CLIENT[0]: [2025-10-07 14:14:38.074078] Transfer start time: 2.20821e-01
+[INFO] PDC_CLIENT[0]: [2025-10-07 14:16:11.014120] Transfer wait time: 9.28590e+01
+[INFO] PDC_CLIENT[0]: [2025-10-07 14:16:11.127078] Transfer close time: 1.12960e-01
+[INFO] PDC_CLIENT[0]: [2025-10-07 14:16:11.127257] Obj close time: 1.80370e-04
+[INFO] PDC_CLIENT[0]: Data was validated successfully
