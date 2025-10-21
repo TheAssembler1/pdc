@@ -161,7 +161,7 @@ PDCprop_obj_dup(pdcid_t prop_id)
     q->obj_prop_pub->obj_prop_id      = new_id;
     q->obj_prop_pub->ndim             = info->obj_prop_pub->ndim;
     q->obj_prop_pub->dims             = (uint64_t *)PDC_malloc(info->obj_prop_pub->ndim * sizeof(uint64_t));
-    q->obj_prop_pub->type             = PDC_UNKNOWN;
+    q->obj_prop_pub->type             = info->obj_prop_pub->type;
     q->obj_prop_pub->region_partition = info->obj_prop_pub->region_partition;
     q->obj_prop_pub->consistency      = info->obj_prop_pub->consistency;
     for (i = 0; i < info->obj_prop_pub->ndim; i++)
