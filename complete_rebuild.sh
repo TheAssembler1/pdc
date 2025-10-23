@@ -3,7 +3,7 @@
 rm -rf ./build/*
 
 pushd build
-cmake ../ -DCMAKE_BUILD_TYPE=Release \
+cmake ../ -DCMAKE_BUILD_TYPE=Debug \
     -DCMAKE_INSTALL_PREFIX=/pscratch/sd/n/nlewi26/src/work_space/install/pdc \
     -DENABLE_MULTITHREAD=OFF \
     -DCMAKE_EXPORT_COMPILE_COMMANDS=ON \

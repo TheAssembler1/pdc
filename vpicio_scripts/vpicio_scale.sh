@@ -22,10 +22,10 @@ echo "SERVER_TOTAL_TASKS=$SERVER_TOTAL_TASKS"
 echo "CLIENT_TOTAL_TASKS=$CLIENT_TOTAL_TASKS"
 
 echo "running server script"
-./srun_server.sh
+./srun_server_write.sh
 
 echo "running client script"
-./srun_client.sh
+./srun_client_write.sh
 
 echo "closing server script"
 ./srun_close_server.sh

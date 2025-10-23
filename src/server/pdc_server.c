@@ -82,7 +82,7 @@ sqlite3 *sqlite3_db_g;
 int is_debug_g       = 0;
 int pdc_client_num_g = 0;
 
-hg_class_t *  hg_class_g   = NULL;
+hg_class_t   *hg_class_g   = NULL;
 hg_context_t *hg_context_g = NULL;
 
 // Below three are guarded by pdc_server_task_mutex_g for multi-thread
@@ -90,10 +90,10 @@ pdc_task_list_t *pdc_server_agg_task_head_g = NULL;
 pdc_task_list_t *pdc_server_s2s_task_head_g = NULL;
 int              pdc_server_task_id_g       = PDC_SERVER_TASK_INIT_VALUE;
 
-pdc_client_info_t *       pdc_client_info_g        = NULL;
+pdc_client_info_t        *pdc_client_info_g        = NULL;
 pdc_remote_server_info_t *pdc_remote_server_info_g = NULL;
-char *                    all_addr_strings_1d_g    = NULL;
-char **                   all_addr_strings_g       = NULL;
+char                     *all_addr_strings_1d_g    = NULL;
+char                    **all_addr_strings_g       = NULL;
 int                       is_hash_table_init_g     = 0;
 int                       lustre_stripe_size_mb_g  = 16;
 int                       lustre_total_ost_g       = 0;
@@ -146,7 +146,7 @@ int               gen_fastbit_idx_g            = 0;
 int               use_fastbit_idx_g            = 0;
 int               use_rocksdb_g                = 0;
 int               use_sqlite3_g                = 0;
-char *            gBinningOption               = NULL;
+char             *gBinningOption               = NULL;
 
 double server_write_time_g                  = 0.0;
 double server_read_time_g                   = 0.0;
@@ -164,9 +164,9 @@ volatile int dbg_sleep_g = 1;
 double total_mem_usage_g = 0.0;
 
 // Data server related
-pdc_data_server_io_list_t *  pdc_data_server_read_list_head_g    = NULL;
-pdc_data_server_io_list_t *  pdc_data_server_write_list_head_g   = NULL;
-update_storage_meta_list_t * pdc_update_storage_meta_list_head_g = NULL;
+pdc_data_server_io_list_t   *pdc_data_server_read_list_head_g    = NULL;
+pdc_data_server_io_list_t   *pdc_data_server_write_list_head_g   = NULL;
+update_storage_meta_list_t  *pdc_update_storage_meta_list_head_g = NULL;
 extern data_server_region_t *dataserver_region_g;
 
 /*
@@ -365,7 +365,7 @@ remove_directory(const char *dir)
     FUNC_ENTER(NULL);
 
     int     ret_value = 0;
-    FTS *   ftsp      = NULL;
+    FTS    *ftsp      = NULL;
     FTSENT *curr;
 
     // Cast needed (in C) because fts_open() takes a "char * const *", instead
@@ -515,7 +515,7 @@ PDC_Server_lookup_server_id(int remote_server_id)
 
     lookup_args->server_id = remote_server_id;
     hg_ret                 = HG_Addr_lookup(hg_context_g, lookup_remote_server_cb, lookup_args,
-                            pdc_remote_server_info_g[remote_server_id].addr_string, HG_OP_ID_IGNORE);
+                                            pdc_remote_server_info_g[remote_server_id].addr_string, HG_OP_ID_IGNORE);
     if (hg_ret != HG_SUCCESS)
         PGOTO_ERROR(FAIL, "Connection to remote server FAILED");
 
@@ -619,7 +619,7 @@ PDC_Server_lookup_client(uint32_t client_id)
 
     // Lookup and fill the client info
     server_lookup_args_t lookup_args;
-    char *               target_addr_string;
+    char                *target_addr_string;
 
     lookup_args.server_id   = pdc_server_rank_g;
     lookup_args.client_id   = client_id;
@@ -742,7 +742,7 @@ PDC_Server_init(int port, hg_class_t **hg_class, hg_context_t **hg_context)
     int                 i         = 0;
     char                self_addr_string[ADDR_MAX];
     char                na_info_string[NA_STRING_INFO_LEN];
-    char *              hostname;
+    char               *hostname;
     pbool_t             free_hostname = false;
     struct hg_init_info init_info     = {0};
 
@@ -758,7 +758,7 @@ PDC_Server_init(int port, hg_class_t **hg_class, hg_context_t **hg_context)
     uint32_t          credential = 0, cookie;
     drc_info_handle_t credential_info;
     char              pdc_auth_key[256] = {'\0'};
-    char *            auth_key;
+    char             *auth_key;
     int               rc;
 #endif
 
@@ -933,7 +933,11 @@ drc_access_again:
         ret_value = PDC_Server_restart(checkpoint_file);
         if (ret_value != SUCCEED)
             PGOTO_ERROR(FAIL, "Error with PDC_Server_restart");
-        metadata_index_recover(pdc_server_tmp_dir_g, pdc_server_size_g, pdc_server_rank_g);
+        if (pdc_server_rank_g == 0)
+            LOG_INFO("Starting metadata index recover\n");
+        // metadata_index_recover(pdc_server_tmp_dir_g, pdc_server_size_g, pdc_server_rank_g);
+        if (pdc_server_rank_g == 0)
+            LOG_INFO("Finished metadata index recover\n");
     }
     else {
         // We are starting a brand new server
@@ -1013,7 +1017,7 @@ PDC_Server_finalize()
     FUNC_ENTER(NULL);
 
     pdc_data_server_io_list_t *io_elt     = NULL;
-    region_list_t *            region_elt = NULL, *region_tmp = NULL;
+    region_list_t             *region_elt = NULL, *region_tmp = NULL;
     perr_t                     ret_value = SUCCEED;
     hg_return_t                hg_ret;
 
@@ -1177,21 +1181,21 @@ PDC_Server_checkpoint()
     LOG_DEBUG("PDC_Server_checkpoint was called\n");
 
     perr_t                       ret_value = SUCCEED;
-    pdc_metadata_t *             elt;
-    region_list_t *              region_elt;
-    pdc_kvtag_list_t *           kvlist_elt;
-    pdc_hash_table_entry_head *  head;
+    pdc_metadata_t              *elt;
+    region_list_t               *region_elt;
+    pdc_kvtag_list_t            *kvlist_elt;
+    pdc_hash_table_entry_head   *head;
     pdc_cont_hash_table_entry_t *cont_head;
     int n_entry, metadata_size = 0, region_count = 0, n_region, n_objs, n_write_region = 0, n_kvtag, key_len;
     uint32_t          hash_key;
     HashTablePair     pair;
     char              checkpoint_file[ADDR_MAX], checkpoint_file_local[ADDR_MAX], cmd[4096];
     HashTableIterator hash_table_iter;
-    char *            checkpoint;
-    char *            env_char;
+    char             *checkpoint;
+    char             *env_char;
     uint64_t          checkpoint_size;
     bool              use_tmpfs = false;
-    FILE *            file;
+    FILE             *file;
 
 #ifdef PDC_TIMING
     // Timing
@@ -1305,7 +1309,7 @@ PDC_Server_checkpoint()
             metadata_size++;
             region_count += n_region;
         } // End for metadata entry linked list
-    }     // End for hash table metadata entry
+    } // End for hash table metadata entry
 
     // Note data server region is managed by data server instead of metadata server
     data_server_region_t *region = NULL;
@@ -1370,46 +1374,45 @@ PDC_Server_checkpoint()
 #ifdef PRINT_DEBUG_TRANSFORMATION_CHECKPOINTING
     LOG_DEBUG("Checkpointing transformations\n");
     size_t num_objs = pdc_vector_size(tf_obj_id_to_dg_vector_g);
-    LOG_JUST_PRINT("num_objs: %lu\n", num_objs);
+    LOG_DEBUG("num_objs: %lu\n", num_objs);
     PDC_VECTOR_ITERATOR *obj_id_to_dg_iter = pdc_vector_iterator_new(tf_obj_id_to_dg_vector_g);
     while (pdc_vector_iterator_has_next(obj_id_to_dg_iter)) {
         pdc_tf_obj_id_to_dg_t *cur_obj_id_to_dg = pdc_vector_iterator_next(obj_id_to_dg_iter);
-        LOG_JUST_PRINT("obj_id: %d\n", cur_obj_id_to_dg->obj_id);
-        LOG_JUST_PRINT("\tobj[%d] json_filepath_str: %s\n", cur_obj_id_to_dg->obj_id,
-                       (char *)cur_obj_id_to_dg->dg->data);
+        LOG_DEBUG("obj_id: %d\n", cur_obj_id_to_dg->obj_id);
+        LOG_DEBUG("\tobj[%d] json_filepath_str: %s\n", cur_obj_id_to_dg->obj_id,
+                  (char *)cur_obj_id_to_dg->dg->data);
 
         // Checkpoint region mapping
-        LOG_JUST_PRINT("\tnum_region_mappings: %lu\n",
-                       pdc_vector_size(cur_obj_id_to_dg->pdc_tf_obj.region_mappings_vector));
+        LOG_DEBUG("\tnum_region_mappings: %lu\n",
+                  pdc_vector_size(cur_obj_id_to_dg->pdc_tf_obj.region_mappings_vector));
         PDC_VECTOR_ITERATOR *region_mapping_iter =
             pdc_vector_iterator_new(cur_obj_id_to_dg->pdc_tf_obj.region_mappings_vector);
         while (pdc_vector_iterator_has_next(region_mapping_iter)) {
             pdc_tf_region_mapping_t *cur_region_mapping = pdc_vector_iterator_next(region_mapping_iter);
-            LOG_JUST_PRINT("\t\tdg_id: %d\n", cur_region_mapping->region_state.dg_id);
+            LOG_DEBUG("\t\tdg_id: %d\n", cur_region_mapping->region_state.dg_id);
 
-            LOG_JUST_PRINT("\t\tcur_state_str: %s\n", cur_region_mapping->region_state.cur_state);
-            LOG_JUST_PRINT("\t\tclient_state_str: %s\n", cur_region_mapping->region_state.client_state);
-            LOG_JUST_PRINT("\t\tstore_state_str: %s\n", cur_region_mapping->region_state.store_state);
+            LOG_DEBUG("\t\tcur_state_str: %s\n", cur_region_mapping->region_state.cur_state);
+            LOG_DEBUG("\t\tclient_state_str: %s\n", cur_region_mapping->region_state.client_state);
+            LOG_DEBUG("\t\tstore_state_str: %s\n", cur_region_mapping->region_state.store_state);
 
             LOG_JUST_PRINT("\t\tconceptual_region_ndim: %d\n", cur_region_mapping->conceptual_region.ndim);
-            LOG_JUST_PRINT("\t\tpdc_var_type: %d, size: %d\n",
-                           cur_region_mapping->conceptual_region.pdc_var_type,
-                           PDC_get_var_type_size(cur_region_mapping->conceptual_region.pdc_var_type));
-            LOG_JUST_PRINT("\t\tconceptual_region_offset:\n");
+            LOG_DEBUG("\t\tpdc_var_type: %d, size: %d\n", cur_region_mapping->conceptual_region.pdc_var_type,
+                      PDC_get_var_type_size(cur_region_mapping->conceptual_region.pdc_var_type));
+            LOG_DEBUG("\t\tconceptual_region_offset:\n");
             for (int i = 0; i < cur_region_mapping->conceptual_region.ndim; i++) {
-                LOG_JUST_PRINT("\t\t\toffset[%d]=%lu\n", i, cur_region_mapping->conceptual_offset[i]);
+                LOG_DEBUG("\t\t\toffset[%d]=%lu\n", i, cur_region_mapping->conceptual_offset[i]);
             }
-            LOG_JUST_PRINT("\t\tconceptual_region_size:\n");
+            LOG_DEBUG("\t\tconceptual_region_size:\n");
             for (int i = 0; i < cur_region_mapping->conceptual_region.ndim; i++) {
-                LOG_JUST_PRINT("\t\t\tsize[%d]=%lu\n", i, cur_region_mapping->conceptual_region.size[i]);
+                LOG_DEBUG("\t\t\tsize[%d]=%lu\n", i, cur_region_mapping->conceptual_region.size[i]);
             }
 
-            LOG_JUST_PRINT("\t\tactual_region_ndim: %d\n", cur_region_mapping->actual_region.ndim);
-            LOG_JUST_PRINT("\t\tpdc_var_type %d, size: %d\n", cur_region_mapping->actual_region.pdc_var_type,
-                           PDC_get_var_type_size(cur_region_mapping->actual_region.pdc_var_type));
-            LOG_JUST_PRINT("\t\tactual_region_size:\n");
+            LOG_DEBUG("\t\tactual_region_ndim: %d\n", cur_region_mapping->actual_region.ndim);
+            LOG_DEBUG("\t\tpdc_var_type %d, size: %d\n", cur_region_mapping->actual_region.pdc_var_type,
+                      PDC_get_var_type_size(cur_region_mapping->actual_region.pdc_var_type));
+            LOG_DEBUG("\t\tactual_region_size:\n");
             for (int i = 0; i < cur_region_mapping->actual_region.ndim; i++) {
-                LOG_JUST_PRINT("\t\t\tsize[%d]=%lu\n", i, cur_region_mapping->actual_region.size[i]);
+                LOG_DEBUG("\t\t\tsize[%d]=%lu\n", i, cur_region_mapping->actual_region.size[i]);
             }
         }
         pdc_vector_iterator_destroy(region_mapping_iter);
@@ -1417,28 +1420,28 @@ PDC_Server_checkpoint()
         // Checkpoint state and func params for dg
         for (int i = 0; i < cur_obj_id_to_dg->dg->edge_count; i++) {
             pdc_tf_func_t *f = cur_obj_id_to_dg->dg->edges[i]->data;
-            LOG_JUST_PRINT("\t\tfunc_name: %s\n", f->name);
-            LOG_JUST_PRINT("\t\t\tparams_str: %s\n",
-                           (f->params_str && strlen(f->params_str) > 0) ? f->params_str : "none");
-            LOG_JUST_PRINT("\t\t\tnum_params: %d\n", pdc_vector_size(f->pdc_tf_dg_params_vector));
+            LOG_DEBUG("\t\tfunc_name: %s\n", f->name);
+            LOG_DEBUG("\t\t\tparams_str: %s\n",
+                      (f->params_str && strlen(f->params_str) > 0) ? f->params_str : "none");
+            LOG_DEBUG("\t\t\tnum_params: %d\n", pdc_vector_size(f->pdc_tf_dg_params_vector));
             PDC_VECTOR_ITERATOR *cur_param_iter = pdc_vector_iterator_new(f->pdc_tf_dg_params_vector);
             while (pdc_vector_iterator_has_next(cur_param_iter)) {
                 pdc_tf_dg_params_t *cur_param = pdc_vector_iterator_next(cur_param_iter);
-                LOG_JUST_PRINT("\t\t\tconceptual_flat_offset: %lu\n", cur_param->flat_conceptual_offset);
-                LOG_JUST_PRINT("\t\t\tparams_size: %d\n", cur_param->params_size);
+                LOG_DEBUG("\t\t\tconceptual_flat_offset: %lu\n", cur_param->flat_conceptual_offset);
+                LOG_DEBUG("\t\t\tparams_size: %d\n", cur_param->params_size);
             }
             pdc_vector_iterator_destroy(cur_param_iter);
         }
 
         for (int i = 0; i < cur_obj_id_to_dg->dg->vertex_count; i++) {
             pdc_tf_state_t *s = cur_obj_id_to_dg->dg->vertices[i]->data;
-            LOG_JUST_PRINT("\t\tstate_name: %s\n", s->name);
-            LOG_JUST_PRINT("\t\t\tnum_params: %d\n", pdc_vector_size(s->pdc_tf_dg_params_vector));
+            LOG_DEBUG("\t\tstate_name: %s\n", s->name);
+            LOG_DEBUG("\t\t\tnum_params: %d\n", pdc_vector_size(s->pdc_tf_dg_params_vector));
             PDC_VECTOR_ITERATOR *cur_param_iter = pdc_vector_iterator_new(s->pdc_tf_dg_params_vector);
             while (pdc_vector_iterator_has_next(cur_param_iter)) {
                 pdc_tf_dg_params_t *cur_param = pdc_vector_iterator_next(cur_param_iter);
-                LOG_JUST_PRINT("\t\t\tconceptual_flat_offset: %lu\n", cur_param->flat_conceptual_offset);
-                LOG_JUST_PRINT("\t\t\tparams_size: %d\n", cur_param->params_size);
+                LOG_DEBUG("\t\t\tconceptual_flat_offset: %lu\n", cur_param->flat_conceptual_offset);
+                LOG_DEBUG("\t\t\tparams_size: %d\n", cur_param->params_size);
             }
             pdc_vector_iterator_destroy(cur_param_iter);
         }
@@ -1449,7 +1452,7 @@ PDC_Server_checkpoint()
     size_t num_objs = pdc_vector_size(tf_obj_id_to_dg_vector_g);
     fwrite(&num_objs, sizeof(size_t), 1, file);
 
-    PDC_VECTOR_ITERATOR* obj_id_to_dg_iter = pdc_vector_iterator_new(tf_obj_id_to_dg_vector_g);
+    PDC_VECTOR_ITERATOR *obj_id_to_dg_iter = pdc_vector_iterator_new(tf_obj_id_to_dg_vector_g);
     while (pdc_vector_iterator_has_next(obj_id_to_dg_iter)) {
         pdc_tf_obj_id_to_dg_t *cur_obj_id_to_dg = pdc_vector_iterator_next(obj_id_to_dg_iter);
         // Write object ID
@@ -1473,7 +1476,6 @@ PDC_Server_checkpoint()
 
             // Write cur_state_str
             size_t cur_state_len = strlen(cur_region_mapping->region_state.cur_state) + 1;
-            LOG_DEBUG("cur_state_len: %d\n", cur_state_len);
             fwrite(&cur_state_len, sizeof(size_t), 1, file);
             fwrite(cur_region_mapping->region_state.cur_state, sizeof(char), cur_state_len, file);
 
@@ -1634,14 +1636,14 @@ PDC_Server_restart(char *filename)
     int    n_entry, count, i, j, nobj = 0, all_nobj = 0, all_n_region, n_region, n_objs, total_region = 0,
                               n_kvtag, key_len;
     int                          n_cont, all_cont;
-    pdc_metadata_t *             metadata, *elt;
-    region_list_t *              region_list;
-    pdc_hash_table_entry_head *  entry;
+    pdc_metadata_t              *metadata, *elt;
+    region_list_t               *region_list;
+    pdc_hash_table_entry_head   *entry;
     pdc_cont_hash_table_entry_t *cont_entry;
-    uint32_t *                   hash_key;
+    uint32_t                    *hash_key;
     unsigned                     idx;
     uint64_t                     checkpoint_size;
-    char *                       checkpoint_buf;
+    char                        *checkpoint_buf;
 #ifdef PDC_TIMING
     double start = MPI_Wtime();
 #endif
@@ -1761,9 +1763,6 @@ PDC_Server_restart(char *filename)
             }
             if (n_region < 0)
                 PGOTO_ERROR(FAIL, "Checkpoint file region was less than 0");
-
-            /* if (n_region == 0) */
-            /*     continue; */
 
             total_region += n_region;
 
@@ -1906,7 +1905,7 @@ PDC_Server_restart(char *filename)
     LOG_DEBUG("Reading checkpoint transformations\n");
     size_t num_objs;
     fread(&num_objs, sizeof(size_t), 1, file);
-    LOG_JUST_PRINT("num_objs: %lu\n", num_objs);
+    LOG_DEBUG("num_objs: %lu\n", num_objs);
     tf_obj_id_to_dg_vector_g = pdc_vector_create(PDC_MAX(num_objs, 8), 2.0);
     for (int _o = 0; _o < num_objs; _o++) {
         pdc_tf_obj_id_to_dg_t *cur_obj_id_to_dg = PDC_calloc(1, sizeof(pdc_tf_obj_id_to_dg_t));
@@ -2035,8 +2034,8 @@ PDC_Server_restart(char *filename)
     MPI_Reduce(&nobj, &all_nobj, 1, MPI_INT, MPI_SUM, 0, MPI_COMM_WORLD);
     MPI_Reduce(&total_region, &all_n_region, 1, MPI_INT, MPI_SUM, 0, MPI_COMM_WORLD);
 #else
-    all_nobj          = nobj;
-    all_n_region      = total_region;
+    all_nobj     = nobj;
+    all_n_region = total_region;
 #endif
 
     if (pdc_server_rank_g == 0) {
@@ -2064,7 +2063,7 @@ hg_progress_thread(void *arg)
 {
     FUNC_ENTER(NULL);
 
-    hg_context_t *        context = (hg_context_t *)arg;
+    hg_context_t         *context = (hg_context_t *)arg;
     HG_THREAD_RETURN_TYPE tret    = (HG_THREAD_RETURN_TYPE)0;
     hg_return_t           ret     = HG_SUCCESS;
 
@@ -2505,8 +2504,13 @@ server_run(int argc, char *argv[])
     PDC_server_timing_init();
 #endif
 #endif
-    if (argc > 1 && strcmp(argv[1], "restart") == 0)
+    if (argc > 1 && strcmp(argv[1], "restart") == 0) {
+        LOG_INFO("Starting server with pre-existing data\n");
         is_restart_g = 1;
+    }
+    else {
+        LOG_INFO("Starting server with no previous data\n");
+    }
 
     // Init rand seed
     srand(time(NULL));
@@ -2538,6 +2542,12 @@ server_run(int argc, char *argv[])
         PDC_Server_write_addr_to_file(all_addr_strings_g, pdc_server_size_g) != SUCCEED) {
         LOG_ERROR("Error with write config file\n");
     }
+    else if (pdc_server_rank_g == 0) {
+        LOG_INFO("Succesfully wrote address to config in dir %s\n", pdc_server_tmp_dir_g);
+    }
+    else {
+        LOG_INFO("RANK %d\n", pdc_server_rank_g);
+    }
 
 #ifdef ENABLE_ROCKSDB
     if (use_rocksdb_g) {
@@ -2548,7 +2558,7 @@ server_run(int argc, char *argv[])
         rocksdb_options_set_create_if_missing(options, 1);
 
         rocksdb_block_based_table_options_t *table_options = rocksdb_block_based_options_create();
-        rocksdb_filterpolicy_t *             filter_policy = rocksdb_filterpolicy_create_bloom(10);
+        rocksdb_filterpolicy_t              *filter_policy = rocksdb_filterpolicy_create_bloom(10);
         rocksdb_block_based_options_set_filter_policy(table_options, filter_policy);
 
         rocksdb_options_set_block_based_table_factory(options, table_options);

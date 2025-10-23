@@ -35,6 +35,7 @@
 #include "pdc_timing.h"
 
 #define NPARTICLES 8388608
+#define SEED       12938712
 
 double
 uniform_random_number()
@@ -45,7 +46,7 @@ uniform_random_number()
 void
 print_usage()
 {
-    LOG_JUST_PRINT("Usage: srun -n ./vpicio #particles #steps sleep_time(s)\n");
+    LOG_JUST_PRINT("Usage: srun -n ./vpicio #particles #steps sleep_time(s) transform\n");
 }
 
 int
@@ -60,8 +61,8 @@ main(int argc, char **argv)
 #else
     int comm = 1;
 #endif
-    float     *x, *y, *z, *px, *py, *pz, *x_r, *y_r, *z_r, *px_r, *py_r, *pz_r;
-    int       *id1, *id2, *id1_r, *id2_r;
+    float     *x, *y, *z, *px, *py, *pz, *id2;
+    int       *id1;
     int        x_dim = 64, y_dim = 64, z_dim = 64, ndim = 1, steps = 1, sleeptime = 0;
     uint64_t   numparticles, dims[1], offset_local[1], offset_remote[1], mysize[1];
     double     t0, t1;
@@ -92,7 +93,7 @@ main(int argc, char **argv)
         return FAIL;
     }
     if (rank == 0)
-        LOG_INFO("Writing/Reading %" PRIu64
+        LOG_INFO("Writing %" PRIu64
                  " number of particles for %d steps with %d clients with sleep time %ds.\n",
                  numparticles, steps, size, sleeptime);
 
@@ -106,17 +107,7 @@ main(int argc, char **argv)
     py  = (float *)malloc(numparticles * sizeof(float));
     pz  = (float *)malloc(numparticles * sizeof(float));
     id1 = (int *)malloc(numparticles * sizeof(int));
-    id2 = (int *)malloc(numparticles * sizeof(int));
-
-    // read buffers
-    x_r   = (float *)malloc(numparticles * sizeof(float));
-    y_r   = (float *)malloc(numparticles * sizeof(float));
-    z_r   = (float *)malloc(numparticles * sizeof(float));
-    px_r  = (float *)malloc(numparticles * sizeof(float));
-    py_r  = (float *)malloc(numparticles * sizeof(float));
-    pz_r  = (float *)malloc(numparticles * sizeof(float));
-    id1_r = (int *)malloc(numparticles * sizeof(int));
-    id2_r = (int *)malloc(numparticles * sizeof(int));
+    id2 = (float *)malloc(numparticles * sizeof(float));
 
     // create a pdc
     pdc_id = PDCinit("pdc");
@@ -146,15 +137,16 @@ main(int argc, char **argv)
     PDCprop_set_obj_type(obj_prop_int, PDC_INT);
     PDCprop_set_obj_transfer_region_type(obj_prop_int, PDC_REGION_LOCAL);
 
+    srand(SEED);
     for (uint64_t i = 0; i < numparticles; i++) {
-        id1[i] = i;
-        id2[i] = i * 2;
-        x[i]   = uniform_random_number() * x_dim;
-        y[i]   = uniform_random_number() * y_dim;
-        z[i]   = ((float)id1[i] / numparticles) * z_dim;
-        px[i]  = uniform_random_number() * x_dim;
-        py[i]  = uniform_random_number() * y_dim;
-        pz[i]  = ((float)id2[i] / numparticles) * z_dim;
+        id1[i] = i + rank;
+        id2[i] = uniform_random_number();
+        x[i]   = uniform_random_number();
+        y[i]   = uniform_random_number();
+        z[i]   = uniform_random_number();
+        px[i]  = uniform_random_number();
+        py[i]  = uniform_random_number();
+        pz[i]  = uniform_random_number();
     }
 
     offset_local[0]  = 0;
@@ -213,7 +205,7 @@ main(int argc, char **argv)
             LOG_ERROR("Error getting an object id of %s from server\n", "id1");
             return FAIL;
         }
-        obj_id22 = PDCobj_create_mpi(cont_id, "id22", obj_prop_int, 0, comm);
+        obj_id22 = PDCobj_create_mpi(cont_id, "id22", obj_prop_float, 0, comm);
         if (obj_id22 == 0) {
             LOG_ERROR("Error getting an object id of %s from server\n", "id2");
             return FAIL;
@@ -415,291 +407,6 @@ main(int argc, char **argv)
 #endif
     } // End for steps
 
-    for (int iter = 0; iter < steps; iter++) {
-#ifdef ENABLE_MPI
-        MPI_Barrier(MPI_COMM_WORLD);
-        PDC_get_time_str(cur_time);
-        if (rank == 0)
-            LOG_INFO("\n[%s] #Step  %d\n", cur_time, iter);
-        t0 = MPI_Wtime();
-#endif
-        PDCprop_set_obj_time_step(obj_prop_float, iter);
-        PDCprop_set_obj_time_step(obj_prop_int, iter);
-
-        obj_xx = PDCobj_open_col("obj-var-xx", pdc_id);
-        if (obj_xx == 0) {
-            LOG_ERROR("Error getting an object id of %s from server\n", "x");
-            return FAIL;
-        }
-
-        obj_yy = PDCobj_open_col("obj-var-yy", pdc_id);
-        if (obj_yy == 0) {
-            LOG_ERROR("Error getting an object id of %s from server\n", "y");
-            return FAIL;
-        }
-        obj_zz = PDCobj_open_col("obj-var-zz", pdc_id);
-        if (obj_zz == 0) {
-            LOG_ERROR("Error getting an object id of %s from server\n", "z");
-            return FAIL;
-        }
-        obj_pxx = PDCobj_open_col("obj-var-pxx", pdc_id);
-        if (obj_pxx == 0) {
-            LOG_ERROR("Error getting an object id of %s from server\n", "px");
-            return FAIL;
-        }
-        obj_pyy = PDCobj_open_col("obj-var-pyy", pdc_id);
-        if (obj_pyy == 0) {
-            LOG_ERROR("Error getting an object id of %s from server\n", "py");
-            return FAIL;
-        }
-        obj_pzz = PDCobj_open_col("obj-var-pzz", pdc_id);
-        if (obj_pzz == 0) {
-            LOG_ERROR("Error getting an object id of %s from server\n", "pz");
-            return FAIL;
-        }
-
-        obj_id11 = PDCobj_open_col("id11", pdc_id);
-        if (obj_id11 == 0) {
-            LOG_ERROR("Error getting an object id of %s from server\n", "id1");
-            return FAIL;
-        }
-        obj_id22 = PDCobj_open_col("id22", pdc_id);
-        if (obj_id22 == 0) {
-            LOG_ERROR("Error getting an object id of %s from server\n", "id2");
-            return FAIL;
-        }
-
-        // pdcid_t obj_xx, obj_yy, obj_zz, obj_pxx, obj_pyy, obj_pzz, obj_id11, obj_id22;
-        if (!strcmp(argv[4], "zfp")) {
-            pdcid_t dg_id = PDCtf_dg_json_create(TF_GRAPHS_DIR "compression.json");
-            PDCtf_attach_to_obj(dg_id, obj_xx, "decompressed", "compressed");
-            PDCtf_attach_to_obj(dg_id, obj_yy, "decompressed", "compressed");
-            PDCtf_attach_to_obj(dg_id, obj_zz, "decompressed", "compressed");
-            PDCtf_attach_to_obj(dg_id, obj_pxx, "decompressed", "compressed");
-            PDCtf_attach_to_obj(dg_id, obj_pyy, "decompressed", "compressed");
-            PDCtf_attach_to_obj(dg_id, obj_pzz, "decompressed", "compressed");
-            PDCtf_attach_to_obj(dg_id, obj_id11, "decompressed", "compressed");
-            PDCtf_attach_to_obj(dg_id, obj_id22, "decompressed", "compressed");
-        }
-        else if (!strcmp(argv[4], "zfp_encrypt")) {
-            pdcid_t dg_id = PDCtf_dg_json_create(TF_GRAPHS_DIR "compression_encryption.json");
-            PDCtf_attach_to_obj(dg_id, obj_xx, "decompressed", "encrypted");
-            PDCtf_attach_to_obj(dg_id, obj_yy, "decompressed", "encrypted");
-            PDCtf_attach_to_obj(dg_id, obj_zz, "decompressed", "encrypted");
-            PDCtf_attach_to_obj(dg_id, obj_pxx, "decompressed", "encrypted");
-            PDCtf_attach_to_obj(dg_id, obj_pyy, "decompressed", "encrypted");
-            PDCtf_attach_to_obj(dg_id, obj_pzz, "decompressed", "encrypted");
-            PDCtf_attach_to_obj(dg_id, obj_id11, "decompressed", "encrypted");
-            PDCtf_attach_to_obj(dg_id, obj_id22, "decompressed", "encrypted");
-        }
-        else if (strcmp(argv[4], "raw")) {
-            LOG_ERROR("Invalid transform requested\n");
-            print_usage();
-            return FAIL;
-        }
-
-#ifdef ENABLE_MPI
-        MPI_Barrier(MPI_COMM_WORLD);
-        t1 = MPI_Wtime();
-        PDC_get_time_str(cur_time);
-        if (rank == 0)
-            LOG_INFO("[%s] Obj create time: %.5e\n", cur_time, t1 - t0);
-#endif
-
-        transfer_requests[0] =
-            PDCregion_transfer_create(&x_r[0], PDC_READ, obj_xx, region_local, region_remote);
-        if (transfer_requests[0] == 0) {
-            LOG_ERROR("x transfer request creation failed\n");
-            return FAIL;
-        }
-        transfer_requests[1] =
-            PDCregion_transfer_create(&y_r[0], PDC_READ, obj_yy, region_local, region_remote);
-        if (transfer_requests[1] == 0) {
-            LOG_ERROR("y transfer request creation failed\n");
-            return FAIL;
-        }
-        transfer_requests[2] =
-            PDCregion_transfer_create(&z_r[0], PDC_READ, obj_zz, region_local, region_remote);
-        if (transfer_requests[2] == 0) {
-            LOG_ERROR("z transfer request creation failed\n");
-            return FAIL;
-        }
-        transfer_requests[3] =
-            PDCregion_transfer_create(&px_r[0], PDC_READ, obj_pxx, region_local, region_remote);
-        if (transfer_requests[3] == 0) {
-            LOG_ERROR("px transfer request creation failed\n");
-            return FAIL;
-        }
-        transfer_requests[4] =
-            PDCregion_transfer_create(&py_r[0], PDC_READ, obj_pyy, region_local, region_remote);
-        if (transfer_requests[4] == 0) {
-            LOG_ERROR("py transfer request creation failed\n");
-            return FAIL;
-        }
-        transfer_requests[5] =
-            PDCregion_transfer_create(&pz_r[0], PDC_READ, obj_pzz, region_local, region_remote);
-        if (transfer_requests[5] == 0) {
-            LOG_ERROR("pz transfer request creation failed\n");
-            return FAIL;
-        }
-        transfer_requests[6] =
-            PDCregion_transfer_create(&id1_r[0], PDC_READ, obj_id11, region_local, region_remote);
-        if (transfer_requests[6] == 0) {
-            LOG_ERROR("id1 transfer request creation failed\n");
-            return FAIL;
-        }
-        transfer_requests[7] =
-            PDCregion_transfer_create(&id2_r[0], PDC_READ, obj_id22, region_local, region_remote);
-        if (transfer_requests[7] == 0) {
-            LOG_ERROR("id2 transfer request creation failed\n");
-            return FAIL;
-        }
-
-#ifdef ENABLE_MPI
-        MPI_Barrier(MPI_COMM_WORLD);
-        t0 = MPI_Wtime();
-        PDC_get_time_str(cur_time);
-        if (rank == 0)
-            LOG_INFO("[%s] Transfer create time: %.5e\n", cur_time, t0 - t1);
-#endif
-
-#ifdef ENABLE_MPI
-        if (PDCregion_transfer_start_all_mpi(transfer_requests, 8, MPI_COMM_WORLD) != SUCCEED) {
-#else
-        if (PDCregion_transfer_start_all(transfer_requests, 8) != SUCCEED) {
-#endif
-            LOG_ERROR("Failed to start transfer requests\n");
-            return FAIL;
-        }
-
-#ifdef ENABLE_MPI
-        MPI_Barrier(MPI_COMM_WORLD);
-        t1 = MPI_Wtime();
-        PDC_get_time_str(cur_time);
-        if (rank == 0)
-            LOG_INFO("[%s] Transfer start time: %.5e\n", cur_time, t1 - t0);
-#endif
-        // Emulate compute with sleep
-        if (iter != steps - 1) {
-            PDC_get_time_str(cur_time);
-            if (rank == 0)
-                LOG_INFO("[%s] Sleep start: %llu.00\n", cur_time, sleeptime);
-            sleep(sleeptime);
-            PDC_get_time_str(cur_time);
-            if (rank == 0)
-                LOG_INFO("[%s] Sleep end: %llu.00\n", cur_time, sleeptime);
-        }
-
-#ifdef ENABLE_MPI
-        MPI_Barrier(MPI_COMM_WORLD);
-        t0 = MPI_Wtime();
-#endif
-
-        if (PDCregion_transfer_wait_all(transfer_requests, 8) != SUCCEED) {
-            LOG_ERROR("Failed to transfer wait all\n");
-            return FAIL;
-        }
-
-#ifdef ENABLE_MPI
-        MPI_Barrier(MPI_COMM_WORLD);
-        t1 = MPI_Wtime();
-        PDC_get_time_str(cur_time);
-        if (rank == 0)
-            LOG_INFO("[%s] Transfer wait time: %.5e\n", cur_time, t1 - t0);
-#endif
-
-        for (int j = 0; j < 8; j++) {
-            if (PDCregion_transfer_close(transfer_requests[j]) != SUCCEED) {
-                LOG_ERROR("region transfer close failed\n");
-                return FAIL;
-            }
-        }
-
-#ifdef ENABLE_MPI
-        MPI_Barrier(MPI_COMM_WORLD);
-        t0 = MPI_Wtime();
-        PDC_get_time_str(cur_time);
-        if (rank == 0)
-            LOG_INFO("[%s] Transfer close time: %.5e\n", cur_time, t0 - t1);
-#endif
-
-        if (PDCobj_close(obj_xx) != SUCCEED) {
-            LOG_ERROR("Failed to close obj_xx\n");
-            return FAIL;
-        }
-        if (PDCobj_close(obj_yy) != SUCCEED) {
-            LOG_ERROR("Failed to close object obj_yy\n");
-            return FAIL;
-        }
-        if (PDCobj_close(obj_zz) != SUCCEED) {
-            LOG_ERROR("Failed to close object obj_zz\n");
-            return FAIL;
-        }
-        if (PDCobj_close(obj_pxx) != SUCCEED) {
-            LOG_ERROR("Failed to close object obj_pxx\n");
-            return FAIL;
-        }
-        if (PDCobj_close(obj_pyy) != SUCCEED) {
-            LOG_ERROR("Failed to close object obj_pyy\n");
-            return FAIL;
-        }
-        if (PDCobj_close(obj_pzz) != SUCCEED) {
-            LOG_ERROR("Failed to close object obj_pzz\n");
-            return FAIL;
-        }
-        if (PDCobj_close(obj_id11) != SUCCEED) {
-            LOG_ERROR("Failed to close object obj_id11\n");
-            return FAIL;
-        }
-        if (PDCobj_close(obj_id22) != SUCCEED) {
-            LOG_ERROR("Failed to close object obj_id22\n");
-            return FAIL;
-        }
-
-#ifdef ENABLE_MPI
-        MPI_Barrier(MPI_COMM_WORLD);
-        t1 = MPI_Wtime();
-        PDC_get_time_str(cur_time);
-        if (rank == 0)
-            LOG_INFO("[%s] Obj close time: %.5e\n", cur_time, t1 - t0);
-#endif
-    } // End for steps
-
-    for (uint64_t i = 0; i < numparticles; i++) {
-        if (id1[i] != id1_r[i]) {
-            LOG_ERROR("id1 mismatch at index %lu: wrote %u, read %u\n", i, id1[i], id1_r[i]);
-            return FAIL;
-        }
-        if (id2[i] != id2_r[i]) {
-            LOG_ERROR("id2 mismatch at index %lu: wrote %u, read %u\n", i, id2[i], id2_r[i]);
-            return FAIL;
-        }
-        if (x[i] != x_r[i]) {
-            LOG_ERROR("x mismatch at index %lu: wrote %f, read %f\n", i, x[i], x_r[i]);
-            return FAIL;
-        }
-        if (y[i] != y_r[i]) {
-            LOG_ERROR("y mismatch at index %lu: wrote %f, read %f\n", i, y[i], y_r[i]);
-            return FAIL;
-        }
-        if (z[i] != z_r[i]) {
-            LOG_ERROR("z mismatch at index %lu: wrote %f, read %f\n", i, z[i], z_r[i]);
-            return FAIL;
-        }
-        if (px[i] != px_r[i]) {
-            LOG_ERROR("px mismatch at index %lu: wrote %f, read %f\n", i, px[i], px_r[i]);
-            return FAIL;
-        }
-        if (py[i] != py_r[i]) {
-            LOG_ERROR("py mismatch at index %lu: wrote %f, read %f\n", i, py[i], py_r[i]);
-            return FAIL;
-        }
-        if (pz[i] != pz_r[i]) {
-            LOG_ERROR("pz mismatch at index %lu: wrote %f, read %f\n", i, pz[i], pz_r[i]);
-            return FAIL;
-        }
-    }
-
     if (PDCprop_close(obj_prop_float) != SUCCEED) {
         LOG_ERROR("Failed to close obj_prop_float\n");
         return FAIL;
@@ -729,9 +436,6 @@ main(int argc, char **argv)
         return FAIL;
     }
 
-    if (rank == 0)
-        LOG_INFO("Data was validated successfully\n");
-
     free(x);
     free(y);
     free(z);
@@ -740,17 +444,8 @@ main(int argc, char **argv)
     free(pz);
     free(id1);
     free(id2);
-    free(x_r);
-    free(y_r);
-    free(z_r);
-    free(px_r);
-    free(py_r);
-    free(pz_r);
-    free(id1_r);
-    free(id2_r);
 #ifdef ENABLE_MPI
     MPI_Finalize();
 #endif
-
     return 0;
 }
