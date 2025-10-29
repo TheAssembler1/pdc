@@ -106,12 +106,6 @@ set(PROGRAMS
   region/region_transfer_set_dims_3D
   query/query_data
   misc/producer_waitall
-  hjoh/vpicio_client_cache
-  hjoh/vpicio_client_cache_all
-  hjoh/bdcats_client_cache
-  hjoh/bdcats_client_cache_all
-  hjoh/vpic_hdf5
-  hjoh/bdcats_hdf5
 )
 
 # TODO: Check if import_vpic.c is needed. If yes, we have to add the following :
