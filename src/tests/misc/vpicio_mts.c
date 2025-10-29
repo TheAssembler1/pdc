@@ -65,9 +65,7 @@ main(int argc, char **argv)
     int        x_dim = 64, y_dim = 64, z_dim = 64, ndim = 1, steps = 1, sleeptime = 0;
     uint64_t   numparticles, dims[1], offset_local[1], offset_remote[1], mysize[1];
     double     t0, t1;
-    char       cur_time[64];
-    time_t     t;
-    struct tm *tm;
+    char       obj_name[64];
 
     pdcid_t transfer_request_x, transfer_request_y, transfer_request_z, transfer_request_px,
         transfer_request_py, transfer_request_pz, transfer_request_id1, transfer_request_id2;
@@ -158,50 +156,53 @@ main(int argc, char **argv)
             LOG_INFO("\n#Step  %d\n", iter);
         t0 = MPI_Wtime();
 #endif
-        PDCprop_set_obj_time_step(obj_prop_float, iter);
-        PDCprop_set_obj_time_step(obj_prop_int, iter);
 
-        obj_xx = PDCobj_create_mpi(cont_id, "obj-var-xx", obj_prop_float, 0, comm);
+        sprintf(obj_name, "%s", "obj-var-xx-%d", iter);
+        obj_xx = PDCobj_create_mpi(cont_id, obj_name, obj_prop_float, 0, comm);
         if (obj_xx == 0) {
-            LOG_ERROR("Error getting an object id of %s from server\n", "x");
+            LOG_ERROR("Error getting an object id of %s from server\n", obj_name);
             return FAIL;
         }
-
-        obj_yy = PDCobj_create_mpi(cont_id, "obj-var-yy", obj_prop_float, 0, comm);
+        sprintf(obj_name, "%s", "obj-var-yy-%d", iter);
+        obj_xx = PDCobj_create_mpi(cont_id, obj_name, obj_prop_float, 0, comm);
         if (obj_yy == 0) {
-            LOG_ERROR("Error getting an object id of %s from server\n", "y");
+            LOG_ERROR("Error getting an object id of %s from server\n", obj_name);
             return FAIL;
         }
-        obj_zz = PDCobj_create_mpi(cont_id, "obj-var-zz", obj_prop_float, 0, comm);
+        sprintf(obj_name, "%s", "obj-var-zz-%d", iter);
+        obj_zz = PDCobj_create_mpi(cont_id, obj_name, obj_prop_float, 0, comm);
         if (obj_zz == 0) {
-            LOG_ERROR("Error getting an object id of %s from server\n", "z");
+            LOG_ERROR("Error getting an object id of %s from server\n", obj_name);
             return FAIL;
         }
-        obj_pxx = PDCobj_create_mpi(cont_id, "obj-var-pxx", obj_prop_float, 0, comm);
+        sprintf(obj_name, "%s", "obj-var-pxx-%d", iter);
+        obj_pxx = PDCobj_create_mpi(cont_id, obj_name, obj_prop_float, 0, comm);
         if (obj_pxx == 0) {
-            LOG_ERROR("Error getting an object id of %s from server\n", "px");
+            LOG_ERROR("Error getting an object id of %s from server\n", obj_name);
             return FAIL;
         }
-        obj_pyy = PDCobj_create_mpi(cont_id, "obj-var-pyy", obj_prop_float, 0, comm);
+        sprintf(obj_name, "%s", "obj-var-pyy-%d", iter);
+        obj_pyy = PDCobj_create_mpi(cont_id, obj_name, obj_prop_float, 0, comm);
         if (obj_pyy == 0) {
-            LOG_ERROR("Error getting an object id of %s from server\n", "py");
+            LOG_ERROR("Error getting an object id of %s from server\n", obj_name);
             return FAIL;
         }
-        obj_pzz = PDCobj_create_mpi(cont_id, "obj-var-pzz", obj_prop_float, 0, comm);
+        sprintf(obj_name, "%s", "obj-var-pzz-%d", iter);
+        obj_pzz = PDCobj_create_mpi(cont_id, obj_name, obj_prop_float, 0, comm);
         if (obj_pzz == 0) {
-            LOG_ERROR("Error getting an object id of %s from server\n", "pz");
+            LOG_ERROR("Error getting an object id of %s from server\n", obj_name);
             return FAIL;
         }
-
-        obj_id11 = PDCobj_create_mpi(cont_id, "id11", obj_prop_int, 0, comm);
+        sprintf(obj_name, "%s", "id11-%d", iter);
+        obj_id11 = PDCobj_create_mpi(cont_id, obj_name, obj_prop_int, 0, comm);
         if (obj_id11 == 0) {
-            LOG_ERROR("Error getting an object id of %s from server\n", "id1");
+            LOG_ERROR("Error getting an object id of %s from server\n", obj_name);
             return FAIL;
         }
-        obj_id22 = PDCobj_create_mpi(cont_id, "id22", obj_prop_int, 0, comm);
+        sprintf(obj_name, "%s", "id22-%d", iter);
+        obj_id22 = PDCobj_create_mpi(cont_id, obj_name, obj_prop_int, 0, comm);
         if (obj_id22 == 0) {
-            LOG_ERROR("Error getting an object id of %s from server\n", "id2");
-            return FAIL;
+            LOG_ERROR("Error getting an object id of %s from server\n", obj_name);
         }
 
 #ifdef ENABLE_MPI
@@ -212,8 +213,7 @@ main(int argc, char **argv)
             LOG_INFO("Obj create time: %.5e\n", t1 - t0);
 #endif
 
-        transfer_requests[0] =
-            PDCregion_transfer_create(&x[0], PDC_WRITE, obj_xx, region_local, region_remote);
+        transfer_requests[0] = PDCregion_transfer_create(&x[0], PDC_WRITE, obj_xx, region_local, region_remote);
         if (transfer_requests[0] == 0) {
             LOG_ERROR("x transfer request creation failed\n");
             return FAIL;
