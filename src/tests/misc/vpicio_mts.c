@@ -60,14 +60,14 @@ main(int argc, char **argv)
 #else
     int comm = 1;
 #endif
-    float *    x, *y, *z, *px, *py, *pz;
-    int *      id1, *id2;
-    int        x_dim = 64, y_dim = 64, z_dim = 64, ndim = 1, steps = 1, sleeptime = 0;
-    uint64_t   numparticles, dims[1], offset_local[1], offset_remote[1], mysize[1];
-    double     t0, t1;
-    const char *obj_names[] = {"obj-var-xx", "obj-var-yy", "obj-var-zz", "obj-var-pxx",
-                               "obj-var-pyy", "obj-var-pzz", "id11", "id22"};
-    char       obj_name[64];
+    float *     x, *y, *z, *px, *py, *pz;
+    int *       id1, *id2;
+    int         x_dim = 64, y_dim = 64, z_dim = 64, ndim = 1, steps = 1, sleeptime = 0;
+    uint64_t    numparticles, dims[1], offset_local[1], offset_remote[1], mysize[1];
+    double      t0, t1;
+    const char *obj_names[] = {"obj-var-xx",  "obj-var-yy",  "obj-var-zz", "obj-var-pxx",
+                               "obj-var-pyy", "obj-var-pzz", "id11",       "id22"};
+    char        obj_name[64];
 
     pdcid_t transfer_requests[8];
 
@@ -100,7 +100,7 @@ main(int argc, char **argv)
     id1 = (int *)malloc(numparticles * sizeof(int));
     id2 = (int *)malloc(numparticles * sizeof(int));
 
-    void * data_ptrs[]  = {&x[0], &y[0], &z[0], &px[0], &py[0], &pz[0], &id1[0], &id2[0]};
+    void *data_ptrs[] = {&x[0], &y[0], &z[0], &px[0], &py[0], &pz[0], &id1[0], &id2[0]};
 
     // create a pdc
     pdc_id = PDCinit("pdc");
@@ -151,10 +151,10 @@ main(int argc, char **argv)
 
     for (int iter = 0; iter < steps; iter++) {
         // Change data for different steps for verification
-        id1[0] = rank + iter;
-        id2[0] = rank + iter*2;
-        id1[numparticles-1] = rank - iter;
-        id2[numparticles-1] = rank - iter*2;
+        id1[0]                = rank + iter;
+        id2[0]                = rank + iter * 2;
+        id1[numparticles - 1] = rank - iter;
+        id2[numparticles - 1] = rank - iter * 2;
 
 #ifdef ENABLE_MPI
         MPI_Barrier(MPI_COMM_WORLD);

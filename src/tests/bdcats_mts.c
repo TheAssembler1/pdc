@@ -45,7 +45,8 @@ uniform_random_number()
 void
 print_usage()
 {
-    LOG_DEBUG("Usage: srun -n bdcats_mts #particles #steps sleep_time(s) method(1:wait 2:wait all, default)\n");
+    LOG_DEBUG(
+        "Usage: srun -n bdcats_mts #particles #steps sleep_time(s) method(1:wait 2:wait all, default)\n");
 }
 
 int
@@ -62,10 +63,10 @@ main(int argc, char **argv)
 #else
     int comm = 1;
 #endif
-    char   obj_name[128];
-    float *x, *y, *z;
-    float *px, *py, *pz;
-    int *id1, *id2, i, j;
+    char      obj_name[128];
+    float *   x, *y, *z;
+    float *   px, *py, *pz;
+    int *     id1, *id2, i, j;
     uint64_t  numparticles;
     int       ndim = 1;
     uint64_t *offset;
