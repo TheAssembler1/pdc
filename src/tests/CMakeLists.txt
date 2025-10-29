@@ -79,7 +79,6 @@ set(PROGRAMS
   obj/delete_obj
   misc/vpicio
   misc/vpicio_mts
-  misc/vpicio_all
   misc/bdcats
   misc/bdcats_mts
   deprecated/vpicio_old

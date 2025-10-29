@@ -924,7 +924,7 @@ drc_access_again:
         LOG_INFO("Read cache enabled\n");
 #endif
 
-#ifdef PDC_ENABLE_DART
+#ifdef PDC_ENABLE_IDIOMS
     // Initialize IDIOMS
     PDC_Server_metadata_index_init(pdc_server_size_g, pdc_server_rank_g);
 #endif
@@ -938,7 +938,7 @@ drc_access_again:
         ret_value = PDC_Server_restart(checkpoint_file);
         if (ret_value != SUCCEED)
             PGOTO_ERROR(FAIL, "Error with PDC_Server_restart");
-#ifdef PDC_ENABLE_DART
+#ifdef PDC_ENABLE_IDIOMS
         metadata_index_recover(pdc_server_tmp_dir_g, pdc_server_size_g, pdc_server_rank_g);
 #endif
     }
@@ -1370,7 +1370,7 @@ PDC_Server_checkpoint()
         LOG_INFO("Checkpointed %10d objects, with %10d regions \n", all_metadata_size, all_region_count);
     }
 
-#ifdef PDC_ENABLE_DART
+#ifdef PDC_ENABLE_IDIOMS
     metadata_index_dump(pdc_server_tmp_dir_g, pdc_server_rank_g);
 #endif
 
@@ -1979,7 +1979,7 @@ PDC_Server_mercury_register()
     PDC_region_analysis_release_register(hg_class_g);
 
     // DART Index
-#ifdef PDC_ENABLE_DART
+#ifdef PDC_ENABLE_IDIOMS
     PDC_dart_get_server_info_register(hg_class_g);
     PDC_dart_perform_one_server_register(hg_class_g);
 #endif
