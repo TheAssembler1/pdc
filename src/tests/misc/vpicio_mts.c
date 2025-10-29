@@ -54,21 +54,21 @@ main(int argc, char **argv)
     int     rank = 0, size = 1;
     pdcid_t pdc_id, cont_prop, cont_id, region_local, region_remote;
     pdcid_t obj_prop_float, obj_prop_int;
-    pdcid_t obj_xx, obj_yy, obj_zz, obj_pxx, obj_pyy, obj_pzz, obj_id11, obj_id22;
+    pdcid_t obj_ids[8];
 #ifdef ENABLE_MPI
     MPI_Comm comm;
 #else
     int comm = 1;
 #endif
-    float *  x, *y, *z, *px, *py, *pz;
-    int *    id1, *id2;
-    int      x_dim = 64, y_dim = 64, z_dim = 64, ndim = 1, steps = 1, sleeptime = 0;
-    uint64_t numparticles, dims[1], offset_local[1], offset_remote[1], mysize[1];
-    double   t0, t1;
-    char     obj_name[64];
+    float *    x, *y, *z, *px, *py, *pz;
+    int *      id1, *id2;
+    int        x_dim = 64, y_dim = 64, z_dim = 64, ndim = 1, steps = 1, sleeptime = 0;
+    uint64_t   numparticles, dims[1], offset_local[1], offset_remote[1], mysize[1];
+    double     t0, t1;
+    const char *obj_names[] = {"obj-var-xx", "obj-var-yy", "obj-var-zz", "obj-var-pxx",
+                               "obj-var-pyy", "obj-var-pzz", "id11", "id22"};
+    char       obj_name[64];
 
-    pdcid_t transfer_request_x, transfer_request_y, transfer_request_z, transfer_request_px,
-        transfer_request_py, transfer_request_pz, transfer_request_id1, transfer_request_id2;
     pdcid_t transfer_requests[8];
 
 #ifdef ENABLE_MPI
@@ -99,6 +99,8 @@ main(int argc, char **argv)
 
     id1 = (int *)malloc(numparticles * sizeof(int));
     id2 = (int *)malloc(numparticles * sizeof(int));
+
+    void * data_ptrs[]  = {&x[0], &y[0], &z[0], &px[0], &py[0], &pz[0], &id1[0], &id2[0]};
 
     // create a pdc
     pdc_id = PDCinit("pdc");
@@ -148,124 +150,48 @@ main(int argc, char **argv)
     region_remote = PDCregion_create(ndim, offset_remote, mysize);
 
     for (int iter = 0; iter < steps; iter++) {
+        // Change data for different steps for verification
+        id1[0] = rank + iter;
+        id2[0] = rank + iter*2;
+        id1[numparticles-1] = rank - iter;
+        id2[numparticles-1] = rank - iter*2;
 
 #ifdef ENABLE_MPI
         MPI_Barrier(MPI_COMM_WORLD);
-        /* PDC_get_time_str(cur_time); */
         if (rank == 0)
             LOG_INFO("\n#Step  %d\n", iter);
         t0 = MPI_Wtime();
 #endif
 
-        sprintf(obj_name, "%s", "obj-var-xx-%d", iter);
-        obj_xx = PDCobj_create_mpi(cont_id, obj_name, obj_prop_float, 0, comm);
-        if (obj_xx == 0) {
-            LOG_ERROR("Error getting an object id of %s from server\n", obj_name);
-            return FAIL;
-        }
-        sprintf(obj_name, "%s", "obj-var-yy-%d", iter);
-        obj_xx = PDCobj_create_mpi(cont_id, obj_name, obj_prop_float, 0, comm);
-        if (obj_yy == 0) {
-            LOG_ERROR("Error getting an object id of %s from server\n", obj_name);
-            return FAIL;
-        }
-        sprintf(obj_name, "%s", "obj-var-zz-%d", iter);
-        obj_zz = PDCobj_create_mpi(cont_id, obj_name, obj_prop_float, 0, comm);
-        if (obj_zz == 0) {
-            LOG_ERROR("Error getting an object id of %s from server\n", obj_name);
-            return FAIL;
-        }
-        sprintf(obj_name, "%s", "obj-var-pxx-%d", iter);
-        obj_pxx = PDCobj_create_mpi(cont_id, obj_name, obj_prop_float, 0, comm);
-        if (obj_pxx == 0) {
-            LOG_ERROR("Error getting an object id of %s from server\n", obj_name);
-            return FAIL;
-        }
-        sprintf(obj_name, "%s", "obj-var-pyy-%d", iter);
-        obj_pyy = PDCobj_create_mpi(cont_id, obj_name, obj_prop_float, 0, comm);
-        if (obj_pyy == 0) {
-            LOG_ERROR("Error getting an object id of %s from server\n", obj_name);
-            return FAIL;
-        }
-        sprintf(obj_name, "%s", "obj-var-pzz-%d", iter);
-        obj_pzz = PDCobj_create_mpi(cont_id, obj_name, obj_prop_float, 0, comm);
-        if (obj_pzz == 0) {
-            LOG_ERROR("Error getting an object id of %s from server\n", obj_name);
-            return FAIL;
-        }
-        sprintf(obj_name, "%s", "id11-%d", iter);
-        obj_id11 = PDCobj_create_mpi(cont_id, obj_name, obj_prop_int, 0, comm);
-        if (obj_id11 == 0) {
-            LOG_ERROR("Error getting an object id of %s from server\n", obj_name);
-            return FAIL;
-        }
-        sprintf(obj_name, "%s", "id22-%d", iter);
-        obj_id22 = PDCobj_create_mpi(cont_id, obj_name, obj_prop_int, 0, comm);
-        if (obj_id22 == 0) {
-            LOG_ERROR("Error getting an object id of %s from server\n", obj_name);
+        for (int i = 0; i < 8; i++) {
+            sprintf(obj_name, "%s-%d", obj_names[i], iter);
+            pdcid_t obj_prop = (i < 6) ? obj_prop_float : obj_prop_int;
+            obj_ids[i]       = PDCobj_create_mpi(cont_id, obj_name, obj_prop, 0, comm);
+            if (obj_ids[i] == 0) {
+                LOG_ERROR("Error getting an object id of %s from server\n", obj_name);
+                return FAIL;
+            }
         }
 
 #ifdef ENABLE_MPI
         MPI_Barrier(MPI_COMM_WORLD);
         t1 = MPI_Wtime();
-        /* PDC_get_time_str(cur_time); */
         if (rank == 0)
             LOG_INFO("Obj create time: %.5e\n", t1 - t0);
 #endif
 
-        transfer_requests[0] =
-            PDCregion_transfer_create(&x[0], PDC_WRITE, obj_xx, region_local, region_remote);
-        if (transfer_requests[0] == 0) {
-            LOG_ERROR("x transfer request creation failed\n");
-            return FAIL;
-        }
-        transfer_requests[1] =
-            PDCregion_transfer_create(&y[0], PDC_WRITE, obj_yy, region_local, region_remote);
-        if (transfer_requests[1] == 0) {
-            LOG_ERROR("y transfer request creation failed\n");
-            return FAIL;
-        }
-        transfer_requests[2] =
-            PDCregion_transfer_create(&z[0], PDC_WRITE, obj_zz, region_local, region_remote);
-        if (transfer_requests[2] == 0) {
-            LOG_ERROR("z transfer request creation failed\n");
-            return FAIL;
-        }
-        transfer_requests[3] =
-            PDCregion_transfer_create(&px[0], PDC_WRITE, obj_pxx, region_local, region_remote);
-        if (transfer_requests[3] == 0) {
-            LOG_ERROR("px transfer request creation failed\n");
-            return FAIL;
-        }
-        transfer_requests[4] =
-            PDCregion_transfer_create(&py[0], PDC_WRITE, obj_pyy, region_local, region_remote);
-        if (transfer_requests[4] == 0) {
-            LOG_ERROR("py transfer request creation failed\n");
-            return FAIL;
-        }
-        transfer_requests[5] =
-            PDCregion_transfer_create(&pz[0], PDC_WRITE, obj_pzz, region_local, region_remote);
-        if (transfer_requests[5] == 0) {
-            LOG_ERROR("pz transfer request creation failed\n");
-            return FAIL;
-        }
-        transfer_requests[6] =
-            PDCregion_transfer_create(&id1[0], PDC_WRITE, obj_id11, region_local, region_remote);
-        if (transfer_requests[6] == 0) {
-            LOG_ERROR("id1 transfer request creation failed\n");
-            return FAIL;
-        }
-        transfer_requests[7] =
-            PDCregion_transfer_create(&id2[0], PDC_WRITE, obj_id22, region_local, region_remote);
-        if (transfer_requests[7] == 0) {
-            LOG_ERROR("id2 transfer request creation failed\n");
-            return FAIL;
+        for (int i = 0; i < 8; i++) {
+            transfer_requests[i] =
+                PDCregion_transfer_create(data_ptrs[i], PDC_WRITE, obj_ids[i], region_local, region_remote);
+            if (transfer_requests[i] == 0) {
+                LOG_ERROR("%s transfer request creation failed\n", obj_names[i]);
+                return FAIL;
+            }
         }
 
 #ifdef ENABLE_MPI
         MPI_Barrier(MPI_COMM_WORLD);
         t0 = MPI_Wtime();
-        /* PDC_get_time_str(cur_time); */
         if (rank == 0)
             LOG_INFO("Transfer create time: %.5e\n", t0 - t1);
 #endif
@@ -282,17 +208,14 @@ main(int argc, char **argv)
 #ifdef ENABLE_MPI
         MPI_Barrier(MPI_COMM_WORLD);
         t1 = MPI_Wtime();
-        /* PDC_get_time_str(cur_time); */
         if (rank == 0)
             LOG_INFO("Transfer start time: %.5e\n", t1 - t0);
 #endif
         // Emulate compute with sleep
         if (iter != steps - 1) {
-            /* PDC_get_time_str(cur_time); */
             if (rank == 0)
                 LOG_INFO("Sleep start: %llu.00\n", sleeptime);
             sleep(sleeptime);
-            /* PDC_get_time_str(cur_time); */
             if (rank == 0)
                 LOG_INFO("Sleep end: %llu.00\n", sleeptime);
         }
@@ -310,7 +233,6 @@ main(int argc, char **argv)
 #ifdef ENABLE_MPI
         MPI_Barrier(MPI_COMM_WORLD);
         t1 = MPI_Wtime();
-        /* PDC_get_time_str(cur_time); */
         if (rank == 0)
             LOG_INFO("Transfer wait time: %.5e\n", t1 - t0);
 #endif
@@ -325,48 +247,20 @@ main(int argc, char **argv)
 #ifdef ENABLE_MPI
         MPI_Barrier(MPI_COMM_WORLD);
         t0 = MPI_Wtime();
-        /* PDC_get_time_str(cur_time); */
         if (rank == 0)
             LOG_INFO("Transfer close time: %.5e\n", t0 - t1);
 #endif
 
-        if (PDCobj_close(obj_xx) != SUCCEED) {
-            LOG_ERROR("Failed to close obj_xx\n");
-            return FAIL;
-        }
-        if (PDCobj_close(obj_yy) != SUCCEED) {
-            LOG_ERROR("Failed to close object obj_yy\n");
-            return FAIL;
-        }
-        if (PDCobj_close(obj_zz) != SUCCEED) {
-            LOG_ERROR("Failed to close object obj_zz\n");
-            return FAIL;
-        }
-        if (PDCobj_close(obj_pxx) != SUCCEED) {
-            LOG_ERROR("Failed to close object obj_pxx\n");
-            return FAIL;
-        }
-        if (PDCobj_close(obj_pyy) != SUCCEED) {
-            LOG_ERROR("Failed to close object obj_pyy\n");
-            return FAIL;
-        }
-        if (PDCobj_close(obj_pzz) != SUCCEED) {
-            LOG_ERROR("Failed to close object obj_pzz\n");
-            return FAIL;
-        }
-        if (PDCobj_close(obj_id11) != SUCCEED) {
-            LOG_ERROR("Failed to close object obj_id11\n");
-            return FAIL;
-        }
-        if (PDCobj_close(obj_id22) != SUCCEED) {
-            LOG_ERROR("Failed to close object obj_id22\n");
-            return FAIL;
+        for (int i = 0; i < 8; i++) {
+            if (PDCobj_close(obj_ids[i]) != SUCCEED) {
+                LOG_ERROR("Failed to close object #%d\n", i);
+                return FAIL;
+            }
         }
 
 #ifdef ENABLE_MPI
         MPI_Barrier(MPI_COMM_WORLD);
         t1 = MPI_Wtime();
-        /* PDC_get_time_str(cur_time); */
         if (rank == 0)
             LOG_INFO("Obj close time: %.5e\n", t1 - t0);
 #endif
