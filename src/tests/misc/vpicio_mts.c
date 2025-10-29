@@ -60,12 +60,12 @@ main(int argc, char **argv)
 #else
     int comm = 1;
 #endif
-    float *    x, *y, *z, *px, *py, *pz;
-    int *      id1, *id2;
-    int        x_dim = 64, y_dim = 64, z_dim = 64, ndim = 1, steps = 1, sleeptime = 0;
-    uint64_t   numparticles, dims[1], offset_local[1], offset_remote[1], mysize[1];
-    double     t0, t1;
-    char       obj_name[64];
+    float *  x, *y, *z, *px, *py, *pz;
+    int *    id1, *id2;
+    int      x_dim = 64, y_dim = 64, z_dim = 64, ndim = 1, steps = 1, sleeptime = 0;
+    uint64_t numparticles, dims[1], offset_local[1], offset_remote[1], mysize[1];
+    double   t0, t1;
+    char     obj_name[64];
 
     pdcid_t transfer_request_x, transfer_request_y, transfer_request_z, transfer_request_px,
         transfer_request_py, transfer_request_pz, transfer_request_id1, transfer_request_id2;
@@ -213,7 +213,8 @@ main(int argc, char **argv)
             LOG_INFO("Obj create time: %.5e\n", t1 - t0);
 #endif
 
-        transfer_requests[0] = PDCregion_transfer_create(&x[0], PDC_WRITE, obj_xx, region_local, region_remote);
+        transfer_requests[0] =
+            PDCregion_transfer_create(&x[0], PDC_WRITE, obj_xx, region_local, region_remote);
         if (transfer_requests[0] == 0) {
             LOG_ERROR("x transfer request creation failed\n");
             return FAIL;
