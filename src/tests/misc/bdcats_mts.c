@@ -59,14 +59,14 @@ main(int argc, char **argv)
 #else
     int comm = 1;
 #endif
-    float *    x, *y, *z, *px, *py, *pz;
-    int *      id1, *id2;
-    int        x_dim = 64, y_dim = 64, z_dim = 64, ndim = 1, steps = 1, sleeptime = 0;
-    uint64_t   numparticles, dims[1], offset_local[1], offset_remote[1], mysize[1];
-    double     t0, t1;
-    const char *obj_names[] = {"obj-var-xx", "obj-var-yy", "obj-var-zz", "obj-var-pxx",
-                               "obj-var-pyy", "obj-var-pzz", "id1", "id2"};
-    char       obj_name[64];
+    float *     x, *y, *z, *px, *py, *pz;
+    int *       id1, *id2;
+    int         x_dim = 64, y_dim = 64, z_dim = 64, ndim = 1, steps = 1, sleeptime = 0;
+    uint64_t    numparticles, dims[1], offset_local[1], offset_remote[1], mysize[1];
+    double      t0, t1;
+    const char *obj_names[] = {"obj-var-xx",  "obj-var-yy",  "obj-var-zz", "obj-var-pxx",
+                               "obj-var-pyy", "obj-var-pzz", "id1",        "id2"};
+    char        obj_name[64];
 
     pdcid_t transfer_requests[8];
 
@@ -143,7 +143,6 @@ main(int argc, char **argv)
             LOG_INFO("Obj open time: %.5e\n", t1 - t0);
 #endif
 
-
         for (int i = 0; i < 8; i++) {
             transfer_requests[i] =
                 PDCregion_transfer_create(data_ptrs[i], PDC_READ, obj_ids[i], region_local, region_remote);
@@ -195,9 +194,12 @@ main(int argc, char **argv)
         }
 
         // Verify data of id1 and id2
-        if (id1[0] != rank + iter || id2[0] != rank + iter*2 || id1[numparticles-1] != rank - iter || id2[numparticles-1] != rank - iter*2) {
-            LOG_ERROR("Data verification failed for id1/id2 at rank %d for step %d! id1[0]=%d/%d, id2[0]=%d/%d, id1[end]=%d/%d, id2[end]=%d/%d\n",
-                      rank, iter, id1[0], rank + iter, id2[0], rank + iter*2, id1[numparticles-1], rank - iter, id2[numparticles-1], rank - iter*2);
+        if (id1[0] != rank + iter || id2[0] != rank + iter * 2 || id1[numparticles - 1] != rank - iter ||
+            id2[numparticles - 1] != rank - iter * 2) {
+            LOG_ERROR("Data verification failed for id1/id2 at rank %d for step %d! id1[0]=%d/%d, "
+                      "id2[0]=%d/%d, id1[end]=%d/%d, id2[end]=%d/%d\n",
+                      rank, iter, id1[0], rank + iter, id2[0], rank + iter * 2, id1[numparticles - 1],
+                      rank - iter, id2[numparticles - 1], rank - iter * 2);
             return FAIL;
         }
 
