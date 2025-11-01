@@ -45,15 +45,14 @@ uniform_random_number()
 void
 print_usage()
 {
-    LOG_JUST_PRINT("Usage: srun -n ./vpicio #particles #steps sleep_time(s)\n");
+    LOG_JUST_PRINT("Usage: srun -n ./bdcats_mts #particles #steps sleep_time(s)\n");
 }
 
 int
 main(int argc, char **argv)
 {
     int     rank = 0, size = 1;
-    pdcid_t pdc_id, cont_prop, cont_id, region_local, region_remote;
-    pdcid_t obj_prop_float, obj_prop_int;
+    pdcid_t pdc_id, cont_id, region_local, region_remote;
     pdcid_t obj_ids[8];
 #ifdef ENABLE_MPI
     MPI_Comm comm;
@@ -105,40 +104,11 @@ main(int argc, char **argv)
     // create a pdc
     pdc_id = PDCinit("pdc");
 
-    // create a container property
-    cont_prop = PDCprop_create(PDC_CONT_CREATE, pdc_id);
-    if (cont_prop <= 0) {
-        LOG_ERROR("Failed to create container property");
-        return FAIL;
-    }
     // create a container
-    cont_id = PDCcont_create_col("c1", cont_prop);
+    cont_id = PDCcont_open("c1", pdc_id);
     if (cont_id <= 0) {
         LOG_ERROR("Failed to create container");
         return FAIL;
-    }
-    // create an object property
-    obj_prop_float = PDCprop_create(PDC_OBJ_CREATE, pdc_id);
-    PDCprop_set_obj_dims(obj_prop_float, 1, dims);
-    PDCprop_set_obj_type(obj_prop_float, PDC_FLOAT);
-    PDCprop_set_obj_user_id(obj_prop_float, getuid());
-    PDCprop_set_obj_app_name(obj_prop_float, "VPICIO");
-    PDCprop_set_obj_tags(obj_prop_float, "tag0=1");
-    /* PDCprop_set_obj_transfer_region_type(obj_prop_float, PDC_REGION_LOCAL); */
-    PDCprop_set_obj_transfer_region_type(obj_prop_float, PDC_REGION_STATIC);
-
-    obj_prop_int = PDCprop_obj_dup(obj_prop_float);
-    PDCprop_set_obj_type(obj_prop_int, PDC_INT);
-
-    for (uint64_t i = 0; i < numparticles; i++) {
-        id1[i] = i;
-        id2[i] = i * 2;
-        x[i]   = uniform_random_number() * x_dim;
-        y[i]   = uniform_random_number() * y_dim;
-        z[i]   = ((float)id1[i] / numparticles) * z_dim;
-        px[i]  = uniform_random_number() * x_dim;
-        py[i]  = uniform_random_number() * y_dim;
-        pz[i]  = ((float)id2[i] / numparticles) * z_dim;
     }
 
     offset_local[0]  = 0;
@@ -150,11 +120,6 @@ main(int argc, char **argv)
     region_remote = PDCregion_create(ndim, offset_remote, mysize);
 
     for (int iter = 0; iter < steps; iter++) {
-        // Change data for different steps for verification
-        id1[0]                = rank + iter;
-        id2[0]                = rank + iter * 2;
-        id1[numparticles - 1] = rank - iter;
-        id2[numparticles - 1] = rank - iter * 2;
 
 #ifdef ENABLE_MPI
         MPI_Barrier(MPI_COMM_WORLD);
@@ -162,30 +127,25 @@ main(int argc, char **argv)
             LOG_INFO("\n#Step  %d\n", iter);
         t0 = MPI_Wtime();
 #endif
-
         for (int i = 0; i < 8; i++) {
             sprintf(obj_name, "%s-%d", obj_names[i], iter);
-            pdcid_t obj_prop = (i < 6) ? obj_prop_float : obj_prop_int;
-            obj_ids[i]       = PDCobj_create_mpi(cont_id, obj_name, obj_prop, 0, comm);
+            obj_ids[i] = PDCobj_open(obj_name, pdc_id);
             if (obj_ids[i] == 0) {
                 LOG_ERROR("Error getting an object id of %s from server\n", obj_name);
                 return FAIL;
             }
-
-            pdcid_t dg_id = PDCtf_dg_json_create(TF_GRAPHS_DIR "compression.json");
-            PDCtf_attach_to_obj(dg_id, obj_ids[i], "decompressed", "compressed");
         }
 
 #ifdef ENABLE_MPI
         MPI_Barrier(MPI_COMM_WORLD);
         t1 = MPI_Wtime();
         if (rank == 0)
-            LOG_INFO("Obj create time: %.5e\n", t1 - t0);
+            LOG_INFO("Obj open time: %.5e\n", t1 - t0);
 #endif
 
         for (int i = 0; i < 8; i++) {
             transfer_requests[i] =
-                PDCregion_transfer_create(data_ptrs[i], PDC_WRITE, obj_ids[i], region_local, region_remote);
+                PDCregion_transfer_create(data_ptrs[i], PDC_READ, obj_ids[i], region_local, region_remote);
             if (transfer_requests[i] == 0) {
                 LOG_ERROR("%s transfer request creation failed\n", obj_names[i]);
                 return FAIL;
@@ -233,6 +193,16 @@ main(int argc, char **argv)
             return FAIL;
         }
 
+        // Verify data of id1 and id2
+        if (id1[0] != rank + iter || id2[0] != rank + iter * 2 || id1[numparticles - 1] != rank - iter ||
+            id2[numparticles - 1] != rank - iter * 2) {
+            LOG_ERROR("Data verification failed for id1/id2 at rank %d for step %d! id1[0]=%d/%d, "
+                      "id2[0]=%d/%d, id1[end]=%d/%d, id2[end]=%d/%d\n",
+                      rank, iter, id1[0], rank + iter, id2[0], rank + iter * 2, id1[numparticles - 1],
+                      rank - iter, id2[numparticles - 1], rank - iter * 2);
+            return FAIL;
+        }
+
 #ifdef ENABLE_MPI
         MPI_Barrier(MPI_COMM_WORLD);
         t1 = MPI_Wtime();
@@ -271,14 +241,6 @@ main(int argc, char **argv)
 
     PDC_timing_report("write");
 
-    if (PDCprop_close(obj_prop_float) != SUCCEED) {
-        LOG_ERROR("Failed to close obj_prop_float\n");
-        return FAIL;
-    }
-    if (PDCprop_close(obj_prop_int) != SUCCEED) {
-        LOG_ERROR("Failed to close obj_prop_int\n");
-        return FAIL;
-    }
     if (PDCregion_close(region_local) != SUCCEED) {
         LOG_ERROR("Failed to close local region \n");
         return FAIL;
@@ -289,10 +251,6 @@ main(int argc, char **argv)
     }
     if (PDCcont_close(cont_id) != SUCCEED) {
         LOG_ERROR("Failed to close container\n");
-        return FAIL;
-    }
-    if (PDCprop_close(cont_prop) != SUCCEED) {
-        LOG_ERROR("Failed to close property\n");
         return FAIL;
     }
     if (PDCclose(pdc_id) != SUCCEED) {
