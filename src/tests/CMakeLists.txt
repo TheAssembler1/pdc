@@ -79,8 +79,6 @@ set(PROGRAMS
   obj/delete_obj
   misc/vpicio
   misc/vpicio_mts
-  misc/vpicio_mts_transform_write
-  misc/vpicio_mts_transform_read
   misc/bdcats
   misc/bdcats_mts
   deprecated/vpicio_old

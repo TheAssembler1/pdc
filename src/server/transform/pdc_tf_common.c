@@ -349,29 +349,48 @@ PDCtf_region_has_attached_graph(struct pdc_tf_obj_t *tf_obj, int ndim, size_t un
     bool                 ret_value            = false;
     PDC_VECTOR_ITERATOR *region_mappings_iter = NULL;
 
-    if (tf_obj == NULL)
+    if (tf_obj == NULL) {
+        LOG_DEBUG("tf_obj is NULL\n");
         PGOTO_DONE(false);
-    if (tf_obj->region_mappings_vector == NULL)
+    }
+    if (tf_obj->region_mappings_vector == NULL) {
+        LOG_DEBUG("region_mappings_vector is NULL\n");
         PGOTO_DONE(false);
+    }
+
+    LOG_DEBUG("Num region mappings: %d\n", pdc_vector_size(tf_obj->region_mappings_vector));
 
     region_mappings_iter = pdc_vector_iterator_new(tf_obj->region_mappings_vector);
     while (pdc_vector_iterator_has_next(region_mappings_iter)) {
         *region_mapping                    = pdc_vector_iterator_next(region_mappings_iter);
         pdc_tf_region_t *conceptual_region = &((*region_mapping)->conceptual_region);
-        uint64_t *       conceptual_offset = (*region_mapping)->conceptual_offset;
+        uint64_t        *conceptual_offset = (*region_mapping)->conceptual_offset;
 
         // check if client ndim, offset, dims, unit match
-        bool ndim_matches = conceptual_region->ndim == ndim;
-        PDC_get_var_type_size(conceptual_region->pdc_var_type);
-        bool unit_matches = PDC_get_var_type_size(conceptual_region->pdc_var_type) == unit;
-
-        // note these return 0 on match so ! is needed
+        bool ndim_matches   = conceptual_region->ndim == ndim;
+        bool unit_matches   = PDC_get_var_type_size(conceptual_region->pdc_var_type) == unit;
         bool offset_matches = !memcmp(conceptual_offset, offset, ndim * sizeof(uint64_t));
         bool size_matches   = !memcmp(conceptual_region->size, size, ndim * sizeof(uint64_t));
 
-        if (ndim_matches && offset_matches && size_matches && unit_matches)
+        // print debug info
+        LOG_DEBUG("Checking region:\n"
+                  "  ndim: expected=%d, actual=%d (matches=%d)\n"
+                  "  unit: expected=%zu, actual=%zu (matches=%d)\n"
+                  "  offset[0]: expected=%lu, actual=%lu (matches=%d)\n"
+                  "  size[0]: expected=%lu, actual=%lu (matches=%d)\n",
+                  conceptual_region->ndim, ndim, ndim_matches,
+                  PDC_get_var_type_size(conceptual_region->pdc_var_type), unit, unit_matches,
+                  conceptual_offset[0], offset[0], offset_matches, conceptual_region->size[0], size[0],
+                  size_matches);
+
+        if (ndim_matches && offset_matches && size_matches && unit_matches) {
+            LOG_DEBUG("Found matching region!\n");
             PGOTO_DONE(true);
+        }
     }
+
+    LOG_DEBUG("No matching region found for ndim=%d, unit=%zu, offset[0]=%lu, size[0]=%lu\n", ndim, unit,
+              offset ? offset[0] : 0, size ? size[0] : 0);
 
 done:
     if (region_mappings_iter != NULL)
@@ -401,7 +420,7 @@ static const char *
 get_json_string(struct json_object *json_obj, char *str_name, bool expect_string)
 {
     struct json_object *str_json_obj = NULL;
-    const char *        ret_value    = NULL;
+    const char         *ret_value    = NULL;
 
     if (!json_object_object_get_ex(json_obj, str_name, &str_json_obj)) {
         if (expect_string)
@@ -479,7 +498,7 @@ edge_free(void *data)
 
     LOG_DEBUG("edge_free called\n");
 
-    pdc_tf_func_t *      f              = (pdc_tf_func_t *)data;
+    pdc_tf_func_t       *f              = (pdc_tf_func_t *)data;
     PDC_VECTOR_ITERATOR *dg_params_iter = pdc_vector_iterator_new(f->pdc_tf_dg_params_vector);
     while (pdc_vector_iterator_has_next(dg_params_iter)) {
         pdc_tf_dg_params_t *cur_param = pdc_vector_iterator_next(dg_params_iter);
@@ -502,7 +521,7 @@ vertex_free(void *data)
 
     LOG_DEBUG("vertex_free called\n");
 
-    pdc_tf_state_t *     s              = (pdc_tf_state_t *)data;
+    pdc_tf_state_t      *s              = (pdc_tf_state_t *)data;
     PDC_VECTOR_ITERATOR *dg_params_iter = pdc_vector_iterator_new(s->pdc_tf_dg_params_vector);
     while (pdc_vector_iterator_has_next(dg_params_iter)) {
         pdc_tf_dg_params_t *cur_param = pdc_vector_iterator_next(dg_params_iter);
@@ -521,9 +540,9 @@ PDCtf_dg_json_create_common(char *filepath)
 {
     FUNC_ENTER(NULL);
 
-    pdc_dg_t *          ret_value = NULL;
-    pdc_dg_t *          dg_cpy    = NULL;
-    FILE *              fp        = NULL;
+    pdc_dg_t           *ret_value = NULL;
+    pdc_dg_t           *dg_cpy    = NULL;
+    FILE               *fp        = NULL;
     struct json_object *json_obj  = NULL;
     io_buffer_t         io_buffer;
     memset(&io_buffer, 0, sizeof(io_buffer_t));
@@ -567,7 +586,7 @@ PDCtf_dg_json_create_common(char *filepath)
     for (int i = 0; i < states_length; i++) {
         struct json_object *s = array_list_get_idx(states, i);
 
-        char *      s_name        = strdup(get_json_string(s, "name", true));
+        char       *s_name        = strdup(get_json_string(s, "name", true));
         const char *s_granularity = get_json_string(s, "granularity", true);
 
         if (s_name == NULL || s_granularity == NULL)
@@ -838,7 +857,7 @@ PDCtf_print_dg_common(pdc_dg_t *dg, bool write_to_file)
         // Correctly cast vertex data to state*
         pdc_tf_state_t *input_state  = (pdc_tf_state_t *)PDCdg_get_vertex_data(dg, edge->v1_id);
         pdc_tf_state_t *output_state = (pdc_tf_state_t *)PDCdg_get_vertex_data(dg, edge->v2_id);
-        pdc_tf_func_t * edge_func    = (pdc_tf_func_t *)edge->data;
+        pdc_tf_func_t  *edge_func    = (pdc_tf_func_t *)edge->data;
 
         const char *color = (edge_func->dev == PDC_TF_CPU_DEVICE) ? "blue" : "red";
 

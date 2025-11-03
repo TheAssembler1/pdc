@@ -697,6 +697,8 @@ pack_region_metadata_query(pdc_transfer_request_start_all_pkg **transfer_request
 {
     FUNC_ENTER(NULL);
 
+    LOG_DEBUG("pack_region_metadata_query was called!\n");
+
     perr_t   ret_value = SUCCEED;
     int      i;
     char    *ptr;
@@ -744,6 +746,8 @@ unpack_region_metadata_query(char *buf, pdc_transfer_request_start_all_pkg **tra
                              pdc_transfer_request_start_all_pkg **transfer_request_end_ptr, int *size_ptr)
 {
     FUNC_ENTER(NULL);
+
+    LOG_DEBUG("unpack_region_metadata_query was called!\n");
 
     perr_t                              ret_value = SUCCEED;
     pdc_transfer_request_start_all_pkg *transfer_request_head, *transfer_request_end;
@@ -921,6 +925,7 @@ register_metadata(pdc_transfer_request_start_all_pkg **transfer_request_input, i
             PDCregion_transfer_add_bulk_handle(transfer_requests[index]->transfer_request, bulk_handle);
             unpack_region_metadata_query(output_buf, transfer_requests + index, &transfer_request_head,
                                          &transfer_request_end, &output_size);
+            LOG_INFO("AFTER UNPACK %d\n", transfer_requests[index]->remote_offset[0]);
             output_buf = (char *)PDC_free(output_buf);
             if (transfer_request_front_head) {
                 previous->next = transfer_request_head;
@@ -1224,6 +1229,9 @@ PDC_Client_pack_all_requests(int n_objs, pdc_transfer_request_start_all_pkg **tr
 {
     FUNC_ENTER(NULL);
 
+    LOG_DEBUG("FIRST REMOTE %d\n", transfer_requests[0]->transfer_request->remote_region_offset[0]);
+    LOG_DEBUG("FIRST REMOTE %d\n", transfer_requests[0]->remote_offset[0]);
+
     perr_t ret_value = SUCCEED;
     char  *bulk_buf, *ptr, *ptr2;
     size_t total_buf_size, obj_data_size, total_obj_data_size, unit, data_size, metadata_size;
@@ -1313,7 +1321,11 @@ PDC_Client_pack_all_requests(int n_objs, pdc_transfer_request_start_all_pkg **tr
             transfer_requests[i]->transfer_request->obj_pointer->obj_pt->obj_prop_pub->type;
         MEMCPY_INC(&var_type, sizeof(pdc_var_type_t));
 
-        assert(transfer_requests[i]->transfer_request->obj_pointer != NULL);
+        LOG_DEBUG("obj_id: %d, ndim: %d, remote_region_ndim: %d, unit: %zu, var_type: %d\n",
+                  transfer_requests[i]->transfer_request->obj_id,
+                  transfer_requests[i]->transfer_request->obj_ndim,
+                  transfer_requests[i]->transfer_request->remote_region_ndim, unit,
+                  transfer_requests[i]->transfer_request->obj_pointer->obj_pt->obj_prop_pub->type);
 
         // Checked for transformations associated with region
         pdc_tf_region_mapping_t *region_mapping = NULL;
@@ -1351,12 +1363,14 @@ PDC_Client_pack_all_requests(int n_objs, pdc_transfer_request_start_all_pkg **tr
         else if (access_type == PDC_WRITE)
             LOG_DEBUG("Region transfer does NOT have an attached graph\n");
 
-        MEMCPY_INC(json_filepath ? json_filepath : "", strlen(json_filepath ? json_filepath : "") + 1);
-        MEMCPY_INC(cur_state_str ? cur_state_str : "", strlen(cur_state_str ? cur_state_str : "") + 1);
-        MEMCPY_INC(client_state_str ? client_state_str : "",
-                   strlen(client_state_str ? client_state_str : "") + 1);
-        MEMCPY_INC(store_state_str ? store_state_str : "",
-                   strlen(store_state_str ? store_state_str : "") + 1);
+        if (access_type == PDC_WRITE) {
+            MEMCPY_INC(json_filepath ? json_filepath : "", strlen(json_filepath ? json_filepath : "") + 1);
+            MEMCPY_INC(cur_state_str ? cur_state_str : "", strlen(cur_state_str ? cur_state_str : "") + 1);
+            MEMCPY_INC(client_state_str ? client_state_str : "",
+                       strlen(client_state_str ? client_state_str : "") + 1);
+            MEMCPY_INC(store_state_str ? store_state_str : "",
+                       strlen(store_state_str ? store_state_str : "") + 1);
+        }
     }
 
     for (i = 0; i < n_objs; ++i) {
@@ -1378,6 +1392,13 @@ PDC_Client_pack_all_requests(int n_objs, pdc_transfer_request_start_all_pkg **tr
                    sizeof(uint64_t) * transfer_requests[i]->transfer_request->remote_region_ndim);
         MEMCPY_INC(transfer_requests[i]->transfer_request->obj_dims,
                    sizeof(uint64_t) * transfer_requests[i]->transfer_request->obj_ndim);
+
+        LOG_DEBUG(
+            "object %d: remote_offset[0]=%lu, remote_length[0]=%lu, ndim=%d, obj_dims[0]=%lu\n",
+            transfer_requests[i]->transfer_request->obj_id, // or the obj_id if you have it stored elsewhere
+            transfer_requests[i]->remote_offset[0], transfer_requests[i]->remote_size[0],
+            transfer_requests[i]->transfer_request->obj_ndim,
+            transfer_requests[i]->transfer_request->obj_dims[0]);
 
         // Note buf is undefined for PDC_READ
         if (access_type == PDC_WRITE) {

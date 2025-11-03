@@ -854,6 +854,7 @@ PDC_Server_transfer_request_io(uint64_t obj_id, int obj_ndim, const uint64_t *ob
     // check if the obj has transformations
     bool ran_transformation = false;
     LOG_DEBUG("Checking for transformations for obj_id %" PRIu64 "\n", obj_id);
+    LOG_DEBUG("Region info offset %d\n", region_info->offset[0]);
     if (PDC_Server_data_io_region_per_file_transformations(obj_id, obj_ndim, obj_dims, region_info, buf, unit,
                                                            is_write, &ran_transformation) != SUCCEED) {
         PGOTO_ERROR(FAIL, "Error with PDC_Server_data_io_region_per_file_transformations");
@@ -958,11 +959,14 @@ parse_bulk_data(void *buf, transfer_request_all_data *request_data, pdc_access_t
         ptr += sizeof(int);
         request_data->remote_ndim[i] = *((int *)ptr);
         ptr += sizeof(int);
-        request_data->unit[i] = *((pdcid_t *)ptr);
+        request_data->unit[i] = *((size_t *)ptr);
         ptr += sizeof(size_t);
-
         request_data->var_types[i] = *((pdc_var_type_t *)ptr);
         ptr += sizeof(pdc_var_type_t);
+
+        LOG_DEBUG("obj_id: %d, ndim: %d, remote_ndim: %d, unit: %zu, var_type: %d\n", request_data->obj_id[i],
+                  request_data->obj_ndim[i], request_data->remote_ndim[i], request_data->unit[i],
+                  request_data->var_types[i]);
 
         // Parse and print strings immediately after unit
         if (access_type == PDC_WRITE) {
@@ -970,24 +974,19 @@ parse_bulk_data(void *buf, transfer_request_all_data *request_data, pdc_access_t
             if (strlen(ptr) > 0)
                 LOG_DEBUG("Object %d json_filepath: %s\n", i, request_data->json_filepaths[i]);
             ptr += strlen(ptr) + 1;
-
             request_data->cur_state_str[i] = ptr;
             if (strlen(ptr) > 0)
                 LOG_DEBUG("Object %d cur_state: %s\n", i, request_data->cur_state_str[i]);
             ptr += strlen(ptr) + 1;
-
             request_data->client_state_str[i] = ptr;
             if (strlen(ptr) > 0)
                 LOG_DEBUG("Object %d client_state: %s\n", i, request_data->client_state_str[i]);
             ptr += strlen(ptr) + 1;
-
             request_data->store_state_str[i] = ptr;
             if (strlen(ptr) > 0)
                 LOG_DEBUG("Object %d store_state: %s\n", i, request_data->store_state_str[i]);
             ptr += strlen(ptr) + 1;
         }
-        else
-            ptr += 4;
     }
     /*
      * For each of objects
@@ -1006,15 +1005,17 @@ parse_bulk_data(void *buf, transfer_request_all_data *request_data, pdc_access_t
 
         // Setup transformations
         if (request_data->json_filepaths[i] != NULL && strlen(request_data->json_filepaths[i]) > 0) {
-            LOG_DEBUG("RPC recieved region transfer with attached graph\n");
+            LOG_INFO("RPC recieved region transfer with attached graph\n");
 
-            LOG_DEBUG("Parse region transfer json filepath: %s\n", request_data->json_filepaths[i]);
-            LOG_DEBUG("Parse region transfer current state: %s\n", request_data->cur_state_str[i]);
-            LOG_DEBUG("Parse region transfer client state: %s\n", request_data->client_state_str[i]);
-            LOG_DEBUG("Parse region transfer stored state: %s\n", request_data->store_state_str[i]);
+            LOG_INFO("Parse region transfer json filepath: %s\n", request_data->json_filepaths[i]);
+            LOG_INFO("Parse region transfer current state: %s\n", request_data->cur_state_str[i]);
+            LOG_INFO("Parse region transfer client state: %s\n", request_data->client_state_str[i]);
+            LOG_INFO("Parse region transfer stored state: %s\n", request_data->store_state_str[i]);
 
-            PDC_get_var_type_size(request_data->var_types[i]);
-
+            LOG_INFO("Object %d: remote_offset[0]=%lu, remote_length[0]=%lu, ndim=%d, obj_dims[0]=%lu\n",
+                     request_data->obj_id[i], request_data->remote_offset[i][0],
+                     request_data->remote_length[i][0], request_data->obj_ndim[i],
+                     request_data->obj_dims[i][0]);
             if (PDCtf_store_json_mapping(request_data->obj_id[i], request_data->json_filepaths[i],
                                          request_data->cur_state_str[i], request_data->client_state_str[i],
                                          request_data->store_state_str[i], request_data->remote_offset[i],

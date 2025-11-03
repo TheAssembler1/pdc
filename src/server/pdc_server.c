@@ -1370,7 +1370,7 @@ PDC_Server_checkpoint()
     // FIXME: We don't store whether graph is attached to entire object...
 
     // Checkpoint the region transformations
-#undef PRINT_DEBUG_TRANSFORMATION_CHECKPOINTING
+#define PRINT_DEBUG_TRANSFORMATION_CHECKPOINTING
 #ifdef PRINT_DEBUG_TRANSFORMATION_CHECKPOINTING
     LOG_DEBUG("Checkpointing transformations\n");
     size_t num_objs = pdc_vector_size(tf_obj_id_to_dg_vector_g);
@@ -1395,7 +1395,7 @@ PDC_Server_checkpoint()
             LOG_DEBUG("\t\tclient_state_str: %s\n", cur_region_mapping->region_state.client_state);
             LOG_DEBUG("\t\tstore_state_str: %s\n", cur_region_mapping->region_state.store_state);
 
-            LOG_JUST_PRINT("\t\tconceptual_region_ndim: %d\n", cur_region_mapping->conceptual_region.ndim);
+            LOG_DEBUG("\t\tconceptual_region_ndim: %d\n", cur_region_mapping->conceptual_region.ndim);
             LOG_DEBUG("\t\tpdc_var_type: %d, size: %d\n", cur_region_mapping->conceptual_region.pdc_var_type,
                       PDC_get_var_type_size(cur_region_mapping->conceptual_region.pdc_var_type));
             LOG_DEBUG("\t\tconceptual_region_offset:\n");
@@ -1449,10 +1449,10 @@ PDC_Server_checkpoint()
     pdc_vector_iterator_destroy(obj_id_to_dg_iter);
 #endif
 
-    size_t num_objs = pdc_vector_size(tf_obj_id_to_dg_vector_g);
+    num_objs = pdc_vector_size(tf_obj_id_to_dg_vector_g);
     fwrite(&num_objs, sizeof(size_t), 1, file);
 
-    PDC_VECTOR_ITERATOR *obj_id_to_dg_iter = pdc_vector_iterator_new(tf_obj_id_to_dg_vector_g);
+    obj_id_to_dg_iter = pdc_vector_iterator_new(tf_obj_id_to_dg_vector_g);
     while (pdc_vector_iterator_has_next(obj_id_to_dg_iter)) {
         pdc_tf_obj_id_to_dg_t *cur_obj_id_to_dg = pdc_vector_iterator_next(obj_id_to_dg_iter);
         // Write object ID

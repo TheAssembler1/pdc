@@ -270,6 +270,7 @@ pdc_tf_builtin_zfp_decompress_helper(pdc_tf_internal_param internal_param, char 
     }
 
     size_t decompressed_bytes = num_elements * elem_size;
+    LOG_DEBUG("Scalar size: %d\n", elem_size);
     LOG_DEBUG("Actual decompressed size: %zu bytes\n", decompressed_bytes);
     LOG_DEBUG("Expected decompressed size: %zu bytes\n", PDCtf_get_pdc_region_t_bytes(*output_region));
 
@@ -442,7 +443,7 @@ pdc_tf_builtin_zfp_decompress_cuda_helper(pdc_tf_internal_param internal_param, 
 
     // Create zfp field on device
     zfp_field *field  = NULL;
-    void *     target = dev_uncompressed;
+    void      *target = dev_uncompressed;
     switch (in_params->decompressed_region.ndim) {
         case 1:
             field = zfp_field_1d(target, z_type, in_params->decompressed_region.size[0]);
@@ -470,7 +471,7 @@ pdc_tf_builtin_zfp_decompress_cuda_helper(pdc_tf_internal_param internal_param, 
     }
 
     zfp_stream *zfp    = zfp_stream_open(NULL);
-    bitstream * stream = stream_open(dev_compressed, compressed_size);
+    bitstream  *stream = stream_open(dev_compressed, compressed_size);
     zfp_stream_set_bit_stream(zfp, stream);
     zfp_stream_set_rate(zfp, bits_per_value, z_type, in_params->decompressed_region.ndim, 0);
     zfp_stream_set_execution(zfp, zfp_exec_cuda);

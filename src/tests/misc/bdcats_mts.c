@@ -203,6 +203,11 @@ main(int argc, char **argv)
             return FAIL;
         }
 
+        LOG_INFO("Data verification succeeded for id1/id2 at rank %d for step %d! id1[0]=%d/%d, "
+                 "id2[0]=%d/%d, id1[end]=%d/%d, id2[end]=%d/%d\n",
+                 rank, iter, id1[0], rank + iter, id2[0], rank + iter * 2, id1[numparticles - 1], rank - iter,
+                 id2[numparticles - 1], rank - iter * 2);
+
 #ifdef ENABLE_MPI
         MPI_Barrier(MPI_COMM_WORLD);
         t1 = MPI_Wtime();

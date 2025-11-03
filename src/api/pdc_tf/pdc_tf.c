@@ -94,10 +94,9 @@ locate_and_set_pdc_tf_obj_t(pdcid_t obj_id, struct _pdc_obj_info **pdc_obj_info,
     *pdc_obj_info = obj_id_info->obj_ptr;
 
     // Validate partition strategy is supported with transformations
-    if ((*pdc_obj_info)->obj_pt->obj_prop_pub->region_partition == PDC_REGION_STATIC) {
-        LOG_ERROR("PDC_REGION_STATIC partition strategy not supported for transformations\n");
-        PGOTO_ERROR(FAIL, "The following partitions strategies are supported: PDC_REGION_LOCAL, "
-                          "PDC_REGION_DYNAMIC, or PDC_OBJ_STATIC");
+    if ((*pdc_obj_info)->obj_pt->obj_prop_pub->region_partition != PDC_OBJ_STATIC) {
+        LOG_ERROR("Partition strategy not supported for transformations\n");
+        PGOTO_ERROR(FAIL, "The following partitions strategies are supported: PDC_OBJ_STATIC");
     }
 
     // Validate user has set the datatype on the object
