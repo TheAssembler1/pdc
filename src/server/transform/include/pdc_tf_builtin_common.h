@@ -8,8 +8,17 @@
 #define ENABLE_TF_ZFP_COMPRESSION
 // FIMXE: same
 #define ENABLE_SECRET_BOX_ENCRYPTION
+// FIXME: same
+#define ENABLE_TF_SZ_COMPRESSION
 
 #include "pdc_tf_common.h"
+
+#ifdef ENABLE_TF_SZ_COMPRESSION
+bool pdc_tf_builtin_sz_compress(pdc_tf_internal_param internal_param, char *params_str, void **region_data,
+                                 pdc_tf_region_t input_region, pdc_tf_region_t *output_region);
+bool pdc_tf_builtin_sz_decompress(pdc_tf_internal_param internal_param, char *params_str, void **region_data,
+                                   pdc_tf_region_t input_region, pdc_tf_region_t *output_region);
+#endif
 
 #ifdef ENABLE_TF_ZFP_COMPRESSION
 bool pdc_tf_builtin_zfp_compress(pdc_tf_internal_param internal_param, char *params_str, void **region_data,

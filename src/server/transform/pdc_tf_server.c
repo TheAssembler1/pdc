@@ -5,6 +5,12 @@
 #include "pdc_client_server_common.h"
 #include "pdc_vector.h"
 
+double   __timer_totals[NUM_TIMER_TARGETS]      = {0};
+uint64_t __timer_totals_freq[NUM_TIMER_TARGETS] = {0};
+
+double __timer_start       = 0.0f;
+double __graph_timer_start = 0.0f;
+
 PDC_VECTOR *tf_obj_id_to_dg_vector_g = NULL;
 
 #ifndef IS_PDC_SERVER
@@ -184,7 +190,7 @@ PDCtf_exec_graph(pdc_dg_t *dg, uint64_t flat_conceptual_offset, char *cur_state,
                 PGOTO_ERROR(FAIL, "Error when running transformation, %s", f->name);
             else
                 LOG_DEBUG("Transformation %s(%s) = %s ran successfully\n", f->name, v1->name, v2->name);
-            GRAPH_TIMER_STOP(f->name);
+            GRAPH_TIMER_STOP(TOTAL_GRAPH_EXEC_TIME);
             /**
              * The transformation malloced a new buffer
              * The buffer associated with the original bulk handle (i.e. j != 0)

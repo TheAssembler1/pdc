@@ -7,31 +7,64 @@
 #include "pdc_vector.h"
 
 // FIXME: NOAH adhoc timers for now...
+typedef enum TIMER_TARGETS {
+    OPEN_TIME,
+    CLOSE_TIME,
+    READ_TIME,
+    WRITE_TIME,
+    TOTAL_GRAPH_EXEC_TIME,
+    COMP_GRAPH_EXEC_TIME,
+    DECOMP_GRAPH_EXEC_TIME,
+    NUM_TIMER_TARGETS
+} TIMER_TARGETS;
 
-static double __timer_start;
-static double __graph_timer_start;
+static const char *TIMER_TARGET_NAMES[NUM_TIMER_TARGETS] = {[OPEN_TIME]              = "open",
+                                                            [CLOSE_TIME]             = "close",
+                                                            [READ_TIME]              = "read",
+                                                            [WRITE_TIME]             = "write",
+                                                            [TOTAL_GRAPH_EXEC_TIME]  = "total_graph_exec",
+                                                            [COMP_GRAPH_EXEC_TIME]   = "comp_graph_exec",
+                                                            [DECOMP_GRAPH_EXEC_TIME] = "decomp_graph_exec"};
+
+extern double   __timer_totals[NUM_TIMER_TARGETS];
+extern uint64_t __timer_totals_freq[NUM_TIMER_TARGETS];
+
+extern double __timer_start;
+extern double __graph_timer_start;
 
 #define TIMER_START()                                                                                        \
-/*    do {                                                                                                     \
+    do {                                                                                                     \
         __timer_start = MPI_Wtime();                                                                         \
-    } while (0)*/
+    } while (0)
 
-#define TIMER_STOP(name)                                                                                     \
-    /*(do {                                                                                                     \
-        double __timer_end = MPI_Wtime();                                                                    \
-        LOG_INFO("[TIMER] %s time_elapsed: %lf s\n", name, __timer_end - __timer_start);                     \
-    } while (0)*/
+#define TIMER_STOP(which)                                                                                    \
+    do {                                                                                                     \
+        double __tend = MPI_Wtime();                                                                         \
+        __timer_totals[(which)] += (__tend - __timer_start);                                                 \
+        __timer_totals_freq[(which)] += 1.0;                                                                 \
+    } while (0)
 
 #define GRAPH_TIMER_START()                                                                                  \
-    /*do {                                                                                                     \
+    do {                                                                                                     \
         __graph_timer_start = MPI_Wtime();                                                                   \
-    } while (0)*/
+    } while (0)
 
-#define GRAPH_TIMER_STOP(name)                                                                               \
-    /*do {                                                                                                     \
-        double __timer_end = MPI_Wtime();                                                                    \
-        LOG_INFO("[TIMER] %s time_elapsed: %lf s\n", name, __timer_end - __graph_timer_start);               \
-    } while (0)*/
+#define GRAPH_TIMER_STOP(which)                                                                              \
+    do {                                                                                                     \
+        double __tend = MPI_Wtime();                                                                         \
+        __timer_totals[(which)] += (__tend - __graph_timer_start);                                           \
+        __timer_totals_freq[(which)] += 1.0;                                                                 \
+    } while (0)
+
+#define LOG_AVG_TOTAL_FREQ_TIMERS()                                                                          \
+    do {                                                                                                     \
+        for (int i = 0; i < NUM_TIMER_TARGETS; i++) {                                                        \
+            if (__timer_totals_freq[i] > 0)                                                                  \
+                LOG_WARNING("[TIMER] id=%d, name=%s, avg=%lf, total=%lf, count=%lu\n", i,                    \
+                            TIMER_TARGET_NAMES[i], __timer_totals[i] / __timer_totals_freq[i],               \
+                            __timer_totals[i], __timer_totals_freq[i]);                                      \
+        }                                                                                                    \
+    } while (0)
 
 extern PDC_VECTOR *tf_obj_id_to_dg_vector_g;
 
@@ -45,7 +78,7 @@ extern PDC_VECTOR *tf_obj_id_to_dg_vector_g;
 typedef struct pdc_tf_obj_id_to_dg_t {
     pdcid_t             obj_id;
     struct pdc_tf_obj_t pdc_tf_obj;
-    pdc_dg_t *          dg;
+    pdc_dg_t           *dg;
 } pdc_tf_obj_id_to_dg_t;
 
 /**

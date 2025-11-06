@@ -173,6 +173,7 @@ transfer_request_metadata_query_init(int pdc_server_size_input, char *checkpoint
     LOG_INFO("Exiting transfer_request_metadata_query_init\n");
     FUNC_LEAVE(ret_value);
 }*/
+
 perr_t
 transfer_request_metadata_query_init(int pdc_server_size_input, char *checkpoint)
 {

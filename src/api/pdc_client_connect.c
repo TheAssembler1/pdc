@@ -1331,7 +1331,6 @@ drc_access_again:
     flush_obj_register_id_g           = PDC_flush_obj_register(*hg_class);
     flush_obj_all_register_id_g       = PDC_flush_obj_all_register(*hg_class);
     obj_reset_dims_register_id_g      = PDC_obj_reset_dims_register(*hg_class);
-    // HG_Registered_disable_response(*hg_class, close_server_register_id_g, HG_TRUE);
 
     metadata_query_register_id_g          = PDC_metadata_query_register(*hg_class);
     container_query_register_id_g         = PDC_container_query_register(*hg_class);

@@ -833,7 +833,6 @@ PDC_region_cache_flush_by_pointer(uint64_t obj_id, pdc_obj_cache *obj_cache, int
     pdc_server_timings->PDCcache_flush += MPI_Wtime() - start_time;
 #endif
 
-    /* PDC_get_time_str(cur_time); */
     FUNC_LEAVE(nflush);
 }
 

@@ -315,6 +315,12 @@ PDCtf_init_builtin_funcs()
     if (pdc_tf_builtin_funcs_vector_g == NULL)
         PGOTO_ERROR(FAIL, "pdc_tf_builtin_funcs_vector_g was NULL");
 
+#ifdef ENABLE_TF_SZ_COMPRESSION
+    if (PDCtf_add_builtin_func("sz_compress", pdc_tf_builtin_sz_compress, PDC_TF_CPU_DEVICE) != SUCCEED)
+        PGOTO_ERROR(FAIL, "Failed to add builtin func sz_compress CPU");
+    if (PDCtf_add_builtin_func("sz_decompress", pdc_tf_builtin_sz_decompress, PDC_TF_CPU_DEVICE) != SUCCEED)
+        PGOTO_ERROR(FAIL, "Failed to add builtin func sz_decompress CPU");
+#endif // ENABLE_TF_SZ_COMPRESSION
 #ifdef ENABLE_TF_ZFP_COMPRESSION
     if (PDCtf_add_builtin_func("zfp_compress", pdc_tf_builtin_zfp_compress, PDC_TF_CPU_DEVICE) != SUCCEED)
         PGOTO_ERROR(FAIL, "Failed to add builtin func zfp_compress CPU");
@@ -763,7 +769,7 @@ PDCtf_log_pdc_region_t(pdc_tf_region_t reg)
     LOG_DEBUG("region ndim: %lu\n", reg.ndim);
     LOG_DEBUG("region unit: %lu\n", PDC_get_var_type_size(reg.pdc_var_type));
     for (int i = 0; i < reg.ndim; i++)
-        LOG_DEBUG("\tsize[%d] = %lu\n", i + 1, reg.size[0]);
+        LOG_DEBUG("\tsize[%d] = %lu\n", i, reg.size[i]);
     LOG_DEBUG("region bytes: %zu\n", PDCtf_get_pdc_region_t_bytes(reg));
 
     FUNC_LEAVE_VOID();

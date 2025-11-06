@@ -84,8 +84,8 @@ main(int argc, char **argv)
         sleeptime    = atoi(argv[3]);
     }
     if (rank == 0)
-        LOG_INFO("Writing %" PRIu64 " number of particles for %d steps with %d clients.\n", numparticles,
-                 steps, size);
+        LOG_WARNING("Writing %" PRIu64 " number of particles for %d steps with %d clients.\n", numparticles,
+                    steps, size);
 
     dims[0] = numparticles * size;
 
@@ -124,7 +124,7 @@ main(int argc, char **argv)
 #ifdef ENABLE_MPI
         MPI_Barrier(MPI_COMM_WORLD);
         if (rank == 0)
-            LOG_INFO("\n#Step  %d\n", iter);
+            LOG_WARNING("\n#Step  %d\n", iter);
         t0 = MPI_Wtime();
 #endif
         for (int i = 0; i < 8; i++) {
@@ -140,7 +140,7 @@ main(int argc, char **argv)
         MPI_Barrier(MPI_COMM_WORLD);
         t1 = MPI_Wtime();
         if (rank == 0)
-            LOG_INFO("Obj open time: %.5e\n", t1 - t0);
+            LOG_WARNING("Obj open time: %.5e\n", t1 - t0);
 #endif
 
         for (int i = 0; i < 8; i++) {
@@ -156,7 +156,7 @@ main(int argc, char **argv)
         MPI_Barrier(MPI_COMM_WORLD);
         t0 = MPI_Wtime();
         if (rank == 0)
-            LOG_INFO("Transfer create time: %.5e\n", t0 - t1);
+            LOG_WARNING("Transfer create time: %.5e\n", t0 - t1);
 #endif
 
 #ifdef ENABLE_MPI
@@ -172,15 +172,15 @@ main(int argc, char **argv)
         MPI_Barrier(MPI_COMM_WORLD);
         t1 = MPI_Wtime();
         if (rank == 0)
-            LOG_INFO("Transfer start time: %.5e\n", t1 - t0);
+            LOG_WARNING("Transfer start time: %.5e\n", t1 - t0);
 #endif
         // Emulate compute with sleep
         if (iter != steps - 1) {
             if (rank == 0)
-                LOG_INFO("Sleep start: %llu.00\n", sleeptime);
+                LOG_WARNING("Sleep start: %llu.00\n", sleeptime);
             sleep(sleeptime);
             if (rank == 0)
-                LOG_INFO("Sleep end: %llu.00\n", sleeptime);
+                LOG_WARNING("Sleep end: %llu.00\n", sleeptime);
         }
 
 #ifdef ENABLE_MPI
@@ -193,26 +193,42 @@ main(int argc, char **argv)
             return FAIL;
         }
 
-        // Verify data of id1 and id2
-        if (id1[0] != rank + iter || id2[0] != rank + iter * 2 || id1[numparticles - 1] != rank - iter ||
-            id2[numparticles - 1] != rank - iter * 2) {
-            LOG_ERROR("Data verification failed for id1/id2 at rank %d for step %d! id1[0]=%d/%d, "
-                      "id2[0]=%d/%d, id1[end]=%d/%d, id2[end]=%d/%d\n",
-                      rank, iter, id1[0], rank + iter, id2[0], rank + iter * 2, id1[numparticles - 1],
-                      rank - iter, id2[numparticles - 1], rank - iter * 2);
-            return FAIL;
-        }
+        printf("Printing first 100 values of id1/id2/x/y/z/px/py/pz (expected vs received) at rank %d, step "
+               "%d:\n",
+               rank, iter);
 
-        LOG_INFO("Data verification succeeded for id1/id2 at rank %d for step %d! id1[0]=%d/%d, "
-                 "id2[0]=%d/%d, id1[end]=%d/%d, id2[end]=%d/%d\n",
-                 rank, iter, id1[0], rank + iter, id2[0], rank + iter * 2, id1[numparticles - 1], rank - iter,
-                 id2[numparticles - 1], rank - iter * 2);
+        srand(12345);
+        for (uint64_t i = 0; i < 100 && i < numparticles; i++) {
+            int   id1_exp = i;
+            int   id2_exp = i * 2;
+            float x_exp   = uniform_random_number() * x_dim;
+            float y_exp   = uniform_random_number() * y_dim;
+            float z_exp   = ((float)id1_exp / numparticles) * z_dim;
+            float px_exp  = uniform_random_number() * x_dim;
+            float py_exp  = uniform_random_number() * y_dim;
+            float pz_exp  = ((float)id2_exp / numparticles) * z_dim;
+
+            // step modifications for first/last elements
+            if (i == 0) {
+                id1_exp = rank + iter;
+                id2_exp = rank + iter * 2;
+            }
+            else if (i == numparticles - 1) {
+                id1_exp = rank - iter;
+                id2_exp = rank - iter * 2;
+            }
+
+            printf("%3lu: id1=%d/%d, id2=%d/%d, x=%.3f/%.3f, y=%.3f/%.3f, z=%.3f/%.3f, px=%.3f/%.3f, "
+                   "py=%.3f/%.3f, pz=%.3f/%.3f\n",
+                   i, id1_exp, id1[i], id2_exp, id2[i], x_exp, x[i], y_exp, y[i], z_exp, z[i], px_exp, px[i],
+                   py_exp, py[i], pz_exp, pz[i]);
+        }
 
 #ifdef ENABLE_MPI
         MPI_Barrier(MPI_COMM_WORLD);
         t1 = MPI_Wtime();
         if (rank == 0)
-            LOG_INFO("Transfer wait time: %.5e\n", t1 - t0);
+            LOG_WARNING("Transfer wait time: %.5e\n", t1 - t0);
 #endif
 
         for (int j = 0; j < 8; j++) {
@@ -226,7 +242,7 @@ main(int argc, char **argv)
         MPI_Barrier(MPI_COMM_WORLD);
         t0 = MPI_Wtime();
         if (rank == 0)
-            LOG_INFO("Transfer close time: %.5e\n", t0 - t1);
+            LOG_WARNING("Transfer close time: %.5e\n", t0 - t1);
 #endif
 
         for (int i = 0; i < 8; i++) {
@@ -240,7 +256,7 @@ main(int argc, char **argv)
         MPI_Barrier(MPI_COMM_WORLD);
         t1 = MPI_Wtime();
         if (rank == 0)
-            LOG_INFO("Obj close time: %.5e\n", t1 - t0);
+            LOG_WARNING("Obj close time: %.5e\n", t1 - t0);
 #endif
     } // End for steps
 

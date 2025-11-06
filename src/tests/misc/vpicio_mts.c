@@ -85,8 +85,8 @@ main(int argc, char **argv)
         sleeptime    = atoi(argv[3]);
     }
     if (rank == 0)
-        LOG_INFO("Writing %" PRIu64 " number of particles for %d steps with %d clients.\n", numparticles,
-                 steps, size);
+        LOG_WARNING("Writing %" PRIu64 " number of particles for %d steps with %d clients.\n", numparticles,
+                    steps, size);
 
     dims[0] = numparticles * size;
 
@@ -124,12 +124,13 @@ main(int argc, char **argv)
     PDCprop_set_obj_user_id(obj_prop_float, getuid());
     PDCprop_set_obj_app_name(obj_prop_float, "VPICIO");
     PDCprop_set_obj_tags(obj_prop_float, "tag0=1");
-    PDCprop_set_obj_transfer_region_type(obj_prop_float, PDC_OBJ_STATIC);
+    PDCprop_set_obj_transfer_region_type(obj_prop_float, PDC_REGION_STATIC);
     // PDCprop_set_obj_transfer_region_type(obj_prop_float, PDC_REGION_STATIC);
 
     obj_prop_int = PDCprop_obj_dup(obj_prop_float);
     PDCprop_set_obj_type(obj_prop_int, PDC_INT);
 
+    srand(12345);
     for (uint64_t i = 0; i < numparticles; i++) {
         id1[i] = i;
         id2[i] = i * 2;
@@ -159,7 +160,7 @@ main(int argc, char **argv)
 #ifdef ENABLE_MPI
         MPI_Barrier(MPI_COMM_WORLD);
         if (rank == 0)
-            LOG_INFO("\n#Step  %d\n", iter);
+            LOG_WARNING("\n#Step  %d\n", iter);
         t0 = MPI_Wtime();
 #endif
 
@@ -172,7 +173,7 @@ main(int argc, char **argv)
                 return FAIL;
             }
 
-            pdcid_t dg_id = PDCtf_dg_json_create(TF_GRAPHS_DIR "compression.json");
+            pdcid_t dg_id = PDCtf_dg_json_create(TF_GRAPHS_DIR "compression_sz.json");
             PDCtf_attach_to_obj(dg_id, obj_ids[i], "decompressed", "compressed");
         }
 
@@ -180,7 +181,7 @@ main(int argc, char **argv)
         MPI_Barrier(MPI_COMM_WORLD);
         t1 = MPI_Wtime();
         if (rank == 0)
-            LOG_INFO("Obj create time: %.5e\n", t1 - t0);
+            LOG_WARNING("Obj create time: %.5e\n", t1 - t0);
 #endif
 
         for (int i = 0; i < 8; i++) {
@@ -196,7 +197,7 @@ main(int argc, char **argv)
         MPI_Barrier(MPI_COMM_WORLD);
         t0 = MPI_Wtime();
         if (rank == 0)
-            LOG_INFO("Transfer create time: %.5e\n", t0 - t1);
+            LOG_WARNING("Transfer create time: %.5e\n", t0 - t1);
 #endif
 
 #ifdef ENABLE_MPI
@@ -212,15 +213,15 @@ main(int argc, char **argv)
         MPI_Barrier(MPI_COMM_WORLD);
         t1 = MPI_Wtime();
         if (rank == 0)
-            LOG_INFO("Transfer start time: %.5e\n", t1 - t0);
+            LOG_WARNING("Transfer start time: %.5e\n", t1 - t0);
 #endif
         // Emulate compute with sleep
         if (iter != steps - 1) {
             if (rank == 0)
-                LOG_INFO("Sleep start: %llu.00\n", sleeptime);
+                LOG_WARNING("Sleep start: %llu.00\n", sleeptime);
             sleep(sleeptime);
             if (rank == 0)
-                LOG_INFO("Sleep end: %llu.00\n", sleeptime);
+                LOG_WARNING("Sleep end: %llu.00\n", sleeptime);
         }
 
 #ifdef ENABLE_MPI
@@ -237,7 +238,7 @@ main(int argc, char **argv)
         MPI_Barrier(MPI_COMM_WORLD);
         t1 = MPI_Wtime();
         if (rank == 0)
-            LOG_INFO("Transfer wait time: %.5e\n", t1 - t0);
+            LOG_WARNING("Transfer wait time: %.5e\n", t1 - t0);
 #endif
 
         for (int j = 0; j < 8; j++) {
@@ -251,7 +252,7 @@ main(int argc, char **argv)
         MPI_Barrier(MPI_COMM_WORLD);
         t0 = MPI_Wtime();
         if (rank == 0)
-            LOG_INFO("Transfer close time: %.5e\n", t0 - t1);
+            LOG_WARNING("Transfer close time: %.5e\n", t0 - t1);
 #endif
 
         for (int i = 0; i < 8; i++) {
@@ -265,7 +266,7 @@ main(int argc, char **argv)
         MPI_Barrier(MPI_COMM_WORLD);
         t1 = MPI_Wtime();
         if (rank == 0)
-            LOG_INFO("Obj close time: %.5e\n", t1 - t0);
+            LOG_WARNING("Obj close time: %.5e\n", t1 - t0);
 #endif
     } // End for steps
 

@@ -99,6 +99,41 @@ if(CUDA_ROOT)
   endif()
 endif()
 
+if(NOT DEFINED SZ_CPU_DIR)
+  set(SZ_CPU_DIR $ENV{SZ_CPU_DIR})
+endif()
+message(STATUS "SZ_CPU_DIR = ${SZ_CPU_DIR}")
+# SZ3
+find_path(SZ3_INCLUDE_DIR NAMES sz3c.h PATHS "${SZ_CPU_DIR}/include/SZ3c")
+find_library(SZ3_LIBRARY NAMES SZ3c PATHS "${SZ_CPU_DIR}/lib64" "${SZ_CPU_DIR}/lib")
+if(NOT SZ3_INCLUDE_DIR)
+  message(FATAL_ERROR "Could not find SZ3 headers in ${SZ_CPU_DIR}/include")
+endif()
+if(NOT SZ3_LIBRARY)
+  message(FATAL_ERROR "Could not find SZ3 library in ${SZ_CPU_DIR}/lib64 or ${SZ_CPU_DIR}/lib")
+endif()
+include_directories(${SZ3_INCLUDE_DIR})
+link_libraries(${SZ3_LIBRARY})
+# Check if CUSZ_GPU_DIR is defined; if not, take from environment
+if(NOT DEFINED CUSZ_GPU_DIR)
+  set(CUSZ_GPU_DIR $ENV{CUSZ_GPU_DIR})
+endif()
+
+# GPU CUSZ
+if(NOT DEFINED CUSZ_GPU_DIR)
+  set(CUSZ_GPU_DIR $ENV{CUSZ_GPU_DIR})
+endif()
+message(STATUS "CUSZ_GPU_DIR = ${CUSZ_GPU_DIR}")
+# Find CUSZ headers (not SZ3)
+find_path(CUSZ_INCLUDE_DIR
+  NAMES cusz.h api_v2.h
+  PATHS "${CUSZ_GPU_DIR}/include/cusz"
+)
+if(NOT CUSZ_INCLUDE_DIR)
+  message(FATAL_ERROR "Could not find CUSZ headers in ${CUSZ_GPU_DIR}/include/cusz")
+endif()
+include_directories(${CUSZ_INCLUDE_DIR})
+
 
 # Set a consistent MACOSX_RPATH default across all CMake versions.
 # checks if the variable CMAKE_MACOSX_RPATH is not defined and sets it to 0 if it is not defined.

@@ -3,18 +3,8 @@
 
 /**
  * List of FIXME:'s
- *  1. Use actual pdcid_t instead of ad hoc generating them
- *  2. Keep track of region history
- *  3. Create dynamic arrays for MAX_REGIONS
- *  4. When a graph is attached to region ensure no collisions with existing regions
- *  5. On client side graph execution happens synchronously on region start
- *  6. Check for existing structs to represent pdc_tf_remote_reg
- *  7. Rename global region remote region... that could be confusing
- *  8. Figure out of total data size of region is important for identifying during transfer
- *  9. Remove state and func structs also remove the extern
- *  10. Parse func name correctly when adding function
- *  11. PDC_TF_MAX_FUNC_NAME_LEN maybe should be dynamic?
- *  12. PDC_TF_MAX_BUILTIN_FUNCS should definitely by dynamic
+ *  1. Keep track of region history
+ *  2. Parse func name correctly when adding function
  */
 #include "pdc_public.h"
 #include "pdc_dg.h"

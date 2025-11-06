@@ -137,21 +137,6 @@ transfer_request_all_bulk_transfer_read_cb(const struct hg_cb_info *info)
 
     // This is the actual data transfer. When transfer is finished, we are heading our way to the function
     // transfer_request_bulk_transfer_cb.
-    LOG_DEBUG("HG_Bulk_transfer called with parameters:\n");
-    LOG_DEBUG("  context: %p\n", handle_info->context);
-    LOG_DEBUG("  callback: %p\n", transfer_request_all_bulk_transfer_read_cb2);
-    LOG_DEBUG("  callback_arg: %p\n", local_bulk_args2);
-    LOG_DEBUG("  direction: HG_BULK_PUSH\n");
-    LOG_DEBUG("  remote_addr: %p\n", handle_info->addr);
-    LOG_DEBUG("  local_handle: %lu\n", (unsigned long)local_bulk_args->in.local_bulk_handle);
-    LOG_DEBUG("  local_offset: %zu\n", 0);
-    LOG_DEBUG("  remote_handle: %lu\n", (unsigned long)local_bulk_args2->bulk_handle);
-    LOG_DEBUG("  remote_offset: %zu\n", 0);
-    LOG_DEBUG("  size: %zu\n", total_mem_size);
-    LOG_DEBUG("  op_id: HG_OP_ID_IGNORE\n");
-    LOG_DEBUG("local bulk handle = %lu, remote bulk handle = %lu\n",
-              (unsigned long)local_bulk_args->in.local_bulk_handle,
-              (unsigned long)local_bulk_args2->bulk_handle);
     ret =
         HG_Bulk_transfer(handle_info->context, transfer_request_all_bulk_transfer_read_cb2, local_bulk_args2,
                          HG_BULK_PUSH, handle_info->addr, local_bulk_args->in.local_bulk_handle, 0,
@@ -211,12 +196,10 @@ transfer_request_all_bulk_transfer_write_cb(const struct hg_cb_info *info)
         remote_reg_info->offset = request_data.remote_offset[i];
         remote_reg_info->size   = request_data.remote_length[i];
 #ifdef PDC_SERVER_CACHE
-        LOG_INFO("CACHE WRITE %d\n", remote_reg_info->size[0]);
         PDC_transfer_request_data_write_out(request_data.obj_id[i], request_data.obj_ndim[i],
                                             request_data.obj_dims[i], remote_reg_info,
                                             (void *)request_data.data_buf[i], request_data.unit[i]);
 #else
-        LOG_INFO("RAW WRITE\n");
         PDC_Server_transfer_request_io(request_data.obj_id[i], request_data.obj_ndim[i],
                                        request_data.obj_dims[i], remote_reg_info,
                                        (void *)request_data.data_buf[i], request_data.unit[i], 1);

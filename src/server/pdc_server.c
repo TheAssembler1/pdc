@@ -693,6 +693,8 @@ PDC_Server_set_close(void)
         hg_atomic_set32(&close_server_g, 1);
     }
 
+    LOG_AVG_TOTAL_FREQ_TIMERS();
+
     FUNC_LEAVE(ret_value);
 }
 
@@ -2542,12 +2544,8 @@ server_run(int argc, char *argv[])
         PDC_Server_write_addr_to_file(all_addr_strings_g, pdc_server_size_g) != SUCCEED) {
         LOG_ERROR("Error with write config file\n");
     }
-    else if (pdc_server_rank_g == 0) {
+    else if (pdc_server_rank_g == 0)
         LOG_INFO("Succesfully wrote address to config in dir %s\n", pdc_server_tmp_dir_g);
-    }
-    else {
-        LOG_INFO("RANK %d\n", pdc_server_rank_g);
-    }
 
 #ifdef ENABLE_ROCKSDB
     if (use_rocksdb_g) {
