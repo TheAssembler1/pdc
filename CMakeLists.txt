@@ -118,7 +118,6 @@ link_libraries(${SZ3_LIBRARY})
 if(NOT DEFINED CUSZ_GPU_DIR)
   set(CUSZ_GPU_DIR $ENV{CUSZ_GPU_DIR})
 endif()
-
 # GPU CUSZ
 if(NOT DEFINED CUSZ_GPU_DIR)
   set(CUSZ_GPU_DIR $ENV{CUSZ_GPU_DIR})
@@ -126,14 +125,24 @@ endif()
 message(STATUS "CUSZ_GPU_DIR = ${CUSZ_GPU_DIR}")
 # Find CUSZ headers (not SZ3)
 find_path(CUSZ_INCLUDE_DIR
-  NAMES cusz.h api_v2.h
+  NAMES cusz.h context.h api_v2.h header.h
   PATHS "${CUSZ_GPU_DIR}/include/cusz"
 )
 if(NOT CUSZ_INCLUDE_DIR)
   message(FATAL_ERROR "Could not find CUSZ headers in ${CUSZ_GPU_DIR}/include/cusz")
 endif()
 include_directories(${CUSZ_INCLUDE_DIR})
-
+find_library(CUSZ_LIBRARY
+  NAMES cusz
+  PATHS
+    "${CUSZ_GPU_DIR}/lib"
+    "${CUSZ_GPU_DIR}/lib64"
+)
+if(NOT CUSZ_LIBRARY)
+  message(FATAL_ERROR "Could not find CUSZ library in ${CUSZ_GPU_DIR}/lib or lib64")
+endif()
+message(STATUS "CUSZ_LIBRARY = ${CUSZ_LIBRARY}")
+link_libraries(${CUSZ_LIBRARY})
 
 # Set a consistent MACOSX_RPATH default across all CMake versions.
 # checks if the variable CMAKE_MACOSX_RPATH is not defined and sets it to 0 if it is not defined.

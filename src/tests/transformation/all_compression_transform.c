@@ -40,7 +40,7 @@
 #define BATCH_REQUESTS      1
 #define INDIVIDUAL_REQUESTS 0
 
-#define TRANSFORM_GRAPH_PATH TF_GRAPHS_DIR "compression.json"
+#define TRANSFORM_GRAPH_PATH TF_GRAPHS_DIR "zfp.json"
 
 int
 main(int argc, char **argv)

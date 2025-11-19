@@ -155,7 +155,7 @@ main(int argc, char **argv)
             "Call to PDCregion_create succeeded", "Call to PDCregion_create failed");
 
     // attach graph
-    pdcid_t dg_id = PDCtf_dg_json_create(TF_GRAPHS_DIR "compression_or_encryption.json");
+    pdcid_t dg_id = PDCtf_dg_json_create(TF_GRAPHS_DIR "zfp_libsod.json");
     PDCtf_attach_to_region(dg_id, obj1, reg_global, "client", "compressed");
 
     // Write to data buffer

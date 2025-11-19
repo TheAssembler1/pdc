@@ -45,7 +45,8 @@ uniform_random_number()
 void
 print_usage()
 {
-    LOG_JUST_PRINT("Usage: srun -n ./vpicio #particles #steps sleep_time(s)\n");
+    LOG_JUST_PRINT("Usage: srun -n ./vpicio #particles #steps sleep_time(s) transform "
+                   "(raw/sz/zfp/zfp_gpu)\n");
 }
 
 int
@@ -68,6 +69,7 @@ main(int argc, char **argv)
     const char *obj_names[] = {"obj-var-xx",  "obj-var-yy",  "obj-var-zz", "obj-var-pxx",
                                "obj-var-pyy", "obj-var-pzz", "id1",        "id2"};
     char        obj_name[64];
+    const char *transformation_str = "raw";
 
     pdcid_t transfer_requests[8];
 
@@ -79,14 +81,18 @@ main(int argc, char **argv)
 #endif
 
     numparticles = NPARTICLES;
-    if (argc == 4) {
-        numparticles = atoll(argv[1]);
-        steps        = atoi(argv[2]);
-        sleeptime    = atoi(argv[3]);
+    if (argc == 5) {
+        numparticles       = atoll(argv[1]);
+        steps              = atoi(argv[2]);
+        sleeptime          = atoi(argv[3]);
+        transformation_str = argv[4];
     }
-    if (rank == 0)
-        LOG_WARNING("Writing %" PRIu64 " number of particles for %d steps with %d clients.\n", numparticles,
-                    steps, size);
+
+    if (rank == 0) {
+        LOG_WARNING("Writing %" PRIu64
+                    " number of particles for %d steps with %d clients %s transformation.\n",
+                    numparticles, steps, size, transformation_str);
+    }
 
     dims[0] = numparticles * size;
 
@@ -125,7 +131,6 @@ main(int argc, char **argv)
     PDCprop_set_obj_app_name(obj_prop_float, "VPICIO");
     PDCprop_set_obj_tags(obj_prop_float, "tag0=1");
     PDCprop_set_obj_transfer_region_type(obj_prop_float, PDC_REGION_STATIC);
-    // PDCprop_set_obj_transfer_region_type(obj_prop_float, PDC_REGION_STATIC);
 
     obj_prop_int = PDCprop_obj_dup(obj_prop_float);
     PDCprop_set_obj_type(obj_prop_int, PDC_INT);
@@ -173,8 +178,22 @@ main(int argc, char **argv)
                 return FAIL;
             }
 
-            pdcid_t dg_id = PDCtf_dg_json_create(TF_GRAPHS_DIR "compression_sz.json");
-            PDCtf_attach_to_obj(dg_id, obj_ids[i], "decompressed", "compressed");
+            if (!strcmp(transformation_str, "zfp")) {
+                pdcid_t dg_id = PDCtf_dg_json_create(TF_GRAPHS_DIR "zfp.json");
+                PDCtf_attach_to_obj(dg_id, obj_ids[i], "decompressed", "compressed");
+            }
+            else if (!strcmp(transformation_str, "zfp_gpu")) {
+                pdcid_t dg_id = PDCtf_dg_json_create(TF_GRAPHS_DIR "zfp_gpu.json");
+                PDCtf_attach_to_obj(dg_id, obj_ids[i], "decompressed", "compressed");
+            }
+            else if (!strcmp(transformation_str, "sz")) {
+                pdcid_t dg_id = PDCtf_dg_json_create(TF_GRAPHS_DIR "sz.json");
+                PDCtf_attach_to_obj(dg_id, obj_ids[i], "decompressed", "compressed");
+            }
+            else if (strcmp(transformation_str, "raw")) {
+                print_usage();
+                abort();
+            }
         }
 
 #ifdef ENABLE_MPI

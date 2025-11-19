@@ -193,37 +193,6 @@ main(int argc, char **argv)
             return FAIL;
         }
 
-        printf("Printing first 100 values of id1/id2/x/y/z/px/py/pz (expected vs received) at rank %d, step "
-               "%d:\n",
-               rank, iter);
-
-        srand(12345);
-        for (uint64_t i = 0; i < 100 && i < numparticles; i++) {
-            int   id1_exp = i;
-            int   id2_exp = i * 2;
-            float x_exp   = uniform_random_number() * x_dim;
-            float y_exp   = uniform_random_number() * y_dim;
-            float z_exp   = ((float)id1_exp / numparticles) * z_dim;
-            float px_exp  = uniform_random_number() * x_dim;
-            float py_exp  = uniform_random_number() * y_dim;
-            float pz_exp  = ((float)id2_exp / numparticles) * z_dim;
-
-            // step modifications for first/last elements
-            if (i == 0) {
-                id1_exp = rank + iter;
-                id2_exp = rank + iter * 2;
-            }
-            else if (i == numparticles - 1) {
-                id1_exp = rank - iter;
-                id2_exp = rank - iter * 2;
-            }
-
-            printf("%3lu: id1=%d/%d, id2=%d/%d, x=%.3f/%.3f, y=%.3f/%.3f, z=%.3f/%.3f, px=%.3f/%.3f, "
-                   "py=%.3f/%.3f, pz=%.3f/%.3f\n",
-                   i, id1_exp, id1[i], id2_exp, id2[i], x_exp, x[i], y_exp, y[i], z_exp, z[i], px_exp, px[i],
-                   py_exp, py[i], pz_exp, pz[i]);
-        }
-
 #ifdef ENABLE_MPI
         MPI_Barrier(MPI_COMM_WORLD);
         t1 = MPI_Wtime();
@@ -257,7 +226,35 @@ main(int argc, char **argv)
         t1 = MPI_Wtime();
         if (rank == 0)
             LOG_WARNING("Obj close time: %.5e\n", t1 - t0);
+        MPI_Barrier(MPI_COMM_WORLD);
 #endif
+
+        srand(12345);
+        for (uint64_t i = 0; i < 5 && i < numparticles; i++) {
+            int   id1_exp = i;
+            int   id2_exp = i * 2;
+            float x_exp   = uniform_random_number() * x_dim;
+            float y_exp   = uniform_random_number() * y_dim;
+            float z_exp   = ((float)id1_exp / numparticles) * z_dim;
+            float px_exp  = uniform_random_number() * x_dim;
+            float py_exp  = uniform_random_number() * y_dim;
+            float pz_exp  = ((float)id2_exp / numparticles) * z_dim;
+
+            // step modifications for first/last elements
+            if (i == 0) {
+                id1_exp = rank + iter;
+                id2_exp = rank + iter * 2;
+            }
+            else if (i == numparticles - 1) {
+                id1_exp = rank - iter;
+                id2_exp = rank - iter * 2;
+            }
+
+            LOG_WARNING("%3lu: id1=%d/%d, id2=%d/%d, x=%.3f/%.3f, y=%.3f/%.3f, z=%.3f/%.3f, px=%.3f/%.3f, "
+                        "py=%.3f/%.3f, pz=%.3f/%.3f\n",
+                        i, id1_exp, id1[i], id2_exp, id2[i], x_exp, x[i], y_exp, y[i], z_exp, z[i], px_exp,
+                        px[i], py_exp, py[i], pz_exp, pz[i]);
+        }
     } // End for steps
 
     PDC_timing_report("write");

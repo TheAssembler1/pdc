@@ -43,5 +43,5 @@
             "name": "secret_box_decrypt"
         }
     ],
-    "name": "ZFP_compression_encryption"
+    "name": "zfp_or_libsod"
 }
