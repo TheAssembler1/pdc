@@ -8,7 +8,7 @@
 #include <zfp.h>
 #endif
 
-#ifdef ENABLE_SECRET_BOX_ENCRYPTION
+#ifdef ENABLE_TF_SECRET_BOX_ENCRYPTION
 #include <sodium.h>
 #endif
 
@@ -25,6 +25,10 @@ typedef struct zfp_compress_params_t {
 typedef struct sz_compress_params_t {
     pdc_tf_region_t decompressed_region;
 } sz_compress_params_t;
+
+typedef struct turbo_compress_params_t {
+    pdc_tf_region_t decompressed_region;
+} turbo_compress_params_t;
 
 static void
 print_ztype(zfp_type z_type)
@@ -120,10 +124,10 @@ pdc_tf_builtin_sz_compress_cuda(pdc_tf_internal_param internal_param, char *para
     // FIXME: for now just hardcode this
     psz_compressor *comp = psz_create_default(dtype, len);
 
-    uint8_t *  d_compressed    = NULL;
+    uint8_t   *d_compressed    = NULL;
     size_t     compressed_size = 0;
     psz_header header;
-    void *     record = psz_make_timerecord();
+    void      *record = psz_make_timerecord();
     // Compress
     pszerror err =
         psz_compress(comp, d_data, len, 0.01, Abs, &d_compressed, &compressed_size, &header, record, 0);
@@ -175,11 +179,11 @@ pdc_tf_builtin_sz_decompress_cuda(pdc_tf_internal_param internal_param, char *pa
     // Allocate device memory for decompressed data
     psz_len3 len            = {output_region->size[0], output_region->ndim > 1 ? output_region->size[1] : 1,
                     output_region->ndim > 2 ? output_region->size[2] : 1};
-    void *   d_decompressed = NULL;
+    void    *d_decompressed = NULL;
     size_t   nbytes         = len.x * len.y * len.z * sizeof(float); // assume float, adjust if needed
     CUDA_CHECK(cudaMalloc(&d_decompressed, nbytes));
 
-    void *   record = capi_psz_make_timerecord();
+    void    *record = capi_psz_make_timerecord();
     pszerror p_err = psz_decompress(comp, d_compressed, input_region.size[0], d_decompressed, len, record, 0);
     if (p_err != PSZ_SUCCESS) {
         LOG_ERROR("cuSZ decompression failed\n");
@@ -742,7 +746,7 @@ pdc_tf_builtin_zfp_decompress_cuda_helper(pdc_tf_internal_param internal_param, 
 
     // Create zfp field on device
     zfp_field *field  = NULL;
-    void *     target = dev_uncompressed;
+    void      *target = dev_uncompressed;
     switch (in_params->decompressed_region.ndim) {
         case 1:
             field = zfp_field_1d(target, z_type, in_params->decompressed_region.size[0]);
@@ -872,14 +876,14 @@ pdc_tf_builtin_zfp_decompress_cuda(pdc_tf_internal_param internal_param, char *p
 #endif // CUDA_ENABLED
 #endif // ENABLE_TF_ZFP_COMPRESSION
 
-#ifdef ENABLE_SECRET_BOX_ENCRYPTION
+#ifdef ENABLE_TF_SECRET_BOX_ENCRYPTION
 
 // FIXME: should be picked up by params_str
 unsigned char key[crypto_secretbox_KEYBYTES]     = {0};
 unsigned char nonce[crypto_secretbox_NONCEBYTES] = {0};
 
 typedef struct encrypt_params_t {
-    pdc_tf_region_t decompressed_region;
+    pdc_tf_region_t unencrypted_region;
 } encrypt_params_t;
 
 bool
@@ -911,10 +915,10 @@ pdc_tf_builtin_encrypt(pdc_tf_internal_param internal_param, char *params_str, v
     output_region->size[0]      = ciphertext_len;
 
     // Save original region size in output_params
-    encrypt_params_t *out_params                 = (encrypt_params_t *)malloc(sizeof(encrypt_params_t));
-    out_params->decompressed_region.pdc_var_type = input_region.pdc_var_type;
-    PDCtf_copy_tf_region_t(&input_region, &out_params->decompressed_region);
-    SET_FUNC_PARAMS("secret_box_encrypt", PDC_TF_CPU_DEVICE, out_params, sizeof(zfp_compress_params_t));
+    encrypt_params_t *out_params                = (encrypt_params_t *)malloc(sizeof(encrypt_params_t));
+    out_params->unencrypted_region.pdc_var_type = input_region.pdc_var_type;
+    PDCtf_copy_tf_region_t(&input_region, &out_params->unencrypted_region);
+    SET_FUNC_PARAMS("secret_box_encrypt", PDC_TF_CPU_DEVICE, out_params, sizeof(encrypt_params_t));
 
     // Update data pointer
     *region_data = ciphertext;
@@ -942,10 +946,9 @@ pdc_tf_builtin_decrypt(pdc_tf_internal_param internal_param, char *params_str, v
         return false;
     }
 
-    size_t plaintext_len =
-        PDC_get_region_desc_size_bytes(in_params->decompressed_region.size,
-                                       PDC_get_var_type_size(in_params->decompressed_region.pdc_var_type),
-                                       in_params->decompressed_region.ndim);
+    size_t plaintext_len = PDC_get_region_desc_size_bytes(
+        in_params->unencrypted_region.size, PDC_get_var_type_size(in_params->unencrypted_region.pdc_var_type),
+        in_params->unencrypted_region.ndim);
 
     unsigned char *plaintext = malloc(plaintext_len);
     if (!plaintext) {
@@ -961,7 +964,7 @@ pdc_tf_builtin_decrypt(pdc_tf_internal_param internal_param, char *params_str, v
     }
 
     // Set output region dims: restore original plaintext region
-    PDCtf_copy_tf_region_t(&in_params->decompressed_region, output_region);
+    PDCtf_copy_tf_region_t(&in_params->unencrypted_region, output_region);
 
     // Update data pointer
     *region_data = plaintext;
@@ -969,4 +972,91 @@ pdc_tf_builtin_decrypt(pdc_tf_internal_param internal_param, char *params_str, v
     LOG_DEBUG("Decryption succeeded, plaintext length: %zu bytes\n", plaintext_len);
     return true;
 }
-#endif // ENABLE_SECRET_BOX_ENCRYPTION
+#endif // ENABLE_TF_SECRET_BOX_ENCRYPTION
+
+#ifdef ENABLE_TF_TURBO_COMPRESSION
+#include <ic.h>
+
+bool
+pdc_tf_builtin_turbo_compress(pdc_tf_internal_param internal_param, char *params_str, void **region_data,
+                              pdc_tf_region_t input_region, pdc_tf_region_t *output_region)
+{
+    LOG_DEBUG("pdc_tf_builtin_turbo compress called\n");
+    LOG_DEBUG("Input region (compress):\n");
+    PDCtf_log_pdc_region_t(input_region);
+
+    size_t size       = PDCtf_get_pdc_region_t_bytes(input_region);
+    void  *compressed = malloc(size);
+    size_t ret;
+
+    switch (input_region.pdc_var_type) {
+        case PDC_INT:
+        case PDC_INT32:
+            ret = p4nenc32((uint32_t *)*region_data, PDCtf_get_pdc_region_t_elements(input_region),
+                           (unsigned char *)compressed);
+            break;
+        case PDC_INT64:
+            ret = p4nenc64((uint64_t *)*region_data, PDCtf_get_pdc_region_t_elements(input_region),
+                           (unsigned char *)compressed);
+            break;
+        default:
+            LOG_ERROR("Invalid element type\n");
+            return false;
+    }
+
+    output_region->ndim         = 1;
+    output_region->pdc_var_type = PDC_CHAR;
+    output_region->size[0]      = ret;
+    *region_data                = compressed;
+
+    turbo_compress_params_t *out_params =
+        (turbo_compress_params_t *)PDC_malloc(sizeof(turbo_compress_params_t));
+    PDCtf_copy_tf_region_t(&input_region, &out_params->decompressed_region);
+    SET_FUNC_PARAMS("turbo_compress", PDC_TF_CPU_DEVICE, out_params, sizeof(turbo_compress_params_t));
+
+    LOG_DEBUG("Turbo compression succeeded: %zu bytes\n", ret);
+
+    return true;
+}
+
+bool
+pdc_tf_builtin_turbo_decompress(pdc_tf_internal_param internal_param, char *params_str, void **region_data,
+                                pdc_tf_region_t input_region, pdc_tf_region_t *output_region)
+{
+    LOG_DEBUG("pdc_tf_builtin_turbo_decompress called\n");
+    LOG_DEBUG("Input region (decompress):\n");
+    PDCtf_log_pdc_region_t(input_region);
+
+    turbo_compress_params_t *in_params      = NULL;
+    uint64_t                 in_params_size = 0;
+    GET_FUNC_PARAMS("turbo_compress", PDC_TF_CPU_DEVICE, (void **)&in_params, &in_params_size);
+
+    size_t size         = PDCtf_get_pdc_region_t_bytes(in_params->decompressed_region);
+    void  *decompressed = malloc(size);
+    size_t ret;
+
+    switch (in_params->decompressed_region.pdc_var_type) {
+        case PDC_INT:
+        case PDC_INT32:
+            ret = p4ndec32((unsigned char *)*region_data,
+                           PDCtf_get_pdc_region_t_elements(in_params->decompressed_region),
+                           (uint32_t *)decompressed);
+            break;
+        case PDC_INT64:
+            ret = p4ndec64((unsigned char *)*region_data,
+                           PDCtf_get_pdc_region_t_elements(in_params->decompressed_region),
+                           (uint64_t *)decompressed);
+            break;
+        default:
+            LOG_ERROR("Invalid element type\n");
+            return false;
+    }
+
+    *region_data = decompressed;
+    PDCtf_copy_tf_region_t(&in_params->decompressed_region, output_region);
+
+    LOG_DEBUG("Turbo decompression succeeded: %zu bytes\n", ret);
+
+    return true;
+}
+#endif

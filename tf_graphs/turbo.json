@@ -1,0 +1,29 @@
+{
+  "states": [
+    {
+      "name": "decompressed",
+      "granularity": "element"
+    },
+    {
+      "name": "compressed",
+      "granularity": "region"
+    }
+  ],
+  "functions": [
+    {
+      "device": "CPU",
+      "input_state": "decompressed",
+      "output_state": "compressed",
+      "location": "builtin",
+      "name": "turbo_compress"
+    },
+    {
+      "device": "CPU",
+      "input_state": "compressed",
+      "output_state": "decompressed",
+      "location": "builtin",
+      "name": "turbo_decompress"
+    }
+  ],
+  "name": "turbo"
+}

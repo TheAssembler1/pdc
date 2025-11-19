@@ -144,6 +144,21 @@ endif()
 message(STATUS "CUSZ_LIBRARY = ${CUSZ_LIBRARY}")
 link_libraries(${CUSZ_LIBRARY})
 
+# JSONC
+if(NOT DEFINED TURBO_DIR)
+  set(TURBO_DIR $ENV{TURBO_DIR})
+endif()
+find_path(TURBO_DIR_INCLUDE NAMES ic.h PATHS "${TURBO_DIR}/include")
+find_library(TURBO_DIR_LIB NAMES ic PATHS "${TURBO_DIR}")
+if(NOT TURBO_DIR_INCLUDE)
+  message(FATAL_ERROR "Could not find TURBO_DIR headers in ${TURBO_DIR}/include")
+endif()
+if(NOT TURBO_DIR_LIB)
+  message(FATAL_ERROR "Could not find TURBO_DIR library in ${TURBO_DIR}")
+endif()
+include_directories(${TURBO_DIR_INCLUDE})
+link_libraries(${TURBO_DIR_LIB})
+
 # Set a consistent MACOSX_RPATH default across all CMake versions.
 # checks if the variable CMAKE_MACOSX_RPATH is not defined and sets it to 0 if it is not defined.
 # The CMAKE_MACOSX_RPATH variable is used to control the behavior of the macOS-specific RPATH feature in CMake. 

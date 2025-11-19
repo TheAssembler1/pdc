@@ -61,8 +61,8 @@ main(int argc, char **argv)
 #else
     int comm = 1;
 #endif
-    float *     x, *y, *z, *px, *py, *pz;
-    int *       id1, *id2;
+    float      *x, *y, *z, *px, *py, *pz;
+    int        *id1, *id2;
     int         x_dim = 64, y_dim = 64, z_dim = 64, ndim = 1, steps = 1, sleeptime = 0;
     uint64_t    numparticles, dims[1], offset_local[1], offset_remote[1], mysize[1];
     double      t0, t1;
@@ -177,8 +177,14 @@ main(int argc, char **argv)
                 LOG_ERROR("Error getting an object id of %s from server\n", obj_name);
                 return FAIL;
             }
-
-            if (!strcmp(transformation_str, "zfp")) {
+            if (!strcmp(transformation_str, "turbo")) {
+                LOG_DEBUG("TURBO TRANSFORMATION");
+                if (i >= 6) {
+                    pdcid_t dg_id = PDCtf_dg_json_create(TF_GRAPHS_DIR "turbo.json");
+                    PDCtf_attach_to_obj(dg_id, obj_ids[i], "decompressed", "compressed");
+                }
+            }
+            else if (!strcmp(transformation_str, "zfp")) {
                 pdcid_t dg_id = PDCtf_dg_json_create(TF_GRAPHS_DIR "zfp.json");
                 PDCtf_attach_to_obj(dg_id, obj_ids[i], "decompressed", "compressed");
             }
