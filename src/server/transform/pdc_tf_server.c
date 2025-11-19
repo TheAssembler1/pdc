@@ -50,7 +50,7 @@ PDCtf_store_json_mapping(pdcid_t obj_id, char *json_filepath, char *cur_state, c
 
     // Find object in mapping if it exists
     pdc_tf_obj_id_to_dg_t *obj_id_to_dg                = NULL;
-    PDC_VECTOR_ITERATOR   *tf_obj_id_to_dg_vector_iter = pdc_vector_iterator_new(tf_obj_id_to_dg_vector_g);
+    PDC_VECTOR_ITERATOR *  tf_obj_id_to_dg_vector_iter = pdc_vector_iterator_new(tf_obj_id_to_dg_vector_g);
     while (pdc_vector_iterator_has_next(tf_obj_id_to_dg_vector_iter)) {
         pdc_tf_obj_id_to_dg_t *cur_obj_id_to_dg =
             (pdc_tf_obj_id_to_dg_t *)pdc_vector_iterator_next(tf_obj_id_to_dg_vector_iter);
@@ -118,7 +118,7 @@ PDCtf_store_json_mapping(pdcid_t obj_id, char *json_filepath, char *cur_state, c
     }
 
     pdc_tf_region_t *conceptual_region = &region_mapping->conceptual_region;
-    uint64_t        *conceptual_offset = region_mapping->conceptual_offset;
+    uint64_t *       conceptual_offset = region_mapping->conceptual_offset;
 
     PDC_get_var_type_size(pdc_var_type);
 
@@ -162,8 +162,8 @@ PDCtf_exec_graph(pdc_dg_t *dg, uint64_t flat_conceptual_offset, char *cur_state,
      */
     pdc_tf_state_t tf_input_state  = {.name = cur_state};
     pdc_tf_state_t tf_output_state = {.name = desired_state};
-    void          *input_state     = (void *)&tf_input_state;
-    void          *output_state    = (void *)&tf_output_state;
+    void *         input_state     = (void *)&tf_input_state;
+    void *         output_state    = (void *)&tf_output_state;
 
     pdc_dg_edge_t *edges_out = NULL;
     uint32_t       num_edges;
@@ -174,7 +174,7 @@ PDCtf_exec_graph(pdc_dg_t *dg, uint64_t flat_conceptual_offset, char *cur_state,
             pdc_dg_edge_t   e  = edges_out[j];
             pdc_tf_state_t *v1 = (pdc_tf_state_t *)(dg->vertices[e.v1_id]->data);
             pdc_tf_state_t *v2 = (pdc_tf_state_t *)(dg->vertices[e.v2_id]->data);
-            pdc_tf_func_t  *f  = (pdc_tf_func_t *)(e.data);
+            pdc_tf_func_t * f  = (pdc_tf_func_t *)(e.data);
 
             // Setup internal paramters for helper macros
             pdc_tf_internal_param internal_params;

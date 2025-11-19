@@ -78,7 +78,7 @@ extern PDC_VECTOR *tf_obj_id_to_dg_vector_g;
 typedef struct pdc_tf_obj_id_to_dg_t {
     pdcid_t             obj_id;
     struct pdc_tf_obj_t pdc_tf_obj;
-    pdc_dg_t           *dg;
+    pdc_dg_t *          dg;
 } pdc_tf_obj_id_to_dg_t;
 
 /**

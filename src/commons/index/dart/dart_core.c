@@ -572,7 +572,7 @@ DART_hash(DART *dart_g, char *key, dart_op_type_t op_type, get_server_info_callb
 
     uint64_t *temp_out    = NULL;
     int       tmp_out_len = 0;
-    char     *tok         = NULL;
+    char *    tok         = NULL;
     *out                  = NULL;
 
     // regardless of suffix tree mode, we only need to get the DART hash result for one time for query

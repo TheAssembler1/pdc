@@ -125,7 +125,7 @@ PDCtf_attach_to_region(pdcid_t dg_id, pdcid_t obj_id, pdcid_t remote_reg, char *
 
     perr_t ret_value = SUCCEED;
 
-    struct pdc_tf_obj_t  *pdc_tf_obj   = NULL;
+    struct pdc_tf_obj_t * pdc_tf_obj   = NULL;
     struct _pdc_obj_info *pdc_obj_info = NULL;
     if (locate_and_set_pdc_tf_obj_t(obj_id, &pdc_obj_info, &pdc_tf_obj) != SUCCEED)
         PGOTO_ERROR(FAIL, "Error with locate_and_set_pdc_tf_obj_t");
@@ -147,7 +147,7 @@ PDCtf_attach_to_region(pdcid_t dg_id, pdcid_t obj_id, pdcid_t remote_reg, char *
     pdc_vector_add(pdc_tf_obj->region_mappings_vector, region_mapping);
 
     pdc_tf_region_t *conceptual_region = &region_mapping->conceptual_region;
-    uint64_t        *conceptual_offset = region_mapping->conceptual_offset;
+    uint64_t *       conceptual_offset = region_mapping->conceptual_offset;
 
     // Copy region information into conceptual region
     PDCtf_set_tf_region_t(conceptual_region, region_info->ndim, pdc_obj_info->obj_pt->obj_prop_pub->type,
@@ -173,7 +173,7 @@ PDCtf_attach_to_obj(pdcid_t dg_id, pdcid_t obj_id, char *client_state, char *sto
 
     perr_t ret_value = SUCCEED;
 
-    struct pdc_tf_obj_t  *pdc_tf_obj   = NULL;
+    struct pdc_tf_obj_t * pdc_tf_obj   = NULL;
     struct _pdc_obj_info *pdc_obj_info = NULL;
     if (locate_and_set_pdc_tf_obj_t(obj_id, &pdc_obj_info, &pdc_tf_obj) != SUCCEED)
         PGOTO_ERROR(FAIL, "Error with locate_and_set_pdc_tf_obj_t");

@@ -120,10 +120,10 @@ pdc_tf_builtin_sz_compress_cuda(pdc_tf_internal_param internal_param, char *para
     // FIXME: for now just hardcode this
     psz_compressor *comp = psz_create_default(dtype, len);
 
-    uint8_t   *d_compressed    = NULL;
+    uint8_t *  d_compressed    = NULL;
     size_t     compressed_size = 0;
     psz_header header;
-    void      *record = psz_make_timerecord();
+    void *     record = psz_make_timerecord();
     // Compress
     pszerror err =
         psz_compress(comp, d_data, len, 0.01, Abs, &d_compressed, &compressed_size, &header, record, 0);
@@ -175,11 +175,11 @@ pdc_tf_builtin_sz_decompress_cuda(pdc_tf_internal_param internal_param, char *pa
     // Allocate device memory for decompressed data
     psz_len3 len            = {output_region->size[0], output_region->ndim > 1 ? output_region->size[1] : 1,
                     output_region->ndim > 2 ? output_region->size[2] : 1};
-    void    *d_decompressed = NULL;
+    void *   d_decompressed = NULL;
     size_t   nbytes         = len.x * len.y * len.z * sizeof(float); // assume float, adjust if needed
     CUDA_CHECK(cudaMalloc(&d_decompressed, nbytes));
 
-    void    *record = capi_psz_make_timerecord();
+    void *   record = capi_psz_make_timerecord();
     pszerror p_err = psz_decompress(comp, d_compressed, input_region.size[0], d_decompressed, len, record, 0);
     if (p_err != PSZ_SUCCESS) {
         LOG_ERROR("cuSZ decompression failed\n");
@@ -742,7 +742,7 @@ pdc_tf_builtin_zfp_decompress_cuda_helper(pdc_tf_internal_param internal_param, 
 
     // Create zfp field on device
     zfp_field *field  = NULL;
-    void      *target = dev_uncompressed;
+    void *     target = dev_uncompressed;
     switch (in_params->decompressed_region.ndim) {
         case 1:
             field = zfp_field_1d(target, z_type, in_params->decompressed_region.size[0]);
