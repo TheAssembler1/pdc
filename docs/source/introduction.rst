@@ -42,12 +42,10 @@ Suren Byna, Bin Dong, Houjun Tang, Quincey Koziol, Jingqing Mu, Jerome Soumagne,
 **1.2.** Installation
 ---------------------
 
-PDC offers the following methods for installing core dependencies:
-
-1. :ref:`Spack <link_spack>`
-2. :ref:`PDC Source <pdc-source>`
-
-PDC offers the following installation targets:
+PDC offers several installation targets, 
+including C and Python APIs, as well as support 
+for use as an HDF5 VOL connector. These options are listed below, 
+and the accompanying figure illustrates the installation path for each:
 
 1. `C API`
 2. :ref:`Python API (PDCpy) <python-api-pdc-py>`
@@ -57,7 +55,13 @@ PDC offers the following installation targets:
    :alt: PDC Installation Diagram
    :align: center
 
-   Installation workflow to install the client targets offered by PDC.
+Installation workflow to install the client targets offered by PDC.
+
+As seen in the figure above,
+   PDC offers the following methods for installing core dependencies:
+
+1. :ref:`Spack <link_spack>`
+2. :ref:`PDC Source <pdc-source>`
 
 .. note::
 
@@ -102,11 +106,34 @@ PDC and its dependencies can be installed with spack:
 PDC Source
 ~~~~~~~~~~
 
-We recommend using GCC version 7 or later. Intel and Cray compilers also work.
-
 When building PDC from source, either MPICH or OpenMPI can be used as the MPI library, if your system
 doesn't have one installed, follow `MPICH Installers Guide <https://www.mpich.org/documentation/guides>`_ 
 or `Installing Open MPI <https://docs.open-mpi.org/en/v5.0.x/installing-open-mpi/quickstart.html>`_
+
+We list the required compilers, MPI implementations, supporting libraries, 
+and optional dependencies along with their recommended versions below:
+
+* **Compilers** (one of the following):
+  
+  - GCC version 7 or later.
+  - Intel compiler (version stable)  
+  - Cray compiler (version stable)
+
+* **MPI implementations**:
+
+  - OpenMPI (version stable)
+  - MPICH (version stable)
+  - Intel MPI or Cray MPI (version stable)
+
+* **Supporting libraries**:
+
+  - libfabric (version 1.18.0 or later)
+  - Mercury (version 2.2.0 or later)
+
+* **Optional dependencies**:
+
+  - Python (required if using the PDC Python API, version 3.x or later)
+  - HDF5 (required if using the PDC HDF5 API, version 1.12.1 or later)
 
 We provide detailed instructions for installing libfabric, Mercury, and the PDC library below.
 
@@ -596,7 +623,6 @@ This section offers the following examples for different PDC target installation
 .. note::
 
    All examples omit detailed error checking for clarity. In practice, always check the return values of PDC API calls. 
-   See the section TODO_FIX_REFERENCE for more information on detecting and handling PDC errors.
 
 .. _c-api-first-program:
 
