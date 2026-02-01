@@ -175,12 +175,15 @@ main(int argc, char **argv)
             LOG_WARNING("Transfer start time: %.5e\n", t1 - t0);
 #endif
         // Emulate compute with sleep
-        if (iter != steps - 1) {
+        if (iter != 0) {
             if (rank == 0)
                 LOG_WARNING("Sleep start: %llu.00\n", sleeptime);
             sleep(sleeptime);
             if (rank == 0)
                 LOG_WARNING("Sleep end: %llu.00\n", sleeptime);
+        } else {
+            if (rank == 0)
+                LOG_WARNING("Initial step, no sleep\n");
         }
 
 #ifdef ENABLE_MPI
@@ -256,6 +259,12 @@ main(int argc, char **argv)
                         px[i], py_exp, py[i], pz_exp, pz[i]);
         }
     } // End for steps
+
+    if (rank == 0)
+        LOG_WARNING("Sleep start: %llu.00\n", sleeptime);
+    sleep(sleeptime);
+    if (rank == 0)
+        LOG_WARNING("Sleep end: %llu.00\n", sleeptime);
 
     PDC_timing_report("write");
 

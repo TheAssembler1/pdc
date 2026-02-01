@@ -155,6 +155,12 @@ main(int argc, char **argv)
     region_local  = PDCregion_create(ndim, offset_local, mysize);
     region_remote = PDCregion_create(ndim, offset_remote, mysize);
 
+    if (rank == 0)
+        LOG_WARNING("Sleep start: %llu.00\n", sleeptime);
+    sleep(sleeptime);
+    if (rank == 0)
+        LOG_WARNING("Sleep end: %llu.00\n", sleeptime);
+
     for (int iter = 0; iter < steps; iter++) {
         // Change data for different steps for verification
         id1[0]                = rank + iter;
@@ -165,7 +171,7 @@ main(int argc, char **argv)
 #ifdef ENABLE_MPI
         MPI_Barrier(MPI_COMM_WORLD);
         if (rank == 0)
-            LOG_WARNING("\n#Step  %d\n", iter);
+            LOG_WARNING("#Step  %d\n", iter);
         t0 = MPI_Wtime();
 #endif
 
@@ -251,6 +257,9 @@ main(int argc, char **argv)
             sleep(sleeptime);
             if (rank == 0)
                 LOG_WARNING("Sleep end: %llu.00\n", sleeptime);
+        } else {
+            if (rank == 0)
+                LOG_WARNING("Final step, no sleep\n");
         }
 
 #ifdef ENABLE_MPI
