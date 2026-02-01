@@ -115,11 +115,18 @@ fill_storage_path(char *storage_location, pdcid_t obj_id)
     else
         stripe_count = pdc_nost_per_file_g;
     stripe_size = 16; // MB
-    PDC_Server_set_lustre_stripe(storage_location, stripe_count, stripe_size);
 
-    if (is_debug_g == 1 && pdc_server_rank_g == 0) {
-        LOG_DEBUG("storage_location is %s\n", storage_location);
+    static int have_print = 0;
+    if(!have_print) {
+        if(pdc_server_rank_g == 0) {
+        LOG_WARNING("Total Lustre OSTs, PDC Servers: %d, %d\n", lustre_total_ost_g, pdc_server_size_g);
+        LOG_WARNING("Setting Lustre stripe count to %d and size to %d MB\n", stripe_count,
+                  stripe_size);
+        }
+        have_print = 1;
     }
+
+    PDC_Server_set_lustre_stripe(storage_location, stripe_count, stripe_size);
 #endif
 
     FUNC_LEAVE(0);

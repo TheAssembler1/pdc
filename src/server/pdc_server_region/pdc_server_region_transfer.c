@@ -742,10 +742,6 @@ PDC_Server_data_io_region_per_file_transformations(uint64_t obj_id, int obj_ndim
                               desired_state, input_region, &output_region, &buf, is_write) != SUCCEED) {
         PGOTO_ERROR(FAIL, "Error with PDCtf_exec_graph");
     }
-    if (is_write)
-        GRAPH_TIMER_STOP(COMP_GRAPH_EXEC_TIME);
-    else
-        GRAPH_TIMER_STOP(DECOMP_GRAPH_EXEC_TIME);
 
     // At this point we have run the transformation
     *ran_transformation = true;
@@ -829,6 +825,7 @@ PDC_Server_transfer_request_io(uint64_t obj_id, int obj_ndim, const uint64_t *ob
     FUNC_ENTER(NULL);
 
     LOG_DEBUG("PDC_Server_transfer_request_io was called\n");
+    sleep(6); // FIXME: Remove sleep after debugging
 
     perr_t ret_value = SUCCEED;
     int    my_rank   = PDC_get_rank();

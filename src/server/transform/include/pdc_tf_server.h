@@ -13,8 +13,6 @@ typedef enum TIMER_TARGETS {
     READ_TIME,
     WRITE_TIME,
     TOTAL_GRAPH_EXEC_TIME,
-    COMP_GRAPH_EXEC_TIME,
-    DECOMP_GRAPH_EXEC_TIME,
     NUM_TIMER_TARGETS
 } TIMER_TARGETS;
 
@@ -22,9 +20,7 @@ static const char *TIMER_TARGET_NAMES[NUM_TIMER_TARGETS] = {[OPEN_TIME]         
                                                             [CLOSE_TIME]             = "close",
                                                             [READ_TIME]              = "read",
                                                             [WRITE_TIME]             = "write",
-                                                            [TOTAL_GRAPH_EXEC_TIME]  = "total_graph_exec",
-                                                            [COMP_GRAPH_EXEC_TIME]   = "comp_graph_exec",
-                                                            [DECOMP_GRAPH_EXEC_TIME] = "decomp_graph_exec"};
+                                                            [TOTAL_GRAPH_EXEC_TIME]  = "total_graph_exec"};
 
 extern double   __timer_totals[NUM_TIMER_TARGETS];
 extern uint64_t __timer_totals_freq[NUM_TIMER_TARGETS];

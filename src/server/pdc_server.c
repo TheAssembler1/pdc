@@ -1180,7 +1180,8 @@ PDC_Server_checkpoint()
 {
     FUNC_ENTER(NULL);
 
-    LOG_DEBUG("PDC_Server_checkpoint was called\n");
+    if(pdc_server_rank_g == 0 )
+        LOG_WARNING("Checkpoint start\n");
 
     perr_t                       ret_value = SUCCEED;
     pdc_metadata_t *             elt;
@@ -1371,6 +1372,8 @@ PDC_Server_checkpoint()
 
     // FIXME: We don't store whether graph is attached to entire object...
 
+    if(pdc_server_rank_g == 0 )
+        LOG_WARNING("Writing checkpoint transformations start\n");
     // Checkpoint the region transformations
 #define PRINT_DEBUG_TRANSFORMATION_CHECKPOINTING
 #ifdef PRINT_DEBUG_TRANSFORMATION_CHECKPOINTING
@@ -1551,6 +1554,8 @@ PDC_Server_checkpoint()
         }
     }
     pdc_vector_iterator_destroy(obj_id_to_dg_iter);
+    if(pdc_server_rank_g == 0 )
+        LOG_WARNING("Writing checkpoint transformations done\n");
 
     fclose(file);
 
@@ -1593,6 +1598,8 @@ PDC_Server_checkpoint()
     metadata_index_dump(pdc_server_tmp_dir_g, pdc_server_rank_g);
 
 done:
+    if(pdc_server_rank_g == 0)
+        LOG_WARNING("Checkpointing done\n");
     FUNC_LEAVE(ret_value);
 } // End Checkpoint
 
@@ -1629,6 +1636,9 @@ perr_t
 PDC_Server_restart(char *filename)
 {
     FUNC_ENTER(NULL);
+
+    if(pdc_server_rank_g == 0 )
+        LOG_WARNING("Restart from checkpoint start\n");
 
     perr_t ret_value = SUCCEED;
     int    n_entry, count, i, j, nobj = 0, all_nobj = 0, all_n_region, n_region, n_objs, total_region = 0,
@@ -1900,6 +1910,8 @@ PDC_Server_restart(char *filename)
     // FIXME: this has to go somehwere else...
     PDCtf_init_builtin_funcs();
 
+    if(pdc_server_rank_g == 0 )
+        LOG_WARNING("Reading checkpoint transformations start\n");
     LOG_DEBUG("Reading checkpoint transformations\n");
     size_t num_objs;
     fread(&num_objs, sizeof(size_t), 1, file);
@@ -2024,6 +2036,8 @@ PDC_Server_restart(char *filename)
             }
         }
     }
+    if(pdc_server_rank_g == 0 )
+    LOG_WARNING("Reading checkpoint transformations done\n");
 
     fclose(file);
     file = NULL;
@@ -2046,7 +2060,8 @@ done:
 #ifdef PDC_TIMING
     pdc_server_timings->PDCserver_restart += MPI_Wtime() - start;
 #endif
-
+    if(pdc_server_rank_g == 0 )
+        LOG_WARNING("Restart from checkpoint done\n");
     FUNC_LEAVE(ret_value);
 }
 
