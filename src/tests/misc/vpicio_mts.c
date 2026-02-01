@@ -183,6 +183,10 @@ main(int argc, char **argv)
                     pdcid_t dg_id = PDCtf_dg_json_create(TF_GRAPHS_DIR "turbo.json");
                     PDCtf_attach_to_obj(dg_id, obj_ids[i], "decompressed", "compressed");
                 }
+                else {
+                    pdcid_t dg_id = PDCtf_dg_json_create(TF_GRAPHS_DIR "zfp_gpu.json");
+                    PDCtf_attach_to_obj(dg_id, obj_ids[i], "decompressed", "compressed");
+                }
             }
             else if (!strcmp(transformation_str, "zfp")) {
                 pdcid_t dg_id = PDCtf_dg_json_create(TF_GRAPHS_DIR "zfp.json");
