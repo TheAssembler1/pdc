@@ -825,7 +825,6 @@ PDC_Server_transfer_request_io(uint64_t obj_id, int obj_ndim, const uint64_t *ob
     FUNC_ENTER(NULL);
 
     LOG_DEBUG("PDC_Server_transfer_request_io was called\n");
-    sleep(6); // FIXME: Remove sleep after debugging
 
     perr_t ret_value = SUCCEED;
     int    my_rank   = PDC_get_rank();

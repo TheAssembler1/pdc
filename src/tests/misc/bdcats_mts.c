@@ -78,7 +78,7 @@ main(int argc, char **argv)
 #endif
 
     numparticles = NPARTICLES;
-    if (argc == 4) {
+    if (argc == 5) {
         numparticles = atoll(argv[1]);
         steps        = atoi(argv[2]);
         sleeptime    = atoi(argv[3]);
