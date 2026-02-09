@@ -1180,7 +1180,7 @@ PDC_Server_checkpoint()
 {
     FUNC_ENTER(NULL);
 
-    if(pdc_server_rank_g == 0 )
+    if (pdc_server_rank_g == 0)
         LOG_WARNING("Checkpoint start\n");
 
     perr_t                       ret_value = SUCCEED;
@@ -1372,9 +1372,9 @@ PDC_Server_checkpoint()
 
     // FIXME: We don't store whether graph is attached to entire object...
 
-    if(pdc_server_rank_g == 0 )
+    if (pdc_server_rank_g == 0)
         LOG_WARNING("Writing checkpoint transformations start\n");
-    // Checkpoint the region transformations
+        // Checkpoint the region transformations
 #define PRINT_DEBUG_TRANSFORMATION_CHECKPOINTING
 #ifdef PRINT_DEBUG_TRANSFORMATION_CHECKPOINTING
     LOG_DEBUG("Checkpointing transformations\n");
@@ -1554,7 +1554,7 @@ PDC_Server_checkpoint()
         }
     }
     pdc_vector_iterator_destroy(obj_id_to_dg_iter);
-    if(pdc_server_rank_g == 0 )
+    if (pdc_server_rank_g == 0)
         LOG_WARNING("Writing checkpoint transformations done\n");
 
     fclose(file);
@@ -1598,7 +1598,7 @@ PDC_Server_checkpoint()
     metadata_index_dump(pdc_server_tmp_dir_g, pdc_server_rank_g);
 
 done:
-    if(pdc_server_rank_g == 0)
+    if (pdc_server_rank_g == 0)
         LOG_WARNING("Checkpointing done\n");
     FUNC_LEAVE(ret_value);
 } // End Checkpoint
@@ -1637,7 +1637,7 @@ PDC_Server_restart(char *filename)
 {
     FUNC_ENTER(NULL);
 
-    if(pdc_server_rank_g == 0 )
+    if (pdc_server_rank_g == 0)
         LOG_WARNING("Restart from checkpoint start\n");
 
     perr_t ret_value = SUCCEED;
@@ -1910,7 +1910,7 @@ PDC_Server_restart(char *filename)
     // FIXME: this has to go somehwere else...
     PDCtf_init_builtin_funcs();
 
-    if(pdc_server_rank_g == 0 )
+    if (pdc_server_rank_g == 0)
         LOG_WARNING("Reading checkpoint transformations start\n");
     LOG_DEBUG("Reading checkpoint transformations\n");
     size_t num_objs;
@@ -2036,8 +2036,8 @@ PDC_Server_restart(char *filename)
             }
         }
     }
-    if(pdc_server_rank_g == 0 )
-    LOG_WARNING("Reading checkpoint transformations done\n");
+    if (pdc_server_rank_g == 0)
+        LOG_WARNING("Reading checkpoint transformations done\n");
 
     fclose(file);
     file = NULL;
@@ -2060,7 +2060,7 @@ done:
 #ifdef PDC_TIMING
     pdc_server_timings->PDCserver_restart += MPI_Wtime() - start;
 #endif
-    if(pdc_server_rank_g == 0 )
+    if (pdc_server_rank_g == 0)
         LOG_WARNING("Restart from checkpoint done\n");
     FUNC_LEAVE(ret_value);
 }

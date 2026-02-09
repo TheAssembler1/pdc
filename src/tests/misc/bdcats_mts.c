@@ -181,7 +181,8 @@ main(int argc, char **argv)
             sleep(sleeptime);
             if (rank == 0)
                 LOG_WARNING("Sleep end: %llu.00\n", sleeptime);
-        } else {
+        }
+        else {
             if (rank == 0)
                 LOG_WARNING("Initial step, no sleep\n");
         }
