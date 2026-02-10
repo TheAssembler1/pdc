@@ -184,22 +184,30 @@ main(int argc, char **argv)
                 return FAIL;
             }
             if (!strcmp(transformation_str, "turbo") && obj_prop == obj_prop_int) {
-                LOG_WARNING("Attaching turbo to index: %d\n", obj_ids[i]);
+		if(rank == 0) {
+                    LOG_WARNING("Attaching turbo to index: %d\n", obj_ids[i]);
+		}
                 pdcid_t dg_id = PDCtf_dg_json_create(TF_GRAPHS_DIR "turbo.json");
                 PDCtf_attach_to_obj(dg_id, obj_ids[i], "decompressed", "compressed");
             }
             else if (!strcmp(transformation_str, "zfp") && obj_prop == obj_prop_float) {
-                LOG_WARNING("Attaching zfp to index: %d\n", obj_ids[i]);
+		if(rank == 0) {
+                	LOG_WARNING("Attaching zfp to index: %d\n", obj_ids[i]);
+		}
                 pdcid_t dg_id = PDCtf_dg_json_create(TF_GRAPHS_DIR "zfp.json");
                 PDCtf_attach_to_obj(dg_id, obj_ids[i], "decompressed", "compressed");
             }
             else if (!strcmp(transformation_str, "zfp_gpu") && obj_prop == obj_prop_float) {
-                LOG_WARNING("Attaching zfp gpu to index: %d\n", obj_ids[i]);
+		if(rank == 0) {
+                	LOG_WARNING("Attaching zfp gpu to index: %d\n", obj_ids[i]);
+		}
                 pdcid_t dg_id = PDCtf_dg_json_create(TF_GRAPHS_DIR "zfp_gpu.json");
                 PDCtf_attach_to_obj(dg_id, obj_ids[i], "decompressed", "compressed");
             }
             else if (!strcmp(transformation_str, "sz") && obj_prop == obj_prop_float) {
-                LOG_WARNING("Attaching sz to index: %d\n", obj_ids[i]);
+		if(rank == 0) {
+                	LOG_WARNING("Attaching sz to index: %d\n", obj_ids[i]);
+		}
                 pdcid_t dg_id = PDCtf_dg_json_create(TF_GRAPHS_DIR "sz.json");
                 PDCtf_attach_to_obj(dg_id, obj_ids[i], "decompressed", "compressed");
             }

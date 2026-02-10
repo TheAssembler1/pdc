@@ -186,14 +186,10 @@ PDCtf_exec_graph(pdc_dg_t *dg, uint64_t flat_conceptual_offset, char *cur_state,
             void *prev_input = *input;
 
             GRAPH_TIMER_START();
-            if (pdc_server_rank_g == 0)
-                LOG_WARNING("Running transformation %s(%s) = %s\n", f->name, v1->name, v2->name);
             if (f->c_func(internal_params, f->params_str, input, input_region, output_region) == false)
                 PGOTO_ERROR(FAIL, "Error when running transformation, %s", f->name);
             else
                 LOG_DEBUG("Transformation %s(%s) = %s ran successfully\n", f->name, v1->name, v2->name);
-            if (pdc_server_rank_g == 0)
-                LOG_WARNING("Completed transformation %s(%s) = %s\n", f->name, v1->name, v2->name);
             GRAPH_TIMER_STOP(TOTAL_GRAPH_EXEC_TIME);
             /**
              * The transformation malloced a new buffer
