@@ -204,7 +204,22 @@ main(int argc, char **argv)
                 pdcid_t dg_id = PDCtf_dg_json_create(TF_GRAPHS_DIR "zfp_gpu.json");
                 PDCtf_attach_to_obj(dg_id, obj_ids[i], "decompressed", "compressed");
             }
-            else if (!strcmp(transformation_str, "sz") && obj_prop == obj_prop_float) {
+            else if (!strcmp(transformation_str, "zfp_libsod")) {
+		if(obj_prop == obj_prop_float) {
+			if(rank == 0) {
+				LOG_WARNING("Attaching zfp gpu and libsod to index: %d\n", obj_ids[i]);
+			}
+			pdcid_t dg_id = PDCtf_dg_json_create(TF_GRAPHS_DIR "zfp_libsod.json");
+			PDCtf_attach_to_obj(dg_id, obj_ids[i], "decompressed", "encrypted");
+		}
+		else if (obj_prop == obj_prop_int) {
+			if(rank == 0) {
+				LOG_WARNING("Attaching libsod to index: %d\n", obj_ids[i]);
+			}
+			pdcid_t dg_id = PDCtf_dg_json_create(TF_GRAPHS_DIR "libsod.json");
+			PDCtf_attach_to_obj(dg_id, obj_ids[i], "decrypted", "encrypted");
+		}
+            } else if (!strcmp(transformation_str, "sz") && obj_prop == obj_prop_float) {
 		if(rank == 0) {
                 	LOG_WARNING("Attaching sz to index: %d\n", obj_ids[i]);
 		}
