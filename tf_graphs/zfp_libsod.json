@@ -15,14 +15,14 @@
     ],
     "functions": [
         {
-            "device": "CPU",
+            "device": "GPU",
             "input_state": "decompressed",
             "output_state": "compressed",
             "location": "builtin",
             "name": "zfp_compress"
         },
         {
-            "device": "CPU",
+            "device": "GPU",
             "input_state": "compressed",
             "output_state": "decompressed",
             "location": "builtin",
