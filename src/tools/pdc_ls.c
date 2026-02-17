@@ -136,9 +136,8 @@ int
 main(int argc, char *argv[])
 {
     if (argc == 1) {
-        printf(
-            "Usage: ./pdc_ls pdc_checkpoint_directory/file [-n obj_name] [-i obj_id] [-json json_fname] "
-            "[-ln (list all names)] [-ls (list all ids)] [-s (summary)]\n");
+        printf("Usage: ./pdc_ls pdc_checkpoint_directory/file [-n obj_name] [-i obj_id] [-json json_fname] "
+               "[-ln (list all names)] [-ls (list all ids)] [-s (summary)]\n");
         return 0;
     }
     else {
@@ -377,7 +376,7 @@ static size_t read_checkpoint_str_len;
 #define READ_CHECKPOINT_STR(file, str_ptr)                                                                   \
     do {                                                                                                     \
         fread(&read_checkpoint_str_len, sizeof(size_t), 1, (file));                                          \
-        printf("read_checkpoint_str_len: %d\n", read_checkpoint_str_len);                                 \
+        printf("read_checkpoint_str_len: %d\n", read_checkpoint_str_len);                                    \
         if (read_checkpoint_str_len > 0) {                                                                   \
             (str_ptr) = PDC_calloc(1, read_checkpoint_str_len);                                              \
             fread((str_ptr), read_checkpoint_str_len, 1, (file));                                            \
@@ -755,14 +754,13 @@ pdc_ls(FileNameNode *file_name_node, int argc, char *argv[])
                 fread(&(cur_region_mapping->conceptual_region.ndim), sizeof(size_t), 1, file);
                 fread(&(cur_region_mapping->conceptual_region.pdc_var_type), sizeof(pdc_var_type_t), 1, file);
                 fread(cur_region_mapping->conceptual_region.size, sizeof(uint64_t),
-                    cur_region_mapping->conceptual_region.ndim, file);
+                      cur_region_mapping->conceptual_region.ndim, file);
                 fread(cur_region_mapping->conceptual_offset, sizeof(uint64_t),
-                    cur_region_mapping->conceptual_region.ndim, file);
+                      cur_region_mapping->conceptual_region.ndim, file);
 
                 printf("\t\tconceptual_region_ndim: %d\n", cur_region_mapping->conceptual_region.ndim);
-                printf("\t\tpdc_var_type: %d, size: %d\n",
-                            cur_region_mapping->conceptual_region.pdc_var_type,
-                            PDC_get_var_type_size(cur_region_mapping->conceptual_region.pdc_var_type));
+                printf("\t\tpdc_var_type: %d, size: %d\n", cur_region_mapping->conceptual_region.pdc_var_type,
+                       PDC_get_var_type_size(cur_region_mapping->conceptual_region.pdc_var_type));
                 printf("\t\tconceptual_region_offset:\n");
                 for (i = 0; i < cur_region_mapping->conceptual_region.ndim; i++) {
                     printf("\t\t\toffset[%d]=%lu\n", i, cur_region_mapping->conceptual_offset[i]);
@@ -775,11 +773,11 @@ pdc_ls(FileNameNode *file_name_node, int argc, char *argv[])
                 fread(&(cur_region_mapping->actual_region.ndim), sizeof(size_t), 1, file);
                 fread(&(cur_region_mapping->actual_region.pdc_var_type), sizeof(pdc_var_type_t), 1, file);
                 fread(cur_region_mapping->actual_region.size, sizeof(uint64_t),
-                    cur_region_mapping->actual_region.ndim, file);
+                      cur_region_mapping->actual_region.ndim, file);
 
                 printf("\t\tactual_region_ndim: %d\n", cur_region_mapping->actual_region.ndim);
                 printf("\t\tpdc_var_type %d, size: %d\n", cur_region_mapping->actual_region.pdc_var_type,
-                            PDC_get_var_type_size(cur_region_mapping->actual_region.pdc_var_type));
+                       PDC_get_var_type_size(cur_region_mapping->actual_region.pdc_var_type));
                 printf("\t\tactual_region_size:\n");
                 for (i = 0; i < cur_region_mapping->actual_region.ndim; i++) {
                     printf("\t\t\tsize[%d]=%lu\n", i, cur_region_mapping->actual_region.size[i]);
@@ -788,10 +786,11 @@ pdc_ls(FileNameNode *file_name_node, int argc, char *argv[])
 
             cur_obj_id_to_dg->dg = PDCtf_dg_json_create_common(json_filepath);
 
-            if(cur_obj_id_to_dg == NULL) {
+            if (cur_obj_id_to_dg == NULL) {
                 assert("");
-            } else if(cur_obj_id_to_dg->dg == NULL) {
-                assert ("");
+            }
+            else if (cur_obj_id_to_dg->dg == NULL) {
+                assert("");
             }
 
             // Checkpoint state and func params for dg
@@ -801,7 +800,7 @@ pdc_ls(FileNameNode *file_name_node, int argc, char *argv[])
                 fread(&num_params, sizeof(size_t), 1, file);
                 printf("\t\tfunc_name: %s\n", f->name);
                 printf("\t\t\tparams_str: %s\n",
-                            (f->params_str && strlen(f->params_str) > 0) ? f->params_str : "none");
+                       (f->params_str && strlen(f->params_str) > 0) ? f->params_str : "none");
                 printf("\t\t\tnum_params: %d\n", num_params);
                 f->pdc_tf_dg_params_vector = pdc_vector_create(PDC_MAX(num_params, 2), 2.0);
                 for (int _n = 0; _n < num_params; _n++) {
