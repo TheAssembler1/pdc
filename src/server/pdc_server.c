@@ -844,8 +844,8 @@ PDC_Server_init(int port, hg_class_t **hg_class, hg_context_t **hg_context)
      *   "cci+tcp"
      */
     const char *default_hg_transport = PDC_get_default_mercury_transport();
-    char *hg_transport;
-    int   cxi_pid_base = 128;
+    char *      hg_transport;
+    int         cxi_pid_base = 128;
 #ifdef PDC_HAS_CRAY_DRC
     uint32_t          credential = 0, cookie;
     drc_info_handle_t credential_info;
