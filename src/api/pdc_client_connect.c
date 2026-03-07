@@ -1334,10 +1334,10 @@ PDC_Client_mercury_init(hg_class_t **hg_class, hg_context_t **hg_context, int po
      *   "ofi+tcp"
      *   "cci+tcp"
      */
-    struct hg_init_info init_info            = {0};
-    const char *        default_hg_transport = PDC_get_default_mercury_transport();
-    char *              hg_transport;
-    int                 cxi_pid_base = 256;
+    struct hg_init_info    init_info            = {0};
+    const char *           default_hg_transport = PDC_get_default_mercury_transport();
+    char *                 hg_transport;
+    int                    cxi_pid_base = 256;
     pdc_scoped_env_entry_t scoped_envs[PDC_PERLMUTTER_CXI_ENV_COUNT];
     int                    scoped_env_count = 0;
     unsigned int           scoped_svc_id    = 0;

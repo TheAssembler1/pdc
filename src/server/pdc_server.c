@@ -926,9 +926,9 @@ drc_access_again:
         char                   scoped_device[32];
         perr_t                 scoped_auth_ret;
 
-        scoped_auth_ret = PDC_scope_perlmutter_cxi_auth_env(hg_transport, scoped_envs, &scoped_env_count,
-                                                            &scoped_svc_id, &scoped_vni, scoped_device,
-                                                            sizeof(scoped_device));
+        scoped_auth_ret =
+            PDC_scope_perlmutter_cxi_auth_env(hg_transport, scoped_envs, &scoped_env_count, &scoped_svc_id,
+                                              &scoped_vni, scoped_device, sizeof(scoped_device));
         if (scoped_auth_ret != SUCCEED && pdc_server_rank_g == 0)
             LOG_WARNING("Unable to scope Slingshot CXI auth for Mercury, falling back to provider defaults");
         else if (scoped_env_count > 0 && pdc_server_rank_g == 0)
