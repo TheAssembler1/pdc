@@ -45,6 +45,7 @@
 #include "pdc_logger.h"
 #include "pdc_timing.h"
 #include "pdc_malloc.h"
+#include "pdc_mercury_auth.h"
 
 #include "mercury.h"
 #include "mercury_macros.h"
@@ -1337,6 +1338,11 @@ PDC_Client_mercury_init(hg_class_t **hg_class, hg_context_t **hg_context, int po
     const char *        default_hg_transport = PDC_get_default_mercury_transport();
     char *              hg_transport;
     int                 cxi_pid_base = 256;
+    pdc_scoped_env_entry_t scoped_envs[PDC_PERLMUTTER_CXI_ENV_COUNT];
+    int                    scoped_env_count = 0;
+    unsigned int           scoped_svc_id    = 0;
+    unsigned int           scoped_vni       = 0;
+    char                   scoped_device[32];
 #ifdef PDC_HAS_CRAY_DRC
     uint32_t          credential, cookie;
     drc_info_handle_t credential_info;
@@ -1401,7 +1407,15 @@ drc_access_again:
 #ifdef PDC_HAS_SHARED_SERVER
     init_info.auto_sm = HG_TRUE;
 #endif
+    if (PDC_scope_perlmutter_cxi_auth_env(hg_transport, scoped_envs, &scoped_env_count, &scoped_svc_id,
+                                          &scoped_vni, scoped_device, sizeof(scoped_device)) != SUCCEED &&
+        pdc_client_mpi_rank_g == 0)
+        LOG_WARNING("Unable to scope Slingshot CXI auth for Mercury, falling back to provider defaults");
+    else if (scoped_env_count > 0 && pdc_client_mpi_rank_g == 0)
+        LOG_INFO("Scoped Slingshot CXI auth for Mercury: svc=%u vni=%u device=%s\n", scoped_svc_id,
+                 scoped_vni, scoped_device);
     *hg_class = HG_Init_opt(na_info_string, HG_TRUE, &init_info);
+    PDC_restore_scoped_env(scoped_envs, scoped_env_count);
     if (*hg_class == NULL)
         PGOTO_ERROR(FAIL, "Error with HG_Init()");
 
