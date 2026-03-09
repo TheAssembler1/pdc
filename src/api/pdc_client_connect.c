@@ -1254,18 +1254,19 @@ PDC_Client_mercury_init(hg_class_t **hg_class, hg_context_t **hg_context, int po
 #endif
 
     if ((hg_transport = getenv("HG_TRANSPORT")) == NULL) {
-        if (pdc_client_mpi_rank_g == 0)
-            LOG_INFO("Environment variable HG_TRANSPORT was NOT set\n");
         hg_transport = default_hg_transport;
+        if (pdc_client_mpi_rank_g == 0)
+            LOG_INFO("Environment variable HG_TRANSPORT was NOT set, default to %s\n", default_hg_transport);
     }
     else if (pdc_client_mpi_rank_g == 0)
         LOG_INFO("Environment variable HG_TRANSPORT was set\n");
-    if ((hostname = getenv("HG_TRANSPORT")) == NULL) {
-        if (pdc_client_mpi_rank_g == 0)
-            LOG_INFO("Environment variable HG_HOST was NOT set\n");
-        hostname = PDC_calloc(1, HOSTNAME_LEN);
+    if ((hostname = getenv("HG_HOST")) == NULL) {
+        hostname = PDC_malloc(HOSTNAME_LEN);
+        memset(hostname, 0, HOSTNAME_LEN);
         gethostname(hostname, HOSTNAME_LEN - 1);
         free_hostname = true;
+        if (pdc_client_mpi_rank_g == 0)
+            LOG_INFO("Environment variable HG_HOST was NOT set, default to %s\n", hostname);
     }
     else if (pdc_client_mpi_rank_g == 0)
         LOG_INFO("Environment variable HG_HOST was set\n");
@@ -3010,10 +3011,10 @@ PDC_Client_transfer_request_all(hg_bulk_t *bulk_handle, int n_objs, pdc_access_t
     hg_ret = HG_Forward(client_send_transfer_request_all_handle, client_send_transfer_request_all_rpc_cb,
                         &transfer_args, &in);
 
-#ifdef ENABLE_MPI
-    if (comm != 0)
-        MPI_Barrier(comm);
-#endif
+    /* #ifdef ENABLE_MPI */
+    /*     if (comm != 0) */
+    /*         MPI_Barrier(comm); */
+    /* #endif */
 
     PDC_Client_transfer_pthread_create();
 
@@ -3032,10 +3033,10 @@ PDC_Client_transfer_request_all(hg_bulk_t *bulk_handle, int n_objs, pdc_access_t
 
     PDC_Client_wait_pthread_progress();
 
-#ifdef ENABLE_MPI
-    if (comm != 0)
-        MPI_Barrier(comm);
-#endif
+    /* #ifdef ENABLE_MPI */
+    /*     if (comm != 0) */
+    /*         MPI_Barrier(comm); */
+    /* #endif */
 
 #ifdef PDC_TIMING
     end = MPI_Wtime();

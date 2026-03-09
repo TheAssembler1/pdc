@@ -775,17 +775,19 @@ PDC_Server_init(int port, hg_class_t **hg_class, hg_context_t **hg_context)
     total_mem_usage_g += (sizeof(char) + sizeof(char *));
 
     if ((hg_transport = getenv("HG_TRANSPORT")) == NULL) {
-        LOG_INFO("Environment variable HG_TRANSPORT was NOT set\n");
         hg_transport = default_hg_transport;
+        if (pdc_server_rank_g == 0)
+            LOG_INFO("Environment variable HG_TRANSPORT was NOT set, default to %s\n", hg_transport);
     }
     else
         LOG_INFO("Environment variable HG_TRANSPORT was set\n");
     if ((hostname = getenv("HG_HOST")) == NULL) {
-        LOG_INFO("Environment variable HG_HOST was NOT set\n");
         hostname = PDC_malloc(HOSTNAME_LEN);
         memset(hostname, 0, HOSTNAME_LEN);
         gethostname(hostname, HOSTNAME_LEN - 1);
         free_hostname = true;
+        if (pdc_server_rank_g == 0)
+            LOG_INFO("Environment variable HG_HOST was NOT set, default to %s\n", hostname);
     }
     else
         LOG_INFO("Environment variable HG_HOST was set\n");
@@ -923,8 +925,12 @@ drc_access_again:
         LOG_INFO("Read cache enabled\n");
 #endif
 
+#ifdef PDC_ENABLE_IDIOMS
     // Initialize IDIOMS
+    if (pdc_server_rank_g == 0)
+        LOG_INFO("IDIOMS index enabled\n");
     PDC_Server_metadata_index_init(pdc_server_size_g, pdc_server_rank_g);
+#endif
 
     // TODO: support restart with different number of servers than previous run
     char checkpoint_file[ADDR_MAX + sizeof(int) + 1];
@@ -935,11 +941,9 @@ drc_access_again:
         ret_value = PDC_Server_restart(checkpoint_file);
         if (ret_value != SUCCEED)
             PGOTO_ERROR(FAIL, "Error with PDC_Server_restart");
-        if (pdc_server_rank_g == 0)
-            LOG_INFO("Starting metadata index recover\n");
-        // metadata_index_recover(pdc_server_tmp_dir_g, pdc_server_size_g, pdc_server_rank_g);
-        if (pdc_server_rank_g == 0)
-            LOG_INFO("Finished metadata index recover\n");
+#ifdef PDC_ENABLE_IDIOMS
+        metadata_index_recover(pdc_server_tmp_dir_g, pdc_server_size_g, pdc_server_rank_g);
+#endif
     }
     else {
         // We are starting a brand new server
@@ -1595,7 +1599,9 @@ PDC_Server_checkpoint()
         LOG_WARNING("Rank[ALL]: Total checkpoint time = %.6f\n", checkpoint_time);
     // #endif
 
+#ifdef PDC_ENABLE_IDIOMS
     metadata_index_dump(pdc_server_tmp_dir_g, pdc_server_rank_g);
+#endif
 
 done:
     if (pdc_server_rank_g == 0)
@@ -1664,10 +1670,6 @@ PDC_Server_restart(char *filename)
     FILE *file = fopen(filename, "r");
     if (file == NULL)
         PGOTO_ERROR(FAIL, "Error with fopen, filename: [%s]", filename);
-
-    char *slurm_jobid = getenv("SLURM_JOB_ID");
-    if (slurm_jobid == NULL)
-        LOG_INFO("SLURM_JOB_ID not found\n");
 
     if (fread(&n_cont, sizeof(int), 1, file) != 1) {
         LOG_ERROR("Read failed for n_count\n");
@@ -2339,8 +2341,10 @@ PDC_Server_mercury_register()
     PDC_get_sel_data_rpc_register(hg_class_g);
 
     // DART Index
+#ifdef PDC_ENABLE_IDIOMS
     PDC_dart_get_server_info_register(hg_class_g);
     PDC_dart_perform_one_server_register(hg_class_g);
+#endif
 
     // Server to client RPC
     server_lookup_client_register_id_g = PDC_server_lookup_client_register(hg_class_g);

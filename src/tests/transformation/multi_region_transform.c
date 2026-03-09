@@ -146,7 +146,7 @@ main(int argc, char **argv)
     // Check if data written previously has been correctly read.
     for (i = 0; i < BUF_LEN; ++i) {
         if (data_read[i] != i)
-            PGOTO_ERROR(FAIL, "Wrong value at index %d!=%d", data_read[i], i);
+            TGOTO_ERROR(FAIL, "Wrong value at index %d!=%d", data_read[i], i);
     }
 
     // Redo offsets
@@ -183,7 +183,7 @@ main(int argc, char **argv)
     // Check if data written previously has been correctly read.
     for (i = 0; i < BUF_LEN; ++i) {
         if (data_read[i] != i)
-            PGOTO_ERROR(FAIL, "Wrong value at index %d!=%d", data_read[i], i);
+            TGOTO_ERROR(FAIL, "Wrong value at index %d!=%d", data_read[i], i);
     }
 
     // Redo offsets
@@ -219,7 +219,7 @@ main(int argc, char **argv)
     // Check if data written previously has been correctly read.
     for (i = 0; i < BUF_LEN; ++i) {
         if (data_read[i] != i)
-            PGOTO_ERROR(FAIL, "Wrong value at index %d!=%d", data_read[i], i);
+            TGOTO_ERROR(FAIL, "Wrong value at index %d!=%d", data_read[i], i);
     }
 
     // close tf graph
