@@ -171,6 +171,8 @@ PDCtf_exec_graph(pdc_dg_t *dg, uint64_t flat_conceptual_offset, char *cur_state,
 
     if (PDCdg_shortest_path(dg, input_state, output_state, &edges_out, &num_edges)) {
         LOG_DEBUG("Path was found:\n");
+        memcpy(output_region, &input_region, sizeof(pdc_tf_region_t));
+
         for (uint32_t j = 0; j < num_edges; j++) {
             pdc_dg_edge_t   e  = edges_out[j];
             pdc_tf_state_t *v1 = (pdc_tf_state_t *)(dg->vertices[e.v1_id]->data);
@@ -187,6 +189,7 @@ PDCtf_exec_graph(pdc_dg_t *dg, uint64_t flat_conceptual_offset, char *cur_state,
             void *prev_input = *input;
 
             GRAPH_TIMER_START();
+            memcpy(&input_region, output_region, sizeof(pdc_tf_region_t));
             if (f->c_func(internal_params, f->params_str, input, input_region, output_region) == false)
                 PGOTO_ERROR(FAIL, "Error when running transformation, %s", f->name);
             else
