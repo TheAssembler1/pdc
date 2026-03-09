@@ -1,13 +1,11 @@
 {
     "states": [
 	{
-	    "name": "decrypted",
-	    "granularity": "region"
+	    "name": "decrypted"
 	},
-        {
-            "name": "encrypted",
-            "granularity": "region"
-        }
+    {
+        "name": "encrypted"
+    }
     ],
     "functions": [
         {

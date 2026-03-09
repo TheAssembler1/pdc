@@ -2,6 +2,7 @@
 #include <errno.h>
 #include <assert.h>
 #include <stdlib.h>
+#include <dlfcn.h>
 
 #include "common_io.h"
 #include "pdc_malloc.h"
@@ -41,208 +42,6 @@ PDCtf_copy_tf_region_t(pdc_tf_region_t *src, pdc_tf_region_t *dest)
         dest->size[i] = src->size[i];
 
     FUNC_LEAVE(SUCCEED);
-}
-
-perr_t
-PDCtf_set_func_param(pdc_dg_t *dg, char *func_name, pdc_tf_dev_t dev, uint64_t flat_conceptual_offset,
-                     void *params, uint64_t params_size)
-{
-    FUNC_ENTER(NULL);
-
-    perr_t               ret_value      = SUCCEED;
-    PDC_VECTOR_ITERATOR *dg_params_iter = NULL;
-
-    LOG_DEBUG("Setting params for func_name %s by flat conceptual offset %lu\n", func_name,
-              flat_conceptual_offset);
-
-    // Find edge with name
-    for (int i = 0; i < dg->edge_count; i++) {
-        pdc_dg_edge_t *edge = dg->edges[i];
-        assert(edge != NULL && edge->data != NULL);
-        pdc_tf_func_t *tf_func = edge->data;
-
-        if (!strcmp(func_name, tf_func->name)) {
-            // Create vector if vector is NULL
-            if (tf_func->pdc_tf_dg_params_vector == NULL)
-                tf_func->pdc_tf_dg_params_vector = pdc_vector_create(8, 2.0);
-
-            // Locate the params by conceptual offset
-            pdc_tf_dg_params_t *pdc_dg_params = NULL;
-            dg_params_iter                    = pdc_vector_iterator_new(tf_func->pdc_tf_dg_params_vector);
-            while (pdc_vector_iterator_has_next(dg_params_iter)) {
-                pdc_dg_params = pdc_vector_iterator_next(dg_params_iter);
-                if (pdc_dg_params->flat_conceptual_offset == flat_conceptual_offset) {
-                    pdc_dg_params->params      = params;
-                    pdc_dg_params->params_size = params_size;
-                    PGOTO_DONE(SUCCEED);
-                }
-            }
-
-            // Append new entry
-            pdc_dg_params = PDC_calloc(1, sizeof(pdc_tf_dg_params_t));
-            pdc_vector_add(tf_func->pdc_tf_dg_params_vector, pdc_dg_params);
-
-            pdc_dg_params->flat_conceptual_offset = flat_conceptual_offset;
-            pdc_dg_params->params                 = params;
-            pdc_dg_params->params_size            = params_size;
-
-            PGOTO_DONE(SUCCEED);
-        }
-    }
-
-    PGOTO_ERROR(FAIL, "Edge %s not found\n", func_name);
-
-done:
-    if (dg_params_iter != NULL)
-        pdc_vector_iterator_destroy(dg_params_iter);
-    FUNC_LEAVE(ret_value);
-}
-
-perr_t
-PDCtf_get_func_param(pdc_dg_t *dg, char *func_name, pdc_tf_dev_t dev, uint64_t flat_conceptual_offset,
-                     void **params, uint64_t *params_size)
-{
-    FUNC_ENTER(NULL);
-
-    perr_t               ret_value      = SUCCEED;
-    PDC_VECTOR_ITERATOR *dg_params_iter = NULL;
-
-    LOG_DEBUG("Getting params for func_name %s by flat conceptual offset %lu\n", func_name,
-              flat_conceptual_offset);
-
-    // Find edge with name
-    for (int i = 0; i < dg->edge_count; i++) {
-        pdc_dg_edge_t *edge = dg->edges[i];
-        assert(edge != NULL && edge->data != NULL);
-        pdc_tf_func_t *tf_func = edge->data;
-        if (!strcmp(func_name, tf_func->name) && tf_func->dev == dev) {
-            // Check if vector is NULL
-            if (tf_func->pdc_tf_dg_params_vector == NULL)
-                PGOTO_ERROR(FAIL, "tf_func->pdc_tf_dg_params_vector was NULL");
-
-            // Locate the params by conceptual offset
-            dg_params_iter = pdc_vector_iterator_new(tf_func->pdc_tf_dg_params_vector);
-            while (pdc_vector_iterator_has_next(dg_params_iter)) {
-                pdc_tf_dg_params_t *pdc_dg_params = pdc_vector_iterator_next(dg_params_iter);
-                if (pdc_dg_params->flat_conceptual_offset == flat_conceptual_offset) {
-                    *params      = pdc_dg_params->params;
-                    *params_size = pdc_dg_params->params_size;
-                    PGOTO_DONE(SUCCEED);
-                }
-            }
-            PGOTO_ERROR(FAIL, "Failed to locate params in func_name %s by flat conceptual offset %lu\n",
-                        func_name, flat_conceptual_offset);
-        }
-    }
-
-    PGOTO_ERROR(FAIL, "Edge %s not found\n", func_name);
-
-done:
-    if (dg_params_iter != NULL)
-        pdc_vector_iterator_destroy(dg_params_iter);
-    FUNC_LEAVE(ret_value);
-}
-
-perr_t
-PDCtf_set_state_param(pdc_dg_t *dg, char *state_name, uint64_t flat_conceptual_offset, void *params,
-                      uint64_t params_size)
-{
-    FUNC_ENTER(NULL);
-
-    perr_t               ret_value      = SUCCEED;
-    PDC_VECTOR_ITERATOR *dg_params_iter = NULL;
-
-    LOG_DEBUG("Setting params for state_name %s by flat conceptual offset %lu\n", state_name,
-              flat_conceptual_offset);
-
-    // Get state from graph
-    pdc_tf_state_t query_stat;
-    query_stat.name = state_name;
-
-    pdc_dg_vertex_id_t vert = PDCdg_vertex_exists(dg, &query_stat);
-    if (vert == PDC_DG_INVALID_VERTEX)
-        PGOTO_ERROR(FAIL, "Failed to find state in PDCtf_set_state_param");
-
-    // Get the tf state
-    pdc_tf_state_t *tf_state = (pdc_tf_state_t *)dg->vertices[vert]->data;
-    if (tf_state == NULL)
-        PGOTO_ERROR(FAIL, "Vertex data was NULL");
-
-    // Create vector if vector is NULL
-    if (tf_state->pdc_tf_dg_params_vector == NULL)
-        tf_state->pdc_tf_dg_params_vector = pdc_vector_create(8, 2.0);
-
-    // Locate the params by conceptual offset
-    pdc_tf_dg_params_t *pdc_dg_params = NULL;
-    dg_params_iter                    = pdc_vector_iterator_new(tf_state->pdc_tf_dg_params_vector);
-    while (pdc_vector_iterator_has_next(dg_params_iter)) {
-        pdc_dg_params = pdc_vector_iterator_next(dg_params_iter);
-        if (pdc_dg_params->flat_conceptual_offset == flat_conceptual_offset) {
-            pdc_dg_params->params      = params;
-            pdc_dg_params->params_size = params_size;
-            PGOTO_DONE(SUCCEED);
-        }
-    }
-
-    pdc_dg_params = PDC_calloc(1, sizeof(pdc_tf_dg_params_t));
-    pdc_vector_add(tf_state->pdc_tf_dg_params_vector, pdc_dg_params);
-
-    pdc_dg_params->params                 = params;
-    pdc_dg_params->params_size            = params_size;
-    pdc_dg_params->flat_conceptual_offset = flat_conceptual_offset;
-
-done:
-    if (dg_params_iter != NULL)
-        pdc_vector_iterator_destroy(dg_params_iter);
-    FUNC_LEAVE(ret_value);
-}
-
-perr_t
-PDCtf_get_state_param(pdc_dg_t *dg, char *state_name, uint64_t flat_conceptual_offset, void **params,
-                      uint64_t *params_size)
-{
-    FUNC_ENTER(NULL);
-
-    perr_t               ret_value      = SUCCEED;
-    PDC_VECTOR_ITERATOR *dg_params_iter = NULL;
-
-    LOG_DEBUG("Getting params for state_name %s by flat conceptual offset %lu\n", state_name,
-              flat_conceptual_offset);
-
-    // Get state from graph
-    pdc_tf_state_t query_stat = {.name = state_name};
-
-    pdc_dg_vertex_id_t vert = PDCdg_vertex_exists(dg, &query_stat);
-    if (vert == PDC_DG_INVALID_VERTEX)
-        PGOTO_ERROR(FAIL, "Failed to find state in PDCtf_get_state_param");
-
-    // Get the tf state
-    pdc_tf_state_t *tf_state = (pdc_tf_state_t *)dg->vertices[vert]->data;
-    if (tf_state == NULL)
-        PGOTO_ERROR(FAIL, "Vertex data was NULL");
-
-    // Check if vector is NULL
-    if (tf_state->pdc_tf_dg_params_vector == NULL)
-        PGOTO_ERROR(FAIL, "tf_state->pdc_tf_dg_params_vector was NULL");
-
-    // Locate the params by conceptual offset
-    dg_params_iter = pdc_vector_iterator_new(tf_state->pdc_tf_dg_params_vector);
-    while (pdc_vector_iterator_has_next(dg_params_iter)) {
-        pdc_tf_dg_params_t *pdc_dg_params = pdc_vector_iterator_next(dg_params_iter);
-        if (pdc_dg_params->flat_conceptual_offset == flat_conceptual_offset) {
-            *params      = pdc_dg_params->params;
-            *params_size = pdc_dg_params->params_size;
-            PGOTO_DONE(SUCCEED);
-        }
-    }
-
-    PGOTO_ERROR(FAIL, "Failed to locate params in state_name %s by conceptual offset %lu\n", state_name,
-                flat_conceptual_offset);
-
-done:
-    if (dg_params_iter != NULL)
-        pdc_vector_iterator_destroy(dg_params_iter);
-    FUNC_LEAVE(ret_value);
 }
 
 perr_t
@@ -462,7 +261,6 @@ done:
  *   "states": [
  *     {
  *       "name": "string",
- *       "granularity": "element | region"
  *     },
  *     ...
  *   ],
@@ -476,13 +274,13 @@ done:
  *     },
  *     ...
  *   ],
+ *   "lib_path?": "string",
  *   "name": "string"
  * }
  */
 
 // NOTE: These must match the order of the enum in the header
 char *pdc_tf_dev_strs[]         = {"CPU", "GPU"};
-char *pdc_tf_granularity_strs[] = {"element", "region"};
 char *pdc_tf_location_strs[]    = {"builtin", "external"};
 
 bool
@@ -585,6 +383,10 @@ PDCtf_dg_json_create_common(char *filepath)
     if (dg_name == NULL)
         PGOTO_ERROR(NULL, "Failed to find graph name");
     LOG_DEBUG("Directed graph name: %s\n", dg_name);
+    const char* lib_path = NULL;
+    if ((lib_path = get_json_string(json_obj, "lib_path", false)) != NULL) {
+        LOG_DEBUG("Library path: %s\n", lib_path);
+    }
 
     // Actually create directed graph data structure
     ret_value         = PDCdg_create(graph_free, vertices_are_equal, NULL, edge_free, vertex_free);
@@ -606,32 +408,17 @@ PDCtf_dg_json_create_common(char *filepath)
         struct json_object *s = array_list_get_idx(states, i);
 
         char *      s_name        = strdup(get_json_string(s, "name", true));
-        const char *s_granularity = get_json_string(s, "granularity", true);
 
-        if (s_name == NULL || s_granularity == NULL)
+        if (s_name == NULL)
             PGOTO_DONE(NULL);
 
         LOG_DEBUG("Found state: %s\n", s_name);
-        LOG_DEBUG("\tGranularity: %s\n", s_granularity);
 
-        // Validate and set granularity
-        pdc_tf_granularities_t granularity;
-        bool                   found_granularity = false;
-        for (int j = 0; j < PDC_TF_NUM_GRANULARITIES; j++) {
-            if (!strcmp(s_granularity, pdc_tf_granularity_strs[j])) {
-                found_granularity = true;
-                granularity       = j;
-                break;
-            }
-        }
-        if (!found_granularity)
-            PGOTO_ERROR(NULL, "Invalid granularity %s\n", s_granularity);
 
         // Add vertex to the directed graph data structure
         pdc_tf_state_t *dg_state = PDC_calloc(1, sizeof(pdc_tf_state_t));
 
         dg_state->name        = s_name;
-        dg_state->granularity = granularity;
 
         if (PDCdg_add_vertex(ret_value, dg_state) == PDC_DG_INVALID_VERTEX)
             PGOTO_ERROR(NULL, "Failed to add vertex to directed graph");
@@ -693,14 +480,34 @@ PDCtf_dg_json_create_common(char *filepath)
         if (!found_location)
             PGOTO_ERROR(NULL, "Invalid location %s\n", f_location);
 
-        // FIXME: Currently support only built-in functions
-        if (location != PDC_TF_BUILTIN)
-            PGOTO_ERROR(NULL, "Currently, only support builtin functions");
+        /**
+         * Here we need to dl_open on the lib path 
+         * and try and link to the function.
+         */
+        if (location == PDC_TF_EXTERNAL) {
+            if (lib_path == NULL) {
+                PGOTO_ERROR(NULL, "Function %s is external but no lib_path was provided\n", f_name);
+            }
+            void *handle = dlopen(lib_path, RTLD_LAZY);
+            if (!handle) {
+                PGOTO_ERROR(NULL, "Failed to dlopen library at path %s: %s\n", lib_path, dlerror());
+            }
+            dlerror(); // Clear any existing error
+            void *func_ptr = dlsym(handle, f_name);
+            char *error;
+            if ((error = dlerror()) != NULL) {
+                PGOTO_ERROR(NULL, "Failed to find symbol %s in library %s: %s\n", f_name, lib_path, error);
+            }
+            dg_func->c_func = func_ptr;
+
+            if(PDCtf_add_builtin_func(f_name, dg_func->c_func, dev) != SUCCEED)
+                PGOTO_ERROR(NULL, "Failed to add external function %s to builtin functions vector\n", f_name);
+        }
 
         dg_func->dev      = dev;
         dg_func->location = location;
         if (PDCtf_link_builtin_func(f_name, dev, dg_func) != SUCCEED)
-            PGOTO_ERROR(NULL, "Failed to link to builtin function");
+            PGOTO_ERROR(NULL, "Failed to link to builtin function\n");
         dg_func->name       = f_name;
         dg_func->params_str = (f_params_str) ? f_params_str : NULL;
 

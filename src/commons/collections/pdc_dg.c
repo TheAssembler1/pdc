@@ -1,19 +1,17 @@
 #include "pdc_dg.h"
-#include "pdc_logger.h"
-#include "pdc_timing.h"
-#include "pdc_malloc.h"
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
-static perr_t
+static bool
 resize_dg(pdc_dg_t *dg, uint32_t new_vertex_count, uint32_t new_edge_count)
 {
-    FUNC_ENTER(NULL);
+    bool ret_value = true;
 
-    LOG_DEBUG("resize_dg was called\n");
-
-    perr_t ret_value = SUCCEED;
-
-    if (dg == NULL)
-        PGOTO_ERROR(FAIL, "Cannot resize a NULL directed graph\n");
+    if (dg == NULL) {
+        ret_value = false;
+        goto done;
+    }
 
     // Resize vertices if needed
     if (dg->vertex_capacity == 0)
@@ -23,7 +21,7 @@ resize_dg(pdc_dg_t *dg, uint32_t new_vertex_count, uint32_t new_edge_count)
             dg->vertex_capacity *= 2;
 
         dg->vertices =
-            (pdc_dg_vertex_t **)PDC_realloc(dg->vertices, sizeof(pdc_dg_vertex_t *) * dg->vertex_capacity);
+            (pdc_dg_vertex_t **)realloc(dg->vertices, sizeof(pdc_dg_vertex_t *) * dg->vertex_capacity);
     }
     // Resize edges if needed
     if (dg->edge_capacity == 0)
@@ -31,11 +29,11 @@ resize_dg(pdc_dg_t *dg, uint32_t new_vertex_count, uint32_t new_edge_count)
     if (dg->edge_capacity < new_edge_count) {
         while (dg->edge_capacity < new_edge_count)
             dg->edge_capacity *= 2;
-        dg->edges = (pdc_dg_edge_t **)PDC_realloc(dg->edges, sizeof(pdc_dg_edge_t *) * dg->edge_capacity);
+        dg->edges = (pdc_dg_edge_t **)realloc(dg->edges, sizeof(pdc_dg_edge_t *) * dg->edge_capacity);
     }
 
 done:
-    FUNC_LEAVE(ret_value);
+    return ret_value;
 }
 
 pdc_dg_t *
@@ -43,22 +41,20 @@ PDCdg_create(void *data, bool (*vertices_are_equal)(void *v1_data, void *v2_data
              void (*dg_data_free)(void *data), void (*edge_data_free)(void *data),
              void (*vertex_data_free)(void *data))
 {
-    FUNC_ENTER(NULL);
-
-    LOG_DEBUG("PDCdg_create was called\n");
-
     pdc_dg_t *ret_value = NULL;
 
-    if (vertices_are_equal == NULL)
-        PGOTO_ERROR(NULL, "vertices_are_equal function is required");
+    if (vertices_are_equal == NULL) {
+        printf("vertices_are_equal function is required\n");
+        goto done;
+    }
 
-    ret_value = (pdc_dg_t *)PDC_calloc(1, sizeof(pdc_dg_t));
+    ret_value = (pdc_dg_t *)calloc(1, sizeof(pdc_dg_t));
 
     ret_value->vertex_capacity = PDC_DG_INIT_VERTEX_CAPACITY;
     ret_value->edge_capacity   = PDC_DG_INIT_EDGE_CAPACITY;
     ret_value->vertices =
-        (pdc_dg_vertex_t **)PDC_calloc(ret_value->vertex_capacity, sizeof(pdc_dg_vertex_t *));
-    ret_value->edges = (pdc_dg_edge_t **)PDC_calloc(ret_value->edge_capacity, sizeof(pdc_dg_edge_t *));
+        (pdc_dg_vertex_t **)calloc(ret_value->vertex_capacity, sizeof(pdc_dg_vertex_t *));
+    ret_value->edges = (pdc_dg_edge_t **)calloc(ret_value->edge_capacity, sizeof(pdc_dg_edge_t *));
 
     ret_value->vertex_count = 0;
     ret_value->edge_count   = 0;
@@ -70,22 +66,16 @@ PDCdg_create(void *data, bool (*vertices_are_equal)(void *v1_data, void *v2_data
     ret_value->vertices_are_equal = vertices_are_equal;
 
 done:
-    FUNC_LEAVE(ret_value);
+    return ret_value;
 }
 
 void
 PDCdg_destroy(pdc_dg_t *dg)
 {
-    FUNC_ENTER(NULL);
-
-    LOG_DEBUG("PDCdg_destroy was called\n");
-
     if (dg == NULL) {
-        LOG_ERROR("dg was NULL\n");
-        FUNC_LEAVE_VOID();
+        printf("dg was NULL\n");
+        return;
     }
-
-    LOG_DEBUG("Destroying graph with %d vertices, %d edges\n", dg->vertex_count, dg->edge_count);
 
     // first check that there are edges
     if (dg->edges) {
@@ -98,9 +88,9 @@ PDCdg_destroy(pdc_dg_t *dg)
                 dg->edge_data_free(dg->edges[i]->data);
             // free the edge
             if (dg->edges[i])
-                dg->edges[i] = PDC_free(dg->edges[i]);
+                free(dg->edges[i]);
         }
-        dg->edges = (pdc_dg_edge_t **)PDC_free(dg->edges);
+        free(dg->edges);
     }
     // first check that there are vertices
     if (dg->vertices) {
@@ -113,9 +103,9 @@ PDCdg_destroy(pdc_dg_t *dg)
                 dg->vertex_data_free(dg->vertices[i]->data);
             // free the vertex
             if (dg->vertices[i])
-                dg->vertices[i] = PDC_free(dg->vertices[i]);
+                free(dg->vertices[i]);
         }
-        dg->vertices = (pdc_dg_vertex_t **)PDC_free(dg->vertices);
+        free(dg->vertices);
     }
 
     /**
@@ -125,61 +115,65 @@ PDCdg_destroy(pdc_dg_t *dg)
     if (dg->dg_data_free && dg->data)
         dg->dg_data_free(dg->data);
 
-    dg = (pdc_dg_t *)PDC_free(dg);
-
-    FUNC_LEAVE_VOID();
+    free(dg);
 }
 
 pdc_dg_vertex_id_t
 PDCdg_add_vertex(pdc_dg_t *dg, void *data)
 {
-    FUNC_ENTER(NULL);
-
-    LOG_DEBUG("PDCdg_add_vertex was called\n");
-
     pdc_dg_vertex_id_t ret_value;
 
-    if (dg == NULL)
-        PGOTO_ERROR(PDC_DG_INVALID_VERTEX, "dg was NULL");
+    if (dg == NULL) {
+        printf("dg was NULL\n");
+        ret_value =  PDC_DG_INVALID_VERTEX;
+        goto done;
+    }
 
-    if (resize_dg(dg, dg->vertex_count + 1, dg->edge_count) != SUCCEED) {
-        LOG_ERROR("Failed to resize dg\n");
-        FUNC_LEAVE(PDC_DG_INVALID_VERTEX);
+    if (resize_dg(dg, dg->vertex_count + 1, dg->edge_count) != true) {
+        printf("Failed to resize dg\n");
+        ret_value = PDC_DG_INVALID_VERTEX;
+        goto done;
     }
 
     ret_value                          = dg->vertex_count;
-    dg->vertices[ret_value]            = (pdc_dg_vertex_t *)PDC_calloc(1, sizeof(pdc_dg_vertex_t));
+    dg->vertices[ret_value]            = (pdc_dg_vertex_t *)calloc(1, sizeof(pdc_dg_vertex_t));
     dg->vertices[ret_value]->data      = data;
     dg->vertices[ret_value]->vertex_id = ret_value;
 
     dg->vertex_count++;
 
 done:
-    FUNC_LEAVE(ret_value);
+    return ret_value;
 }
 
 pdc_dg_edge_id_t
 PDCdg_add_edge(pdc_dg_t *dg, void *v1_data, void *v2_data, void *edge_data)
 {
-    FUNC_ENTER(NULL);
-
-    LOG_DEBUG("PDCdg_add_edge was called\n");
-
     pdc_dg_edge_id_t ret_value;
 
-    if (dg == NULL)
-        PGOTO_ERROR(PDC_DG_INVALID_EDGE, "dg was NULL");
-    if (v1_data == NULL)
-        PGOTO_ERROR(PDC_DG_INVALID_EDGE, "v1_data was NULL");
-    if (v2_data == NULL)
-        PGOTO_ERROR(PDC_DG_INVALID_EDGE, "v2_data was NULL");
-    if (dg->vertices_are_equal(v1_data, v2_data))
-        PGOTO_ERROR(PDC_DG_INVALID_EDGE, "Vertices of edge were not unique\n");
-    if (resize_dg(dg, dg->vertex_count, dg->edge_count + 1) != SUCCEED)
-        PGOTO_ERROR(PDC_DG_INVALID_EDGE, "Failed to resize dg\n");
+    if (dg == NULL) {
+        printf("dg was NULL\n");
+        return PDC_DG_INVALID_EDGE;
+    }
+    if (v1_data == NULL) {
+        printf("v1_data was NULL\n");
+        return PDC_DG_INVALID_EDGE;
+    }
+    if (v2_data == NULL) {
+        printf("v2_data was NULL\n");
+        return PDC_DG_INVALID_EDGE;
+    }
+    if (dg->vertices_are_equal(v1_data, v2_data)) {
+        printf("Vertices of edge were not unique\n");
+        return PDC_DG_INVALID_EDGE;
+    }
+    if (resize_dg(dg, dg->vertex_count, dg->edge_count + 1) != true) {
+        printf("Failed to resize dg\n");
+        return PDC_DG_INVALID_EDGE;
+    }
 
     ret_value                     = dg->edge_count;
-    dg->edges[ret_value]          = (pdc_dg_edge_t *)PDC_calloc(1, sizeof(pdc_dg_edge_t));
+    dg->edges[ret_value]          = (pdc_dg_edge_t *)calloc(1, sizeof(pdc_dg_edge_t));
     dg->edges[ret_value]->data    = edge_data;
     dg->edges[ret_value]->edge_id = ret_value;
 
@@ -195,38 +189,29 @@ PDCdg_add_edge(pdc_dg_t *dg, void *v1_data, void *v2_data, void *edge_data)
 
     dg->edge_count++;
 
-done:
-    FUNC_LEAVE(ret_value);
+    return ret_value;
 }
 
 pdc_dg_vertex_id_t
 PDCdg_vertex_exists(pdc_dg_t *dg, void *vertex_data)
 {
-    FUNC_ENTER(NULL);
-
-    LOG_DEBUG("PDCdg_vertex_exists was called\n");
-
     if (dg == NULL) {
-        LOG_WARNING("pdc_dg_has_vertex called with NULL dg\n");
-        FUNC_LEAVE(PDC_DG_INVALID_VERTEX);
+        printf("pdc_dg_has_vertex called with NULL dg\n");
+        return PDC_DG_INVALID_VERTEX;
     }
 
     for (int i = 0; i < dg->vertex_count; i++) {
         if (dg->vertices_are_equal(dg->vertices[i]->data, vertex_data))
-            FUNC_LEAVE(dg->vertices[i]->vertex_id);
+            return dg->vertices[i]->vertex_id;
     }
 
-    FUNC_LEAVE(PDC_DG_INVALID_VERTEX);
+    return PDC_DG_INVALID_VERTEX;
 }
 
 bool
 PDCdg_shortest_path(pdc_dg_t *dg, void *v1_data, void *v2_data, pdc_dg_edge_t **edges_out,
                     uint32_t *num_edges)
 {
-    FUNC_ENTER(NULL);
-
-    LOG_DEBUG("PDCdg_shortest_path was called\n");
-
     bool                ret_value = false;
     bool *              visited   = NULL;
     pdc_dg_vertex_id_t *prev      = NULL;
@@ -235,34 +220,44 @@ PDCdg_shortest_path(pdc_dg_t *dg, void *v1_data, void *v2_data, pdc_dg_edge_t **
     *edges_out                    = NULL;
     *num_edges                    = 0;
 
-    if (dg == NULL)
-        PGOTO_ERROR(false, "dg was NULL");
+    if (dg == NULL) {
+        printf("dg was NULL\n");
+        goto done;
+    }
 
     // Look up vertex IDs
     pdc_dg_vertex_id_t from_vertex_id = PDCdg_vertex_exists(dg, v1_data);
     pdc_dg_vertex_id_t to_vertex_id   = PDCdg_vertex_exists(dg, v2_data);
 
     // Validate vertices
-    if (from_vertex_id >= dg->vertex_count)
-        PGOTO_ERROR(false, "Source vertex ID %u out of range (vertex_count=%u)", from_vertex_id,
-                    dg->vertex_count);
-    if (to_vertex_id >= dg->vertex_count)
-        PGOTO_ERROR(false, "Destination vertex ID %u out of range (vertex_count=%u)", to_vertex_id,
-                    dg->vertex_count);
-    if (from_vertex_id == PDC_DG_INVALID_VERTEX)
-        PGOTO_ERROR(false, "Source vertex not found");
-    if (to_vertex_id == PDC_DG_INVALID_VERTEX)
-        PGOTO_ERROR(false, "Destination vertex not found");
+    if (from_vertex_id >= dg->vertex_count) {
+        printf("Source vertex ID %u out of range (vertex_count=%u)\n", from_vertex_id, dg->vertex_count);
+        goto done;
+    }
+    if (to_vertex_id >= dg->vertex_count) {
+        printf("Destination vertex ID %u out of range (vertex_count=%u)\n", to_vertex_id, dg->vertex_count);
+        goto done;
+    }
+    if (from_vertex_id == PDC_DG_INVALID_VERTEX) {
+        printf("Source vertex not found\n");
+        goto done;
+    }
+    if (to_vertex_id == PDC_DG_INVALID_VERTEX) {
+        printf("Destination vertex not found\n");
+        goto done;
+    }
 
     uint32_t vertex_count = dg->vertex_count;
 
     // Allocate BFS data structures
-    visited = (bool *)PDC_calloc(vertex_count, sizeof(bool));
-    prev    = (pdc_dg_vertex_id_t *)PDC_malloc(vertex_count * sizeof(pdc_dg_vertex_id_t));
-    queue   = (pdc_dg_vertex_id_t *)PDC_malloc(vertex_count * sizeof(pdc_dg_vertex_id_t));
+    visited = (bool *)calloc(vertex_count, sizeof(bool));
+    prev    = (pdc_dg_vertex_id_t *)malloc(vertex_count * sizeof(pdc_dg_vertex_id_t));
+    queue   = (pdc_dg_vertex_id_t *)malloc(vertex_count * sizeof(pdc_dg_vertex_id_t));
 
-    if (!visited || !prev || !queue)
-        PGOTO_ERROR(false, "Failed to allocate BFS structures");
+    if (!visited || !prev || !queue) {
+        printf("Failed to allocate BFS structures\n");
+        goto done;
+    }
 
     for (uint32_t i = 0; i < vertex_count; i++)
         prev[i] = PDC_DG_INVALID_VERTEX;
@@ -294,7 +289,7 @@ PDCdg_shortest_path(pdc_dg_t *dg, void *v1_data, void *v2_data, pdc_dg_edge_t **
     }
 
     if (!found) {
-        LOG_WARNING("No path found from vertex %d to %d\n", from_vertex_id, to_vertex_id);
+        printf("No path found from vertex %d to %d\n", from_vertex_id, to_vertex_id);
         goto done;
     }
 
@@ -303,13 +298,17 @@ PDCdg_shortest_path(pdc_dg_t *dg, void *v1_data, void *v2_data, pdc_dg_edge_t **
     for (pdc_dg_vertex_id_t at = to_vertex_id; at != PDC_DG_INVALID_VERTEX; at = prev[at])
         path_len++;
 
-    if (path_len < 2)
-        PGOTO_ERROR(false, "Path is too short to contain any edges");
+    if (path_len < 2) {
+        printf("Path is too short to contain any edges\n");
+        goto done;
+    }
 
     // Recover path vertices
-    path = (pdc_dg_vertex_id_t *)PDC_malloc(path_len * sizeof(pdc_dg_vertex_id_t));
-    if (!path)
-        PGOTO_ERROR(false, "Failed to allocate path array");
+    path = (pdc_dg_vertex_id_t *)malloc(path_len * sizeof(pdc_dg_vertex_id_t));
+    if (!path) {
+        printf("Failed to allocate path array\n");
+        goto done;
+    }
 
     pdc_dg_vertex_id_t at = to_vertex_id;
     for (int i = path_len - 1; i >= 0; i--) {
@@ -318,9 +317,11 @@ PDCdg_shortest_path(pdc_dg_t *dg, void *v1_data, void *v2_data, pdc_dg_edge_t **
     }
 
     // Allocate and populate edge array
-    *edges_out = (pdc_dg_edge_t *)PDC_malloc((path_len - 1) * sizeof(pdc_dg_edge_t));
-    if (!*edges_out)
-        PGOTO_ERROR(false, "Failed to allocate edges_out");
+    *edges_out = (pdc_dg_edge_t *)malloc((path_len - 1) * sizeof(pdc_dg_edge_t));
+    if (!*edges_out) {
+        printf("Failed to allocate edges_out\n");
+        goto done;
+    }
 
     *num_edges = path_len - 1;
 
@@ -337,23 +338,25 @@ PDCdg_shortest_path(pdc_dg_t *dg, void *v1_data, void *v2_data, pdc_dg_edge_t **
             }
         }
 
-        if (!edge_found)
-            PGOTO_ERROR(false, "Missing edge between path vertices");
+        if (!edge_found) {
+            printf("Missing edge between path vertices %d and %d\n", from, to);
+            goto done;
+        }
     }
 
     ret_value = true;
 
 done:
     if (visited)
-        visited = PDC_free(visited);
+        free(visited);
     if (prev)
-        prev = PDC_free(prev);
+        free(prev);
     if (queue)
-        queue = PDC_free(queue);
+        free(queue);
     if (path)
-        path = PDC_free(path);
+       free(path);
 
-    FUNC_LEAVE(ret_value);
+    return ret_value;
 }
 
 /**
@@ -367,19 +370,21 @@ done:
 void *
 PDCdg_get_vertex_data(pdc_dg_t *dg, pdc_dg_vertex_id_t vertex_id)
 {
-    FUNC_ENTER(NULL);
-
     void *ret_value = NULL;
 
-    if (dg == NULL)
-        PGOTO_ERROR(NULL, "dg was NULL");
-    if (dg->vertices == NULL)
-        PGOTO_ERROR(NULL, "dg->vertices was NULL");
+    if (dg == NULL) {
+        printf("dg was NULL\n");
+        goto done;
+    }
+    if (dg->vertices == NULL) {
+        printf("dg->vertices was NULL\n");
+        goto done;
+    }
 
     ret_value = dg->vertices[vertex_id]->data;
 
 done:
-    FUNC_LEAVE(ret_value);
+    return ret_value;
 }
 
 /**
@@ -393,17 +398,19 @@ done:
 void *
 PDCdg_get_edge_data(pdc_dg_t *dg, pdc_dg_edge_id_t edge_id)
 {
-    FUNC_ENTER(NULL);
-
     void *ret_value = NULL;
 
-    if (dg == NULL)
-        PGOTO_ERROR(NULL, "dg was NULL");
-    if (dg->edges == NULL)
-        PGOTO_ERROR(NULL, "dg->edges was NULL");
+    if (dg == NULL) {
+        printf("dg was NULL\n");
+        goto done;
+    }
+    if (dg->edges == NULL) {
+        printf("dg->edges was NULL\n");
+        goto done;
+    }
 
     ret_value = dg->edges[edge_id]->data;
 
 done:
-    FUNC_LEAVE(dg->edges[edge_id]);
+    return dg->edges[edge_id];
 }

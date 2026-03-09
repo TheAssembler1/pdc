@@ -4,6 +4,7 @@
 #include "pdc_malloc.h"
 #include "pdc_client_server_common.h"
 #include "pdc_vector.h"
+#include "pdc_tf_user.h"
 
 double   __timer_totals[NUM_TIMER_TARGETS]      = {0};
 uint64_t __timer_totals_freq[NUM_TIMER_TARGETS] = {0};
@@ -128,9 +129,9 @@ PDCtf_store_json_mapping(pdcid_t obj_id, char *json_filepath, char *cur_state, c
     memcpy(conceptual_offset, offset, ndim * sizeof(uint64_t));
     memcpy(conceptual_region->size, size, ndim * sizeof(uint64_t));
 
-    LOG_INFO("obj_id=%" PRIu64 " ndim=%u\n", obj_id, ndim);
+    LOG_DEBUG("obj_id=%" PRIu64 " ndim=%u\n", obj_id, ndim);
     for (int i = 0; i < ndim; i++) {
-        LOG_INFO("  offset[%d]=%" PRIu64 " size[%d]=%" PRIu64 "\n", i, conceptual_offset[i], i,
+        LOG_DEBUG("  offset[%d]=%" PRIu64 " size[%d]=%" PRIu64 "\n", i, conceptual_offset[i], i,
                  conceptual_region->size[i]);
     }
 

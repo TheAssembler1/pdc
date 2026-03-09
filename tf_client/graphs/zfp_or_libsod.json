@@ -1,16 +1,13 @@
 {
     "states": [
         {
-            "name": "client",
-            "granularity": "element"
+            "name": "client"
         },
         {
-            "name": "compressed",
-            "granularity": "region"
+            "name": "compressed"
         },
         {
-            "name": "encrypted",
-            "granularity": "region"
+            "name": "encrypted"
         }
     ],
     "functions": [

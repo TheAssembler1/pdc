@@ -8,12 +8,7 @@
 #include "pdc_region.h"
 #include "pdc_obj_pkg.h"
 #include "pdc_vector.h"
-
-typedef struct pdc_tf_region_t {
-    size_t         ndim;
-    pdc_var_type_t pdc_var_type;
-    uint64_t       size[DIM_MAX];
-} pdc_tf_region_t;
+#include "pdc_tf_user.h"
 
 typedef struct pdc_tf_region_state_t {
     pdcid_t dg_id;
@@ -54,72 +49,8 @@ typedef struct pdc_tf_obj_t {
     PDC_VECTOR *region_mappings_vector;
 } pdc_obj_tf_t;
 
-typedef enum pdc_tf_granularities_t {
-    PDC_TF_ELEMENT_GRANULARITY,
-    PDC_TF_REGION_GRANULARITY,
-    PDC_TF_NUM_GRANULARITIES
-} pdc_tf_granularities_t;
-extern char *pdc_tf_granularity_strs[];
-
-/**
- * Used to store parameters for states and edges
- * within the directed graph.
- *
- * The conceptual ID (which is the flat offset)
- * is used to identify the parameters
- * for a specific region.
- */
-typedef struct pdc_tf_dg_params_t {
-    uint64_t flat_conceptual_offset;
-    void *   params;
-    uint64_t params_size;
-} pdc_tf_dg_params_t;
-
-typedef struct pdc_tf_state_t {
-    char *                 name;
-    PDC_VECTOR *           pdc_tf_dg_params_vector;
-    pdc_tf_granularities_t granularity;
-} pdc_tf_state_t;
-
-typedef struct pdc_tf_internal_param {
-    pdc_dg_t *dg;
-    uint64_t  flat_conceptual_offset;
-} pdc_tf_internal_param;
-
-/**
- * Prototype for region transformation functions
- *
- * Before the function is invoked, `output_state.tf_region` is set to `input_state.tf_region`, so if the
- * transformation does not change the region size, the user does not need to
- * modify `output_state.tf_region`.
- *
- * `region_data` is a double pointer to the input region's data buffer.
- * The function may either mutate the existing buffer in place or allocate a new
- * buffer and update `*region_data` to point to it.
- *
- * If a new data buffer is assigned to `*region_data`, it must be heap-allocated
- * so that PDC can free it. The original pointer should NOT be freed.
- */
-typedef bool (*c_func_t)(pdc_tf_internal_param internal_param, char *params_str, void **region_data,
-                         pdc_tf_region_t input_region, pdc_tf_region_t *output_region);
-
-// Specifies what device the function can run on
-typedef enum pdc_tf_dev_t { PDC_TF_CPU_DEVICE, PDC_TF_GPU_DEVICE, PDC_TF_NUM_DEVICES } pdc_tf_dev_t;
 extern char *pdc_tf_dev_strs[];
-
-// Specifies whether a function is internal or external.
-typedef enum pdc_tf_location_t { PDC_TF_BUILTIN, PDC_TF_EXTERNAL, PDC_TF_NUM_LOCATIONS } pdc_tf_location_t;
 extern char *pdc_tf_location_strs[];
-
-typedef struct pdc_tf_func_t {
-    pdc_tf_dev_t      dev;
-    pdc_tf_location_t location;
-    char *            name;
-    PDC_VECTOR *      pdc_tf_dg_params_vector;
-    uint32_t          cur_num_params;
-    char *            params_str;
-    c_func_t          c_func;
-} pdc_tf_func_t;
 
 /**
  * Strings needed by server to run transformation
@@ -150,14 +81,6 @@ extern PDC_VECTOR *pdc_tf_builtin_funcs_vector_g;
 perr_t PDCtf_set_tf_region_t(pdc_tf_region_t *dest, uint8_t ndim, pdc_var_type_t pdc_var_type,
                              uint64_t *size);
 perr_t PDCtf_copy_tf_region_t(pdc_tf_region_t *src, pdc_tf_region_t *dest);
-perr_t PDCtf_set_state_param(pdc_dg_t *dg, char *state_name, uint64_t flat_conceptual_offset, void *params,
-                             uint64_t params_size);
-perr_t PDCtf_get_state_param(pdc_dg_t *dg, char *state_name, uint64_t flat_conceptual_offset, void **params,
-                             uint64_t *params_size);
-perr_t PDCtf_set_func_param(pdc_dg_t *dg, char *func_name, pdc_tf_dev_t dev, uint64_t flat_conceptual_offset,
-                            void *params, uint64_t params_size);
-perr_t PDCtf_get_func_param(pdc_dg_t *dg, char *func_name, pdc_tf_dev_t dev, uint64_t flat_conceptual_offset,
-                            void **params, uint64_t *params_size);
 pdc_dg_t *PDCtf_dg_json_create_common(char *filepath);
 perr_t    PDCtf_init_builtin_funcs();
 perr_t    PDCtf_add_builtin_func(char *func_name, c_func_t c_func, pdc_tf_dev_t dev);

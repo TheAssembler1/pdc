@@ -65,6 +65,7 @@ add_library(pdc_server_lib
                pdc_server_metadata_index.c
                pdc_server_metadata.c
                pdc_client_server_common.c
+               transform/pdc_tf_user.c
                transform/pdc_tf_server.c
                transform/pdc_tf_common.c
                transform/pdc_tf_builtin_common.c

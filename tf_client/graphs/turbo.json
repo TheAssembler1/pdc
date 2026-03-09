@@ -1,12 +1,10 @@
 {
   "states": [
     {
-      "name": "decompressed",
-      "granularity": "element"
+      "name": "decompressed"
     },
     {
-      "name": "compressed",
-      "granularity": "region"
+      "name": "compressed"
     }
   ],
   "functions": [

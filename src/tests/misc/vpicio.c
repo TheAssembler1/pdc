@@ -62,6 +62,7 @@ main(int argc, char **argv)
     double      t0, t1;
     const char *obj_names[] = {"dX", "dY", "dZ", "Ux", "Uy", "Uz", "q", "i"};
     char        obj_name[64];
+    const char *transformation_str = "raw";
 
     pdcid_t transfer_requests[8];
 
@@ -78,6 +79,8 @@ main(int argc, char **argv)
         steps = atoi(argv[2]);
     if (argc >= 4)
         sleeptime = atoi(argv[3]);
+    if(argc >= 5)
+        transformation_str = argv[4];
 
     if (rank == 0)
         LOG_INFO("Writing %" PRIu64 " particles per rank for %d steps with %d sec sleep time.\n",
@@ -167,6 +170,30 @@ main(int argc, char **argv)
             if (obj_ids[i] == 0) {
                 LOG_ERROR("Error getting an object id of %s from server\n", obj_name);
                 return FAIL;
+            }
+            if (!strcmp(transformation_str, "turbo") && obj_prop == obj_prop_int) {
+                LOG_WARNING("Attaching turbo to index: %d\n", obj_ids[i]);
+                pdcid_t dg_id = PDCtf_dg_json_create(TF_GRAPHS_DIR "turbo.json");
+                PDCtf_attach_to_obj(dg_id, obj_ids[i], "decompressed", "compressed");
+            }
+            else if (!strcmp(transformation_str, "zfp") && obj_prop == obj_prop_float) {
+                LOG_WARNING("Attaching zfp to index: %d\n", obj_ids[i]);
+                pdcid_t dg_id = PDCtf_dg_json_create(TF_GRAPHS_DIR "zfp.json");
+                PDCtf_attach_to_obj(dg_id, obj_ids[i], "decompressed", "compressed");
+            }
+            else if (!strcmp(transformation_str, "zfp_gpu") && obj_prop == obj_prop_float) {
+                LOG_WARNING("Attaching zfp gpu to index: %d\n", obj_ids[i]);
+                pdcid_t dg_id = PDCtf_dg_json_create(TF_GRAPHS_DIR "zfp_gpu.json");
+                PDCtf_attach_to_obj(dg_id, obj_ids[i], "decompressed", "compressed");
+            }
+            else if (!strcmp(transformation_str, "sz") && obj_prop == obj_prop_float) {
+                LOG_WARNING("Attaching sz to index: %d\n", obj_ids[i]);
+                pdcid_t dg_id = PDCtf_dg_json_create(TF_GRAPHS_DIR "sz.json");
+                PDCtf_attach_to_obj(dg_id, obj_ids[i], "decompressed", "compressed");
+            } else if (!strcmp(transformation_str, "custom") && obj_prop == obj_prop_float) {
+                LOG_WARNING("Attaching custom to index: %d\n", obj_ids[i]);
+                pdcid_t dg_id = PDCtf_dg_json_create(TF_GRAPHS_DIR "custom.json");
+                PDCtf_attach_to_obj(dg_id, obj_ids[i], "client", "server");
             }
         }
 

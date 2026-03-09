@@ -558,7 +558,7 @@ endif()
 #-----------------------------------------------------------------------------
 # Path to graphs for tests
 #-----------------------------------------------------------------------------
-set(TF_GRAPHS_DIR "${CMAKE_SOURCE_DIR}/tf_graphs/")
+set(TF_GRAPHS_DIR "${CMAKE_SOURCE_DIR}/tf_client/graphs/")
 if(NOT EXISTS "${TF_GRAPHS_DIR}")
     message(FATAL_ERROR "Directory ${TF_GRAPHS_DIR} does not exist!")
 endif()
