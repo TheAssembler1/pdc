@@ -132,7 +132,7 @@ PDCtf_store_json_mapping(pdcid_t obj_id, char *json_filepath, char *cur_state, c
     LOG_DEBUG("obj_id=%" PRIu64 " ndim=%u\n", obj_id, ndim);
     for (int i = 0; i < ndim; i++) {
         LOG_DEBUG("  offset[%d]=%" PRIu64 " size[%d]=%" PRIu64 "\n", i, conceptual_offset[i], i,
-                 conceptual_region->size[i]);
+                  conceptual_region->size[i]);
     }
 
     // FIXME: need to free these strings later

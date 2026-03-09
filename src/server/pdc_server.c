@@ -1597,7 +1597,7 @@ PDC_Server_checkpoint()
 
     if (pdc_server_rank_g == 0)
         LOG_WARNING("Rank[ALL]: Total checkpoint time = %.6f\n", checkpoint_time);
-    // #endif
+        // #endif
 
 #ifdef PDC_ENABLE_IDIOMS
     metadata_index_dump(pdc_server_tmp_dir_g, pdc_server_rank_g);

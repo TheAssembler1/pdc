@@ -280,8 +280,8 @@ done:
  */
 
 // NOTE: These must match the order of the enum in the header
-char *pdc_tf_dev_strs[]         = {"CPU", "GPU"};
-char *pdc_tf_location_strs[]    = {"builtin", "external"};
+char *pdc_tf_dev_strs[]      = {"CPU", "GPU"};
+char *pdc_tf_location_strs[] = {"builtin", "external"};
 
 bool
 vertices_are_equal(void *v1, void *v2)
@@ -383,7 +383,7 @@ PDCtf_dg_json_create_common(char *filepath)
     if (dg_name == NULL)
         PGOTO_ERROR(NULL, "Failed to find graph name");
     LOG_DEBUG("Directed graph name: %s\n", dg_name);
-    const char* lib_path = NULL;
+    const char *lib_path = NULL;
     if ((lib_path = get_json_string(json_obj, "lib_path", false)) != NULL) {
         LOG_DEBUG("Library path: %s\n", lib_path);
     }
@@ -407,18 +407,17 @@ PDCtf_dg_json_create_common(char *filepath)
     for (int i = 0; i < states_length; i++) {
         struct json_object *s = array_list_get_idx(states, i);
 
-        char *      s_name        = strdup(get_json_string(s, "name", true));
+        char *s_name = strdup(get_json_string(s, "name", true));
 
         if (s_name == NULL)
             PGOTO_DONE(NULL);
 
         LOG_DEBUG("Found state: %s\n", s_name);
 
-
         // Add vertex to the directed graph data structure
         pdc_tf_state_t *dg_state = PDC_calloc(1, sizeof(pdc_tf_state_t));
 
-        dg_state->name        = s_name;
+        dg_state->name = s_name;
 
         if (PDCdg_add_vertex(ret_value, dg_state) == PDC_DG_INVALID_VERTEX)
             PGOTO_ERROR(NULL, "Failed to add vertex to directed graph");
@@ -481,7 +480,7 @@ PDCtf_dg_json_create_common(char *filepath)
             PGOTO_ERROR(NULL, "Invalid location %s\n", f_location);
 
         /**
-         * Here we need to dl_open on the lib path 
+         * Here we need to dl_open on the lib path
          * and try and link to the function.
          */
         if (location == PDC_TF_EXTERNAL) {
@@ -500,7 +499,7 @@ PDCtf_dg_json_create_common(char *filepath)
             }
             dg_func->c_func = func_ptr;
 
-            if(PDCtf_add_builtin_func(f_name, dg_func->c_func, dev) != SUCCEED)
+            if (PDCtf_add_builtin_func(f_name, dg_func->c_func, dev) != SUCCEED)
                 PGOTO_ERROR(NULL, "Failed to add external function %s to builtin functions vector\n", f_name);
         }
 

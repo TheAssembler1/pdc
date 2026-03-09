@@ -52,9 +52,8 @@ PDCdg_create(void *data, bool (*vertices_are_equal)(void *v1_data, void *v2_data
 
     ret_value->vertex_capacity = PDC_DG_INIT_VERTEX_CAPACITY;
     ret_value->edge_capacity   = PDC_DG_INIT_EDGE_CAPACITY;
-    ret_value->vertices =
-        (pdc_dg_vertex_t **)calloc(ret_value->vertex_capacity, sizeof(pdc_dg_vertex_t *));
-    ret_value->edges = (pdc_dg_edge_t **)calloc(ret_value->edge_capacity, sizeof(pdc_dg_edge_t *));
+    ret_value->vertices = (pdc_dg_vertex_t **)calloc(ret_value->vertex_capacity, sizeof(pdc_dg_vertex_t *));
+    ret_value->edges    = (pdc_dg_edge_t **)calloc(ret_value->edge_capacity, sizeof(pdc_dg_edge_t *));
 
     ret_value->vertex_count = 0;
     ret_value->edge_count   = 0;
@@ -125,7 +124,7 @@ PDCdg_add_vertex(pdc_dg_t *dg, void *data)
 
     if (dg == NULL) {
         printf("dg was NULL\n");
-        ret_value =  PDC_DG_INVALID_VERTEX;
+        ret_value = PDC_DG_INVALID_VERTEX;
         goto done;
     }
 
@@ -354,7 +353,7 @@ done:
     if (queue)
         free(queue);
     if (path)
-       free(path);
+        free(path);
 
     return ret_value;
 }

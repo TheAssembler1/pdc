@@ -27,7 +27,7 @@ pdc_vector_create(size_t initial_capacity, double expansion_factor)
     vector->capacity         = initial_capacity;
     vector->expansion_factor = expansion_factor;
 
-   return vector;
+    return vector;
 }
 
 void
@@ -51,7 +51,7 @@ void
 pdc_vector_add(PDC_VECTOR *vector, void *item)
 {
     if (vector == NULL || item == NULL) {
-       return;
+        return;
     }
 
     // Expand the array of items if necessary.
@@ -59,7 +59,7 @@ pdc_vector_add(PDC_VECTOR *vector, void *item)
         vector->capacity *= vector->expansion_factor;
         vector->items = (void **)realloc(vector->items, vector->capacity * sizeof(void *));
         if (vector->items == NULL) {
-           return;
+            return;
         }
     }
 
@@ -75,14 +75,14 @@ pdc_vector_get(PDC_VECTOR *vector, size_t index)
     }
 
     // Return a pointer to the item at the given index.
-   return vector->items[index];
+    return vector->items[index];
 }
 
 size_t
 pdc_vector_size(PDC_VECTOR *vector)
 {
     if (vector == NULL) {
-       return 0;
+        return 0;
     }
 
     // Return the number of items in the vector.
@@ -145,7 +145,7 @@ void *
 pdc_vector_iterator_next(PDC_VECTOR_ITERATOR *iterator)
 {
     if (iterator == NULL) {
-       return NULL;
+        return NULL;
     }
 
     // Return the next item in the vector.

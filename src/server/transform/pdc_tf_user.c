@@ -1,7 +1,7 @@
 /**
  * NOTICE: This file is included in a custom transformation libaries.
  * It should not include any headers that are not available to the custom transformation library.
- * It should also not include any headers that define symbols that 
+ * It should also not include any headers that define symbols that
  * may conflict with symbols in the custom transformation library.
  */
 
@@ -12,17 +12,18 @@
 
 bool
 PDCtf_set_func_param(pdc_dg_t *dg, char *func_name, pdc_tf_dev_t dev, uint64_t flat_conceptual_offset,
-                     void *params, uint64_t params_size) {
+                     void *params, uint64_t params_size)
+{
 
-    bool               ret_value      = true;
+    bool                 ret_value      = true;
     PDC_VECTOR_ITERATOR *dg_params_iter = NULL;
 
     printf("Setting params for func_name %s by flat conceptual offset %lu\n", func_name,
-              flat_conceptual_offset);
+           flat_conceptual_offset);
 
     // Find edge with name
     for (int i = 0; i < dg->edge_count; i++) {
-        pdc_dg_edge_t *edge = dg->edges[i];
+        pdc_dg_edge_t *edge    = dg->edges[i];
         pdc_tf_func_t *tf_func = edge->data;
 
         if (!strcmp(func_name, tf_func->name)) {
@@ -65,15 +66,15 @@ bool
 PDCtf_get_func_param(pdc_dg_t *dg, char *func_name, pdc_tf_dev_t dev, uint64_t flat_conceptual_offset,
                      void **params, uint64_t *params_size)
 {
-    bool               ret_value      = true;
+    bool                 ret_value      = true;
     PDC_VECTOR_ITERATOR *dg_params_iter = NULL;
 
     printf("Getting params for func_name %s by flat conceptual offset %lu\n", func_name,
-              flat_conceptual_offset);
+           flat_conceptual_offset);
 
     // Find edge with name
     for (int i = 0; i < dg->edge_count; i++) {
-        pdc_dg_edge_t *edge = dg->edges[i];
+        pdc_dg_edge_t *edge    = dg->edges[i];
         pdc_tf_func_t *tf_func = edge->data;
         if (!strcmp(func_name, tf_func->name) && tf_func->dev == dev) {
             // Check if vector is NULL
@@ -93,8 +94,8 @@ PDCtf_get_func_param(pdc_dg_t *dg, char *func_name, pdc_tf_dev_t dev, uint64_t f
                     goto done;
                 }
             }
-            printf("Failed to locate params in func_name %s by flat conceptual offset %lu\n",
-                        func_name, flat_conceptual_offset);
+            printf("Failed to locate params in func_name %s by flat conceptual offset %lu\n", func_name,
+                   flat_conceptual_offset);
             return false;
             goto done;
         }
@@ -113,11 +114,11 @@ bool
 PDCtf_set_state_param(pdc_dg_t *dg, char *state_name, uint64_t flat_conceptual_offset, void *params,
                       uint64_t params_size)
 {
-    bool               ret_value      = true;
+    bool                 ret_value      = true;
     PDC_VECTOR_ITERATOR *dg_params_iter = NULL;
 
     printf("Setting params for state_name %s by flat conceptual offset %lu\n", state_name,
-              flat_conceptual_offset);
+           flat_conceptual_offset);
 
     // Get state from graph
     pdc_tf_state_t query_stat;
@@ -171,11 +172,11 @@ bool
 PDCtf_get_state_param(pdc_dg_t *dg, char *state_name, uint64_t flat_conceptual_offset, void **params,
                       uint64_t *params_size)
 {
-    bool               ret_value      = true;
+    bool                 ret_value      = true;
     PDC_VECTOR_ITERATOR *dg_params_iter = NULL;
 
     printf("Getting params for state_name %s by flat conceptual offset %lu\n", state_name,
-              flat_conceptual_offset);
+           flat_conceptual_offset);
 
     // Get state from graph
     pdc_tf_state_t query_stat = {.name = state_name};
@@ -214,7 +215,7 @@ PDCtf_get_state_param(pdc_dg_t *dg, char *state_name, uint64_t flat_conceptual_o
     }
 
     printf("Failed to locate params in state_name %s by flat conceptual offset %lu\n", state_name,
-              flat_conceptual_offset);
+           flat_conceptual_offset);
 
 done:
     if (dg_params_iter != NULL)

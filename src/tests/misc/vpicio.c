@@ -79,7 +79,7 @@ main(int argc, char **argv)
         steps = atoi(argv[2]);
     if (argc >= 4)
         sleeptime = atoi(argv[3]);
-    if(argc >= 5)
+    if (argc >= 5)
         transformation_str = argv[4];
 
     if (rank == 0)
@@ -190,7 +190,8 @@ main(int argc, char **argv)
                 LOG_WARNING("Attaching sz to index: %d\n", obj_ids[i]);
                 pdcid_t dg_id = PDCtf_dg_json_create(TF_GRAPHS_DIR "sz.json");
                 PDCtf_attach_to_obj(dg_id, obj_ids[i], "decompressed", "compressed");
-            } else if (!strcmp(transformation_str, "custom") && obj_prop == obj_prop_float) {
+            }
+            else if (!strcmp(transformation_str, "custom") && obj_prop == obj_prop_float) {
                 LOG_WARNING("Attaching custom to index: %d\n", obj_ids[i]);
                 pdcid_t dg_id = PDCtf_dg_json_create(TF_GRAPHS_DIR "custom.json");
                 PDCtf_attach_to_obj(dg_id, obj_ids[i], "client", "server");
