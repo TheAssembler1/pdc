@@ -58,6 +58,7 @@
 #include "pdc_logger.h"
 #include "pdc_malloc.h"
 #include "pdc_tf_server.h"
+#include "pdc_tf_profiler.h"
 
 #ifdef PDC_HAS_CRAY_DRC
 #include <rdmacred.h>
@@ -2165,6 +2166,12 @@ PDC_Server_loop(hg_context_t *hg_context)
         }
 #endif
 
+        if(pdc_tf_update_profiler() != SUCCEED) {
+            LOG_ERROR("Error updating profiler\n");
+            ret_value = FAIL;
+            break;
+        }
+
         actual_count = 0;
         do {
             hg_ret = HG_Trigger(hg_context, 0 /* timeout */, 1 /* max count */, &actual_count);
@@ -2174,7 +2181,6 @@ PDC_Server_loop(hg_context_t *hg_context)
         if (hg_atomic_cas32(&close_server_g, 1, 1))
             break;
         hg_ret = HG_Progress(hg_context, 200);
-
     } while (hg_ret == HG_SUCCESS || hg_ret == HG_TIMEOUT);
 
     if (hg_ret == HG_SUCCESS)

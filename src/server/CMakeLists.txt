@@ -69,6 +69,7 @@ add_library(pdc_server_lib
                transform/pdc_tf_server.c
                transform/pdc_tf_common.c
                transform/pdc_tf_builtin_common.c
+               transform/pdc_tf_profiler.c
                dablooms/pdc_dablooms.c
                dablooms/pdc_murmur.c
                ${PDC_SOURCE_DIR}/src/server/pdc_server_region/pdc_server_data.c
