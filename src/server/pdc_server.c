@@ -2166,7 +2166,7 @@ PDC_Server_loop(hg_context_t *hg_context)
         }
 #endif
 
-        if(pdc_tf_update_profiler() != SUCCEED) {
+        if (pdc_tf_update_profiler() != SUCCEED) {
             LOG_ERROR("Error updating profiler\n");
             ret_value = FAIL;
             break;
