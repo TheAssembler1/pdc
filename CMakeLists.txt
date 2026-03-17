@@ -55,7 +55,7 @@ endif()
 # Version information
 #------------------------------------------------------------------------------
 set(PDC_VERSION_MAJOR "0")
-set(PDC_VERSION_MINOR "6")
+set(PDC_VERSION_MINOR "7")
 set(PDC_VERSION_PATCH "0")
 set(PDC_PACKAGE "pdc")
 set(PDC_PACKAGE_NAME "PDC")
@@ -328,12 +328,18 @@ if(PDC_USE_CRAY_DRC)
 endif()
 
 #-----------------------------------------------------------------------------
-# DART Suffix Tree mode
+# IDIOMS Index
 #-----------------------------------------------------------------------------
-option(PDC_DART_SUFFIX_TREE_MODE "Enable DART Suffix Tree mode." ON)
-if(PDC_DART_SUFFIX_TREE_MODE)
-  set(PDC_DART_SFX_TREE 1)
-  # add_compile_definitions(PDC_DART_SFX_TREE=${PDC_DART_SFX_TREE})
+option(PDC_ENABLE_IDIOMS "Enable IDIOMS metadata." OFF)
+if(PDC_ENABLE_IDIOMS)
+    set(PDC_ENABLE_IDIOMS 1)
+    option(PDC_DART_SUFFIX_TREE_MODE "Enable DART Suffix Tree mode." ON)
+    if(PDC_DART_SUFFIX_TREE_MODE)
+      set(PDC_DART_SFX_TREE 1)
+      # add_compile_definitions(PDC_DART_SFX_TREE=${PDC_DART_SFX_TREE})
+endif()
+
+
 endif()
 
 #-----------------------------------------------------------------------------
