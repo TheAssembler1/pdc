@@ -10,6 +10,7 @@ stages:
     - build
     - test
     - metrics
+    - report
 
 .report-status:
     script:
@@ -31,27 +32,12 @@ pending:
     extends:
         - .report-status
 
-success:
-    stage: .post
-    variables:
-        STATUS_MESSAGE: "Successfully passed all tests on Perlmutter!"
-    extends:
-        - .report-status
-
-failure:
-    stage: .post
-    variables:
-        STATUS_MESSAGE: "Failed to pass all tests on Perlmutter!"
-    extends:
-        - .report-status
-    rules:
-        - when: on_failure
-
 perlmutter-authorize:
     stage: authorize
     rules:
         - if: '$METRICS == null'
     when: manual
+    allow_failure: false # ensures pipeline doesn't skip ahead
     script:
         - |
             curl -L \
@@ -499,3 +485,23 @@ perlmutter-metrics:
         - python3 ../../.github/workflows/store-metrics.py Perlmutter ${PDC_JOB_OUTPUT} ${CI_COMMIT_BRANCH} ${SLURM_JOB_ID}
         - echo "Removing files..."
         - rm -rf ${PDC_TMPDIR} ${PDC_DATA_LOC}
+
+success:
+    stage: report
+    variables:
+        STATUS_MESSAGE: "Successfully passed all tests on Perlmutter!"
+    extends:
+        - .report-status
+    needs:
+        - perlmutter-no-cache-parallel-region-all
+        - perlmutter-cache-parallel-region-all
+    rules:
+        - if: '$METRICS == null'
+
+failure:
+    stage: report
+    variables:
+        STATUS_MESSAGE: "Failed to pass all tests on Perlmutter!"
+    extends:
+        - .report-status
+    when: on_failure
