@@ -195,8 +195,8 @@ main(int argc, char **argv)
                 LOG_WARNING("Attaching zfp_libsod to index: %d\n", obj_ids[i]);
                 pdcid_t dg_id = PDCtf_dg_json_create(TF_GRAPHS_DIR "zfp_libsod.json");
                 PDCtf_attach_to_obj(dg_id, obj_ids[i], "decompressed", "encrypted");
-                if(rank == 0)
-                    PDCtf_print_dg(dg_id, true);    
+                if (rank == 0)
+                    PDCtf_print_dg(dg_id, true);
             }
             else if (!strcmp(transformation_str, "custom") && obj_prop == obj_prop_float) {
                 LOG_WARNING("Attaching custom to index: %d\n", obj_ids[i]);
