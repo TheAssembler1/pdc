@@ -2264,7 +2264,6 @@ PDC_print_IO_stats()
     update_time_avg = update_time_max = update_time_min = server_update_region_location_time_g;
     get_info_time_avg = get_info_time_max = get_info_time_min = server_get_storage_info_time_g;
     io_elapsed_time_avg = io_elapsed_time_max = io_elapsed_time_min = server_io_elapsed_time_g;
-
 #endif
 
     if (pdc_server_rank_g == 0) {
