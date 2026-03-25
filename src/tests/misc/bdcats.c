@@ -101,7 +101,7 @@ main(int argc, char **argv)
     // create a container
     cont_id = PDCcont_open("c1", pdc_id);
     if (cont_id <= 0) {
-        LOG_ERROR("Failed to create container");
+        LOG_ERROR("Failed to open container");
         return FAIL;
     }
 
