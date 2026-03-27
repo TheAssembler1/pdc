@@ -17,21 +17,21 @@ extern int pdc_tf_profiler_nvml_init;
 extern unsigned int pdc_tf_profiler_nvml_device_count;
 
 // Vector configuration to store profiler samples for each device, with dynamic resizing
-#define DEFAULT_PROFILER_SAMPLES_CAPACITY 100
+#define DEFAULT_PROFILER_SAMPLES_CAPACITY         100
 #define DEFAULT_PROFILER_SAMPLES_EXPANSION_FACTOR 2.0
 
-// Struct to keep track samples 
+// Struct to keep track samples
 typedef struct {
     // NVML profiler fields
-    uint64_t gpu_utilization; // GPU utilization percentage
+    uint64_t gpu_utilization;    // GPU utilization percentage
     uint64_t memory_utilization; // Memory utilization percentage
-    uint64_t memory_total; // Total memory in bytes
-    uint64_t memory_used; // Used memory in bytes
-    uint64_t memory_free; // Free memory in bytes
+    uint64_t memory_total;       // Total memory in bytes
+    uint64_t memory_used;        // Used memory in bytes
+    uint64_t memory_free;        // Free memory in bytes
 } pdc_tf_profiler_nvml_sample_t;
 
 typedef struct {
-    PDC_VECTOR *nvml_samples; 
+    PDC_VECTOR *nvml_samples;
 } pdc_tf_profiler_samples_t;
 
 // TODO: add fields for CUDA profiler and other profilers as needed
