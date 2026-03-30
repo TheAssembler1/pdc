@@ -993,20 +993,22 @@ PDC_region_fetch(uint64_t obj_id, int obj_ndim, const uint64_t *obj_dims, struct
     pdc_region_cache *region_cache_iter;
     uint64_t *        overlap_offset, *overlap_size;
 
-    LOG_DEBUG("Fetching region for obj_id=%lu\n", obj_id);
+    LOG_INFO("Fetching region for obj_id=%lu\n", obj_id);
 
     // Search for object in cache
     obj_cache_iter = obj_cache_list;
     while (obj_cache_iter != NULL) {
         if (obj_cache_iter->obj_id == obj_id) {
             obj_cache = obj_cache_iter;
-            LOG_DEBUG("Object %lu found in cache\n", obj_id);
+            LOG_INFO("Object %lu found in cache\n", obj_id);
             break; // can break since we found it
+        } else {
+            LOG_INFO("Checking against Object %lu\n", obj_cache_iter->obj_id);
         }
         obj_cache_iter = obj_cache_iter->next;
     }
     if (obj_cache == NULL) {
-        LOG_DEBUG("Object %lu NOT found in cache\n", obj_id);
+        LOG_INFO("Object %lu NOT found in cache\n", obj_id);
     }
 
     if (obj_cache != NULL) {
@@ -1017,7 +1019,7 @@ PDC_region_fetch(uint64_t obj_id, int obj_ndim, const uint64_t *obj_dims, struct
                                            region_cache_iter->region_cache_info->offset,
                                            region_cache_iter->region_cache_info->size, region_info->ndim);
             if (flag) {
-                LOG_DEBUG("Region fully contained in cache for obj_id=%lu\n", obj_id);
+                LOG_INFO("Region fully contained in cache for obj_id=%lu\n", obj_id);
 
                 PDC_region_overlap_detect(region_info->ndim, region_info->offset, region_info->size,
                                           region_cache_iter->region_cache_info->offset,
@@ -1036,19 +1038,18 @@ PDC_region_fetch(uint64_t obj_id, int obj_ndim, const uint64_t *obj_dims, struct
         }
 
         if (!flag) {
-            LOG_DEBUG("Object %lu found but region NOT fully contained in cache\n", obj_id);
+            LOG_INFO("Object %lu found but region NOT fully contained in cache\n", obj_id);
         }
     }
 
     if (!flag) {
         if (obj_cache != NULL) {
-            LOG_DEBUG("Flushing cached regions for obj_id=%lu before server fetch\n", obj_id);
+            LOG_INFO("Flushing cached regions for obj_id=%lu before server fetch\n", obj_id);
             PDC_region_cache_flush_by_pointer(obj_id, obj_cache, 0);
         }
-        LOG_DEBUG("Fetching region from server for obj_id=%lu\n", obj_id);
+        LOG_INFO("Fetching region from server for obj_id=%lu\n", obj_id);
         PDC_Server_transfer_request_io(obj_id, obj_ndim, obj_dims, region_info, buf, unit, 0);
-    }
-
+    } 
     FUNC_LEAVE(0);
 }
 #endif

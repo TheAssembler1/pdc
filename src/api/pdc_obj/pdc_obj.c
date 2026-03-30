@@ -993,7 +993,7 @@ PDC_obj_get_info(pdcid_t obj_id)
         PGOTO_ERROR(NULL, "cannot allocate ret_value->obj_pt");
     ret_value->obj_pt->obj_prop_pub->dims =
         PDC_malloc(ret_value->obj_pt->obj_prop_pub->ndim * sizeof(uint64_t));
-    LOG_INFO("ndim is %d\n", ret_value->obj_pt->obj_prop_pub->ndim);
+    LOG_DEBUG("ndim is %d\n", ret_value->obj_pt->obj_prop_pub->ndim);
     if (ret_value->obj_pt->obj_prop_pub->ndim == 0 || ret_value->obj_pt->obj_prop_pub->dims) {
         for (i = 0; i < ret_value->obj_pt->obj_prop_pub->ndim; i++) {
             ret_value->obj_pt->obj_prop_pub->dims[i] = info->obj_pt->obj_prop_pub->dims[i];

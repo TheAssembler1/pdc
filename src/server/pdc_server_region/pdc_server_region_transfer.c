@@ -824,7 +824,7 @@ PDC_Server_transfer_request_io(uint64_t obj_id, int obj_ndim, const uint64_t *ob
 {
     FUNC_ENTER(NULL);
 
-    LOG_DEBUG("PDC_Server_transfer_request_io was called\n");
+    LOG_INFO("PDC_Server_transfer_request_io was called for obj_id: %lu\n", obj_id);
 
     perr_t ret_value = SUCCEED;
     int    my_rank   = PDC_get_rank();

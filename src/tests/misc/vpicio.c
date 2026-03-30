@@ -101,18 +101,26 @@ main(int argc, char **argv)
     void *data_ptrs[] = {&dx[0], &dy[0], &dz[0], &ux[0], &uy[0], &uz[0], &q[0], &id[0]};
 
     // create a pdc
-    pdc_id = PDCinit("pdc");
+    pdc_id = PDCinit("pdc"); 
+    if(pdc_id == 0) {
+        LOG_ERROR("Failed to initialize PDC\n");
+        return FAIL;
+    }
 
     // create a container property
     cont_prop = PDCprop_create(PDC_CONT_CREATE, pdc_id);
     if (cont_prop <= 0) {
-        LOG_ERROR("Failed to create container property");
+        LOG_ERROR("Failed to create container property\n");
         return FAIL;
     }
     // create a container
+#ifdef ENABLE_MPI
     cont_id = PDCcont_create_col("c1", cont_prop);
+#else
+    cont_id = PDCcont_create("c1", cont_prop);
+#endif
     if (cont_id <= 0) {
-        LOG_ERROR("Failed to create container");
+        LOG_ERROR("Failed to create container\n");
         return FAIL;
     }
     // create an object property
@@ -172,34 +180,40 @@ main(int argc, char **argv)
                 return FAIL;
             }
             if (!strcmp(transformation_str, "turbo") && obj_prop == obj_prop_int) {
-                LOG_WARNING("Attaching turbo to index: %d\n", obj_ids[i]);
+                if(rank == 0)
+                    LOG_WARNING("Attaching turbo to index: %d\n", obj_ids[i]);
                 pdcid_t dg_id = PDCtf_dg_json_create(TF_GRAPHS_DIR "turbo.json");
                 PDCtf_attach_to_obj(dg_id, obj_ids[i], "decompressed", "compressed");
             }
             else if (!strcmp(transformation_str, "zfp") && obj_prop == obj_prop_float) {
-                LOG_WARNING("Attaching zfp to index: %d\n", obj_ids[i]);
+                if(rank == 0)
+                    LOG_WARNING("Attaching zfp to index: %d\n", obj_ids[i]);
                 pdcid_t dg_id = PDCtf_dg_json_create(TF_GRAPHS_DIR "zfp.json");
                 PDCtf_attach_to_obj(dg_id, obj_ids[i], "decompressed", "compressed");
             }
             else if (!strcmp(transformation_str, "zfp_gpu") && obj_prop == obj_prop_float) {
-                LOG_WARNING("Attaching zfp gpu to index: %d\n", obj_ids[i]);
+                if(rank == 0)
+                    LOG_WARNING("Attaching zfp gpu to index: %d\n", obj_ids[i]);
                 pdcid_t dg_id = PDCtf_dg_json_create(TF_GRAPHS_DIR "zfp_gpu.json");
                 PDCtf_attach_to_obj(dg_id, obj_ids[i], "decompressed", "compressed");
             }
             else if (!strcmp(transformation_str, "sz") && obj_prop == obj_prop_float) {
-                LOG_WARNING("Attaching sz to index: %d\n", obj_ids[i]);
+                if(rank == 0)
+                    LOG_WARNING("Attaching sz to index: %d\n", obj_ids[i]);
                 pdcid_t dg_id = PDCtf_dg_json_create(TF_GRAPHS_DIR "sz.json");
                 PDCtf_attach_to_obj(dg_id, obj_ids[i], "decompressed", "compressed");
             }
             else if (!strcmp(transformation_str, "zfp_libsod") && obj_prop == obj_prop_float) {
-                LOG_WARNING("Attaching zfp_libsod to index: %d\n", obj_ids[i]);
+                if(rank == 0)
+                    LOG_WARNING("Attaching zfp_libsod to index: %d\n", obj_ids[i]);
                 pdcid_t dg_id = PDCtf_dg_json_create(TF_GRAPHS_DIR "zfp_libsod.json");
                 PDCtf_attach_to_obj(dg_id, obj_ids[i], "decompressed", "encrypted");
                 if (rank == 0)
                     PDCtf_print_dg(dg_id, true);
             }
             else if (!strcmp(transformation_str, "custom") && obj_prop == obj_prop_float) {
-                LOG_WARNING("Attaching custom to index: %d\n", obj_ids[i]);
+                if(rank == 0)
+                    LOG_WARNING("Attaching custom to index: %d\n", obj_ids[i]);
                 pdcid_t dg_id = PDCtf_dg_json_create(TF_GRAPHS_DIR "custom.json");
                 PDCtf_attach_to_obj(dg_id, obj_ids[i], "client", "server");
             }
@@ -310,7 +324,7 @@ main(int argc, char **argv)
         LOG_ERROR("Failed to close local region \n");
         return FAIL;
     }
-    if (PDCobj_close(region_remote) != SUCCEED) {
+    if (PDCregion_close(region_remote) != SUCCEED) {
         LOG_ERROR("Failed to close remote region\n");
         return FAIL;
     }

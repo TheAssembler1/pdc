@@ -993,7 +993,7 @@ drc_access_again:
     hg_thread_pool_init(n_thread, &hg_test_thread_pool_g);
     hg_thread_pool_init(1, &hg_test_thread_pool_fs_g);
     if (pdc_server_rank_g == 0)
-        LOG_INFO("\nStarting server with %d threads...\n", n_thread);
+        LOG_INFO("Starting server with %d threads...\n", n_thread);
     hg_thread_mutex_init(&hash_table_new_mutex_g);
     hg_thread_mutex_init(&pdc_client_info_mutex_g);
     hg_thread_mutex_init(&pdc_metadata_hash_table_mutex_g);
@@ -1745,7 +1745,7 @@ perr_t
 PDC_Server_restart(char *filename)
 {
     FUNC_ENTER(NULL);
-
+    
     if (pdc_server_rank_g == 0)
         LOG_WARNING("Restart from checkpoint start\n");
 
@@ -2146,7 +2146,6 @@ PDC_Server_restart(char *filename)
 
     fclose(file);
     file = NULL;
-
 #ifdef ENABLE_MPI
     MPI_Reduce(&nobj, &all_nobj, 1, MPI_INT, MPI_SUM, 0, MPI_COMM_WORLD);
     MPI_Reduce(&total_region, &all_n_region, 1, MPI_INT, MPI_SUM, 0, MPI_COMM_WORLD);
@@ -2154,7 +2153,6 @@ PDC_Server_restart(char *filename)
     all_nobj          = nobj;
     all_n_region      = total_region;
 #endif
-
     if (pdc_server_rank_g == 0) {
         LOG_INFO("Server restarted from saved session, "
                  "successfully loaded %d containers, %d objects, %d regions...\n",
@@ -2628,11 +2626,12 @@ server_run(int argc, char *argv[])
     PDC_server_timing_init();
 #endif
 #endif
-    if (pdc_server_rank_g == 0 && argc > 1 && strcmp(argv[1], "restart") == 0) {
-        LOG_INFO("Starting server with pre-existing data\n");
+    if (argc > 1 && strcmp(argv[1], "restart") == 0) {   
+        if(pdc_server_rank_g == 0)
+            LOG_INFO("Starting server with pre-existing data\n");
         is_restart_g = 1;
     }
-    else if (pdc_server_rank_g == 0) {
+    else if(pdc_server_rank_g == 0) {
         LOG_INFO("Starting server with no previous data\n");
     }
 

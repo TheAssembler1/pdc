@@ -3450,7 +3450,7 @@ PDC_Client_transfer_request(hg_bulk_t *bulk_handle, void *buf, pdcid_t obj_id, u
             PGOTO_ERROR(FAIL, "Invalid access type for transformation");
     }
     else {
-        LOG_INFO("Region transfer does NOT have an attached graph\n");
+        LOG_DEBUG("Region transfer does NOT have an attached graph\n");
 
         in.pdc_tf_pkg.json_filepath = (hg_string_t)NULL;
         in.pdc_tf_pkg.store_state   = (hg_string_t)NULL;
