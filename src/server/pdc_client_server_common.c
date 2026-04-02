@@ -257,6 +257,9 @@ PDC_get_var_type_size(pdc_var_type_t dtype)
         case PDC_UINT16:
             PGOTO_DONE(sizeof(uint16_t));
             break;
+        case PDC_INT32:
+            PGOTO_DONE(sizeof(int32_t));
+            break;
         case PDC_INT64:
             PGOTO_DONE(sizeof(int64_t));
             break;
