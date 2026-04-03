@@ -83,6 +83,7 @@ set(PDC_SRCS
   ${PDC_SOURCE_DIR}/src/server/transform/pdc_tf_common.c
   ${PDC_SOURCE_DIR}/src/server/transform/pdc_tf_user.c
   ${PDC_SOURCE_DIR}/src/server/transform/pdc_tf_builtin_common.c
+  ${PDC_SOURCE_DIR}/src/server/transform/pdc_tf_profiler.c
   ${PDC_SOURCE_DIR}/src/server/pdc_server_region/pdc_server_region_transfer.c
   ${PDC_SOURCE_DIR}/src/server/pdc_server_region/pdc_server_region_cache.c
   ${PDC_SOURCE_DIR}/src/server/pdc_server_region/pdc_server_region_transfer_metadata_query.c

@@ -769,8 +769,8 @@ PDC_Server_set_close(void)
 #ifdef PDC_TIMING
         start = MPI_Wtime();
 #endif
-        if (pdc_disable_checkpoint_g == 0)
-            PDC_Server_checkpoint();
+    if (pdc_disable_checkpoint_g == 0)
+        PDC_Server_checkpoint();
 
 #ifdef PDC_TIMING
         pdc_server_timings->PDCserver_checkpoint += MPI_Wtime() - start;
@@ -785,8 +785,6 @@ PDC_Server_set_close(void)
 #endif
         hg_atomic_set32(&close_server_g, 1);
     }
-
-    LOG_AVG_TOTAL_FREQ_TIMERS();
 
     FUNC_LEAVE(ret_value);
 }
@@ -1228,7 +1226,6 @@ PDC_Server_finalize()
     hg_thread_mutex_destroy(&update_remote_server_addr_mutex_g);
 #endif
     PDC_Server_clear_obj_region();
-
     PDC_server_transfer_request_finalize();
 
     if (pdc_server_rank_g == 0)
@@ -2244,6 +2241,8 @@ PDC_Server_loop(hg_context_t *hg_context)
     perr_t       ret_value = SUCCEED;
     hg_return_t  hg_ret;
     unsigned int actual_count;
+    struct timespec hg_progress_start, hg_progress_end;
+    struct timespec total_time_start, total_time_end;
 #ifdef PDC_ENABLE_CHECKPOINT
     int     checkpoint_interval  = 1;
     clock_t last_checkpoint_time = 0, cur_time;
@@ -2251,6 +2250,7 @@ PDC_Server_loop(hg_context_t *hg_context)
 
     /* Poke progress engine and check for events */
     do {
+        clock_gettime(CLOCK_MONOTONIC, &total_time_start);
 #ifdef PDC_ENABLE_CHECKPOINT
         checkpoint_interval++;
         // Avoid calling clock() every operation
@@ -2266,21 +2266,31 @@ PDC_Server_loop(hg_context_t *hg_context)
         }
 #endif
 
-        /*if (pdc_tf_update_profiler() != SUCCEED) {
-            LOG_ERROR("Error updating profiler\n");
-            ret_value = FAIL;
-            break;
-        }*/
-
         actual_count = 0;
         do {
             hg_ret = HG_Trigger(hg_context, 0 /* timeout */, 1 /* max count */, &actual_count);
         } while ((hg_ret == HG_SUCCESS) && actual_count);
 
-        /* Do not try to make progress anymore if we're done */
         if (hg_atomic_cas32(&close_server_g, 1, 1))
             break;
+        clock_gettime(CLOCK_MONOTONIC, &hg_progress_start);
         hg_ret = HG_Progress(hg_context, 200);
+        clock_gettime(CLOCK_MONOTONIC, &hg_progress_end);
+        clock_gettime(CLOCK_MONOTONIC, &total_time_end);
+        
+        double elapsed_total_time_sec =
+        (total_time_end.tv_sec - total_time_start.tv_sec) +
+        (total_time_end.tv_nsec - total_time_start.tv_nsec) / 1e9;
+        // NOTE: this must be called after HG_Progress
+        double elapsed_progress_time_sec =
+        (hg_progress_end.tv_sec - hg_progress_start.tv_sec) +
+        (hg_progress_end.tv_nsec - hg_progress_start.tv_nsec) / 1e9;
+        // NOTE: this must be called after HG_Progress
+        if (pdc_tf_update_profiler(elapsed_total_time_sec, elapsed_progress_time_sec) != SUCCEED) {
+            LOG_ERROR("Error updating profiler\n");
+            ret_value = FAIL;
+            break;
+        }
     } while (hg_ret == HG_SUCCESS || hg_ret == HG_TIMEOUT);
 
     if (hg_ret == HG_SUCCESS)

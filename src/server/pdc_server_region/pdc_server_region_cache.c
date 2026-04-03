@@ -2,6 +2,8 @@
 #include "pdc_server_region_cache.h"
 #include "pdc_timing.h"
 #include "pdc_logger.h"
+#include "pdc_tf_profiler.h"
+#include "pdc_tf_server.h"
 
 #ifdef PDC_SERVER_CACHE
 
@@ -9,6 +11,12 @@
 #define MAX_CACHE_SIZE_GB PDC_SERVER_CACHE_MAX_GB
 #else
 #define MAX_CACHE_SIZE_GB 32
+#endif
+
+#ifdef PDC_SERVER_TRANSFORMATION_CACHE_MAX_GB
+#define MAX_TRANSFORMATION_CACHE_SIZE_GB PDC_SERVER_TRANSFORMATION_CACHE_MAX_GB
+#else
+#define MAX_TRANSFORMATION_CACHE_SIZE_GB 32
 #endif
 
 #ifdef PDC_SERVER_IDLE_CACHE_FLUSH_TIME
@@ -38,7 +46,9 @@ static pdc_obj_cache *obj_cache_list, *obj_cache_list_end;
 static pthread_t       pdc_recycle_thread;
 static pthread_mutex_t pdc_cache_mutex;
 static int             pdc_recycle_close_flag;
+static size_t          total_transformation_cache_size;
 static size_t          total_cache_size;
+static size_t          maximum_transformation_cache_size;
 static size_t          maximum_cache_size;
 static int             pdc_idle_flush_time_g;
 
@@ -54,6 +64,7 @@ PDC_region_server_cache_init()
     pthread_mutex_init(&pdc_obj_cache_list_mutex, NULL);
     pthread_mutex_init(&pdc_cache_mutex, NULL);
     total_cache_size = 0;
+    total_transformation_cache_size = 0;
 
     p = getenv("PDC_SERVER_CACHE_MAX_SIZE");
     if (p != NULL) {
@@ -61,6 +72,14 @@ PDC_region_server_cache_init()
     }
     else {
         maximum_cache_size = MAX_CACHE_SIZE_GB * 1024llu * 1024llu * 1024llu;
+    }
+
+    p = getenv("PDC_SERVER_TRANSFORMATION_CACHE_MAX_SIZE");
+    if (p != NULL) {
+        maximum_transformation_cache_size = atol(p) * 1024llu * 1024llu * 1024llu;
+    }
+    else {
+        maximum_transformation_cache_size = maximum_cache_size;
     }
 
     p = getenv("PDC_SERVER_IDLE_CACHE_FLUSH_TIME");
@@ -72,8 +91,10 @@ PDC_region_server_cache_init()
 #ifdef ENABLE_MPI
     MPI_Comm_rank(MPI_COMM_WORLD, &server_rank);
 #endif
-    if (server_rank == 0)
+    if (server_rank == 0) {
         LOG_INFO("Max cache size: %llu\n", maximum_cache_size);
+        LOG_INFO("Max transformation cache size: %llu\n", maximum_transformation_cache_size);
+    }
 
     obj_cache_list     = NULL;
     obj_cache_list_end = NULL;
@@ -98,7 +119,6 @@ PDC_region_server_cache_finalize()
     pdc_recycle_close_flag = 1;
     pthread_mutex_unlock(&pdc_cache_mutex);
     pthread_join(pdc_recycle_thread, NULL);
-
     PDC_region_cache_flush_all();
     pthread_mutex_destroy(&pdc_obj_cache_list_mutex);
     pthread_mutex_destroy(&pdc_cache_mutex);
@@ -705,6 +725,34 @@ sort_by_offset(const void *elem1, const void *elem2)
     FUNC_LEAVE(0);
 #pragma GCC diagnostic pop
 }
+
+/**
+ * Returns a pointer to the region mapping for obj_id
+ * If no region mapping is found returns NULL
+ */
+static struct pdc_tf_obj_t *
+PDCtf_get_region_mapping(pdcid_t obj_id, pdc_dg_t **dg)
+{
+    FUNC_ENTER(NULL);
+
+    struct pdc_tf_obj_t *  ret_value                   = NULL;
+    pdc_tf_obj_id_to_dg_t *obj_id_to_dg                = NULL;
+    PDC_VECTOR_ITERATOR *  tf_obj_id_to_dg_vector_iter = pdc_vector_iterator_new(tf_obj_id_to_dg_vector_g);
+
+    while (pdc_vector_iterator_has_next(tf_obj_id_to_dg_vector_iter)) {
+        pdc_tf_obj_id_to_dg_t *cur_obj_id_to_dg =
+            (pdc_tf_obj_id_to_dg_t *)pdc_vector_iterator_next(tf_obj_id_to_dg_vector_iter);
+        if (cur_obj_id_to_dg->obj_id == obj_id) {
+            *dg = cur_obj_id_to_dg->dg;
+            PGOTO_DONE(&(cur_obj_id_to_dg->pdc_tf_obj));
+        }
+    }
+
+done:
+    pdc_vector_iterator_destroy(tf_obj_id_to_dg_vector_iter);
+    FUNC_LEAVE(ret_value);
+}
+
 int
 PDC_region_cache_flush_by_pointer(uint64_t obj_id, pdc_obj_cache *obj_cache, int flag)
 {
@@ -794,18 +842,59 @@ PDC_region_cache_flush_by_pointer(uint64_t obj_id, pdc_obj_cache *obj_cache, int
         nflush += merged_request_size;
     } // End for 1D*/
 
+// FIXME: Need to get this from the JSON file and load into graphs per region
+#define DEFER_REGION_TRANSFORMATION 1
+#define GPU_UTILIZATION_THRESHOLD 5.0
+#define CPU_UTILIZATION_THRESHOLD 30.0
+
     // Iterate through all cache regions and use POSIX I/O to write them back to file system.
     region_cache_iter = obj_cache->region_cache;
     while (region_cache_iter != NULL) {
         region_cache_info = region_cache_iter->region_cache_info;
-        PDC_Server_transfer_request_io(obj_id, obj_cache->ndim, obj_cache->dims, region_cache_info,
-                                       region_cache_info->buf, region_cache_info->unit, 1);
         if (obj_cache->ndim >= 1)
             write_size = region_cache_info->unit * region_cache_info->size[0];
         if (obj_cache->ndim >= 2)
             write_size *= region_cache_info->size[1];
         if (obj_cache->ndim >= 3)
             write_size *= region_cache_info->size[2];
+
+        pdc_tf_region_mapping_t *region_mapping = NULL;
+        pdc_dg_t* dg = NULL;
+        struct pdc_tf_obj_t* tf_obj = PDCtf_get_region_mapping(obj_id, &dg);
+        if (!PDCtf_region_has_attached_graph(tf_obj, obj_cache->ndim, unit, region_cache_info->offset,
+                                            region_cache_info->size, &region_mapping)) {
+            LOG_DEBUG("No region mapping found for obj_id %" PRIu64 "\n", obj_id);
+            PDC_Server_transfer_request_io(obj_id, obj_cache->ndim, obj_cache->dims, region_cache_info,
+                                       region_cache_info->buf, region_cache_info->unit, 1);
+        } else {
+            LOG_DEBUG("Found region mapping for obj_id %" PRIu64 "\n", obj_id);
+
+            double min_avg_gpu_utilization = 100.0;
+            int min_gpu_utilization_device_index = -1;
+            for(int m = 0; m < pdc_tf_profiler_nvml_device_count; m++) {
+                if (min_avg_gpu_utilization < GPU_UTILIZATION_THRESHOLD) {
+                    min_gpu_utilization_device_index = m;
+                }
+                min_avg_gpu_utilization = fmin(min_avg_gpu_utilization, pdc_tf_avg_gpu_utilization(m));
+            }
+            double avg_cpu_utilization = pdc_tf_avg_cpu_utilization();
+
+            /**
+             * If DEFER_REGION_TRANSFORMATION is enabled, we will defer region transformation.
+             * If there is room in the transformation cache but all devices (GPU/CPU) utilizations are high, we will also defer region transformation. 
+             * Otherwise we will perform region transformation and flush the data to storage.
+             */
+            if (DEFER_REGION_TRANSFORMATION || 
+                (total_transformation_cache_size < maximum_transformation_cache_size 
+                    && min_avg_gpu_utilization > GPU_UTILIZATION_THRESHOLD && 
+                       avg_cpu_utilization > CPU_UTILIZATION_THRESHOLD)) {
+                continue;
+            }
+
+            // Flush to storage where exec_graph will handle executing graph
+            PDC_Server_transfer_request_io(obj_id, obj_cache->ndim, obj_cache->dims, region_cache_info,
+                                                region_cache_info->buf, region_cache_info->unit, 1);
+        }
 
         if (write_size > 0) {
             PDC_get_time_str(cur_time);
@@ -935,14 +1024,14 @@ PDC_region_cache_clock_cycle(void *ptr)
                     obj_cache_iter = obj_cache_iter->next;
                     pthread_mutex_unlock(&pdc_obj_cache_list_mutex);
 
+                    // Gives the additional CPU time to other threads to avoid busy loop if there are many cache regions.
                     usleep(300000);
                     break;
                 }
                 obj_cache_iter = obj_cache_iter->next;
-                /* pthread_mutex_unlock(&pdc_obj_cache_list_mutex); */
+                // Gives the CPU time to other threads to avoid busy loop if there are many cache regions.
                 usleep(300000);
             } // End while obj_cache_iter
-            /* pthread_mutex_unlock(&pdc_obj_cache_list_mutex); */
         } // End if pdc_recycle_close_flag
         else {
             pthread_mutex_unlock(&pdc_cache_mutex);

@@ -315,31 +315,41 @@ PDCdg_shortest_path(pdc_dg_t *dg, void *v1_data, void *v2_data, pdc_dg_edge_t **
         at      = prev[at];
     }
 
-    // Allocate and populate edge array
-    *edges_out = (pdc_dg_edge_t *)malloc((path_len - 1) * sizeof(pdc_dg_edge_t));
+    // Step 1: Count total edges along the path
+    uint32_t total_edges = 0;
+    for (uint32_t i = 0; i < path_len - 1; i++) {
+        pdc_dg_vertex_id_t from = path[i];
+        pdc_dg_vertex_id_t to   = path[i + 1];
+        for (uint32_t j = 0; j < dg->edge_count; j++) {
+            if (dg->edges[j]->v1_id == from && dg->edges[j]->v2_id == to) {
+                total_edges++;
+            }
+        }
+    }
+
+    if (total_edges == 0) {
+        printf("No edges found along path\n");
+        goto done;
+    }
+
+    // Step 2: Allocate edges_out
+    *edges_out  = (pdc_dg_edge_t *)malloc(total_edges * sizeof(pdc_dg_edge_t));
     if (!*edges_out) {
         printf("Failed to allocate edges_out\n");
         goto done;
     }
+    *num_edges = total_edges;
 
-    *num_edges = path_len - 1;
-
-    for (uint32_t i = 0; i < *num_edges; i++) {
-        pdc_dg_vertex_id_t from       = path[i];
-        pdc_dg_vertex_id_t to         = path[i + 1];
-        bool               edge_found = false;
+    // Step 3: Copy all edges
+    uint32_t edge_idx = 0;
+    for (uint32_t i = 0; i < path_len - 1; i++) {
+        pdc_dg_vertex_id_t from = path[i];
+        pdc_dg_vertex_id_t to   = path[i + 1];
 
         for (uint32_t j = 0; j < dg->edge_count; j++) {
             if (dg->edges[j]->v1_id == from && dg->edges[j]->v2_id == to) {
-                memcpy(&(*edges_out)[i], dg->edges[j], sizeof(pdc_dg_edge_t));
-                edge_found = true;
-                break;
+                memcpy(&(*edges_out)[edge_idx++], dg->edges[j], sizeof(pdc_dg_edge_t));
             }
-        }
-
-        if (!edge_found) {
-            printf("Missing edge between path vertices %d and %d\n", from, to);
-            goto done;
         }
     }
 

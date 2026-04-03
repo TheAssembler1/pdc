@@ -52,6 +52,8 @@ typedef struct pdc_tf_internal_param {
 typedef bool (*c_func_t)(pdc_tf_internal_param internal_param, char *params_str, void **region_data,
                          pdc_tf_region_t input_region, pdc_tf_region_t *output_region);
 
+#define NUM_TF_FUNC_TIMES 5
+
 typedef struct pdc_tf_func_t {
     pdc_tf_dev_t      dev;
     pdc_tf_location_t location;
@@ -60,6 +62,9 @@ typedef struct pdc_tf_func_t {
     uint32_t          cur_num_params;
     char *            params_str;
     c_func_t          c_func;
+    // avg last 5 times
+    int     tf_func_times_index;
+    double tf_func_times[NUM_TF_FUNC_TIMES];
 } pdc_tf_func_t;
 
 /**

@@ -1,16 +1,13 @@
 #include <assert.h>
+ #include <time.h>
+#include <cuda_runtime.h>
 
 #include "pdc_tf_server.h"
 #include "pdc_malloc.h"
 #include "pdc_client_server_common.h"
 #include "pdc_vector.h"
 #include "pdc_tf_user.h"
-
-double   __timer_totals[NUM_TIMER_TARGETS]      = {0};
-uint64_t __timer_totals_freq[NUM_TIMER_TARGETS] = {0};
-
-double __timer_start       = 0.0f;
-double __graph_timer_start = 0.0f;
+#include "pdc_tf_profiler.h"
 
 PDC_VECTOR *tf_obj_id_to_dg_vector_g = NULL;
 
@@ -159,7 +156,7 @@ PDCtf_exec_graph(pdc_dg_t *dg, uint64_t flat_conceptual_offset, char *cur_state,
 
     /**
      * Setup input and output states
-     * NOTE: The vertices are check for equality based on the name alone
+     * NOTE: The vertices are checked for equality based on the name alone
      */
     pdc_tf_state_t tf_input_state  = {.name = cur_state};
     pdc_tf_state_t tf_output_state = {.name = desired_state};
@@ -170,31 +167,109 @@ PDCtf_exec_graph(pdc_dg_t *dg, uint64_t flat_conceptual_offset, char *cur_state,
     uint32_t       num_edges;
 
     if (PDCdg_shortest_path(dg, input_state, output_state, &edges_out, &num_edges)) {
-        LOG_DEBUG("Path was found:\n");
         memcpy(output_region, &input_region, sizeof(pdc_tf_region_t));
 
-        for (uint32_t j = 0; j < num_edges; j++) {
-            pdc_dg_edge_t   e  = edges_out[j];
+        // Loop over edges by vertex pairs
+        for (uint32_t j = 0; j < num_edges;) {
+            pdc_dg_vertex_id_t v1_id = edges_out[j].v1_id;
+            pdc_dg_vertex_id_t v2_id = edges_out[j].v2_id;
+
+            // Count edges between this vertex pair
+            uint32_t cur_edges_between_vertices = 0;
+            uint32_t k = j;
+            while (k < num_edges && edges_out[k].v1_id == v1_id && edges_out[k].v2_id == v2_id) {
+                cur_edges_between_vertices++;
+                k++;
+            }
+
+            // Get current min device utilization
+            double min_avg_gpu_utilization = 100.0;
+            int min_gpu_utilization_device_index = -1;
+            for (int i = 0; i < pdc_tf_profiler_nvml_device_count; i++) {
+                double util = pdc_tf_avg_gpu_utilization(i);
+                if (util < min_avg_gpu_utilization) {
+                    min_avg_gpu_utilization = util;
+                    min_gpu_utilization_device_index = i;
+                }
+            }
+            double avg_cpu_utilization = pdc_tf_avg_cpu_utilization();
+
+            // Find the edge with the shortest expected time
+            double best_expected_time = 1e9;
+            uint32_t best_edge_idx = j;  // default to first edge
+            for (uint32_t idx = j; idx < j + cur_edges_between_vertices; idx++) {
+                pdc_dg_edge_t e = edges_out[idx];
+                pdc_tf_func_t* f  = (pdc_tf_func_t *)(e.data);
+
+                // compute avg time
+                double last_avg_time = 0.0;
+                for(int i = 0; i < NUM_TF_FUNC_TIMES; i++) {
+                    last_avg_time += f->tf_func_times[i];
+                }
+                last_avg_time /= NUM_TF_FUNC_TIMES;
+
+                double expected_time = 0.0;
+                if (f->dev == PDC_TF_CPU_DEVICE) {
+                    expected_time = last_avg_time / fmax(0.01, 1.0 - avg_cpu_utilization);
+                }
+                else if (f->dev == PDC_TF_GPU_DEVICE) {
+                    expected_time = last_avg_time / fmax(0.01, 1.0 - min_avg_gpu_utilization);
+                }
+                else {
+                    PGOTO_ERROR(FAIL, "Unknown device type");
+                }
+
+                if (expected_time < best_expected_time) {
+                    best_expected_time = expected_time;
+                    best_edge_idx = idx;
+                }
+
+                // Log all useful information for debugging and analysis
+                LOG_DEBUG("Edge %u: func=%s, dev=%s, last_avg_time=%.4f, expected_time=%.4f\n", idx, f->name,
+                          f->dev == PDC_TF_CPU_DEVICE ? "CPU" : "GPU", last_avg_time, expected_time);
+            }
+
+            // Select the best edge for this vertex pair
+            pdc_dg_edge_t   e  = edges_out[best_edge_idx];
             pdc_tf_state_t *v1 = (pdc_tf_state_t *)(dg->vertices[e.v1_id]->data);
             pdc_tf_state_t *v2 = (pdc_tf_state_t *)(dg->vertices[e.v2_id]->data);
             pdc_tf_func_t * f  = (pdc_tf_func_t *)(e.data);
 
-            // Setup internal paramters for helper macros
+            // Setup internal parameters for helper macros
             pdc_tf_internal_param internal_params;
             internal_params.dg                     = dg;
             internal_params.flat_conceptual_offset = flat_conceptual_offset;
+
+            // If device is a GPU set it before running the transformation
+            if (f->dev == PDC_TF_GPU_DEVICE) {
+                cudaError_t err = cudaSetDevice(min_gpu_utilization_device_index);
+                if (err != cudaSuccess) {
+                    PGOTO_ERROR(FAIL, "Failed to set device %d", min_gpu_utilization_device_index);
+                }
+            }
 
             // Run the transformation
             LOG_DEBUG("--------------------------TRANSFORM_START--------------------------\n");
             void *prev_input = *input;
 
-            GRAPH_TIMER_START();
+            // Declare start start monotonic timestamp for this transformation
+            struct timespec start_time, end_time;
+            clock_gettime(CLOCK_MONOTONIC, &start_time);
+
             memcpy(&input_region, output_region, sizeof(pdc_tf_region_t));
             if (f->c_func(internal_params, f->params_str, input, input_region, output_region) == false)
                 PGOTO_ERROR(FAIL, "Error when running transformation, %s", f->name);
             else
                 LOG_DEBUG("Transformation %s(%s) = %s ran successfully\n", f->name, v1->name, v2->name);
-            GRAPH_TIMER_STOP(TOTAL_GRAPH_EXEC_TIME);
+
+            // Log the time taken for this transformation
+            clock_gettime(CLOCK_MONOTONIC, &end_time);
+            double transform_time = (end_time.tv_sec - start_time.tv_sec) +
+                                    (end_time.tv_nsec - start_time.tv_nsec) / 1e9;
+            LOG_DEBUG("Time taken for transformation %s: %.4f seconds\n", f->name, transform_time);
+            f->tf_func_times[f->tf_func_times_index] = transform_time;
+            f->tf_func_times_index = (f->tf_func_times_index + 1) % NUM_TF_FUNC_TIMES;
+
             /**
              * The transformation malloced a new buffer
              * The buffer associated with the original bulk handle (i.e. j != 0)
@@ -207,14 +282,18 @@ PDCtf_exec_graph(pdc_dg_t *dg, uint64_t flat_conceptual_offset, char *cur_state,
             LOG_DEBUG("--------------------------TRANSFORM_DONE--------------------------\n");
 
             // Set previous output region as input region for next transformation
-            if (j + 1 != num_edges)
+            if (j + cur_edges_between_vertices != num_edges)
                 memcpy(&input_region, output_region, sizeof(pdc_tf_region_t));
+
+            // Increment j by number of edges between this vertex pair
+            j += cur_edges_between_vertices;
         }
+
         LOG_DEBUG("Done running transformations\n");
     }
     else {
         LOG_ERROR("JSON filepath %s\n", (char *)dg->data);
-        LOG_ERROR("Curent state %s, desired state %s\n", cur_state, desired_state);
+        LOG_ERROR("Current state %s, desired state %s\n", cur_state, desired_state);
         PGOTO_ERROR(FAIL, "No path to desired state");
     }
 
@@ -224,4 +303,5 @@ done:
 
     FUNC_LEAVE(ret_value);
 }
+
 #endif // IS_PDC_SERVER
