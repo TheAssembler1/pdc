@@ -1,5 +1,5 @@
 #include <assert.h>
- #include <time.h>
+#include <time.h>
 #include <cuda_runtime.h>
 
 #include "pdc_tf_server.h"
@@ -176,34 +176,34 @@ PDCtf_exec_graph(pdc_dg_t *dg, uint64_t flat_conceptual_offset, char *cur_state,
 
             // Count edges between this vertex pair
             uint32_t cur_edges_between_vertices = 0;
-            uint32_t k = j;
+            uint32_t k                          = j;
             while (k < num_edges && edges_out[k].v1_id == v1_id && edges_out[k].v2_id == v2_id) {
                 cur_edges_between_vertices++;
                 k++;
             }
 
             // Get current min device utilization
-            double min_avg_gpu_utilization = 100.0;
-            int min_gpu_utilization_device_index = -1;
+            double min_avg_gpu_utilization          = 100.0;
+            int    min_gpu_utilization_device_index = -1;
             for (int i = 0; i < pdc_tf_profiler_nvml_device_count; i++) {
                 double util = pdc_tf_avg_gpu_utilization(i);
                 if (util < min_avg_gpu_utilization) {
-                    min_avg_gpu_utilization = util;
+                    min_avg_gpu_utilization          = util;
                     min_gpu_utilization_device_index = i;
                 }
             }
             double avg_cpu_utilization = pdc_tf_avg_cpu_utilization();
 
             // Find the edge with the shortest expected time
-            double best_expected_time = 1e9;
-            uint32_t best_edge_idx = j;  // default to first edge
+            double   best_expected_time = 1e9;
+            uint32_t best_edge_idx      = j; // default to first edge
             for (uint32_t idx = j; idx < j + cur_edges_between_vertices; idx++) {
-                pdc_dg_edge_t e = edges_out[idx];
-                pdc_tf_func_t* f  = (pdc_tf_func_t *)(e.data);
+                pdc_dg_edge_t  e = edges_out[idx];
+                pdc_tf_func_t *f = (pdc_tf_func_t *)(e.data);
 
                 // compute avg time
                 double last_avg_time = 0.0;
-                for(int i = 0; i < NUM_TF_FUNC_TIMES; i++) {
+                for (int i = 0; i < NUM_TF_FUNC_TIMES; i++) {
                     last_avg_time += f->tf_func_times[i];
                 }
                 last_avg_time /= NUM_TF_FUNC_TIMES;
@@ -221,7 +221,7 @@ PDCtf_exec_graph(pdc_dg_t *dg, uint64_t flat_conceptual_offset, char *cur_state,
 
                 if (expected_time < best_expected_time) {
                     best_expected_time = expected_time;
-                    best_edge_idx = idx;
+                    best_edge_idx      = idx;
                 }
 
                 // Log all useful information for debugging and analysis
@@ -264,11 +264,11 @@ PDCtf_exec_graph(pdc_dg_t *dg, uint64_t flat_conceptual_offset, char *cur_state,
 
             // Log the time taken for this transformation
             clock_gettime(CLOCK_MONOTONIC, &end_time);
-            double transform_time = (end_time.tv_sec - start_time.tv_sec) +
-                                    (end_time.tv_nsec - start_time.tv_nsec) / 1e9;
+            double transform_time =
+                (end_time.tv_sec - start_time.tv_sec) + (end_time.tv_nsec - start_time.tv_nsec) / 1e9;
             LOG_DEBUG("Time taken for transformation %s: %.4f seconds\n", f->name, transform_time);
             f->tf_func_times[f->tf_func_times_index] = transform_time;
-            f->tf_func_times_index = (f->tf_func_times_index + 1) % NUM_TF_FUNC_TIMES;
+            f->tf_func_times_index                   = (f->tf_func_times_index + 1) % NUM_TF_FUNC_TIMES;
 
             /**
              * The transformation malloced a new buffer

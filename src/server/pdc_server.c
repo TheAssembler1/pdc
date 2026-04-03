@@ -769,8 +769,8 @@ PDC_Server_set_close(void)
 #ifdef PDC_TIMING
         start = MPI_Wtime();
 #endif
-    if (pdc_disable_checkpoint_g == 0)
-        PDC_Server_checkpoint();
+        if (pdc_disable_checkpoint_g == 0)
+            PDC_Server_checkpoint();
 
 #ifdef PDC_TIMING
         pdc_server_timings->PDCserver_checkpoint += MPI_Wtime() - start;
@@ -1742,7 +1742,7 @@ perr_t
 PDC_Server_restart(char *filename)
 {
     FUNC_ENTER(NULL);
-    
+
     if (pdc_server_rank_g == 0)
         LOG_WARNING("Restart from checkpoint start\n");
 
@@ -2238,9 +2238,9 @@ PDC_Server_loop(hg_context_t *hg_context)
 {
     FUNC_ENTER(NULL);
 
-    perr_t       ret_value = SUCCEED;
-    hg_return_t  hg_ret;
-    unsigned int actual_count;
+    perr_t          ret_value = SUCCEED;
+    hg_return_t     hg_ret;
+    unsigned int    actual_count;
     struct timespec hg_progress_start, hg_progress_end;
     struct timespec total_time_start, total_time_end;
 #ifdef PDC_ENABLE_CHECKPOINT
@@ -2277,14 +2277,12 @@ PDC_Server_loop(hg_context_t *hg_context)
         hg_ret = HG_Progress(hg_context, 200);
         clock_gettime(CLOCK_MONOTONIC, &hg_progress_end);
         clock_gettime(CLOCK_MONOTONIC, &total_time_end);
-        
-        double elapsed_total_time_sec =
-        (total_time_end.tv_sec - total_time_start.tv_sec) +
-        (total_time_end.tv_nsec - total_time_start.tv_nsec) / 1e9;
+
+        double elapsed_total_time_sec = (total_time_end.tv_sec - total_time_start.tv_sec) +
+                                        (total_time_end.tv_nsec - total_time_start.tv_nsec) / 1e9;
         // NOTE: this must be called after HG_Progress
-        double elapsed_progress_time_sec =
-        (hg_progress_end.tv_sec - hg_progress_start.tv_sec) +
-        (hg_progress_end.tv_nsec - hg_progress_start.tv_nsec) / 1e9;
+        double elapsed_progress_time_sec = (hg_progress_end.tv_sec - hg_progress_start.tv_sec) +
+                                           (hg_progress_end.tv_nsec - hg_progress_start.tv_nsec) / 1e9;
         // NOTE: this must be called after HG_Progress
         if (pdc_tf_update_profiler(elapsed_total_time_sec, elapsed_progress_time_sec) != SUCCEED) {
             LOG_ERROR("Error updating profiler\n");
@@ -2636,12 +2634,12 @@ server_run(int argc, char *argv[])
     PDC_server_timing_init();
 #endif
 #endif
-    if (argc > 1 && strcmp(argv[1], "restart") == 0) {   
-        if(pdc_server_rank_g == 0)
+    if (argc > 1 && strcmp(argv[1], "restart") == 0) {
+        if (pdc_server_rank_g == 0)
             LOG_INFO("Starting server with pre-existing data\n");
         is_restart_g = 1;
     }
-    else if(pdc_server_rank_g == 0) {
+    else if (pdc_server_rank_g == 0) {
         LOG_INFO("Starting server with no previous data\n");
     }
 

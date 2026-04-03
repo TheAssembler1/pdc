@@ -8,7 +8,7 @@
 #include "pdc_timing.h"
 #include "pdc_malloc.h"
 
-#define MAX_VECTOR_SIZE 10  // Rolling buffer size
+#define MAX_VECTOR_SIZE 10 // Rolling buffer size
 
 // Flag to indicate if profiler has been initialized
 extern int pdc_tf_profiler_init;
@@ -21,26 +21,26 @@ extern unsigned int pdc_tf_profiler_nvml_device_count;
 
 // Struct to keep track of NVML (GPU) samples
 typedef struct {
-    double gpu_utilization;    // GPU utilization percentage
-    int memory_utilization; // Memory utilization percentage
-    unsigned long memory_total;  // Total memory in bytes
-    unsigned long memory_used;   // Used memory in bytes
-    unsigned long memory_free;   // Free memory in bytes
+    double        gpu_utilization;    // GPU utilization percentage
+    int           memory_utilization; // Memory utilization percentage
+    unsigned long memory_total;       // Total memory in bytes
+    unsigned long memory_used;        // Used memory in bytes
+    unsigned long memory_free;        // Free memory in bytes
 } pdc_tf_profiler_nvml_sample_t;
 
 // Struct to keep track of CPU samples
-typedef struct { 
+typedef struct {
     double cpu_utilization; // CPU utilization percentage
 } pdc_tf_profiler_cpu_sample_t;
 
 // Struct to keep track of all profiler samples (rolling buffers)
 typedef struct {
     // Rolling buffers
-    pdc_tf_profiler_nvml_sample_t* nvml_samples[MAX_VECTOR_SIZE]; // Each element is an array for all devices
-    int nvml_head;  // Next index to write
+    pdc_tf_profiler_nvml_sample_t *nvml_samples[MAX_VECTOR_SIZE]; // Each element is an array for all devices
+    int                            nvml_head;                     // Next index to write
 
-    pdc_tf_profiler_cpu_sample_t* cpu_samples[MAX_VECTOR_SIZE];   // CPU samples
-    int cpu_head;   // Next index to write
+    pdc_tf_profiler_cpu_sample_t *cpu_samples[MAX_VECTOR_SIZE]; // CPU samples
+    int                           cpu_head;                     // Next index to write
 
     unsigned int nvml_device_count; // Number of devices detected
 } pdc_tf_profiler_samples_t;

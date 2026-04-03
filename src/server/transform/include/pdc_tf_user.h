@@ -63,7 +63,7 @@ typedef struct pdc_tf_func_t {
     char *            params_str;
     c_func_t          c_func;
     // avg last 5 times
-    int     tf_func_times_index;
+    int    tf_func_times_index;
     double tf_func_times[NUM_TF_FUNC_TIMES];
 } pdc_tf_func_t;
 

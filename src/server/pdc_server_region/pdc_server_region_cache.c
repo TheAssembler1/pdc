@@ -63,7 +63,7 @@ PDC_region_server_cache_init()
     pdc_recycle_close_flag = 0;
     pthread_mutex_init(&pdc_obj_cache_list_mutex, NULL);
     pthread_mutex_init(&pdc_cache_mutex, NULL);
-    total_cache_size = 0;
+    total_cache_size                = 0;
     total_transformation_cache_size = 0;
 
     p = getenv("PDC_SERVER_CACHE_MAX_SIZE");
@@ -844,8 +844,8 @@ PDC_region_cache_flush_by_pointer(uint64_t obj_id, pdc_obj_cache *obj_cache, int
 
 // FIXME: Need to get this from the JSON file and load into graphs per region
 #define DEFER_REGION_TRANSFORMATION 1
-#define GPU_UTILIZATION_THRESHOLD 5.0
-#define CPU_UTILIZATION_THRESHOLD 30.0
+#define GPU_UTILIZATION_THRESHOLD   5.0
+#define CPU_UTILIZATION_THRESHOLD   30.0
 
     // Iterate through all cache regions and use POSIX I/O to write them back to file system.
     region_cache_iter = obj_cache->region_cache;
@@ -859,19 +859,20 @@ PDC_region_cache_flush_by_pointer(uint64_t obj_id, pdc_obj_cache *obj_cache, int
             write_size *= region_cache_info->size[2];
 
         pdc_tf_region_mapping_t *region_mapping = NULL;
-        pdc_dg_t* dg = NULL;
-        struct pdc_tf_obj_t* tf_obj = PDCtf_get_region_mapping(obj_id, &dg);
+        pdc_dg_t *               dg             = NULL;
+        struct pdc_tf_obj_t *    tf_obj         = PDCtf_get_region_mapping(obj_id, &dg);
         if (!PDCtf_region_has_attached_graph(tf_obj, obj_cache->ndim, unit, region_cache_info->offset,
-                                            region_cache_info->size, &region_mapping)) {
+                                             region_cache_info->size, &region_mapping)) {
             LOG_DEBUG("No region mapping found for obj_id %" PRIu64 "\n", obj_id);
             PDC_Server_transfer_request_io(obj_id, obj_cache->ndim, obj_cache->dims, region_cache_info,
-                                       region_cache_info->buf, region_cache_info->unit, 1);
-        } else {
+                                           region_cache_info->buf, region_cache_info->unit, 1);
+        }
+        else {
             LOG_DEBUG("Found region mapping for obj_id %" PRIu64 "\n", obj_id);
 
-            double min_avg_gpu_utilization = 100.0;
-            int min_gpu_utilization_device_index = -1;
-            for(int m = 0; m < pdc_tf_profiler_nvml_device_count; m++) {
+            double min_avg_gpu_utilization          = 100.0;
+            int    min_gpu_utilization_device_index = -1;
+            for (int m = 0; m < pdc_tf_profiler_nvml_device_count; m++) {
                 if (min_avg_gpu_utilization < GPU_UTILIZATION_THRESHOLD) {
                     min_gpu_utilization_device_index = m;
                 }
@@ -881,19 +882,20 @@ PDC_region_cache_flush_by_pointer(uint64_t obj_id, pdc_obj_cache *obj_cache, int
 
             /**
              * If DEFER_REGION_TRANSFORMATION is enabled, we will defer region transformation.
-             * If there is room in the transformation cache but all devices (GPU/CPU) utilizations are high, we will also defer region transformation. 
-             * Otherwise we will perform region transformation and flush the data to storage.
+             * If there is room in the transformation cache but all devices (GPU/CPU) utilizations are high,
+             * we will also defer region transformation. Otherwise we will perform region transformation and
+             * flush the data to storage.
              */
-            if (DEFER_REGION_TRANSFORMATION || 
-                (total_transformation_cache_size < maximum_transformation_cache_size 
-                    && min_avg_gpu_utilization > GPU_UTILIZATION_THRESHOLD && 
-                       avg_cpu_utilization > CPU_UTILIZATION_THRESHOLD)) {
+            if (DEFER_REGION_TRANSFORMATION ||
+                (total_transformation_cache_size < maximum_transformation_cache_size &&
+                 min_avg_gpu_utilization > GPU_UTILIZATION_THRESHOLD &&
+                 avg_cpu_utilization > CPU_UTILIZATION_THRESHOLD)) {
                 continue;
             }
 
             // Flush to storage where exec_graph will handle executing graph
             PDC_Server_transfer_request_io(obj_id, obj_cache->ndim, obj_cache->dims, region_cache_info,
-                                                region_cache_info->buf, region_cache_info->unit, 1);
+                                           region_cache_info->buf, region_cache_info->unit, 1);
         }
 
         if (write_size > 0) {
@@ -1024,7 +1026,8 @@ PDC_region_cache_clock_cycle(void *ptr)
                     obj_cache_iter = obj_cache_iter->next;
                     pthread_mutex_unlock(&pdc_obj_cache_list_mutex);
 
-                    // Gives the additional CPU time to other threads to avoid busy loop if there are many cache regions.
+                    // Gives the additional CPU time to other threads to avoid busy loop if there are many
+                    // cache regions.
                     usleep(300000);
                     break;
                 }
@@ -1032,7 +1035,7 @@ PDC_region_cache_clock_cycle(void *ptr)
                 // Gives the CPU time to other threads to avoid busy loop if there are many cache regions.
                 usleep(300000);
             } // End while obj_cache_iter
-        } // End if pdc_recycle_close_flag
+        }     // End if pdc_recycle_close_flag
         else {
             pthread_mutex_unlock(&pdc_cache_mutex);
             break;
@@ -1091,7 +1094,8 @@ PDC_region_fetch(uint64_t obj_id, int obj_ndim, const uint64_t *obj_dims, struct
             obj_cache = obj_cache_iter;
             LOG_INFO("Object %lu found in cache\n", obj_id);
             break; // can break since we found it
-        } else {
+        }
+        else {
             LOG_INFO("Checking against Object %lu\n", obj_cache_iter->obj_id);
         }
         obj_cache_iter = obj_cache_iter->next;
@@ -1138,7 +1142,7 @@ PDC_region_fetch(uint64_t obj_id, int obj_ndim, const uint64_t *obj_dims, struct
         }
         LOG_INFO("Fetching region from server for obj_id=%lu\n", obj_id);
         PDC_Server_transfer_request_io(obj_id, obj_ndim, obj_dims, region_info, buf, unit, 0);
-    } 
+    }
     FUNC_LEAVE(0);
 }
 #endif

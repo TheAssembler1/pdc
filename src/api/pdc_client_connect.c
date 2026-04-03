@@ -1342,8 +1342,8 @@ PDC_Client_mercury_init(hg_class_t **hg_class, hg_context_t **hg_context, int po
     unsigned int           scoped_svc_id    = 0;
     unsigned int           scoped_vni       = 0;
     char                   scoped_device[32];
-    char* hostname = NULL;
-    bool free_hostname = false;
+    char *                 hostname      = NULL;
+    bool                   free_hostname = false;
 #ifdef PDC_HAS_CRAY_DRC
     uint32_t          credential, cookie;
     drc_info_handle_t credential_info;

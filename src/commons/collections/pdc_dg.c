@@ -333,7 +333,7 @@ PDCdg_shortest_path(pdc_dg_t *dg, void *v1_data, void *v2_data, pdc_dg_edge_t **
     }
 
     // Step 2: Allocate edges_out
-    *edges_out  = (pdc_dg_edge_t *)malloc(total_edges * sizeof(pdc_dg_edge_t));
+    *edges_out = (pdc_dg_edge_t *)malloc(total_edges * sizeof(pdc_dg_edge_t));
     if (!*edges_out) {
         printf("Failed to allocate edges_out\n");
         goto done;

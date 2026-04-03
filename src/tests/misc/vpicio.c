@@ -101,8 +101,8 @@ main(int argc, char **argv)
     void *data_ptrs[] = {&dx[0], &dy[0], &dz[0], &ux[0], &uy[0], &uz[0], &q[0], &id[0]};
 
     // create a pdc
-    pdc_id = PDCinit("pdc"); 
-    if(pdc_id == 0) {
+    pdc_id = PDCinit("pdc");
+    if (pdc_id == 0) {
         LOG_ERROR("Failed to initialize PDC\n");
         return FAIL;
     }
@@ -180,31 +180,31 @@ main(int argc, char **argv)
                 return FAIL;
             }
             if (!strcmp(transformation_str, "turbo") && obj_prop == obj_prop_int) {
-                if(rank == 0)
+                if (rank == 0)
                     LOG_WARNING("Attaching turbo to index: %d\n", obj_ids[i]);
                 pdcid_t dg_id = PDCtf_dg_json_create(TF_GRAPHS_DIR "turbo.json");
                 PDCtf_attach_to_obj(dg_id, obj_ids[i], "decompressed", "compressed");
             }
             else if (!strcmp(transformation_str, "zfp") && obj_prop == obj_prop_float) {
-                if(rank == 0)
+                if (rank == 0)
                     LOG_WARNING("Attaching zfp to index: %d\n", obj_ids[i]);
                 pdcid_t dg_id = PDCtf_dg_json_create(TF_GRAPHS_DIR "zfp.json");
                 PDCtf_attach_to_obj(dg_id, obj_ids[i], "decompressed", "compressed");
             }
             else if (!strcmp(transformation_str, "zfp_gpu") && obj_prop == obj_prop_float) {
-                if(rank == 0)
+                if (rank == 0)
                     LOG_WARNING("Attaching zfp gpu to index: %d\n", obj_ids[i]);
                 pdcid_t dg_id = PDCtf_dg_json_create(TF_GRAPHS_DIR "zfp_gpu.json");
                 PDCtf_attach_to_obj(dg_id, obj_ids[i], "decompressed", "compressed");
             }
             else if (!strcmp(transformation_str, "sz") && obj_prop == obj_prop_float) {
-                if(rank == 0)
+                if (rank == 0)
                     LOG_WARNING("Attaching sz to index: %d\n", obj_ids[i]);
                 pdcid_t dg_id = PDCtf_dg_json_create(TF_GRAPHS_DIR "sz.json");
                 PDCtf_attach_to_obj(dg_id, obj_ids[i], "decompressed", "compressed");
             }
             else if (!strcmp(transformation_str, "zfp_libsod") && obj_prop == obj_prop_float) {
-                if(rank == 0)
+                if (rank == 0)
                     LOG_WARNING("Attaching zfp_libsod to index: %d\n", obj_ids[i]);
                 pdcid_t dg_id = PDCtf_dg_json_create(TF_GRAPHS_DIR "zfp_libsod.json");
                 PDCtf_attach_to_obj(dg_id, obj_ids[i], "decompressed", "encrypted");
@@ -212,7 +212,7 @@ main(int argc, char **argv)
                     PDCtf_print_dg(dg_id, true);
             }
             else if (!strcmp(transformation_str, "custom") && obj_prop == obj_prop_float) {
-                if(rank == 0)
+                if (rank == 0)
                     LOG_WARNING("Attaching custom to index: %d\n", obj_ids[i]);
                 pdcid_t dg_id = PDCtf_dg_json_create(TF_GRAPHS_DIR "custom.json");
                 PDCtf_attach_to_obj(dg_id, obj_ids[i], "client", "server");

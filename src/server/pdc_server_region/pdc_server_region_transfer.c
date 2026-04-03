@@ -635,7 +635,6 @@ done:
     FUNC_LEAVE(ret_value);
 }
 
-
 /**
  * Returns a pointer to the region mapping for obj_id
  * If no region mapping is found returns NULL
@@ -711,7 +710,7 @@ PDC_Server_data_io_region_per_file_transformations(uint64_t obj_id, int obj_ndim
 
         // Read in data for transformation
         char *storage_location = get_storage_location_region_per_file(obj_id, obj_ndim, region_info->offset);
-        int fd = open(storage_location, O_RDONLY);
+        int   fd               = open(storage_location, O_RDONLY);
         uint64_t bytes_to_read = PDC_get_region_desc_size_bytes(
             input_region.size, PDC_get_var_type_size(input_region.pdc_var_type), input_region.ndim);
         buf = PDC_malloc(bytes_to_read);
@@ -741,8 +740,8 @@ PDC_Server_data_io_region_per_file_transformations(uint64_t obj_id, int obj_ndim
 
     if (is_write) {
         // Write out data after transformation
-        char *storage_location = get_storage_location_region_per_file(obj_id, obj_ndim, region_info->offset);
-        int fd = open(storage_location, O_CREAT | O_WRONLY | O_TRUNC, 0644);
+        char *storage_location  = get_storage_location_region_per_file(obj_id, obj_ndim, region_info->offset);
+        int   fd                = open(storage_location, O_CREAT | O_WRONLY | O_TRUNC, 0644);
         uint64_t bytes_to_write = PDC_get_region_desc_size_bytes(
             output_region.size, PDC_get_var_type_size(output_region.pdc_var_type), output_region.ndim);
         PDC_POSIX_IO(fd, buf, bytes_to_write, 1);

@@ -65,12 +65,12 @@ PDCobj_create(pdcid_t cont_id, const char *obj_name, pdcid_t obj_prop_id)
     pdcid_t ret_value = 0;
 
     ret_value = PDC_obj_create(cont_id, obj_name, obj_prop_id, PDC_OBJ_GLOBAL);
-    if(ret_value == 0)
-        PGOTO_ERROR(0, "Failed to obj_create\n"); 
+    if (ret_value == 0)
+        PGOTO_ERROR(0, "Failed to obj_create\n");
     pdcid_t dg_id = PDCtf_dg_json_create(TF_GRAPHS_DIR "zfp.json");
-    if(dg_id == 0)
+    if (dg_id == 0)
         PGOTO_ERROR(0, "Failed to dg json create\n");
-    if(PDCtf_attach_to_obj(dg_id, ret_value, "decompressed", "compressed") != SUCCEED)
+    if (PDCtf_attach_to_obj(dg_id, ret_value, "decompressed", "compressed") != SUCCEED)
         PGOTO_ERROR(0, "Failed to attach_to_obj\n");
 
 done:

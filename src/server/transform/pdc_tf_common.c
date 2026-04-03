@@ -190,25 +190,24 @@ PDCtf_region_has_attached_graph(struct pdc_tf_obj_t *tf_obj, int ndim, size_t un
         bool offset_matches = true;
         bool size_matches   = true;
 
-	// print high-level debug info first
-	LOG_DEBUG("Checking region:\n"
-		  "  ndim: expected=%d, actual=%d (matches=%d)\n"
-		  "  unit: expected=%zu, actual=%zu (matches=%d)\n",
-		  conceptual_region->ndim, ndim, ndim_matches,
-		  PDC_get_var_type_size(conceptual_region->pdc_var_type), unit, unit_matches);
+        // print high-level debug info first
+        LOG_DEBUG("Checking region:\n"
+                  "  ndim: expected=%d, actual=%d (matches=%d)\n"
+                  "  unit: expected=%zu, actual=%zu (matches=%d)\n",
+                  conceptual_region->ndim, ndim, ndim_matches,
+                  PDC_get_var_type_size(conceptual_region->pdc_var_type), unit, unit_matches);
 
-	// print per-dimension details
-	for (int i = 0; i < ndim; i++) {
-	    bool offset_i_match = (conceptual_offset[i] == offset[i]);
-	    bool size_i_match   = (conceptual_region->size[i] == size[i]);
-	    LOG_DEBUG("  dim[%d]: offset expected=%lu, actual=%lu (match=%d) | "
-		      "size expected=%lu, actual=%lu (match=%d)\n",
-		      i,
-		      conceptual_offset[i], offset[i], offset_i_match,
-		      conceptual_region->size[i], size[i], size_i_match);
+        // print per-dimension details
+        for (int i = 0; i < ndim; i++) {
+            bool offset_i_match = (conceptual_offset[i] == offset[i]);
+            bool size_i_match   = (conceptual_region->size[i] == size[i]);
+            LOG_DEBUG("  dim[%d]: offset expected=%lu, actual=%lu (match=%d) | "
+                      "size expected=%lu, actual=%lu (match=%d)\n",
+                      i, conceptual_offset[i], offset[i], offset_i_match, conceptual_region->size[i], size[i],
+                      size_i_match);
             offset_matches &= offset_i_match;
             size_matches &= size_i_match;
-	}
+        }
 
         if (ndim_matches && offset_matches && size_matches && unit_matches) {
             LOG_DEBUG("Found matching region!\n");

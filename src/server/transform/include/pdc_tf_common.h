@@ -78,7 +78,6 @@ typedef struct pdc_tf_builtin_func_t {
 // this is our global array of builtin functions
 extern PDC_VECTOR *pdc_tf_builtin_funcs_vector_g;
 
-
 perr_t    PDCtf_set_tf_region_t(pdc_tf_region_t *dest, uint8_t ndim, pdc_var_type_t pdc_var_type,
                                 uint64_t *size);
 perr_t    PDCtf_copy_tf_region_t(pdc_tf_region_t *src, pdc_tf_region_t *dest);
