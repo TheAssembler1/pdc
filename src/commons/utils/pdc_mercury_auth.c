@@ -64,13 +64,13 @@ PDC_discover_perlmutter_cxi_auth(unsigned int *svc_id, unsigned int *vni)
     pbool_t      member_match   = FALSE;
 
     if (svc_id == NULL || vni == NULL)
-        PGOTO_ERROR(FAIL, "Invalid output pointers for CXI auth discovery");
+        PGOTO_ERROR(FAIL, "Invalid output pointers for CXI auth discovery\n");
 
     snprintf(uid_pattern, sizeof(uid_pattern), "uid=%u", (unsigned int)geteuid());
 
     fp = popen("cxi_service -v list 2>/dev/null", "r");
     if (fp == NULL)
-        PGOTO_ERROR(FAIL, "Could not execute cxi_service");
+        PGOTO_ERROR(FAIL, "Could not execute cxi_service\n");
 
     while (fgets(line, sizeof(line), fp) != NULL) {
         unsigned int parsed_value = 0;
@@ -131,7 +131,7 @@ PDC_scope_perlmutter_cxi_auth_env(const char *           hg_transport,
     char         vni_buf[32];
 
     if (env_count == NULL)
-        PGOTO_ERROR(FAIL, "Invalid env count pointer for CXI auth scoping");
+        PGOTO_ERROR(FAIL, "Invalid env count pointer for CXI auth scoping\n");
 
     *env_count = 0;
 
@@ -149,7 +149,7 @@ PDC_scope_perlmutter_cxi_auth_env(const char *           hg_transport,
         nic_name = "cxi0";
 
     if (PDC_discover_perlmutter_cxi_auth(&local_svc_id, &local_vni) != SUCCEED)
-        PGOTO_ERROR(FAIL, "Unable to discover Perlmutter CXI service/VNI");
+        PGOTO_ERROR(FAIL, "Unable to discover Perlmutter CXI service/VNI\n");
 
     snprintf(svc_buf, sizeof(svc_buf), "%u", local_svc_id);
     snprintf(vni_buf, sizeof(vni_buf), "%u", local_vni);
