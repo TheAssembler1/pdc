@@ -22,12 +22,22 @@ pdc_tf_builtin_sz_compress(pdc_tf_internal_param internal_param, char *params_st
 
     int sz_type;
     switch (input_region.pdc_var_type) {
-        case PDC_FLOAT:  sz_type = SZ_FLOAT;  break;
-        case PDC_DOUBLE: sz_type = SZ_DOUBLE; break;
+        case PDC_FLOAT:
+            sz_type = SZ_FLOAT;
+            break;
+        case PDC_DOUBLE:
+            sz_type = SZ_DOUBLE;
+            break;
         case PDC_INT:
-        case PDC_INT32:  sz_type = SZ_FLOAT;  break;
-        case PDC_INT64:  sz_type = SZ_DOUBLE; break;
-        default: LOG_ERROR("Unsupported element type for SZ3: %d\n", input_region.pdc_var_type); return false;
+        case PDC_INT32:
+            sz_type = SZ_FLOAT;
+            break;
+        case PDC_INT64:
+            sz_type = SZ_DOUBLE;
+            break;
+        default:
+            LOG_ERROR("Unsupported element type for SZ3: %d\n", input_region.pdc_var_type);
+            return false;
     }
 
     int    err_bound_mode = ABS;
@@ -42,9 +52,13 @@ pdc_tf_builtin_sz_compress(pdc_tf_internal_param internal_param, char *params_st
     size_t r5 = (input_region.ndim > 4) ? input_region.size[4] : 1;
 
     size_t         compressed_size = 0;
-    unsigned char *compressed = SZ_compress_args(sz_type, *region_data, &compressed_size, err_bound_mode,
-                                                  absErrBound, relBoundRatio, pwrBoundRatio, r5, r4, r3, r2, r1);
-    if (!compressed) { LOG_ERROR("SZ3 compression failed\n"); return false; }
+    unsigned char *compressed =
+        SZ_compress_args(sz_type, *region_data, &compressed_size, err_bound_mode, absErrBound, relBoundRatio,
+                         pwrBoundRatio, r5, r4, r3, r2, r1);
+    if (!compressed) {
+        LOG_ERROR("SZ3 compression failed\n");
+        return false;
+    }
 
     *region_data                = compressed;
     output_region->ndim         = 1;
@@ -73,11 +87,19 @@ pdc_tf_builtin_sz_decompress(pdc_tf_internal_param internal_param, char *params_
 
     int sz_type;
     switch (in_params->decompressed_region.pdc_var_type) {
-        case PDC_FLOAT:  sz_type = SZ_FLOAT;  break;
-        case PDC_DOUBLE: sz_type = SZ_DOUBLE; break;
+        case PDC_FLOAT:
+            sz_type = SZ_FLOAT;
+            break;
+        case PDC_DOUBLE:
+            sz_type = SZ_DOUBLE;
+            break;
         case PDC_INT:
-        case PDC_INT32:  sz_type = SZ_FLOAT;  break;
-        case PDC_INT64:  sz_type = SZ_DOUBLE; break;
+        case PDC_INT32:
+            sz_type = SZ_FLOAT;
+            break;
+        case PDC_INT64:
+            sz_type = SZ_DOUBLE;
+            break;
         default:
             LOG_ERROR("Unsupported element type for SZ3: %d\n", in_params->decompressed_region.pdc_var_type);
             return false;
@@ -90,7 +112,10 @@ pdc_tf_builtin_sz_decompress(pdc_tf_internal_param internal_param, char *params_
     size_t r5 = (in_params->decompressed_region.ndim > 4) ? in_params->decompressed_region.size[4] : 1;
 
     void *decompressed = SZ_decompress(sz_type, *region_data, input_region.size[0], r5, r4, r3, r2, r1);
-    if (!decompressed) { LOG_ERROR("SZ3 decompression failed\n"); return false; }
+    if (!decompressed) {
+        LOG_ERROR("SZ3 decompression failed\n");
+        return false;
+    }
 
     *region_data = decompressed;
     PDCtf_copy_tf_region_t(&in_params->decompressed_region, output_region);

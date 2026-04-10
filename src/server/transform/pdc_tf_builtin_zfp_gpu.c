@@ -19,14 +19,14 @@ typedef struct zfp_compress_params_t {
 
 #define FIXED_CR_RATIO 1
 
-#define CUDA_CHECK(call)                                                                    \
-    do {                                                                                    \
-        cudaError_t err = call;                                                             \
-        if (err != cudaSuccess) {                                                           \
-            fprintf(stderr, "[CUDA ERROR] %s:%d: %s (code %d)\n", __FILE__, __LINE__,      \
-                    cudaGetErrorString(err), err);                                          \
-            exit(EXIT_FAILURE);                                                             \
-        }                                                                                   \
+#define CUDA_CHECK(call)                                                                                     \
+    do {                                                                                                     \
+        cudaError_t err = call;                                                                              \
+        if (err != cudaSuccess) {                                                                            \
+            fprintf(stderr, "[CUDA ERROR] %s:%d: %s (code %d)\n", __FILE__, __LINE__,                        \
+                    cudaGetErrorString(err), err);                                                           \
+            exit(EXIT_FAILURE);                                                                              \
+        }                                                                                                    \
     } while (0)
 
 static bool
@@ -39,15 +39,25 @@ pdc_tf_builtin_zfp_compress_cuda_helper(pdc_tf_internal_param internal_param, ch
 
     zfp_type z_type;
     switch (input_region.pdc_var_type) {
-        case PDC_FLOAT:  z_type = zfp_type_float;  break;
-        case PDC_DOUBLE: z_type = zfp_type_double; break;
+        case PDC_FLOAT:
+            z_type = zfp_type_float;
+            break;
+        case PDC_DOUBLE:
+            z_type = zfp_type_double;
+            break;
         case PDC_INT:
-        case PDC_INT32:  z_type = zfp_type_int32;  break;
-        case PDC_INT64:  z_type = zfp_type_int64;  break;
-        default: LOG_ERROR("Invalid element type\n"); return false;
+        case PDC_INT32:
+            z_type = zfp_type_int32;
+            break;
+        case PDC_INT64:
+            z_type = zfp_type_int64;
+            break;
+        default:
+            LOG_ERROR("Invalid element type\n");
+            return false;
     }
     size_t bits_per_value = (8 * PDC_get_var_type_size(input_region.pdc_var_type)) / FIXED_CR_RATIO;
-    size_t num_bytes = PDCtf_get_pdc_region_t_bytes(input_region);
+    size_t num_bytes      = PDCtf_get_pdc_region_t_bytes(input_region);
 
     void *dev_in  = NULL;
     void *dev_out = NULL;
@@ -56,10 +66,20 @@ pdc_tf_builtin_zfp_compress_cuda_helper(pdc_tf_internal_param internal_param, ch
 
     zfp_field *field = NULL;
     switch (input_region.ndim) {
-        case 1: field = zfp_field_1d(dev_in, z_type, input_region.size[0]); break;
-        case 2: field = zfp_field_2d(dev_in, z_type, input_region.size[0], input_region.size[1]); break;
-        case 3: field = zfp_field_3d(dev_in, z_type, input_region.size[0], input_region.size[1], input_region.size[2]); break;
-        case 4: field = zfp_field_4d(dev_in, z_type, input_region.size[0], input_region.size[1], input_region.size[2], input_region.size[3]); break;
+        case 1:
+            field = zfp_field_1d(dev_in, z_type, input_region.size[0]);
+            break;
+        case 2:
+            field = zfp_field_2d(dev_in, z_type, input_region.size[0], input_region.size[1]);
+            break;
+        case 3:
+            field = zfp_field_3d(dev_in, z_type, input_region.size[0], input_region.size[1],
+                                 input_region.size[2]);
+            break;
+        case 4:
+            field = zfp_field_4d(dev_in, z_type, input_region.size[0], input_region.size[1],
+                                 input_region.size[2], input_region.size[3]);
+            break;
         default:
             LOG_ERROR("Unsupported ndim: %d\n", input_region.ndim);
             cudaFree(dev_in);
@@ -116,19 +136,37 @@ pdc_tf_builtin_zfp_decompress_cuda_helper(pdc_tf_internal_param internal_param, 
     GET_FUNC_PARAMS("zfp_compress", PDC_TF_GPU_DEVICE, (void **)&in_params, &in_params_size);
     if (!in_params)
         GET_FUNC_PARAMS("zfp_compress", PDC_TF_CPU_DEVICE, (void **)&in_params, &in_params_size);
-    if (!in_params) { LOG_ERROR("Failed to get ZFP compression parameters.\n"); return false; }
+    if (!in_params) {
+        LOG_ERROR("Failed to get ZFP compression parameters.\n");
+        return false;
+    }
 
     zfp_type z_type;
     size_t   type_size = 0;
     switch (in_params->decompressed_region.pdc_var_type) {
-        case PDC_FLOAT:  z_type = zfp_type_float;  type_size = sizeof(float);   break;
-        case PDC_DOUBLE: z_type = zfp_type_double; type_size = sizeof(double);  break;
+        case PDC_FLOAT:
+            z_type    = zfp_type_float;
+            type_size = sizeof(float);
+            break;
+        case PDC_DOUBLE:
+            z_type    = zfp_type_double;
+            type_size = sizeof(double);
+            break;
         case PDC_INT:
-        case PDC_INT32:  z_type = zfp_type_int32;  type_size = sizeof(int32_t); break;
-        case PDC_INT64:  z_type = zfp_type_int64;  type_size = sizeof(int64_t); break;
-        default: LOG_ERROR("Unsupported element type %d\n", in_params->decompressed_region.pdc_var_type); return false;
+        case PDC_INT32:
+            z_type    = zfp_type_int32;
+            type_size = sizeof(int32_t);
+            break;
+        case PDC_INT64:
+            z_type    = zfp_type_int64;
+            type_size = sizeof(int64_t);
+            break;
+        default:
+            LOG_ERROR("Unsupported element type %d\n", in_params->decompressed_region.pdc_var_type);
+            return false;
     }
-    size_t bits_per_value = (8 * PDC_get_var_type_size(in_params->decompressed_region.pdc_var_type)) / FIXED_CR_RATIO;
+    size_t bits_per_value =
+        (8 * PDC_get_var_type_size(in_params->decompressed_region.pdc_var_type)) / FIXED_CR_RATIO;
 
     size_t total_elements = 1;
     for (int i = 0; i < in_params->decompressed_region.ndim; i++)
@@ -144,10 +182,24 @@ pdc_tf_builtin_zfp_decompress_cuda_helper(pdc_tf_internal_param internal_param, 
 
     zfp_field *field = NULL;
     switch (in_params->decompressed_region.ndim) {
-        case 1: field = zfp_field_1d(dev_uncompressed, z_type, in_params->decompressed_region.size[0]); break;
-        case 2: field = zfp_field_2d(dev_uncompressed, z_type, in_params->decompressed_region.size[0], in_params->decompressed_region.size[1]); break;
-        case 3: field = zfp_field_3d(dev_uncompressed, z_type, in_params->decompressed_region.size[0], in_params->decompressed_region.size[1], in_params->decompressed_region.size[2]); break;
-        case 4: field = zfp_field_4d(dev_uncompressed, z_type, in_params->decompressed_region.size[0], in_params->decompressed_region.size[1], in_params->decompressed_region.size[2], in_params->decompressed_region.size[3]); break;
+        case 1:
+            field = zfp_field_1d(dev_uncompressed, z_type, in_params->decompressed_region.size[0]);
+            break;
+        case 2:
+            field = zfp_field_2d(dev_uncompressed, z_type, in_params->decompressed_region.size[0],
+                                 in_params->decompressed_region.size[1]);
+            break;
+        case 3:
+            field =
+                zfp_field_3d(dev_uncompressed, z_type, in_params->decompressed_region.size[0],
+                             in_params->decompressed_region.size[1], in_params->decompressed_region.size[2]);
+            break;
+        case 4:
+            field =
+                zfp_field_4d(dev_uncompressed, z_type, in_params->decompressed_region.size[0],
+                             in_params->decompressed_region.size[1], in_params->decompressed_region.size[2],
+                             in_params->decompressed_region.size[3]);
+            break;
         default:
             LOG_ERROR("Unsupported ndim: %d\n", in_params->decompressed_region.ndim);
             CUDA_CHECK(cudaFree(dev_compressed));
@@ -158,15 +210,19 @@ pdc_tf_builtin_zfp_decompress_cuda_helper(pdc_tf_internal_param internal_param, 
     zfp_stream *zfp = zfp_stream_open(NULL);
     if (!zfp) {
         LOG_ERROR("Failed to open zfp stream\n");
-        CUDA_CHECK(cudaFree(dev_compressed)); CUDA_CHECK(cudaFree(dev_uncompressed));
-        zfp_field_free(field); return false;
+        CUDA_CHECK(cudaFree(dev_compressed));
+        CUDA_CHECK(cudaFree(dev_uncompressed));
+        zfp_field_free(field);
+        return false;
     }
 
     bitstream *stream = stream_open(dev_compressed, compressed_size);
     if (!stream) {
         LOG_ERROR("Failed to open bitstream\n");
-        zfp_stream_close(zfp); zfp_field_free(field);
-        CUDA_CHECK(cudaFree(dev_compressed)); CUDA_CHECK(cudaFree(dev_uncompressed));
+        zfp_stream_close(zfp);
+        zfp_field_free(field);
+        CUDA_CHECK(cudaFree(dev_compressed));
+        CUDA_CHECK(cudaFree(dev_uncompressed));
         return false;
     }
 
@@ -179,16 +235,22 @@ pdc_tf_builtin_zfp_decompress_cuda_helper(pdc_tf_internal_param internal_param, 
     CUDA_CHECK(cudaDeviceSynchronize());
     if (decompressed_size == 0) {
         LOG_ERROR("ZFP decompression failed\n");
-        stream_close(stream); zfp_stream_close(zfp); zfp_field_free(field);
-        CUDA_CHECK(cudaFree(dev_compressed)); CUDA_CHECK(cudaFree(dev_uncompressed));
+        stream_close(stream);
+        zfp_stream_close(zfp);
+        zfp_field_free(field);
+        CUDA_CHECK(cudaFree(dev_compressed));
+        CUDA_CHECK(cudaFree(dev_uncompressed));
         return false;
     }
 
     void *host_buf = malloc(uncompressed_size);
     if (!host_buf) {
         LOG_ERROR("Failed to allocate host buffer\n");
-        stream_close(stream); zfp_stream_close(zfp); zfp_field_free(field);
-        CUDA_CHECK(cudaFree(dev_compressed)); CUDA_CHECK(cudaFree(dev_uncompressed));
+        stream_close(stream);
+        zfp_stream_close(zfp);
+        zfp_field_free(field);
+        CUDA_CHECK(cudaFree(dev_compressed));
+        CUDA_CHECK(cudaFree(dev_uncompressed));
         return false;
     }
 
@@ -211,14 +273,16 @@ bool
 pdc_tf_builtin_zfp_compress_cuda(pdc_tf_internal_param internal_param, char *params_str, void **region_data,
                                  pdc_tf_region_t input_region, pdc_tf_region_t *output_region)
 {
-    return pdc_tf_builtin_zfp_compress_cuda_helper(internal_param, params_str, region_data, input_region, output_region);
+    return pdc_tf_builtin_zfp_compress_cuda_helper(internal_param, params_str, region_data, input_region,
+                                                   output_region);
 }
 
 bool
 pdc_tf_builtin_zfp_decompress_cuda(pdc_tf_internal_param internal_param, char *params_str, void **region_data,
                                    pdc_tf_region_t input_region, pdc_tf_region_t *output_region)
 {
-    return pdc_tf_builtin_zfp_decompress_cuda_helper(internal_param, params_str, region_data, input_region, output_region);
+    return pdc_tf_builtin_zfp_decompress_cuda_helper(internal_param, params_str, region_data, input_region,
+                                                     output_region);
 }
 
 #endif // CUDA_ENABLED

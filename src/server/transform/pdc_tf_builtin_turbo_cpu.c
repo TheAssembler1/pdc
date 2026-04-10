@@ -21,7 +21,7 @@ pdc_tf_builtin_turbo_compress(pdc_tf_internal_param internal_param, char *params
     PDCtf_log_pdc_region_t(input_region);
 
     size_t size       = PDCtf_get_pdc_region_t_bytes(input_region);
-    void  *compressed = malloc(size);
+    void * compressed = malloc(size);
     size_t ret;
 
     switch (input_region.pdc_var_type) {
@@ -34,7 +34,9 @@ pdc_tf_builtin_turbo_compress(pdc_tf_internal_param internal_param, char *params
             ret = p4nenc64((uint64_t *)*region_data, PDCtf_get_pdc_region_t_elements(input_region),
                            (unsigned char *)compressed);
             break;
-        default: LOG_ERROR("Invalid element type\n"); return false;
+        default:
+            LOG_ERROR("Invalid element type\n");
+            return false;
     }
 
     output_region->ndim         = 1;
@@ -42,7 +44,8 @@ pdc_tf_builtin_turbo_compress(pdc_tf_internal_param internal_param, char *params
     output_region->size[0]      = ret;
     *region_data                = compressed;
 
-    turbo_compress_params_t *out_params = (turbo_compress_params_t *)PDC_malloc(sizeof(turbo_compress_params_t));
+    turbo_compress_params_t *out_params =
+        (turbo_compress_params_t *)PDC_malloc(sizeof(turbo_compress_params_t));
     PDCtf_copy_tf_region_t(&input_region, &out_params->decompressed_region);
     SET_FUNC_PARAMS("turbo_compress", PDC_TF_CPU_DEVICE, out_params, sizeof(turbo_compress_params_t));
 
@@ -62,7 +65,7 @@ pdc_tf_builtin_turbo_decompress(pdc_tf_internal_param internal_param, char *para
     GET_FUNC_PARAMS("turbo_compress", PDC_TF_CPU_DEVICE, (void **)&in_params, &in_params_size);
 
     size_t size         = PDCtf_get_pdc_region_t_bytes(in_params->decompressed_region);
-    void  *decompressed = malloc(size);
+    void * decompressed = malloc(size);
     size_t ret;
 
     switch (in_params->decompressed_region.pdc_var_type) {
@@ -77,7 +80,9 @@ pdc_tf_builtin_turbo_decompress(pdc_tf_internal_param internal_param, char *para
                            PDCtf_get_pdc_region_t_elements(in_params->decompressed_region),
                            (uint64_t *)decompressed);
             break;
-        default: LOG_ERROR("Invalid element type\n"); return false;
+        default:
+            LOG_ERROR("Invalid element type\n");
+            return false;
     }
 
     *region_data = decompressed;

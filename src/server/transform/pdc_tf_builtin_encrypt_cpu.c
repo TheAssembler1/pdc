@@ -26,7 +26,10 @@ pdc_tf_builtin_encrypt(pdc_tf_internal_param internal_param, char *params_str, v
     size_t         plaintext_len  = PDCtf_get_pdc_region_t_bytes(input_region);
     size_t         ciphertext_len = plaintext_len + crypto_secretbox_MACBYTES;
     unsigned char *ciphertext     = malloc(ciphertext_len);
-    if (!ciphertext) { LOG_ERROR("Failed to allocate ciphertext buffer\n"); return false; }
+    if (!ciphertext) {
+        LOG_ERROR("Failed to allocate ciphertext buffer\n");
+        return false;
+    }
 
     if (crypto_secretbox_easy(ciphertext, (unsigned char *)*region_data, plaintext_len, nonce, key) != 0) {
         LOG_ERROR("Encryption failed\n");
@@ -60,17 +63,23 @@ pdc_tf_builtin_decrypt(pdc_tf_internal_param internal_param, char *params_str, v
     uint64_t          in_params_size;
     GET_FUNC_PARAMS("secret_box_encrypt", PDC_TF_CPU_DEVICE, (void **)&in_params, &in_params_size);
 
-    if (ciphertext_len < crypto_secretbox_MACBYTES) { LOG_ERROR("Ciphertext too short\n"); return false; }
+    if (ciphertext_len < crypto_secretbox_MACBYTES) {
+        LOG_ERROR("Ciphertext too short\n");
+        return false;
+    }
 
     size_t plaintext_len = PDC_get_region_desc_size_bytes(
-        in_params->unencrypted_region.size,
-        PDC_get_var_type_size(in_params->unencrypted_region.pdc_var_type),
+        in_params->unencrypted_region.size, PDC_get_var_type_size(in_params->unencrypted_region.pdc_var_type),
         in_params->unencrypted_region.ndim);
 
     unsigned char *plaintext = malloc(plaintext_len);
-    if (!plaintext) { LOG_ERROR("Failed to allocate plaintext buffer\n"); return false; }
+    if (!plaintext) {
+        LOG_ERROR("Failed to allocate plaintext buffer\n");
+        return false;
+    }
 
-    if (crypto_secretbox_open_easy(plaintext, (unsigned char *)*region_data, ciphertext_len, nonce, key) != 0) {
+    if (crypto_secretbox_open_easy(plaintext, (unsigned char *)*region_data, ciphertext_len, nonce, key) !=
+        0) {
         LOG_ERROR("Decryption failed or ciphertext tampered\n");
         free(plaintext);
         return false;

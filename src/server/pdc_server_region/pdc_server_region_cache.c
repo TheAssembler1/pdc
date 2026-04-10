@@ -756,7 +756,8 @@ done:
     FUNC_LEAVE(ret_value);
 }
 
-int PDC_region_cache_flush_by_pointer(uint64_t obj_id, pdc_obj_cache *obj_cache, int flag)
+int
+PDC_region_cache_flush_by_pointer(uint64_t obj_id, pdc_obj_cache *obj_cache, int flag)
 {
     FUNC_ENTER(NULL);
 
@@ -770,12 +771,11 @@ int PDC_region_cache_flush_by_pointer(uint64_t obj_id, pdc_obj_cache *obj_cache,
     uint64_t                 unit;
     struct pdc_region_info **obj_regions;
     char                     cur_time[64];
-    int _pdc_server_rank_g = 0;
+    int                      _pdc_server_rank_g = 0;
 
 #ifdef ENABLE_MPI
     MPI_Comm_rank(MPI_COMM_WORLD, &_pdc_server_rank_g);
 #endif
-
 
 #ifdef PDC_TIMING
     double start_time = MPI_Wtime();
@@ -796,15 +796,15 @@ int PDC_region_cache_flush_by_pointer(uint64_t obj_id, pdc_obj_cache *obj_cache,
         double region_start_time = MPI_Wtime();
 
         region_cache_info = region_cache_iter->region_cache_info;
-        write_size = region_cache_info->unit;
+        write_size        = region_cache_info->unit;
         for (int d = 0; d < obj_cache->ndim; d++)
             write_size *= region_cache_info->size[d];
 
-        double mapping_start_time = MPI_Wtime();
-        pdc_tf_region_mapping_t *region_mapping = NULL;
-        pdc_dg_t *               dg             = NULL;
-        struct pdc_tf_obj_t *    tf_obj         = PDCtf_get_region_mapping(obj_id, &dg);
-        double mapping_end_time = MPI_Wtime();
+        double                   mapping_start_time = MPI_Wtime();
+        pdc_tf_region_mapping_t *region_mapping     = NULL;
+        pdc_dg_t *               dg                 = NULL;
+        struct pdc_tf_obj_t *    tf_obj             = PDCtf_get_region_mapping(obj_id, &dg);
+        double                   mapping_end_time   = MPI_Wtime();
 
         if (_pdc_server_rank_g == 0)
             LOG_WARNING("Region mapping lookup took %.6f s\n", mapping_end_time - mapping_start_time);
@@ -834,13 +834,13 @@ int PDC_region_cache_flush_by_pointer(uint64_t obj_id, pdc_obj_cache *obj_cache,
 
         if (write_size > 0 && _pdc_server_rank_g == 0) {
             PDC_get_time_str(cur_time);
-            LOG_WARNING("[%s] Flushed %.2f / %.2f MB to storage\n", cur_time,
-                     write_size / 1048576.0, total_cache_size / 1048576.0);
+            LOG_WARNING("[%s] Flushed %.2f / %.2f MB to storage\n", cur_time, write_size / 1048576.0,
+                        total_cache_size / 1048576.0);
         }
 
         total_cache_size -= write_size;
 
-        double free_start = MPI_Wtime();
+        double free_start         = MPI_Wtime();
         region_cache_info->offset = (uint64_t *)PDC_free(region_cache_info->offset);
         if (obj_cache->ndim > 1)
             region_cache_info->buf = (void *)PDC_free(region_cache_info->buf);
@@ -849,7 +849,7 @@ int PDC_region_cache_flush_by_pointer(uint64_t obj_id, pdc_obj_cache *obj_cache,
         region_cache_temp = region_cache_iter;
         region_cache_iter = region_cache_iter->next;
         region_cache_temp = (pdc_region_cache *)PDC_free(region_cache_temp);
-        double free_end = MPI_Wtime();
+        double free_end   = MPI_Wtime();
 
         if (_pdc_server_rank_g == 0)
             LOG_DEBUG("Memory cleanup for region took %.6f s\n", free_end - free_start);

@@ -35,7 +35,7 @@ pdc_tf_avg_gpu_utilization(unsigned int device_index)
 
     // pthread_mutex_unlock(&profiler_lock);
     double res = (count > 0) ? (sum / count) : 0.0;
-    if(res < 0.0 || res > 1.0) {
+    if (res < 0.0 || res > 1.0) {
         LOG_ERROR("Average GPU utilization out of expected range: %f\n", res);
     }
     return res;
@@ -62,7 +62,7 @@ pdc_tf_avg_cpu_utilization()
 
     // pthread_mutex_unlock(&profiler_lock);
     double res = (count > 0) ? (sum / count) : 0.0;
-    if(res < 0.0 || res > 1.0) {
+    if (res < 0.0 || res > 1.0) {
         LOG_ERROR("Average CPU utilization out of expected range: %f\n", res);
     }
     return res;
@@ -126,12 +126,12 @@ pdc_tf_nvml_profiler_update()
         if (nvml_ret != NVML_SUCCESS)
             continue;
 
-        nvml_sample[i].gpu_utilization    = (double)util_info.gpu / 100.0; // Convert to fraction
-        if(nvml_sample[i].gpu_utilization < 0 || nvml_sample[i].gpu_utilization > 1) {
+        nvml_sample[i].gpu_utilization = (double)util_info.gpu / 100.0; // Convert to fraction
+        if (nvml_sample[i].gpu_utilization < 0 || nvml_sample[i].gpu_utilization > 1) {
             LOG_ERROR("GPU utilization out of expected range: %d%%\n", util_info.gpu);
         }
-        LOG_DEBUG("New NVML sample for device %d: GPU Utilization = %f, Memory Utilization = %.2f%%\n",
-                    i, nvml_sample[i].gpu_utilization, (double)util_info.memory / 100.0 * 100.0);
+        LOG_DEBUG("New NVML sample for device %d: GPU Utilization = %f, Memory Utilization = %.2f%%\n", i,
+                  nvml_sample[i].gpu_utilization, (double)util_info.memory / 100.0 * 100.0);
 
         nvml_sample[i].memory_utilization = util_info.memory;
         nvml_sample[i].memory_total       = mem_info.total;
@@ -173,15 +173,16 @@ pdc_tf_cpu_profiler_update(double elapsed_total_time_sec, double elapsed_progres
 
     pdc_tf_profiler_cpu_sample_t *cpu_sample =
         (pdc_tf_profiler_cpu_sample_t *)PDC_malloc(sizeof(pdc_tf_profiler_cpu_sample_t));
-    if(cpu_util < 0.0 || cpu_util > 1.0) {
+    if (cpu_util < 0.0 || cpu_util > 1.0) {
         LOG_ERROR("Computed CPU utilization out of expected range: %f\n", cpu_util);
     }
-    LOG_DEBUG("New CPU sample: Elapsed Total Time = %.2f sec, Elapsed Progress Time = %.2f sec, CPU Utilization = %f\n",
-                elapsed_total_time_sec, elapsed_progress_time_sec, cpu_util);
+    LOG_DEBUG("New CPU sample: Elapsed Total Time = %.2f sec, Elapsed Progress Time = %.2f sec, CPU "
+              "Utilization = %f\n",
+              elapsed_total_time_sec, elapsed_progress_time_sec, cpu_util);
     cpu_sample->cpu_utilization = cpu_util;
 
     // LOG the sample value
-    //LOG_WARNING("New CPU sample: %.2f%%\n", cpu_util);
+    // LOG_WARNING("New CPU sample: %.2f%%\n", cpu_util);
 
     // Update rolling buffer under lock
     // pthread_mutex_lock(&profiler_lock);

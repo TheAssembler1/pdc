@@ -34,17 +34,17 @@
 #include "pdc_timing.h"
 #include "/pscratch/sd/n/nlewi26/src/work_space/source/pdc/pi.h"
 
-#define dLEAP 2
+#define dLEAP          2
 #define PRECISION_INIT 2
-#define PRECISION_HEX 20000000
+#define PRECISION_HEX  20000000
 
-#define WARP_SIZE 32
-#define WARPS_PER_BLOCK 2
+#define WARP_SIZE         32
+#define WARPS_PER_BLOCK   2
 #define THREADS_PER_BLOCK (WARPS_PER_BLOCK * WARP_SIZE)
-#define BLOCKS_NUM ((PRECISION_HEX/dLEAP/THREADS_PER_BLOCK) + 1)
+#define BLOCKS_NUM        ((PRECISION_HEX / dLEAP / THREADS_PER_BLOCK) + 1)
 
 #define NUM_ITERATIONS 1
-#define NPARTICLES 8388608
+#define NPARTICLES     8388608
 
 double
 uniform_random_number()
@@ -94,7 +94,7 @@ main(int argc, char **argv)
 
     if (rank == 0)
         LOG_WARNING("Writing %" PRIu64 " particles per rank for %d steps with %d sec sleep time.\n",
-                 numparticles, steps, sleeptime);
+                    numparticles, steps, sleeptime);
 
     dims[0] = numparticles * size;
 
@@ -281,8 +281,8 @@ main(int argc, char **argv)
             if (rank == 0)
                 LOG_WARNING("Sleep start: %llu.00\n", sleeptime);
             double loop_start = MPI_Wtime();
-            for(int i = 0; i < NUM_ITERATIONS; i++) {
-                if(rank == 0)
+            for (int i = 0; i < NUM_ITERATIONS; i++) {
+                if (rank == 0)
                     LOG_WARNING("\n=== Iteration %d ===\n", i + 1);
                 MPI_Barrier(MPI_COMM_WORLD);
                 run_pi_gpu_timed(rank);
