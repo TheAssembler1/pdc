@@ -5,6 +5,8 @@
 #include "pdc_tf_profiler.h"
 #include "pdc_tf_server.h"
 
+int close_time_g = 0;
+
 #ifdef PDC_SERVER_CACHE
 
 #ifdef PDC_SERVER_CACHE_MAX_GB
@@ -119,6 +121,7 @@ PDC_region_server_cache_finalize()
     pdc_recycle_close_flag = 1;
     pthread_mutex_unlock(&pdc_cache_mutex);
     pthread_join(pdc_recycle_thread, NULL);
+    close_time_g = 1;
     PDC_region_cache_flush_all();
     pthread_mutex_destroy(&pdc_obj_cache_list_mutex);
     pthread_mutex_destroy(&pdc_cache_mutex);
@@ -753,8 +756,7 @@ done:
     FUNC_LEAVE(ret_value);
 }
 
-int
-PDC_region_cache_flush_by_pointer(uint64_t obj_id, pdc_obj_cache *obj_cache, int flag)
+int PDC_region_cache_flush_by_pointer(uint64_t obj_id, pdc_obj_cache *obj_cache, int flag)
 {
     FUNC_ENTER(NULL);
 
@@ -768,160 +770,110 @@ PDC_region_cache_flush_by_pointer(uint64_t obj_id, pdc_obj_cache *obj_cache, int
     uint64_t                 unit;
     struct pdc_region_info **obj_regions;
     char                     cur_time[64];
+    int _pdc_server_rank_g = 0;
+
+#ifdef ENABLE_MPI
+    MPI_Comm_rank(MPI_COMM_WORLD, &_pdc_server_rank_g);
+#endif
+
+
 #ifdef PDC_TIMING
     double start_time = MPI_Wtime();
 #endif
+
     env_char = getenv("PDC_SERVER_CACHE_NO_FLUSH");
     if (env_char && atoi(env_char) != 0) {
-        LOG_ERROR("Flushed disabled\n");
+        if (_pdc_server_rank_g == 0)
+            LOG_ERROR("Flushed disabled\n");
         FUNC_LEAVE(0);
     }
 
-    // For 1D case, we can merge regions to minimize the number of POSIX calls.
-    /*if (obj_cache->ndim == 1 && obj_cache->region_cache_size) {
-        start = (uint64_t *)PDC_malloc(sizeof(uint64_t) * obj_cache->region_cache_size * 2);
-        end   = start + obj_cache->region_cache_size;
-        buf   = (char **)PDC_malloc(sizeof(char *) * obj_cache->region_cache_size);
+    if (_pdc_server_rank_g == 0)
+        LOG_INFO("Starting flush for obj_id %" PRIu64 ", ndim=%d\n", obj_id, obj_cache->ndim);
 
-        // Sort the regions based on start index
-        obj_regions       = (struct pdc_region_info **)PDC_malloc(sizeof(struct pdc_region_info *) *
-                                                                  obj_cache->region_cache_size);
-        unit              = obj_cache->region_cache->region_cache_info->unit;
-        region_cache_iter = obj_cache->region_cache;
-        i                 = 0;
-        while (region_cache_iter) {
-            obj_regions[i]    = region_cache_iter->region_cache_info;
-            region_cache_iter = region_cache_iter->next;
-            i++;
-        }
-        qsort(obj_regions, obj_cache->region_cache_size, sizeof(struct pdc_region_info *), sort_by_offset);
-        for (i = 0; i < obj_cache->region_cache_size; ++i) {
-            start[i] = obj_regions[i]->offset[0];
-            end[i]   = obj_regions[i]->offset[0] + obj_regions[i]->size[0];
-            buf[i]   = obj_regions[i]->buf;
-        }
-        obj_regions = (struct pdc_region_info **)PDC_free(obj_regions);
-
-        // Merge adjacent regions
-        merge_requests(start, end, obj_cache->region_cache_size, buf, &new_start, &new_end, &new_buf, unit,
-                       &merged_request_size);
-        start = (uint64_t *)PDC_free(start);
-        buf   = (char **)PDC_free(buf);
-        // Record buffer pointer to be freed later.
-        buf_ptr = new_buf[0];
-        // Override the first merge_request_size number of cache regions with the merge regions
-        obj_cache->region_cache_size = merged_request_size;
-        region_cache_iter            = obj_cache->region_cache;
-        for (i = 0; i < merged_request_size; ++i) {
-            region_cache_info            = region_cache_iter->region_cache_info;
-            region_cache_info->offset[0] = new_start[i];
-            region_cache_info->size[0]   = new_end[i] - new_start[i];
-            region_cache_info->buf       = (void *)PDC_free(region_cache_info->buf);
-            region_cache_info->buf       = new_buf[i];
-            if (i == merged_request_size - 1) {
-                region_cache_temp       = region_cache_iter->next;
-                region_cache_iter->next = NULL;
-                region_cache_iter       = region_cache_temp;
-            }
-            else {
-                region_cache_iter = region_cache_iter->next;
-            }
-        }
-        new_start = (uint64_t *)PDC_free(new_start);
-        new_buf   = (char **)PDC_free(new_buf);
-        // Free other regions.
-        while (region_cache_iter) {
-            region_cache_info         = region_cache_iter->region_cache_info;
-            region_cache_info->offset = (uint64_t *)PDC_free(region_cache_info->offset);
-            region_cache_info->buf    = (void *)PDC_free(region_cache_info->buf);
-            region_cache_info         = (struct pdc_region_info *)PDC_free(region_cache_info);
-            region_cache_temp         = region_cache_iter;
-            region_cache_iter         = region_cache_iter->next;
-            region_cache_temp         = (pdc_region_cache *)PDC_free(region_cache_temp);
-        }
-        nflush += merged_request_size;
-    } // End for 1D*/
-
-// FIXME: Need to get this from the JSON file and load into graphs per region
-#define DEFER_REGION_TRANSFORMATION 1
-#define GPU_UTILIZATION_THRESHOLD   5.0
-#define CPU_UTILIZATION_THRESHOLD   30.0
-
-    // Iterate through all cache regions and use POSIX I/O to write them back to file system.
     region_cache_iter = obj_cache->region_cache;
     while (region_cache_iter != NULL) {
-        region_cache_info = region_cache_iter->region_cache_info;
-        if (obj_cache->ndim >= 1)
-            write_size = region_cache_info->unit * region_cache_info->size[0];
-        if (obj_cache->ndim >= 2)
-            write_size *= region_cache_info->size[1];
-        if (obj_cache->ndim >= 3)
-            write_size *= region_cache_info->size[2];
+        double region_start_time = MPI_Wtime();
 
+        region_cache_info = region_cache_iter->region_cache_info;
+        write_size = region_cache_info->unit;
+        for (int d = 0; d < obj_cache->ndim; d++)
+            write_size *= region_cache_info->size[d];
+
+        double mapping_start_time = MPI_Wtime();
         pdc_tf_region_mapping_t *region_mapping = NULL;
         pdc_dg_t *               dg             = NULL;
         struct pdc_tf_obj_t *    tf_obj         = PDCtf_get_region_mapping(obj_id, &dg);
+        double mapping_end_time = MPI_Wtime();
+
+        if (_pdc_server_rank_g == 0)
+            LOG_WARNING("Region mapping lookup took %.6f s\n", mapping_end_time - mapping_start_time);
+
         if (!PDCtf_region_has_attached_graph(tf_obj, obj_cache->ndim, unit, region_cache_info->offset,
                                              region_cache_info->size, &region_mapping)) {
-            LOG_DEBUG("No region mapping found for obj_id %" PRIu64 "\n", obj_id);
+            if (_pdc_server_rank_g == 0)
+                LOG_WARNING("No region mapping found for obj_id %" PRIu64 "\n", obj_id);
+            double io_start = MPI_Wtime();
             PDC_Server_transfer_request_io(obj_id, obj_cache->ndim, obj_cache->dims, region_cache_info,
                                            region_cache_info->buf, region_cache_info->unit, 1);
+            double io_end = MPI_Wtime();
+            if (_pdc_server_rank_g == 0)
+                LOG_WARNING("Flushed region via POSIX I/O in %.6f s\n", io_end - io_start);
         }
         else {
-            LOG_DEBUG("Found region mapping for obj_id %" PRIu64 "\n", obj_id);
+            if (_pdc_server_rank_g == 0)
+                LOG_DEBUG("Found region mapping for obj_id %" PRIu64 "\n", obj_id);
 
-            double min_avg_gpu_utilization          = 100.0;
-            int    min_gpu_utilization_device_index = -1;
-            for (int m = 0; m < pdc_tf_profiler_nvml_device_count; m++) {
-                if (min_avg_gpu_utilization < GPU_UTILIZATION_THRESHOLD) {
-                    min_gpu_utilization_device_index = m;
-                }
-                min_avg_gpu_utilization = fmin(min_avg_gpu_utilization, pdc_tf_avg_gpu_utilization(m));
-            }
-            double avg_cpu_utilization = pdc_tf_avg_cpu_utilization();
-
-            /**
-             * If DEFER_REGION_TRANSFORMATION is enabled, we will defer region transformation.
-             * If there is room in the transformation cache but all devices (GPU/CPU) utilizations are high,
-             * we will also defer region transformation. Otherwise we will perform region transformation and
-             * flush the data to storage.
-             */
-            if (DEFER_REGION_TRANSFORMATION ||
-                (total_transformation_cache_size < maximum_transformation_cache_size &&
-                 min_avg_gpu_utilization > GPU_UTILIZATION_THRESHOLD &&
-                 avg_cpu_utilization > CPU_UTILIZATION_THRESHOLD)) {
-                continue;
-            }
-
-            // Flush to storage where exec_graph will handle executing graph
+            double io_start = MPI_Wtime();
             PDC_Server_transfer_request_io(obj_id, obj_cache->ndim, obj_cache->dims, region_cache_info,
                                            region_cache_info->buf, region_cache_info->unit, 1);
+            double io_end = MPI_Wtime();
+            if (_pdc_server_rank_g == 0)
+                LOG_WARNING("Flushed mapped region in %.6f s\n", io_end - io_start);
         }
 
-        if (write_size > 0) {
+        if (write_size > 0 && _pdc_server_rank_g == 0) {
             PDC_get_time_str(cur_time);
-            LOG_INFO("Server flushed %.1f / %.1f MB to storage\n", write_size / 1048576.0,
-                     total_cache_size / 1048576.0);
+            LOG_WARNING("[%s] Flushed %.2f / %.2f MB to storage\n", cur_time,
+                     write_size / 1048576.0, total_cache_size / 1048576.0);
         }
 
         total_cache_size -= write_size;
+
+        double free_start = MPI_Wtime();
         region_cache_info->offset = (uint64_t *)PDC_free(region_cache_info->offset);
         if (obj_cache->ndim > 1)
             region_cache_info->buf = (void *)PDC_free(region_cache_info->buf);
         region_cache_info = (struct pdc_region_info *)PDC_free(region_cache_info);
+
         region_cache_temp = region_cache_iter;
         region_cache_iter = region_cache_iter->next;
         region_cache_temp = (pdc_region_cache *)PDC_free(region_cache_temp);
+        double free_end = MPI_Wtime();
+
+        if (_pdc_server_rank_g == 0)
+            LOG_DEBUG("Memory cleanup for region took %.6f s\n", free_end - free_start);
+
         nflush++;
+
+        double region_end_time = MPI_Wtime();
+        if (_pdc_server_rank_g == 0)
+            LOG_INFO("Region flush iteration took %.6f s\n", region_end_time - region_start_time);
     }
+
     if (merged_request_size && obj_cache->ndim == 1) {
         buf_ptr = (char *)PDC_free(buf_ptr);
     }
+
     obj_cache->region_cache      = NULL;
     obj_cache->region_cache_size = 0;
     gettimeofday(&(obj_cache->timestamp), NULL);
+
 #ifdef PDC_TIMING
-    pdc_server_timings->PDCcache_flush += MPI_Wtime() - start_time;
+    double total_flush_time = MPI_Wtime() - start_time;
+    pdc_server_timings->PDCcache_flush += total_flush_time;
+    if (server_rank == 0)
+        LOG_INFO("Total PDC_region_cache_flush_by_pointer time: %.6f s\n", total_flush_time);
 #endif
 
     FUNC_LEAVE(nflush);

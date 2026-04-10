@@ -1342,8 +1342,6 @@ PDC_Client_pack_all_requests(int n_objs, pdc_transfer_request_start_all_pkg **tr
         if (access_type == PDC_WRITE && obj_pointer != NULL && obj_pointer->pdc_tf_obj != NULL &&
             PDCtf_region_has_attached_graph(obj_pointer->pdc_tf_obj, remote_ndim, unit, remote_offset,
                                             remote_size, &region_mapping)) {
-
-            LOG_DEBUG("Region transfer as an attached graph\n");
             pdcid_t   dg_id = region_mapping->region_state.dg_id;
             pdc_dg_t *dg    = PDCtf_get_dg(dg_id);
 
@@ -1392,13 +1390,6 @@ PDC_Client_pack_all_requests(int n_objs, pdc_transfer_request_start_all_pkg **tr
                    sizeof(uint64_t) * transfer_requests[i]->transfer_request->remote_region_ndim);
         MEMCPY_INC(transfer_requests[i]->transfer_request->obj_dims,
                    sizeof(uint64_t) * transfer_requests[i]->transfer_request->obj_ndim);
-
-        LOG_DEBUG(
-            "object %d: remote_offset[0]=%lu, remote_length[0]=%lu, ndim=%d, obj_dims[0]=%lu\n",
-            transfer_requests[i]->transfer_request->obj_id, // or the obj_id if you have it stored elsewhere
-            transfer_requests[i]->remote_offset[0], transfer_requests[i]->remote_size[0],
-            transfer_requests[i]->transfer_request->obj_ndim,
-            transfer_requests[i]->transfer_request->obj_dims[0]);
 
         // Note buf is undefined for PDC_READ
         if (access_type == PDC_WRITE) {

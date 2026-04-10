@@ -1,0 +1,98 @@
+[22:10:29.098151] [WARNING] [bdcats.c:94] PDC_CLIENT[0]: Reading 8388608 particles per rank for 5 steps with 40 sec sleep time.
+[22:10:29.249832] [ERROR] [pdc_mercury_auth.c:152] PDC_CLIENT[30]: Unable to discover Perlmutter CXI service/VNI
+[22:10:29.251783] [ERROR] [pdc_mercury_auth.c:152] PDC_CLIENT[20]: Unable to discover Perlmutter CXI service/VNI
+[22:10:29.276871] [ERROR] [pdc_mercury_auth.c:152] PDC_CLIENT[6]: Unable to discover Perlmutter CXI service/VNI
+[22:10:29.284299] [ERROR] [pdc_mercury_auth.c:152] PDC_CLIENT[3]: Unable to discover Perlmutter CXI service/VNI
+[22:10:29.293312] [ERROR] [pdc_mercury_auth.c:152] PDC_CLIENT[21]: Unable to discover Perlmutter CXI service/VNI
+[22:10:29.294199] [ERROR] [pdc_mercury_auth.c:152] PDC_CLIENT[10]: Unable to discover Perlmutter CXI service/VNI
+[22:10:29.298327] [ERROR] [pdc_mercury_auth.c:152] PDC_CLIENT[5]: Unable to discover Perlmutter CXI service/VNI
+[22:10:29.301816] [ERROR] [pdc_mercury_auth.c:152] PDC_CLIENT[17]: Unable to discover Perlmutter CXI service/VNI
+[22:10:29.302600] [ERROR] [pdc_mercury_auth.c:152] PDC_CLIENT[1]: Unable to discover Perlmutter CXI service/VNI
+[22:10:29.302775] [ERROR] [pdc_mercury_auth.c:152] PDC_CLIENT[29]: Unable to discover Perlmutter CXI service/VNI
+[22:10:29.302972] [ERROR] [pdc_mercury_auth.c:152] PDC_CLIENT[12]: Unable to discover Perlmutter CXI service/VNI
+[22:10:29.303504] [ERROR] [pdc_mercury_auth.c:152] PDC_CLIENT[18]: Unable to discover Perlmutter CXI service/VNI
+[22:10:29.307785] [ERROR] [pdc_mercury_auth.c:152] PDC_CLIENT[4]: Unable to discover Perlmutter CXI service/VNI
+[22:10:29.313877] [ERROR] [pdc_mercury_auth.c:152] PDC_CLIENT[11]: Unable to discover Perlmutter CXI service/VNI
+[22:10:29.316626] [ERROR] [pdc_mercury_auth.c:152] PDC_CLIENT[23]: Unable to discover Perlmutter CXI service/VNI
+[22:10:29.320703] [ERROR] [pdc_mercury_auth.c:152] PDC_CLIENT[7]: Unable to discover Perlmutter CXI service/VNI
+[22:10:29.320801] [ERROR] [pdc_mercury_auth.c:152] PDC_CLIENT[14]: Unable to discover Perlmutter CXI service/VNI
+[22:10:29.321341] [ERROR] [pdc_mercury_auth.c:152] PDC_CLIENT[31]: Unable to discover Perlmutter CXI service/VNI
+[22:10:29.323257] [ERROR] [pdc_mercury_auth.c:152] PDC_CLIENT[0]: Unable to discover Perlmutter CXI service/VNI
+[22:10:29.323703] [ERROR] [pdc_mercury_auth.c:152] PDC_CLIENT[28]: Unable to discover Perlmutter CXI service/VNI
+[22:10:29.325796] [ERROR] [pdc_mercury_auth.c:152] PDC_CLIENT[8]: Unable to discover Perlmutter CXI service/VNI
+[22:10:29.328861] [ERROR] [pdc_mercury_auth.c:152] PDC_CLIENT[9]: Unable to discover Perlmutter CXI service/VNI
+[22:10:29.329268] [ERROR] [pdc_mercury_auth.c:152] PDC_CLIENT[22]: Unable to discover Perlmutter CXI service/VNI
+[22:10:29.330617] [ERROR] [pdc_mercury_auth.c:152] PDC_CLIENT[25]: Unable to discover Perlmutter CXI service/VNI
+[22:10:29.331527] [ERROR] [pdc_mercury_auth.c:152] PDC_CLIENT[26]: Unable to discover Perlmutter CXI service/VNI
+[22:10:29.331647] [ERROR] [pdc_mercury_auth.c:152] PDC_CLIENT[24]: Unable to discover Perlmutter CXI service/VNI
+[22:10:29.336334] [ERROR] [pdc_mercury_auth.c:152] PDC_CLIENT[27]: Unable to discover Perlmutter CXI service/VNI
+[22:10:29.337136] [ERROR] [pdc_mercury_auth.c:152] PDC_CLIENT[13]: Unable to discover Perlmutter CXI service/VNI
+[22:10:29.337590] [ERROR] [pdc_mercury_auth.c:152] PDC_CLIENT[16]: Unable to discover Perlmutter CXI service/VNI
+[22:10:29.340259] [ERROR] [pdc_mercury_auth.c:152] PDC_CLIENT[19]: Unable to discover Perlmutter CXI service/VNI
+[22:10:29.341141] [ERROR] [pdc_mercury_auth.c:152] PDC_CLIENT[15]: Unable to discover Perlmutter CXI service/VNI
+[22:10:29.341651] [ERROR] [pdc_mercury_auth.c:152] PDC_CLIENT[2]: Unable to discover Perlmutter CXI service/VNI
+[22:10:29.323299] [WARNING] [pdc_client_connect.c:1423] PDC_CLIENT[0]: Unable to scope Slingshot CXI auth for Mercury, falling back to provider defaults[22:10:31.582055] [WARNING] [bdcats.c:138] PDC_CLIENT[0]: 
+#Step  0
+[22:10:31.759512] [WARNING] [bdcats.c:158] PDC_CLIENT[0]: Obj open time: 1.77279e-01
+[22:10:31.759794] [WARNING] [bdcats.c:174] PDC_CLIENT[0]: Transfer create time: 2.77016e-04
+[22:10:33.729941] [WARNING] [bdcats.c:190] PDC_CLIENT[0]: Transfer start time: 1.97014e+00
+[22:10:33.730205] [WARNING] [bdcats.c:195] PDC_CLIENT[0]: Sleep start: 40.00
+[22:10:33.730295] [WARNING] [bdcats.c:199] PDC_CLIENT[0]: 
+=== Iteration 1 ===
+=== Rank 0 on Device 0 ===
+
+Data movement:
+H2D bytes: 0
+D2H bytes: 40
+
+=== Timing (ms) ===
+Kernel:   0.286
+[22:10:45.235926] [WARNING] [bdcats.c:199] PDC_CLIENT[0]: 
+=== Iteration 2 ===
+=== Rank 0 on Device 0 ===
+
+Data movement:
+H2D bytes: 0
+D2H bytes: 40
+
+=== Timing (ms) ===
+Kernel:   0.235
+[22:10:45.333405] [WARNING] [bdcats.c:199] PDC_CLIENT[0]: 
+=== Iteration 3 ===
+=== Rank 0 on Device 0 ===
+
+Data movement:
+H2D bytes: 0
+D2H bytes: 40
+
+=== Timing (ms) ===
+Kernel:   0.236
+[22:10:45.379647] [WARNING] [bdcats.c:199] PDC_CLIENT[0]: 
+=== Iteration 4 ===
+=== Rank 0 on Device 0 ===
+
+Data movement:
+H2D bytes: 0
+D2H bytes: 40
+
+=== Timing (ms) ===
+Kernel:   0.237
+[22:10:45.482351] [WARNING] [bdcats.c:199] PDC_CLIENT[0]: 
+=== Iteration 5 ===
+=== Rank 0 on Device 0 ===
+
+Data movement:
+H2D bytes: 0
+D2H bytes: 40
+
+=== Timing (ms) ===
+Kernel:   0.237
+[22:10:45.514714] [WARNING] [bdcats.c:206] PDC_CLIENT[0]: 
+Total time for 5 iterations: 11.784414 s
+[22:10:45.514816] [WARNING] [bdcats.c:209] PDC_CLIENT[0]: Sleep end: 40.00
+[22:10:45.544530] [ERROR] [pdc_client_connect.c:3352] PDC_CLIENT[0]: Transfer request wait all failed[22:10:45.965943] [WARNING] [bdcats.c:225] PDC_CLIENT[0]: Transfer wait time: 4.24774e-01
+[22:10:46.067017] [WARNING] [bdcats.c:239] PDC_CLIENT[0]: Transfer close time: 1.01085e-01
+[22:10:46.067173] [WARNING] [bdcats.c:253] PDC_CLIENT[0]: Obj close time: 1.66833e-04
+[22:10:46.067255] [WARNING] [bdcats.c:138] PDC_CLIENT[0]: 
+#Step  1
+[22:10:45.545018] [ERROR] [pdc_client_connect.c:3352] PDC_CLIENT[1]: Transfer request wait all failed[22:10:45.554093] [ERROR] [pdc_client_connect.c:3352] PDC_CLIENT[21]: Transfer request wait all failed[22:10:45.554117] [ERROR] [pdc_client_connect.c:3352] PDC_CLIENT[9]: Transfer request wait all failed[22:10:45.590679] [ERROR] [pdc_client_connect.c:3352] PDC_CLIENT[3]: Transfer request wait all failed[22:10:45.541452] [ERROR] [pdc_client_connect.c:3352] PDC_CLIENT[8]: Transfer request wait all failed[22:10:45.554093] [ERROR] [pdc_client_connect.c:3352] PDC_CLIENT[13]: Transfer request wait all failed[22:10:45.554061] [ERROR] [pdc_client_connect.c:3352] PDC_CLIENT[16]: Transfer request wait all failed[22:10:45.598469] [ERROR] [pdc_client_connect.c:3352] PDC_CLIENT[28]: Transfer request wait all failed[22:10:45.554093] [ERROR] [pdc_client_connect.c:3352] PDC_CLIENT[15]: Transfer request wait all failed[22:10:45.546233] [ERROR] [pdc_client_connect.c:3352] PDC_CLIENT[30]: Transfer request wait all failed[22:10:45.562358] [ERROR] [pdc_client_connect.c:3352] PDC_CLIENT[6]: Transfer request wait all failed[22:10:45.558291] [ERROR] [pdc_client_connect.c:3352] PDC_CLIENT[26]: Transfer request wait all failed[22:10:45.550171] [ERROR] [pdc_client_connect.c:3352] PDC_CLIENT[31]: Transfer request wait all failed[22:10:45.591642] [ERROR] [pdc_client_connect.c:3352] PDC_CLIENT[4]: Transfer request wait all failed[22:10:45.541916] [ERROR] [pdc_client_connect.c:3352] PDC_CLIENT[27]: Transfer request wait all failed[22:10:45.562274] [ERROR] [pdc_client_connect.c:3352] PDC_CLIENT[10]: Transfer request wait all failed[22:10:45.626647] [ERROR] [pdc_client_connect.c:3352] PDC_CLIENT[14]: Transfer request wait all failed[22:10:45.570209] [ERROR] [pdc_client_connect.c:3352] PDC_CLIENT[17]: Transfer request wait all failed[22:10:45.541959] [ERROR] [pdc_client_connect.c:3352] PDC_CLIENT[19]: Transfer request wait all failed[22:10:45.541464] [ERROR] [pdc_client_connect.c:3352] PDC_CLIENT[11]: Transfer request wait all failed[22:10:45.554049] [ERROR] [pdc_client_connect.c:3352] PDC_CLIENT[23]: Transfer request wait all failed[22:10:45.554129] [ERROR] [pdc_client_connect.c:3352] PDC_CLIENT[25]: Transfer request wait all failed[22:10:45.562429] [ERROR] [pdc_client_connect.c:3352] PDC_CLIENT[24]: Transfer request wait all failed[22:10:45.570209] [ERROR] [pdc_client_connect.c:3352] PDC_CLIENT[29]: Transfer request wait all failed[22:10:45.562444] [ERROR] [pdc_client_connect.c:3352] PDC_CLIENT[22]: Transfer request wait all failed[22:10:45.541793] [ERROR] [pdc_client_connect.c:3352] PDC_CLIENT[7]: Transfer request wait all failed[22:10:45.546050] [ERROR] [pdc_client_connect.c:3352] PDC_CLIENT[20]: Transfer request wait all failed[22:10:45.550191] [ERROR] [pdc_client_connect.c:3352] PDC_CLIENT[18]: Transfer request wait all failed[22:10:45.541436] [ERROR] [pdc_client_connect.c:3352] PDC_CLIENT[5]: Transfer request wait all failed[22:10:45.558394] [ERROR] [pdc_client_connect.c:3352] PDC_CLIENT[12]: Transfer request wait all failed

@@ -1,0 +1,767 @@
+[22:09:57.307566] [ERROR] [pdc_mercury_auth.c:152] PDC_CLIENT[0]: Unable to discover Perlmutter CXI service/VNI
+[22:09:57.307587] [WARNING] [pdc_server.c:933] PDC_SERVER[0]: Unable to scope Slingshot CXI auth for Mercury, falling back to provider defaults[22:09:57.687881] [WARNING] [pdc_server.c:1747] PDC_SERVER[0]: Restart from checkpoint start
+[22:09:57.689677] [WARNING] [pdc_server.c:2016] PDC_SERVER[0]: Reading checkpoint transformations start
+[22:09:57.692707] [WARNING] [pdc_server.c:2142] PDC_SERVER[0]: Reading checkpoint transformations done
+[22:09:57.692875] [WARNING] [pdc_server.c:2164] PDC_SERVER[0]: Restart from checkpoint done
+[22:09:57.903971] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 0: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:09:57.911551] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 1: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:09:57.911560] [WARNING] [pdc_tf_profiler.c:179] PDC_SERVER[0]: New CPU sample: Elapsed Total Time = 0.20 sec, Elapsed Progress Time = 0.20 sec, CPU Utilization = 0.000028
+[22:09:58.110216] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 0: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:09:58.110886] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 1: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:09:58.110891] [WARNING] [pdc_tf_profiler.c:179] PDC_SERVER[0]: New CPU sample: Elapsed Total Time = 0.20 sec, Elapsed Progress Time = 0.20 sec, CPU Utilization = 0.000003
+[22:09:58.309988] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 0: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:09:58.310008] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 1: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:09:58.310012] [WARNING] [pdc_tf_profiler.c:179] PDC_SERVER[0]: New CPU sample: Elapsed Total Time = 0.20 sec, Elapsed Progress Time = 0.20 sec, CPU Utilization = 0.000001
+[22:09:58.510508] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 0: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:09:58.511153] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 1: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:09:58.511160] [WARNING] [pdc_tf_profiler.c:179] PDC_SERVER[0]: New CPU sample: Elapsed Total Time = 0.20 sec, Elapsed Progress Time = 0.20 sec, CPU Utilization = 0.000001
+[22:09:58.709923] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 0: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:09:58.709942] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 1: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:09:58.709947] [WARNING] [pdc_tf_profiler.c:179] PDC_SERVER[0]: New CPU sample: Elapsed Total Time = 0.20 sec, Elapsed Progress Time = 0.20 sec, CPU Utilization = 0.000016
+[22:09:58.909972] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 0: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:09:58.910646] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 1: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:09:58.910651] [WARNING] [pdc_tf_profiler.c:179] PDC_SERVER[0]: New CPU sample: Elapsed Total Time = 0.20 sec, Elapsed Progress Time = 0.20 sec, CPU Utilization = 0.000001
+[22:09:59.109924] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 0: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:09:59.109941] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 1: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:09:59.109945] [WARNING] [pdc_tf_profiler.c:179] PDC_SERVER[0]: New CPU sample: Elapsed Total Time = 0.20 sec, Elapsed Progress Time = 0.20 sec, CPU Utilization = 0.000001
+[22:09:59.309925] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 0: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:09:59.309943] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 1: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:09:59.309947] [WARNING] [pdc_tf_profiler.c:179] PDC_SERVER[0]: New CPU sample: Elapsed Total Time = 0.20 sec, Elapsed Progress Time = 0.20 sec, CPU Utilization = 0.000001
+[22:09:59.509925] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 0: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:09:59.509942] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 1: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:09:59.509947] [WARNING] [pdc_tf_profiler.c:179] PDC_SERVER[0]: New CPU sample: Elapsed Total Time = 0.20 sec, Elapsed Progress Time = 0.20 sec, CPU Utilization = 0.000002
+[22:09:59.709927] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 0: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:09:59.709943] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 1: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:09:59.709948] [WARNING] [pdc_tf_profiler.c:179] PDC_SERVER[0]: New CPU sample: Elapsed Total Time = 0.20 sec, Elapsed Progress Time = 0.20 sec, CPU Utilization = 0.000002
+[22:09:59.909924] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 0: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:09:59.909942] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 1: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:09:59.909946] [WARNING] [pdc_tf_profiler.c:179] PDC_SERVER[0]: New CPU sample: Elapsed Total Time = 0.20 sec, Elapsed Progress Time = 0.20 sec, CPU Utilization = 0.000001
+[22:10:00.109922] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 0: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:00.109939] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 1: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:00.109943] [WARNING] [pdc_tf_profiler.c:179] PDC_SERVER[0]: New CPU sample: Elapsed Total Time = 0.20 sec, Elapsed Progress Time = 0.20 sec, CPU Utilization = 0.000001
+[22:10:00.309923] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 0: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:00.309941] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 1: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:00.309945] [WARNING] [pdc_tf_profiler.c:179] PDC_SERVER[0]: New CPU sample: Elapsed Total Time = 0.20 sec, Elapsed Progress Time = 0.20 sec, CPU Utilization = 0.000001
+[22:10:00.509960] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 0: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:00.509982] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 1: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:00.509986] [WARNING] [pdc_tf_profiler.c:179] PDC_SERVER[0]: New CPU sample: Elapsed Total Time = 0.20 sec, Elapsed Progress Time = 0.20 sec, CPU Utilization = 0.000001
+[22:10:00.709923] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 0: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:00.709940] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 1: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:00.709944] [WARNING] [pdc_tf_profiler.c:179] PDC_SERVER[0]: New CPU sample: Elapsed Total Time = 0.20 sec, Elapsed Progress Time = 0.20 sec, CPU Utilization = 0.000015
+[22:10:00.909922] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 0: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:00.909940] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 1: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:00.909947] [WARNING] [pdc_tf_profiler.c:179] PDC_SERVER[0]: New CPU sample: Elapsed Total Time = 0.20 sec, Elapsed Progress Time = 0.20 sec, CPU Utilization = 0.000001
+[22:10:01.109984] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 0: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:01.110589] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 1: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:01.110594] [WARNING] [pdc_tf_profiler.c:179] PDC_SERVER[0]: New CPU sample: Elapsed Total Time = 0.20 sec, Elapsed Progress Time = 0.20 sec, CPU Utilization = 0.000001
+[22:10:01.309929] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 0: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:01.309947] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 1: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:01.309951] [WARNING] [pdc_tf_profiler.c:179] PDC_SERVER[0]: New CPU sample: Elapsed Total Time = 0.20 sec, Elapsed Progress Time = 0.20 sec, CPU Utilization = 0.000001
+[22:10:01.510075] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 0: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:01.510695] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 1: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:01.510700] [WARNING] [pdc_tf_profiler.c:179] PDC_SERVER[0]: New CPU sample: Elapsed Total Time = 0.20 sec, Elapsed Progress Time = 0.20 sec, CPU Utilization = 0.000001
+[22:10:01.709921] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 0: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:01.709939] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 1: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:01.709943] [WARNING] [pdc_tf_profiler.c:179] PDC_SERVER[0]: New CPU sample: Elapsed Total Time = 0.20 sec, Elapsed Progress Time = 0.20 sec, CPU Utilization = 0.000001
+[22:10:01.910080] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 0: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:01.910361] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 1: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:01.910365] [WARNING] [pdc_tf_profiler.c:179] PDC_SERVER[0]: New CPU sample: Elapsed Total Time = 0.20 sec, Elapsed Progress Time = 0.20 sec, CPU Utilization = 0.000001
+[22:10:02.109923] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 0: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:02.109940] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 1: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:02.109944] [WARNING] [pdc_tf_profiler.c:179] PDC_SERVER[0]: New CPU sample: Elapsed Total Time = 0.20 sec, Elapsed Progress Time = 0.20 sec, CPU Utilization = 0.000001
+[22:10:02.310470] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 0: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:02.311220] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 1: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:02.311224] [WARNING] [pdc_tf_profiler.c:179] PDC_SERVER[0]: New CPU sample: Elapsed Total Time = 0.20 sec, Elapsed Progress Time = 0.20 sec, CPU Utilization = 0.000001
+[22:10:02.509924] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 0: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:02.509941] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 1: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:02.509945] [WARNING] [pdc_tf_profiler.c:179] PDC_SERVER[0]: New CPU sample: Elapsed Total Time = 0.20 sec, Elapsed Progress Time = 0.20 sec, CPU Utilization = 0.000003
+[22:10:02.709923] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 0: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:02.709941] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 1: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:02.709945] [WARNING] [pdc_tf_profiler.c:179] PDC_SERVER[0]: New CPU sample: Elapsed Total Time = 0.20 sec, Elapsed Progress Time = 0.20 sec, CPU Utilization = 0.000001
+[22:10:02.909920] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 0: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:02.909936] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 1: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:02.909941] [WARNING] [pdc_tf_profiler.c:179] PDC_SERVER[0]: New CPU sample: Elapsed Total Time = 0.20 sec, Elapsed Progress Time = 0.20 sec, CPU Utilization = 0.000001
+[22:10:03.109958] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 0: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:03.109981] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 1: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:03.109986] [WARNING] [pdc_tf_profiler.c:179] PDC_SERVER[0]: New CPU sample: Elapsed Total Time = 0.20 sec, Elapsed Progress Time = 0.20 sec, CPU Utilization = 0.000001
+[22:10:03.309924] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 0: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:03.309941] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 1: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:03.309947] [WARNING] [pdc_tf_profiler.c:179] PDC_SERVER[0]: New CPU sample: Elapsed Total Time = 0.20 sec, Elapsed Progress Time = 0.20 sec, CPU Utilization = 0.000015
+[22:10:03.509922] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 0: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:03.509939] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 1: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:03.509943] [WARNING] [pdc_tf_profiler.c:179] PDC_SERVER[0]: New CPU sample: Elapsed Total Time = 0.20 sec, Elapsed Progress Time = 0.20 sec, CPU Utilization = 0.000002
+[22:10:03.709921] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 0: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:03.709937] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 1: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:03.709941] [WARNING] [pdc_tf_profiler.c:179] PDC_SERVER[0]: New CPU sample: Elapsed Total Time = 0.20 sec, Elapsed Progress Time = 0.20 sec, CPU Utilization = 0.000001
+[22:10:03.909925] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 0: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:03.909944] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 1: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:03.909948] [WARNING] [pdc_tf_profiler.c:179] PDC_SERVER[0]: New CPU sample: Elapsed Total Time = 0.20 sec, Elapsed Progress Time = 0.20 sec, CPU Utilization = 0.000001
+[22:10:04.109922] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 0: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:04.109939] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 1: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:04.109943] [WARNING] [pdc_tf_profiler.c:179] PDC_SERVER[0]: New CPU sample: Elapsed Total Time = 0.20 sec, Elapsed Progress Time = 0.20 sec, CPU Utilization = 0.000001
+[22:10:04.309931] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 0: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:04.309949] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 1: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:04.309953] [WARNING] [pdc_tf_profiler.c:179] PDC_SERVER[0]: New CPU sample: Elapsed Total Time = 0.20 sec, Elapsed Progress Time = 0.20 sec, CPU Utilization = 0.000001
+[22:10:04.509925] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 0: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:04.509943] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 1: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:04.509948] [WARNING] [pdc_tf_profiler.c:179] PDC_SERVER[0]: New CPU sample: Elapsed Total Time = 0.20 sec, Elapsed Progress Time = 0.20 sec, CPU Utilization = 0.000001
+[22:10:04.709929] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 0: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:04.709950] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 1: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:04.709954] [WARNING] [pdc_tf_profiler.c:179] PDC_SERVER[0]: New CPU sample: Elapsed Total Time = 0.20 sec, Elapsed Progress Time = 0.20 sec, CPU Utilization = 0.000002
+[22:10:04.909926] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 0: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:04.910686] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 1: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:04.910690] [WARNING] [pdc_tf_profiler.c:179] PDC_SERVER[0]: New CPU sample: Elapsed Total Time = 0.20 sec, Elapsed Progress Time = 0.20 sec, CPU Utilization = 0.000001
+[22:10:05.109920] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 0: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:05.109937] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 1: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:05.109941] [WARNING] [pdc_tf_profiler.c:179] PDC_SERVER[0]: New CPU sample: Elapsed Total Time = 0.20 sec, Elapsed Progress Time = 0.20 sec, CPU Utilization = 0.000001
+[22:10:05.310429] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 0: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:05.311067] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 1: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:05.311072] [WARNING] [pdc_tf_profiler.c:179] PDC_SERVER[0]: New CPU sample: Elapsed Total Time = 0.20 sec, Elapsed Progress Time = 0.20 sec, CPU Utilization = 0.000001
+[22:10:05.509923] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 0: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:05.509942] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 1: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:05.509946] [WARNING] [pdc_tf_profiler.c:179] PDC_SERVER[0]: New CPU sample: Elapsed Total Time = 0.20 sec, Elapsed Progress Time = 0.20 sec, CPU Utilization = 0.000001
+[22:10:05.710194] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 0: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:05.710854] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 1: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:05.710859] [WARNING] [pdc_tf_profiler.c:179] PDC_SERVER[0]: New CPU sample: Elapsed Total Time = 0.20 sec, Elapsed Progress Time = 0.20 sec, CPU Utilization = 0.000001
+[22:10:05.909924] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 0: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:05.909946] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 1: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:05.909951] [WARNING] [pdc_tf_profiler.c:179] PDC_SERVER[0]: New CPU sample: Elapsed Total Time = 0.20 sec, Elapsed Progress Time = 0.20 sec, CPU Utilization = 0.000001
+[22:10:06.110531] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 0: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:06.111198] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 1: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:06.111203] [WARNING] [pdc_tf_profiler.c:179] PDC_SERVER[0]: New CPU sample: Elapsed Total Time = 0.20 sec, Elapsed Progress Time = 0.20 sec, CPU Utilization = 0.000002
+[22:10:06.309922] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 0: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:06.309938] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 1: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:06.309943] [WARNING] [pdc_tf_profiler.c:179] PDC_SERVER[0]: New CPU sample: Elapsed Total Time = 0.20 sec, Elapsed Progress Time = 0.20 sec, CPU Utilization = 0.000003
+[22:10:06.509919] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 0: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:06.509936] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 1: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:06.509940] [WARNING] [pdc_tf_profiler.c:179] PDC_SERVER[0]: New CPU sample: Elapsed Total Time = 0.20 sec, Elapsed Progress Time = 0.20 sec, CPU Utilization = 0.000001
+[22:10:06.709922] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 0: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:06.709939] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 1: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:06.709943] [WARNING] [pdc_tf_profiler.c:179] PDC_SERVER[0]: New CPU sample: Elapsed Total Time = 0.20 sec, Elapsed Progress Time = 0.20 sec, CPU Utilization = 0.000001
+[22:10:06.909930] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 0: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:06.909946] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 1: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:06.909951] [WARNING] [pdc_tf_profiler.c:179] PDC_SERVER[0]: New CPU sample: Elapsed Total Time = 0.20 sec, Elapsed Progress Time = 0.20 sec, CPU Utilization = 0.000001
+[22:10:07.109925] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 0: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:07.109945] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 1: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:07.109950] [WARNING] [pdc_tf_profiler.c:179] PDC_SERVER[0]: New CPU sample: Elapsed Total Time = 0.20 sec, Elapsed Progress Time = 0.20 sec, CPU Utilization = 0.000001
+[22:10:07.309921] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 0: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:07.309939] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 1: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:07.309943] [WARNING] [pdc_tf_profiler.c:179] PDC_SERVER[0]: New CPU sample: Elapsed Total Time = 0.20 sec, Elapsed Progress Time = 0.20 sec, CPU Utilization = 0.000001
+[22:10:07.509936] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 0: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:07.509958] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 1: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:07.509963] [WARNING] [pdc_tf_profiler.c:179] PDC_SERVER[0]: New CPU sample: Elapsed Total Time = 0.20 sec, Elapsed Progress Time = 0.20 sec, CPU Utilization = 0.000001
+[22:10:07.709919] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 0: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:07.709935] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 1: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:07.709939] [WARNING] [pdc_tf_profiler.c:179] PDC_SERVER[0]: New CPU sample: Elapsed Total Time = 0.20 sec, Elapsed Progress Time = 0.20 sec, CPU Utilization = 0.000002
+[22:10:07.909928] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 0: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:07.909948] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 1: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:07.909952] [WARNING] [pdc_tf_profiler.c:179] PDC_SERVER[0]: New CPU sample: Elapsed Total Time = 0.20 sec, Elapsed Progress Time = 0.20 sec, CPU Utilization = 0.000001
+[22:10:08.109920] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 0: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:08.109936] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 1: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:08.109940] [WARNING] [pdc_tf_profiler.c:179] PDC_SERVER[0]: New CPU sample: Elapsed Total Time = 0.20 sec, Elapsed Progress Time = 0.20 sec, CPU Utilization = 0.000001
+[22:10:08.309919] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 0: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:08.309936] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 1: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:08.309941] [WARNING] [pdc_tf_profiler.c:179] PDC_SERVER[0]: New CPU sample: Elapsed Total Time = 0.20 sec, Elapsed Progress Time = 0.20 sec, CPU Utilization = 0.000001
+[22:10:08.509920] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 0: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:08.509937] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 1: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:08.509941] [WARNING] [pdc_tf_profiler.c:179] PDC_SERVER[0]: New CPU sample: Elapsed Total Time = 0.20 sec, Elapsed Progress Time = 0.20 sec, CPU Utilization = 0.000001
+[22:10:08.709922] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 0: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:08.709938] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 1: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:08.709942] [WARNING] [pdc_tf_profiler.c:179] PDC_SERVER[0]: New CPU sample: Elapsed Total Time = 0.20 sec, Elapsed Progress Time = 0.20 sec, CPU Utilization = 0.000001
+[22:10:08.909921] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 0: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:08.909938] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 1: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:08.909942] [WARNING] [pdc_tf_profiler.c:179] PDC_SERVER[0]: New CPU sample: Elapsed Total Time = 0.20 sec, Elapsed Progress Time = 0.20 sec, CPU Utilization = 0.000002
+[22:10:09.109922] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 0: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:09.109940] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 1: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:09.109944] [WARNING] [pdc_tf_profiler.c:179] PDC_SERVER[0]: New CPU sample: Elapsed Total Time = 0.20 sec, Elapsed Progress Time = 0.20 sec, CPU Utilization = 0.000001
+[22:10:09.309920] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 0: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:09.309937] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 1: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:09.309941] [WARNING] [pdc_tf_profiler.c:179] PDC_SERVER[0]: New CPU sample: Elapsed Total Time = 0.20 sec, Elapsed Progress Time = 0.20 sec, CPU Utilization = 0.000001
+[22:10:09.510556] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 0: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:09.511217] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 1: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:09.511222] [WARNING] [pdc_tf_profiler.c:179] PDC_SERVER[0]: New CPU sample: Elapsed Total Time = 0.20 sec, Elapsed Progress Time = 0.20 sec, CPU Utilization = 0.000001
+[22:10:09.709925] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 0: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:09.709944] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 1: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:09.709949] [WARNING] [pdc_tf_profiler.c:179] PDC_SERVER[0]: New CPU sample: Elapsed Total Time = 0.20 sec, Elapsed Progress Time = 0.20 sec, CPU Utilization = 0.000001
+[22:10:09.910360] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 0: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:09.911004] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 1: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:09.911009] [WARNING] [pdc_tf_profiler.c:179] PDC_SERVER[0]: New CPU sample: Elapsed Total Time = 0.20 sec, Elapsed Progress Time = 0.20 sec, CPU Utilization = 0.000001
+[22:10:10.109924] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 0: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:10.109943] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 1: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:10.109948] [WARNING] [pdc_tf_profiler.c:179] PDC_SERVER[0]: New CPU sample: Elapsed Total Time = 0.20 sec, Elapsed Progress Time = 0.20 sec, CPU Utilization = 0.000001
+[22:10:10.310062] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 0: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:10.310729] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 1: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:10.310733] [WARNING] [pdc_tf_profiler.c:179] PDC_SERVER[0]: New CPU sample: Elapsed Total Time = 0.20 sec, Elapsed Progress Time = 0.20 sec, CPU Utilization = 0.000001
+[22:10:10.509921] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 0: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:10.509938] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 1: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:10.509942] [WARNING] [pdc_tf_profiler.c:179] PDC_SERVER[0]: New CPU sample: Elapsed Total Time = 0.20 sec, Elapsed Progress Time = 0.20 sec, CPU Utilization = 0.000001
+[22:10:10.710411] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 0: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:10.711078] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 1: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:10.711083] [WARNING] [pdc_tf_profiler.c:179] PDC_SERVER[0]: New CPU sample: Elapsed Total Time = 0.20 sec, Elapsed Progress Time = 0.20 sec, CPU Utilization = 0.000001
+[22:10:10.909935] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 0: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:10.909954] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 1: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:10.909958] [WARNING] [pdc_tf_profiler.c:179] PDC_SERVER[0]: New CPU sample: Elapsed Total Time = 0.20 sec, Elapsed Progress Time = 0.20 sec, CPU Utilization = 0.000001
+[22:10:11.109922] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 0: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:11.109938] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 1: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:11.109943] [WARNING] [pdc_tf_profiler.c:179] PDC_SERVER[0]: New CPU sample: Elapsed Total Time = 0.20 sec, Elapsed Progress Time = 0.20 sec, CPU Utilization = 0.000002
+[22:10:11.309920] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 0: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:11.309937] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 1: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:11.309943] [WARNING] [pdc_tf_profiler.c:179] PDC_SERVER[0]: New CPU sample: Elapsed Total Time = 0.20 sec, Elapsed Progress Time = 0.20 sec, CPU Utilization = 0.000002
+[22:10:11.509919] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 0: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:11.509935] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 1: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:11.509939] [WARNING] [pdc_tf_profiler.c:179] PDC_SERVER[0]: New CPU sample: Elapsed Total Time = 0.20 sec, Elapsed Progress Time = 0.20 sec, CPU Utilization = 0.000001
+[22:10:11.709928] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 0: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:11.709947] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 1: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:11.709952] [WARNING] [pdc_tf_profiler.c:179] PDC_SERVER[0]: New CPU sample: Elapsed Total Time = 0.20 sec, Elapsed Progress Time = 0.20 sec, CPU Utilization = 0.000001
+[22:10:11.909920] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 0: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:11.909939] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 1: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:11.909944] [WARNING] [pdc_tf_profiler.c:179] PDC_SERVER[0]: New CPU sample: Elapsed Total Time = 0.20 sec, Elapsed Progress Time = 0.20 sec, CPU Utilization = 0.000001
+[22:10:12.109925] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 0: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:12.109945] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 1: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:12.109950] [WARNING] [pdc_tf_profiler.c:179] PDC_SERVER[0]: New CPU sample: Elapsed Total Time = 0.20 sec, Elapsed Progress Time = 0.20 sec, CPU Utilization = 0.000001
+[22:10:12.309921] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 0: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:12.309944] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 1: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:12.309948] [WARNING] [pdc_tf_profiler.c:179] PDC_SERVER[0]: New CPU sample: Elapsed Total Time = 0.20 sec, Elapsed Progress Time = 0.20 sec, CPU Utilization = 0.000002
+[22:10:12.509925] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 0: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:12.509942] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 1: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:12.509946] [WARNING] [pdc_tf_profiler.c:179] PDC_SERVER[0]: New CPU sample: Elapsed Total Time = 0.20 sec, Elapsed Progress Time = 0.20 sec, CPU Utilization = 0.000001
+[22:10:12.709932] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 0: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:12.709950] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 1: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:12.709954] [WARNING] [pdc_tf_profiler.c:179] PDC_SERVER[0]: New CPU sample: Elapsed Total Time = 0.20 sec, Elapsed Progress Time = 0.20 sec, CPU Utilization = 0.000001
+[22:10:12.909982] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 0: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:12.910672] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 1: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:12.910677] [WARNING] [pdc_tf_profiler.c:179] PDC_SERVER[0]: New CPU sample: Elapsed Total Time = 0.20 sec, Elapsed Progress Time = 0.20 sec, CPU Utilization = 0.000001
+[22:10:13.109922] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 0: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:13.109939] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 1: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:13.109943] [WARNING] [pdc_tf_profiler.c:179] PDC_SERVER[0]: New CPU sample: Elapsed Total Time = 0.20 sec, Elapsed Progress Time = 0.20 sec, CPU Utilization = 0.000001
+[22:10:13.310522] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 0: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:13.311145] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 1: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:13.311149] [WARNING] [pdc_tf_profiler.c:179] PDC_SERVER[0]: New CPU sample: Elapsed Total Time = 0.20 sec, Elapsed Progress Time = 0.20 sec, CPU Utilization = 0.000001
+[22:10:13.509921] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 0: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:13.509937] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 1: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:13.509942] [WARNING] [pdc_tf_profiler.c:179] PDC_SERVER[0]: New CPU sample: Elapsed Total Time = 0.20 sec, Elapsed Progress Time = 0.20 sec, CPU Utilization = 0.000001
+[22:10:13.710252] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 0: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:13.710529] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 1: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:13.710534] [WARNING] [pdc_tf_profiler.c:179] PDC_SERVER[0]: New CPU sample: Elapsed Total Time = 0.20 sec, Elapsed Progress Time = 0.20 sec, CPU Utilization = 0.000001
+[22:10:13.909922] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 0: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:13.909939] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 1: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:13.909943] [WARNING] [pdc_tf_profiler.c:179] PDC_SERVER[0]: New CPU sample: Elapsed Total Time = 0.20 sec, Elapsed Progress Time = 0.20 sec, CPU Utilization = 0.000002
+[22:10:14.110258] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 0: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:14.110921] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 1: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:14.110926] [WARNING] [pdc_tf_profiler.c:179] PDC_SERVER[0]: New CPU sample: Elapsed Total Time = 0.20 sec, Elapsed Progress Time = 0.20 sec, CPU Utilization = 0.000002
+[22:10:14.309934] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 0: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:14.309952] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 1: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:14.309956] [WARNING] [pdc_tf_profiler.c:179] PDC_SERVER[0]: New CPU sample: Elapsed Total Time = 0.20 sec, Elapsed Progress Time = 0.20 sec, CPU Utilization = 0.000001
+[22:10:14.509924] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 0: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:14.509943] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 1: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:14.509947] [WARNING] [pdc_tf_profiler.c:179] PDC_SERVER[0]: New CPU sample: Elapsed Total Time = 0.20 sec, Elapsed Progress Time = 0.20 sec, CPU Utilization = 0.000002
+[22:10:14.709924] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 0: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:14.709943] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 1: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:14.709947] [WARNING] [pdc_tf_profiler.c:179] PDC_SERVER[0]: New CPU sample: Elapsed Total Time = 0.20 sec, Elapsed Progress Time = 0.20 sec, CPU Utilization = 0.000001
+[22:10:14.909927] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 0: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:14.909944] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 1: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:14.909949] [WARNING] [pdc_tf_profiler.c:179] PDC_SERVER[0]: New CPU sample: Elapsed Total Time = 0.20 sec, Elapsed Progress Time = 0.20 sec, CPU Utilization = 0.000001
+[22:10:15.109920] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 0: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:15.109937] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 1: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:15.109941] [WARNING] [pdc_tf_profiler.c:179] PDC_SERVER[0]: New CPU sample: Elapsed Total Time = 0.20 sec, Elapsed Progress Time = 0.20 sec, CPU Utilization = 0.000001
+[22:10:15.309921] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 0: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:15.309938] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 1: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:15.309942] [WARNING] [pdc_tf_profiler.c:179] PDC_SERVER[0]: New CPU sample: Elapsed Total Time = 0.20 sec, Elapsed Progress Time = 0.20 sec, CPU Utilization = 0.000001
+[22:10:15.509920] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 0: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:15.509936] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 1: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:15.509941] [WARNING] [pdc_tf_profiler.c:179] PDC_SERVER[0]: New CPU sample: Elapsed Total Time = 0.20 sec, Elapsed Progress Time = 0.20 sec, CPU Utilization = 0.000001
+[22:10:15.709928] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 0: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:15.709947] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 1: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:15.709952] [WARNING] [pdc_tf_profiler.c:179] PDC_SERVER[0]: New CPU sample: Elapsed Total Time = 0.20 sec, Elapsed Progress Time = 0.20 sec, CPU Utilization = 0.000001
+[22:10:15.909923] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 0: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:15.909940] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 1: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:15.909945] [WARNING] [pdc_tf_profiler.c:179] PDC_SERVER[0]: New CPU sample: Elapsed Total Time = 0.20 sec, Elapsed Progress Time = 0.20 sec, CPU Utilization = 0.000001
+[22:10:16.109921] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 0: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:16.109938] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 1: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:16.109942] [WARNING] [pdc_tf_profiler.c:179] PDC_SERVER[0]: New CPU sample: Elapsed Total Time = 0.20 sec, Elapsed Progress Time = 0.20 sec, CPU Utilization = 0.000001
+[22:10:16.310319] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 0: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:16.310934] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 1: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:16.310940] [WARNING] [pdc_tf_profiler.c:179] PDC_SERVER[0]: New CPU sample: Elapsed Total Time = 0.20 sec, Elapsed Progress Time = 0.20 sec, CPU Utilization = 0.000002
+[22:10:16.509928] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 0: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:16.509946] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 1: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:16.509950] [WARNING] [pdc_tf_profiler.c:179] PDC_SERVER[0]: New CPU sample: Elapsed Total Time = 0.20 sec, Elapsed Progress Time = 0.20 sec, CPU Utilization = 0.000002
+[22:10:16.709923] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 0: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:16.710547] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 1: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:16.710552] [WARNING] [pdc_tf_profiler.c:179] PDC_SERVER[0]: New CPU sample: Elapsed Total Time = 0.20 sec, Elapsed Progress Time = 0.20 sec, CPU Utilization = 0.000001
+[22:10:16.909925] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 0: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:16.909942] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 1: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:16.909947] [WARNING] [pdc_tf_profiler.c:179] PDC_SERVER[0]: New CPU sample: Elapsed Total Time = 0.20 sec, Elapsed Progress Time = 0.20 sec, CPU Utilization = 0.000001
+[22:10:17.110388] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 0: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:17.111049] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 1: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:17.111054] [WARNING] [pdc_tf_profiler.c:179] PDC_SERVER[0]: New CPU sample: Elapsed Total Time = 0.20 sec, Elapsed Progress Time = 0.20 sec, CPU Utilization = 0.000001
+[22:10:17.309920] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 0: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:17.309938] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 1: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:17.309943] [WARNING] [pdc_tf_profiler.c:179] PDC_SERVER[0]: New CPU sample: Elapsed Total Time = 0.20 sec, Elapsed Progress Time = 0.20 sec, CPU Utilization = 0.000001
+[22:10:17.509960] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 0: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:17.510577] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 1: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:17.510582] [WARNING] [pdc_tf_profiler.c:179] PDC_SERVER[0]: New CPU sample: Elapsed Total Time = 0.20 sec, Elapsed Progress Time = 0.20 sec, CPU Utilization = 0.000001
+[22:10:17.709925] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 0: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:17.709941] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 1: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:17.709946] [WARNING] [pdc_tf_profiler.c:179] PDC_SERVER[0]: New CPU sample: Elapsed Total Time = 0.20 sec, Elapsed Progress Time = 0.20 sec, CPU Utilization = 0.000001
+[22:10:17.910141] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 0: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:17.910806] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 1: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:17.910810] [WARNING] [pdc_tf_profiler.c:179] PDC_SERVER[0]: New CPU sample: Elapsed Total Time = 0.20 sec, Elapsed Progress Time = 0.20 sec, CPU Utilization = 0.000001
+[22:10:18.109922] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 0: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:18.109939] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 1: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:18.109943] [WARNING] [pdc_tf_profiler.c:179] PDC_SERVER[0]: New CPU sample: Elapsed Total Time = 0.20 sec, Elapsed Progress Time = 0.20 sec, CPU Utilization = 0.000001
+[22:10:18.310115] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 0: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:18.310790] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 1: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:18.310795] [WARNING] [pdc_tf_profiler.c:179] PDC_SERVER[0]: New CPU sample: Elapsed Total Time = 0.20 sec, Elapsed Progress Time = 0.20 sec, CPU Utilization = 0.000001
+[22:10:18.509922] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 0: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:18.509939] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 1: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:18.509943] [WARNING] [pdc_tf_profiler.c:179] PDC_SERVER[0]: New CPU sample: Elapsed Total Time = 0.20 sec, Elapsed Progress Time = 0.20 sec, CPU Utilization = 0.000001
+[22:10:18.710405] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 0: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:18.711045] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 1: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:18.711049] [WARNING] [pdc_tf_profiler.c:179] PDC_SERVER[0]: New CPU sample: Elapsed Total Time = 0.20 sec, Elapsed Progress Time = 0.20 sec, CPU Utilization = 0.000001
+[22:10:18.909926] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 0: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:18.909944] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 1: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:18.909949] [WARNING] [pdc_tf_profiler.c:179] PDC_SERVER[0]: New CPU sample: Elapsed Total Time = 0.20 sec, Elapsed Progress Time = 0.20 sec, CPU Utilization = 0.000002
+[22:10:19.109996] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 0: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:19.110661] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 1: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:19.110666] [WARNING] [pdc_tf_profiler.c:179] PDC_SERVER[0]: New CPU sample: Elapsed Total Time = 0.20 sec, Elapsed Progress Time = 0.20 sec, CPU Utilization = 0.000002
+[22:10:19.309920] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 0: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:19.309936] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 1: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:19.309941] [WARNING] [pdc_tf_profiler.c:179] PDC_SERVER[0]: New CPU sample: Elapsed Total Time = 0.20 sec, Elapsed Progress Time = 0.20 sec, CPU Utilization = 0.000001
+[22:10:19.509920] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 0: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:19.509937] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 1: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:19.509941] [WARNING] [pdc_tf_profiler.c:179] PDC_SERVER[0]: New CPU sample: Elapsed Total Time = 0.20 sec, Elapsed Progress Time = 0.20 sec, CPU Utilization = 0.000001
+[22:10:19.709922] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 0: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:19.709940] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 1: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:19.709944] [WARNING] [pdc_tf_profiler.c:179] PDC_SERVER[0]: New CPU sample: Elapsed Total Time = 0.20 sec, Elapsed Progress Time = 0.20 sec, CPU Utilization = 0.000001
+[22:10:19.909923] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 0: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:19.909940] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 1: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:19.909944] [WARNING] [pdc_tf_profiler.c:179] PDC_SERVER[0]: New CPU sample: Elapsed Total Time = 0.20 sec, Elapsed Progress Time = 0.20 sec, CPU Utilization = 0.000001
+[22:10:20.109930] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 0: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:20.109948] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 1: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:20.109953] [WARNING] [pdc_tf_profiler.c:179] PDC_SERVER[0]: New CPU sample: Elapsed Total Time = 0.20 sec, Elapsed Progress Time = 0.20 sec, CPU Utilization = 0.000001
+[22:10:20.309920] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 0: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:20.309937] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 1: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:20.309942] [WARNING] [pdc_tf_profiler.c:179] PDC_SERVER[0]: New CPU sample: Elapsed Total Time = 0.20 sec, Elapsed Progress Time = 0.20 sec, CPU Utilization = 0.000001
+[22:10:20.509922] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 0: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:20.509939] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 1: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:20.509943] [WARNING] [pdc_tf_profiler.c:179] PDC_SERVER[0]: New CPU sample: Elapsed Total Time = 0.20 sec, Elapsed Progress Time = 0.20 sec, CPU Utilization = 0.000001
+[22:10:20.709921] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 0: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:20.709937] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 1: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:20.709942] [WARNING] [pdc_tf_profiler.c:179] PDC_SERVER[0]: New CPU sample: Elapsed Total Time = 0.20 sec, Elapsed Progress Time = 0.20 sec, CPU Utilization = 0.000001
+[22:10:20.909920] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 0: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:20.909937] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 1: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:20.909942] [WARNING] [pdc_tf_profiler.c:179] PDC_SERVER[0]: New CPU sample: Elapsed Total Time = 0.20 sec, Elapsed Progress Time = 0.20 sec, CPU Utilization = 0.000001
+[22:10:21.109922] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 0: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:21.109939] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 1: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:21.109943] [WARNING] [pdc_tf_profiler.c:179] PDC_SERVER[0]: New CPU sample: Elapsed Total Time = 0.20 sec, Elapsed Progress Time = 0.20 sec, CPU Utilization = 0.000001
+[22:10:21.310539] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 0: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:21.311156] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 1: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:21.311161] [WARNING] [pdc_tf_profiler.c:179] PDC_SERVER[0]: New CPU sample: Elapsed Total Time = 0.20 sec, Elapsed Progress Time = 0.20 sec, CPU Utilization = 0.000003
+[22:10:21.509920] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 0: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:21.509936] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 1: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:21.509940] [WARNING] [pdc_tf_profiler.c:179] PDC_SERVER[0]: New CPU sample: Elapsed Total Time = 0.20 sec, Elapsed Progress Time = 0.20 sec, CPU Utilization = 0.000002
+[22:10:21.709978] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 0: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:21.710595] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 1: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:21.710600] [WARNING] [pdc_tf_profiler.c:179] PDC_SERVER[0]: New CPU sample: Elapsed Total Time = 0.20 sec, Elapsed Progress Time = 0.20 sec, CPU Utilization = 0.000001
+[22:10:21.909922] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 0: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:21.909938] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 1: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:21.909943] [WARNING] [pdc_tf_profiler.c:179] PDC_SERVER[0]: New CPU sample: Elapsed Total Time = 0.20 sec, Elapsed Progress Time = 0.20 sec, CPU Utilization = 0.000001
+[22:10:22.110322] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 0: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:22.110992] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 1: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:22.110997] [WARNING] [pdc_tf_profiler.c:179] PDC_SERVER[0]: New CPU sample: Elapsed Total Time = 0.20 sec, Elapsed Progress Time = 0.20 sec, CPU Utilization = 0.000001
+[22:10:22.309919] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 0: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:22.309936] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 1: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:22.309940] [WARNING] [pdc_tf_profiler.c:179] PDC_SERVER[0]: New CPU sample: Elapsed Total Time = 0.20 sec, Elapsed Progress Time = 0.20 sec, CPU Utilization = 0.000001
+[22:10:22.510142] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 0: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:22.510780] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 1: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:22.510785] [WARNING] [pdc_tf_profiler.c:179] PDC_SERVER[0]: New CPU sample: Elapsed Total Time = 0.20 sec, Elapsed Progress Time = 0.20 sec, CPU Utilization = 0.000001
+[22:10:22.709932] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 0: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:22.709948] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 1: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:22.709952] [WARNING] [pdc_tf_profiler.c:179] PDC_SERVER[0]: New CPU sample: Elapsed Total Time = 0.20 sec, Elapsed Progress Time = 0.20 sec, CPU Utilization = 0.000001
+[22:10:22.910069] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 0: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:22.910087] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 1: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:22.910091] [WARNING] [pdc_tf_profiler.c:179] PDC_SERVER[0]: New CPU sample: Elapsed Total Time = 0.20 sec, Elapsed Progress Time = 0.20 sec, CPU Utilization = 0.000001
+[22:10:23.109922] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 0: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:23.109939] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 1: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:23.109943] [WARNING] [pdc_tf_profiler.c:179] PDC_SERVER[0]: New CPU sample: Elapsed Total Time = 0.20 sec, Elapsed Progress Time = 0.20 sec, CPU Utilization = 0.000001
+[22:10:23.309920] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 0: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:23.309937] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 1: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:23.309942] [WARNING] [pdc_tf_profiler.c:179] PDC_SERVER[0]: New CPU sample: Elapsed Total Time = 0.20 sec, Elapsed Progress Time = 0.20 sec, CPU Utilization = 0.000001
+[22:10:23.509920] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 0: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:23.509936] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 1: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:23.509940] [WARNING] [pdc_tf_profiler.c:179] PDC_SERVER[0]: New CPU sample: Elapsed Total Time = 0.20 sec, Elapsed Progress Time = 0.20 sec, CPU Utilization = 0.000001
+[22:10:23.709921] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 0: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:23.709937] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 1: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:23.709942] [WARNING] [pdc_tf_profiler.c:179] PDC_SERVER[0]: New CPU sample: Elapsed Total Time = 0.20 sec, Elapsed Progress Time = 0.20 sec, CPU Utilization = 0.000001
+[22:10:23.909926] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 0: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:23.909945] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 1: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:23.909949] [WARNING] [pdc_tf_profiler.c:179] PDC_SERVER[0]: New CPU sample: Elapsed Total Time = 0.20 sec, Elapsed Progress Time = 0.20 sec, CPU Utilization = 0.000002
+[22:10:24.109920] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 0: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:24.109936] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 1: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:24.109940] [WARNING] [pdc_tf_profiler.c:179] PDC_SERVER[0]: New CPU sample: Elapsed Total Time = 0.20 sec, Elapsed Progress Time = 0.20 sec, CPU Utilization = 0.000001
+[22:10:24.309922] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 0: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:24.309938] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 1: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:24.309942] [WARNING] [pdc_tf_profiler.c:179] PDC_SERVER[0]: New CPU sample: Elapsed Total Time = 0.20 sec, Elapsed Progress Time = 0.20 sec, CPU Utilization = 0.000001
+[22:10:24.509921] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 0: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:24.509938] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 1: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:24.509943] [WARNING] [pdc_tf_profiler.c:179] PDC_SERVER[0]: New CPU sample: Elapsed Total Time = 0.20 sec, Elapsed Progress Time = 0.20 sec, CPU Utilization = 0.000001
+[22:10:24.709920] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 0: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:24.709937] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 1: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:24.709941] [WARNING] [pdc_tf_profiler.c:179] PDC_SERVER[0]: New CPU sample: Elapsed Total Time = 0.20 sec, Elapsed Progress Time = 0.20 sec, CPU Utilization = 0.000001
+[22:10:24.909920] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 0: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:24.909937] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 1: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:24.909941] [WARNING] [pdc_tf_profiler.c:179] PDC_SERVER[0]: New CPU sample: Elapsed Total Time = 0.20 sec, Elapsed Progress Time = 0.20 sec, CPU Utilization = 0.000001
+[22:10:25.110174] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 0: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:25.110988] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 1: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:25.110993] [WARNING] [pdc_tf_profiler.c:179] PDC_SERVER[0]: New CPU sample: Elapsed Total Time = 0.20 sec, Elapsed Progress Time = 0.20 sec, CPU Utilization = 0.000001
+[22:10:25.309920] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 0: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:25.309937] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 1: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:25.309941] [WARNING] [pdc_tf_profiler.c:179] PDC_SERVER[0]: New CPU sample: Elapsed Total Time = 0.20 sec, Elapsed Progress Time = 0.20 sec, CPU Utilization = 0.000001
+[22:10:25.510243] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 0: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:25.510916] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 1: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:25.510922] [WARNING] [pdc_tf_profiler.c:179] PDC_SERVER[0]: New CPU sample: Elapsed Total Time = 0.20 sec, Elapsed Progress Time = 0.20 sec, CPU Utilization = 0.000001
+[22:10:25.709934] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 0: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:25.709952] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 1: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:25.709957] [WARNING] [pdc_tf_profiler.c:179] PDC_SERVER[0]: New CPU sample: Elapsed Total Time = 0.20 sec, Elapsed Progress Time = 0.20 sec, CPU Utilization = 0.000001
+[22:10:25.910144] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 0: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:25.910740] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 1: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:25.910746] [WARNING] [pdc_tf_profiler.c:179] PDC_SERVER[0]: New CPU sample: Elapsed Total Time = 0.20 sec, Elapsed Progress Time = 0.20 sec, CPU Utilization = 0.000001
+[22:10:26.109923] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 0: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:26.109942] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 1: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:26.109946] [WARNING] [pdc_tf_profiler.c:179] PDC_SERVER[0]: New CPU sample: Elapsed Total Time = 0.20 sec, Elapsed Progress Time = 0.20 sec, CPU Utilization = 0.000001
+[22:10:26.310118] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 0: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:26.310135] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 1: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:26.310139] [WARNING] [pdc_tf_profiler.c:179] PDC_SERVER[0]: New CPU sample: Elapsed Total Time = 0.20 sec, Elapsed Progress Time = 0.20 sec, CPU Utilization = 0.000001
+[22:10:26.509922] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 0: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:26.509940] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 1: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:26.509944] [WARNING] [pdc_tf_profiler.c:179] PDC_SERVER[0]: New CPU sample: Elapsed Total Time = 0.20 sec, Elapsed Progress Time = 0.20 sec, CPU Utilization = 0.000001
+[22:10:26.709928] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 0: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:26.709946] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 1: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:26.709951] [WARNING] [pdc_tf_profiler.c:179] PDC_SERVER[0]: New CPU sample: Elapsed Total Time = 0.20 sec, Elapsed Progress Time = 0.20 sec, CPU Utilization = 0.000001
+[22:10:26.909923] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 0: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:26.909940] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 1: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:26.909945] [WARNING] [pdc_tf_profiler.c:179] PDC_SERVER[0]: New CPU sample: Elapsed Total Time = 0.20 sec, Elapsed Progress Time = 0.20 sec, CPU Utilization = 0.000001
+[22:10:27.109924] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 0: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:27.109943] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 1: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:27.109948] [WARNING] [pdc_tf_profiler.c:179] PDC_SERVER[0]: New CPU sample: Elapsed Total Time = 0.20 sec, Elapsed Progress Time = 0.20 sec, CPU Utilization = 0.000001
+[22:10:27.310746] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 0: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:27.310763] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 1: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:27.310767] [WARNING] [pdc_tf_profiler.c:179] PDC_SERVER[0]: New CPU sample: Elapsed Total Time = 0.20 sec, Elapsed Progress Time = 0.20 sec, CPU Utilization = 0.000001
+[22:10:27.510781] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 0: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:27.510797] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 1: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:27.510801] [WARNING] [pdc_tf_profiler.c:179] PDC_SERVER[0]: New CPU sample: Elapsed Total Time = 0.20 sec, Elapsed Progress Time = 0.20 sec, CPU Utilization = 0.000001
+[22:10:27.709977] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 0: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:27.710008] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 1: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:27.710014] [WARNING] [pdc_tf_profiler.c:179] PDC_SERVER[0]: New CPU sample: Elapsed Total Time = 0.20 sec, Elapsed Progress Time = 0.20 sec, CPU Utilization = 0.000001
+[22:10:27.909997] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 0: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:27.910148] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 1: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:27.910196] [WARNING] [pdc_tf_profiler.c:179] PDC_SERVER[0]: New CPU sample: Elapsed Total Time = 0.20 sec, Elapsed Progress Time = 0.20 sec, CPU Utilization = 0.000005
+[22:10:28.110163] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 0: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:28.110258] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 1: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:28.110307] [WARNING] [pdc_tf_profiler.c:179] PDC_SERVER[0]: New CPU sample: Elapsed Total Time = 0.20 sec, Elapsed Progress Time = 0.20 sec, CPU Utilization = 0.000007
+[22:10:28.310608] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 0: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:28.312698] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 1: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:28.312756] [WARNING] [pdc_tf_profiler.c:179] PDC_SERVER[0]: New CPU sample: Elapsed Total Time = 0.20 sec, Elapsed Progress Time = 0.20 sec, CPU Utilization = 0.000003
+[22:10:28.509957] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 0: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:28.509992] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 1: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:28.510000] [WARNING] [pdc_tf_profiler.c:179] PDC_SERVER[0]: New CPU sample: Elapsed Total Time = 0.20 sec, Elapsed Progress Time = 0.20 sec, CPU Utilization = 0.000003
+[22:10:28.709942] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 0: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:28.710027] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 1: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:28.710076] [WARNING] [pdc_tf_profiler.c:179] PDC_SERVER[0]: New CPU sample: Elapsed Total Time = 0.20 sec, Elapsed Progress Time = 0.20 sec, CPU Utilization = 0.000003
+[22:10:28.909938] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 0: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:28.910024] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 1: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:28.910072] [WARNING] [pdc_tf_profiler.c:179] PDC_SERVER[0]: New CPU sample: Elapsed Total Time = 0.20 sec, Elapsed Progress Time = 0.20 sec, CPU Utilization = 0.000002
+[22:10:29.110390] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 0: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:29.110491] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 1: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:29.110548] [WARNING] [pdc_tf_profiler.c:179] PDC_SERVER[0]: New CPU sample: Elapsed Total Time = 0.20 sec, Elapsed Progress Time = 0.20 sec, CPU Utilization = 0.000002
+[22:10:29.311313] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 0: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:29.312111] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 1: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:29.312120] [WARNING] [pdc_tf_profiler.c:179] PDC_SERVER[0]: New CPU sample: Elapsed Total Time = 0.20 sec, Elapsed Progress Time = 0.20 sec, CPU Utilization = 0.000003
+[22:10:29.509945] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 0: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:29.509974] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 1: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:29.509980] [WARNING] [pdc_tf_profiler.c:179] PDC_SERVER[0]: New CPU sample: Elapsed Total Time = 0.20 sec, Elapsed Progress Time = 0.20 sec, CPU Utilization = 0.000012
+[22:10:29.713043] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 0: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:29.721313] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 1: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:29.721322] [WARNING] [pdc_tf_profiler.c:179] PDC_SERVER[0]: New CPU sample: Elapsed Total Time = 0.20 sec, Elapsed Progress Time = 0.20 sec, CPU Utilization = 0.000004
+[22:10:29.922589] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 0: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:29.933297] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 1: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:29.933307] [WARNING] [pdc_tf_profiler.c:179] PDC_SERVER[0]: New CPU sample: Elapsed Total Time = 0.20 sec, Elapsed Progress Time = 0.20 sec, CPU Utilization = 0.000004
+[22:10:30.133826] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 0: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:30.140553] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 1: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:30.140561] [WARNING] [pdc_tf_profiler.c:179] PDC_SERVER[0]: New CPU sample: Elapsed Total Time = 0.20 sec, Elapsed Progress Time = 0.20 sec, CPU Utilization = 0.000005
+[22:10:30.340944] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 0: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:30.351337] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 1: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:30.351344] [WARNING] [pdc_tf_profiler.c:179] PDC_SERVER[0]: New CPU sample: Elapsed Total Time = 0.20 sec, Elapsed Progress Time = 0.20 sec, CPU Utilization = 0.000003
+[22:10:30.552755] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 0: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:30.558733] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 1: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:30.558740] [WARNING] [pdc_tf_profiler.c:179] PDC_SERVER[0]: New CPU sample: Elapsed Total Time = 0.20 sec, Elapsed Progress Time = 0.20 sec, CPU Utilization = 0.000003
+[22:10:30.769915] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 0: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:30.776481] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 1: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:30.776491] [WARNING] [pdc_tf_profiler.c:179] PDC_SERVER[0]: New CPU sample: Elapsed Total Time = 0.20 sec, Elapsed Progress Time = 0.20 sec, CPU Utilization = 0.000003
+[22:10:30.883935] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 0: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:30.889030] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 1: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:30.889039] [WARNING] [pdc_tf_profiler.c:179] PDC_SERVER[0]: New CPU sample: Elapsed Total Time = 0.10 sec, Elapsed Progress Time = 0.10 sec, CPU Utilization = 0.000005
+[22:10:30.890406] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 0: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:30.891323] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 1: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:30.891329] [WARNING] [pdc_tf_profiler.c:179] PDC_SERVER[0]: New CPU sample: Elapsed Total Time = 0.00 sec, Elapsed Progress Time = 0.00 sec, CPU Utilization = 0.958901
+[22:10:30.957532] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 0: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:30.957593] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 1: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:30.957598] [WARNING] [pdc_tf_profiler.c:179] PDC_SERVER[0]: New CPU sample: Elapsed Total Time = 0.07 sec, Elapsed Progress Time = 0.07 sec, CPU Utilization = 0.000906
+[22:10:30.957651] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 0: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:30.958115] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 1: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:30.958121] [WARNING] [pdc_tf_profiler.c:179] PDC_SERVER[0]: New CPU sample: Elapsed Total Time = 0.00 sec, Elapsed Progress Time = 0.00 sec, CPU Utilization = 0.696842
+[22:10:30.965140] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 0: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:30.965997] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 1: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:30.966003] [WARNING] [pdc_tf_profiler.c:179] PDC_SERVER[0]: New CPU sample: Elapsed Total Time = 0.01 sec, Elapsed Progress Time = 0.01 sec, CPU Utilization = 0.001150
+[22:10:30.966036] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 0: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:30.967209] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 1: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:30.967215] [WARNING] [pdc_tf_profiler.c:179] PDC_SERVER[0]: New CPU sample: Elapsed Total Time = 0.00 sec, Elapsed Progress Time = 0.00 sec, CPU Utilization = 0.616796
+[22:10:30.971291] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 0: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:30.971339] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 1: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:30.971344] [WARNING] [pdc_tf_profiler.c:179] PDC_SERVER[0]: New CPU sample: Elapsed Total Time = 0.00 sec, Elapsed Progress Time = 0.00 sec, CPU Utilization = 0.001288
+[22:10:30.971926] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 0: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:30.971958] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 1: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:30.971963] [WARNING] [pdc_tf_profiler.c:179] PDC_SERVER[0]: New CPU sample: Elapsed Total Time = 0.00 sec, Elapsed Progress Time = 0.00 sec, CPU Utilization = 0.552262
+[22:10:30.986307] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 0: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:30.986662] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 1: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:30.986668] [WARNING] [pdc_tf_profiler.c:179] PDC_SERVER[0]: New CPU sample: Elapsed Total Time = 0.01 sec, Elapsed Progress Time = 0.01 sec, CPU Utilization = 0.000256
+[22:10:30.987858] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 0: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:30.987901] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 1: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:30.987918] [WARNING] [pdc_tf_profiler.c:179] PDC_SERVER[0]: New CPU sample: Elapsed Total Time = 0.00 sec, Elapsed Progress Time = 0.00 sec, CPU Utilization = 0.654103
+[22:10:30.999177] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 0: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:31.000371] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 1: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:31.000377] [WARNING] [pdc_tf_profiler.c:179] PDC_SERVER[0]: New CPU sample: Elapsed Total Time = 0.01 sec, Elapsed Progress Time = 0.01 sec, CPU Utilization = 0.000477
+[22:10:31.000741] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 0: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:31.001426] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 1: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:31.001432] [WARNING] [pdc_tf_profiler.c:179] PDC_SERVER[0]: New CPU sample: Elapsed Total Time = 0.00 sec, Elapsed Progress Time = 0.00 sec, CPU Utilization = 0.463736
+[22:10:31.006741] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 0: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:31.006987] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 1: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:31.006993] [WARNING] [pdc_tf_profiler.c:179] PDC_SERVER[0]: New CPU sample: Elapsed Total Time = 0.00 sec, Elapsed Progress Time = 0.00 sec, CPU Utilization = 0.000961
+[22:10:31.007036] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 0: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:31.007064] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 1: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:31.007069] [WARNING] [pdc_tf_profiler.c:179] PDC_SERVER[0]: New CPU sample: Elapsed Total Time = 0.00 sec, Elapsed Progress Time = 0.00 sec, CPU Utilization = 0.449890
+[22:10:31.019592] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 0: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:31.020368] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 1: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:31.020373] [WARNING] [pdc_tf_profiler.c:179] PDC_SERVER[0]: New CPU sample: Elapsed Total Time = 0.01 sec, Elapsed Progress Time = 0.01 sec, CPU Utilization = 0.000332
+[22:10:31.020404] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 0: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:31.020645] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 1: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:31.020651] [WARNING] [pdc_tf_profiler.c:179] PDC_SERVER[0]: New CPU sample: Elapsed Total Time = 0.00 sec, Elapsed Progress Time = 0.00 sec, CPU Utilization = 0.441993
+[22:10:31.036464] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 0: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:31.036484] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 1: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:31.036489] [WARNING] [pdc_tf_profiler.c:179] PDC_SERVER[0]: New CPU sample: Elapsed Total Time = 0.02 sec, Elapsed Progress Time = 0.02 sec, CPU Utilization = 0.000218
+[22:10:31.036688] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 0: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:31.037020] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 1: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:31.037025] [WARNING] [pdc_tf_profiler.c:179] PDC_SERVER[0]: New CPU sample: Elapsed Total Time = 0.00 sec, Elapsed Progress Time = 0.00 sec, CPU Utilization = 0.636576
+[22:10:31.044425] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 0: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:31.045055] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 1: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:31.045063] [WARNING] [pdc_tf_profiler.c:179] PDC_SERVER[0]: New CPU sample: Elapsed Total Time = 0.01 sec, Elapsed Progress Time = 0.01 sec, CPU Utilization = 0.001026
+[22:10:31.045188] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 0: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:31.045206] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 1: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:31.045210] [WARNING] [pdc_tf_profiler.c:179] PDC_SERVER[0]: New CPU sample: Elapsed Total Time = 0.00 sec, Elapsed Progress Time = 0.00 sec, CPU Utilization = 0.434030
+[22:10:31.052875] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 0: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:31.052900] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 1: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:31.052906] [WARNING] [pdc_tf_profiler.c:179] PDC_SERVER[0]: New CPU sample: Elapsed Total Time = 0.01 sec, Elapsed Progress Time = 0.01 sec, CPU Utilization = 0.000466
+[22:10:31.053137] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 0: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:31.053549] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 1: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:31.053556] [WARNING] [pdc_tf_profiler.c:179] PDC_SERVER[0]: New CPU sample: Elapsed Total Time = 0.00 sec, Elapsed Progress Time = 0.00 sec, CPU Utilization = 0.524833
+[22:10:31.070708] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 0: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:31.070768] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 1: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:31.070777] [WARNING] [pdc_tf_profiler.c:179] PDC_SERVER[0]: New CPU sample: Elapsed Total Time = 0.02 sec, Elapsed Progress Time = 0.02 sec, CPU Utilization = 0.000276
+[22:10:31.071185] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 0: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:31.072344] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 1: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:31.072351] [WARNING] [pdc_tf_profiler.c:179] PDC_SERVER[0]: New CPU sample: Elapsed Total Time = 0.00 sec, Elapsed Progress Time = 0.00 sec, CPU Utilization = 0.699800
+[22:10:31.076958] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 0: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:31.077316] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 1: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:31.077326] [WARNING] [pdc_tf_profiler.c:179] PDC_SERVER[0]: New CPU sample: Elapsed Total Time = 0.00 sec, Elapsed Progress Time = 0.00 sec, CPU Utilization = 0.001818
+[22:10:31.077372] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 0: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:31.077448] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 1: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:31.077458] [WARNING] [pdc_tf_profiler.c:179] PDC_SERVER[0]: New CPU sample: Elapsed Total Time = 0.00 sec, Elapsed Progress Time = 0.00 sec, CPU Utilization = 0.739690
+[22:10:31.095656] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 0: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:31.095855] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 1: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:31.095864] [WARNING] [pdc_tf_profiler.c:179] PDC_SERVER[0]: New CPU sample: Elapsed Total Time = 0.02 sec, Elapsed Progress Time = 0.02 sec, CPU Utilization = 0.000401
+[22:10:31.096211] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 0: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:31.096267] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 1: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:31.096275] [WARNING] [pdc_tf_profiler.c:179] PDC_SERVER[0]: New CPU sample: Elapsed Total Time = 0.00 sec, Elapsed Progress Time = 0.00 sec, CPU Utilization = 0.605359
+[22:10:31.115688] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 0: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:31.116458] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 1: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:31.116467] [WARNING] [pdc_tf_profiler.c:179] PDC_SERVER[0]: New CPU sample: Elapsed Total Time = 0.02 sec, Elapsed Progress Time = 0.02 sec, CPU Utilization = 0.000372
+[22:10:31.116603] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 0: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:31.116843] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 1: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:31.116850] [WARNING] [pdc_tf_profiler.c:179] PDC_SERVER[0]: New CPU sample: Elapsed Total Time = 0.00 sec, Elapsed Progress Time = 0.00 sec, CPU Utilization = 0.526440
+[22:10:31.133001] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 0: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:31.133029] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 1: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:31.133036] [WARNING] [pdc_tf_profiler.c:179] PDC_SERVER[0]: New CPU sample: Elapsed Total Time = 0.02 sec, Elapsed Progress Time = 0.02 sec, CPU Utilization = 0.000330
+[22:10:31.133462] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 0: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:31.133889] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 1: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:31.133897] [WARNING] [pdc_tf_profiler.c:179] PDC_SERVER[0]: New CPU sample: Elapsed Total Time = 0.00 sec, Elapsed Progress Time = 0.00 sec, CPU Utilization = 0.699501
+[22:10:31.142529] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 0: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:31.143521] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 1: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:31.143529] [WARNING] [pdc_tf_profiler.c:179] PDC_SERVER[0]: New CPU sample: Elapsed Total Time = 0.01 sec, Elapsed Progress Time = 0.01 sec, CPU Utilization = 0.000764
+[22:10:31.143642] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 0: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:31.143895] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 1: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:31.143903] [WARNING] [pdc_tf_profiler.c:179] PDC_SERVER[0]: New CPU sample: Elapsed Total Time = 0.00 sec, Elapsed Progress Time = 0.00 sec, CPU Utilization = 0.505741
+[22:10:31.148072] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 0: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:31.148265] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 1: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:31.148274] [WARNING] [pdc_tf_profiler.c:179] PDC_SERVER[0]: New CPU sample: Elapsed Total Time = 0.00 sec, Elapsed Progress Time = 0.00 sec, CPU Utilization = 0.002912
+[22:10:31.148307] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 0: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:31.148328] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 1: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:31.148334] [WARNING] [pdc_tf_profiler.c:179] PDC_SERVER[0]: New CPU sample: Elapsed Total Time = 0.00 sec, Elapsed Progress Time = 0.00 sec, CPU Utilization = 0.495745
+[22:10:31.153575] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 0: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:31.153598] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 1: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:31.153605] [WARNING] [pdc_tf_profiler.c:179] PDC_SERVER[0]: New CPU sample: Elapsed Total Time = 0.01 sec, Elapsed Progress Time = 0.01 sec, CPU Utilization = 0.000924
+[22:10:31.153634] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 0: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:31.153655] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 1: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:31.153662] [WARNING] [pdc_tf_profiler.c:179] PDC_SERVER[0]: New CPU sample: Elapsed Total Time = 0.00 sec, Elapsed Progress Time = 0.00 sec, CPU Utilization = 0.421503
+[22:10:31.160000] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 0: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:31.160023] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 1: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:31.160030] [WARNING] [pdc_tf_profiler.c:179] PDC_SERVER[0]: New CPU sample: Elapsed Total Time = 0.01 sec, Elapsed Progress Time = 0.01 sec, CPU Utilization = 0.000595
+[22:10:31.160064] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 0: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:31.160085] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 1: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:31.160092] [WARNING] [pdc_tf_profiler.c:179] PDC_SERVER[0]: New CPU sample: Elapsed Total Time = 0.00 sec, Elapsed Progress Time = 0.00 sec, CPU Utilization = 0.664950
+[22:10:31.160195] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 0: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:31.160216] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 1: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:31.160223] [WARNING] [pdc_tf_profiler.c:179] PDC_SERVER[0]: New CPU sample: Elapsed Total Time = 0.00 sec, Elapsed Progress Time = 0.00 sec, CPU Utilization = 0.049292
+[22:10:31.160251] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 0: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:31.160271] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 1: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:31.160278] [WARNING] [pdc_tf_profiler.c:179] PDC_SERVER[0]: New CPU sample: Elapsed Total Time = 0.00 sec, Elapsed Progress Time = 0.00 sec, CPU Utilization = 0.357211
+[22:10:31.169565] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 0: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:31.169641] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 1: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:31.169650] [WARNING] [pdc_tf_profiler.c:179] PDC_SERVER[0]: New CPU sample: Elapsed Total Time = 0.01 sec, Elapsed Progress Time = 0.01 sec, CPU Utilization = 0.000698
+[22:10:31.169683] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 0: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:31.169704] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 1: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:31.169711] [WARNING] [pdc_tf_profiler.c:179] PDC_SERVER[0]: New CPU sample: Elapsed Total Time = 0.00 sec, Elapsed Progress Time = 0.00 sec, CPU Utilization = 0.525009
+[22:10:31.187495] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 0: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:31.187519] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 1: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:31.187527] [WARNING] [pdc_tf_profiler.c:179] PDC_SERVER[0]: New CPU sample: Elapsed Total Time = 0.02 sec, Elapsed Progress Time = 0.02 sec, CPU Utilization = 0.000261
+[22:10:31.187557] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 0: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:31.187580] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 1: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:31.187587] [WARNING] [pdc_tf_profiler.c:179] PDC_SERVER[0]: New CPU sample: Elapsed Total Time = 0.00 sec, Elapsed Progress Time = 0.00 sec, CPU Utilization = 0.505028
+[22:10:31.209687] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 0: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:31.209845] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 1: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:31.209854] [WARNING] [pdc_tf_profiler.c:179] PDC_SERVER[0]: New CPU sample: Elapsed Total Time = 0.02 sec, Elapsed Progress Time = 0.02 sec, CPU Utilization = 0.000180
+[22:10:31.210283] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 0: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:31.210331] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 1: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:31.210397] [WARNING] [pdc_tf_profiler.c:179] PDC_SERVER[0]: New CPU sample: Elapsed Total Time = 0.00 sec, Elapsed Progress Time = 0.00 sec, CPU Utilization = 0.734199
+[22:10:31.213897] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 0: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:31.214851] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 1: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:31.214899] [WARNING] [pdc_tf_profiler.c:179] PDC_SERVER[0]: New CPU sample: Elapsed Total Time = 0.00 sec, Elapsed Progress Time = 0.00 sec, CPU Utilization = 0.002260
+[22:10:31.215734] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 0: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:31.216192] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 1: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:31.216241] [WARNING] [pdc_tf_profiler.c:179] PDC_SERVER[0]: New CPU sample: Elapsed Total Time = 0.00 sec, Elapsed Progress Time = 0.00 sec, CPU Utilization = 0.536704
+[22:10:31.391544] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 0: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:31.392483] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 1: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:31.392541] [WARNING] [pdc_tf_profiler.c:179] PDC_SERVER[0]: New CPU sample: Elapsed Total Time = 0.17 sec, Elapsed Progress Time = 0.17 sec, CPU Utilization = 0.000063
+[22:10:31.399138] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 0: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:31.407576] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 1: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:31.407638] [WARNING] [pdc_tf_profiler.c:179] PDC_SERVER[0]: New CPU sample: Elapsed Total Time = 0.00 sec, Elapsed Progress Time = 0.00 sec, CPU Utilization = 0.680267
+[22:10:31.413740] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 0: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:31.415507] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 1: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:31.415556] [WARNING] [pdc_tf_profiler.c:179] PDC_SERVER[0]: New CPU sample: Elapsed Total Time = 0.00 sec, Elapsed Progress Time = 0.00 sec, CPU Utilization = 0.512453
+[22:10:31.416738] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 0: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:31.416885] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 1: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:31.416933] [WARNING] [pdc_tf_profiler.c:179] PDC_SERVER[0]: New CPU sample: Elapsed Total Time = 0.00 sec, Elapsed Progress Time = 0.00 sec, CPU Utilization = 0.910853
+[22:10:31.417093] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 0: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:31.417364] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 1: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:31.417411] [WARNING] [pdc_tf_profiler.c:179] PDC_SERVER[0]: New CPU sample: Elapsed Total Time = 0.00 sec, Elapsed Progress Time = 0.00 sec, CPU Utilization = 0.561770
+[22:10:31.417759] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 0: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:31.417914] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 1: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:31.417962] [WARNING] [pdc_tf_profiler.c:179] PDC_SERVER[0]: New CPU sample: Elapsed Total Time = 0.00 sec, Elapsed Progress Time = 0.00 sec, CPU Utilization = 0.934520
+[22:10:31.433003] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 0: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:31.433078] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 1: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:31.433119] [WARNING] [pdc_tf_profiler.c:179] PDC_SERVER[0]: New CPU sample: Elapsed Total Time = 0.01 sec, Elapsed Progress Time = 0.01 sec, CPU Utilization = 0.000220
+[22:10:31.433187] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 0: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:31.433250] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 1: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:31.433296] [WARNING] [pdc_tf_profiler.c:179] PDC_SERVER[0]: New CPU sample: Elapsed Total Time = 0.00 sec, Elapsed Progress Time = 0.00 sec, CPU Utilization = 0.524926
+[22:10:31.442345] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 0: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:31.442418] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 1: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:31.442460] [WARNING] [pdc_tf_profiler.c:179] PDC_SERVER[0]: New CPU sample: Elapsed Total Time = 0.01 sec, Elapsed Progress Time = 0.01 sec, CPU Utilization = 0.000568
+[22:10:31.442530] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 0: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:31.442593] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 1: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:31.442635] [WARNING] [pdc_tf_profiler.c:179] PDC_SERVER[0]: New CPU sample: Elapsed Total Time = 0.00 sec, Elapsed Progress Time = 0.00 sec, CPU Utilization = 0.526443
+[22:10:31.448536] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 0: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:31.448604] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 1: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:31.448651] [WARNING] [pdc_tf_profiler.c:179] PDC_SERVER[0]: New CPU sample: Elapsed Total Time = 0.01 sec, Elapsed Progress Time = 0.01 sec, CPU Utilization = 0.000861
+[22:10:31.448715] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 0: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:31.448777] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 1: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:31.448820] [WARNING] [pdc_tf_profiler.c:179] PDC_SERVER[0]: New CPU sample: Elapsed Total Time = 0.00 sec, Elapsed Progress Time = 0.00 sec, CPU Utilization = 0.480814
+[22:10:31.448890] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 0: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:31.448953] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 1: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:31.448997] [WARNING] [pdc_tf_profiler.c:179] PDC_SERVER[0]: New CPU sample: Elapsed Total Time = 0.00 sec, Elapsed Progress Time = 0.00 sec, CPU Utilization = 0.338211
+[22:10:31.449071] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 0: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:31.449135] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 1: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:31.449190] [WARNING] [pdc_tf_profiler.c:179] PDC_SERVER[0]: New CPU sample: Elapsed Total Time = 0.00 sec, Elapsed Progress Time = 0.00 sec, CPU Utilization = 0.682531
+[22:10:31.585953] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 0: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:31.586044] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 1: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:31.586093] [WARNING] [pdc_tf_profiler.c:179] PDC_SERVER[0]: New CPU sample: Elapsed Total Time = 0.14 sec, Elapsed Progress Time = 0.14 sec, CPU Utilization = 0.000110
+[22:10:31.586201] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 0: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:31.586282] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 1: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:31.586321] [WARNING] [pdc_tf_profiler.c:179] PDC_SERVER[0]: New CPU sample: Elapsed Total Time = 0.00 sec, Elapsed Progress Time = 0.00 sec, CPU Utilization = 0.934944
+[22:10:31.750217] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 0: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:31.750580] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 1: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:31.750591] [WARNING] [pdc_tf_profiler.c:179] PDC_SERVER[0]: New CPU sample: Elapsed Total Time = 0.16 sec, Elapsed Progress Time = 0.16 sec, CPU Utilization = 0.000022
+[22:10:31.750952] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 0: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:31.751314] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 1: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:31.751321] [WARNING] [pdc_tf_profiler.c:179] PDC_SERVER[0]: New CPU sample: Elapsed Total Time = 0.00 sec, Elapsed Progress Time = 0.00 sec, CPU Utilization = 0.757882
+[22:10:31.751680] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 0: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:31.752027] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 1: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:31.752034] [WARNING] [pdc_tf_profiler.c:179] PDC_SERVER[0]: New CPU sample: Elapsed Total Time = 0.00 sec, Elapsed Progress Time = 0.00 sec, CPU Utilization = 0.504249
+[22:10:31.752379] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 0: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:31.752714] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 1: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:31.752721] [WARNING] [pdc_tf_profiler.c:179] PDC_SERVER[0]: New CPU sample: Elapsed Total Time = 0.00 sec, Elapsed Progress Time = 0.00 sec, CPU Utilization = 0.732871
+[22:10:31.753071] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 0: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:31.753427] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 1: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:31.753436] [WARNING] [pdc_tf_profiler.c:179] PDC_SERVER[0]: New CPU sample: Elapsed Total Time = 0.00 sec, Elapsed Progress Time = 0.00 sec, CPU Utilization = 0.529585
+[22:10:31.753812] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 0: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:31.754185] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 1: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:31.754194] [WARNING] [pdc_tf_profiler.c:179] PDC_SERVER[0]: New CPU sample: Elapsed Total Time = 0.00 sec, Elapsed Progress Time = 0.00 sec, CPU Utilization = 0.721117
+[22:10:31.754545] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 0: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:31.754924] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 1: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:31.754932] [WARNING] [pdc_tf_profiler.c:179] PDC_SERVER[0]: New CPU sample: Elapsed Total Time = 0.00 sec, Elapsed Progress Time = 0.00 sec, CPU Utilization = 0.659886
+[22:10:31.755368] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 0: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:31.755806] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 1: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:31.755815] [WARNING] [pdc_tf_profiler.c:179] PDC_SERVER[0]: New CPU sample: Elapsed Total Time = 0.00 sec, Elapsed Progress Time = 0.00 sec, CPU Utilization = 0.715142
+[22:10:31.756157] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 0: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:31.756507] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 1: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:31.756515] [WARNING] [pdc_tf_profiler.c:179] PDC_SERVER[0]: New CPU sample: Elapsed Total Time = 0.00 sec, Elapsed Progress Time = 0.00 sec, CPU Utilization = 0.492399
+[22:10:31.756882] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 0: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:31.757246] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 1: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:31.757254] [WARNING] [pdc_tf_profiler.c:179] PDC_SERVER[0]: New CPU sample: Elapsed Total Time = 0.00 sec, Elapsed Progress Time = 0.00 sec, CPU Utilization = 0.753577
+[22:10:31.757598] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 0: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:31.757966] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 1: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:31.757974] [WARNING] [pdc_tf_profiler.c:179] PDC_SERVER[0]: New CPU sample: Elapsed Total Time = 0.00 sec, Elapsed Progress Time = 0.00 sec, CPU Utilization = 0.497046
+[22:10:31.758322] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 0: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:31.758686] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 1: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:31.758694] [WARNING] [pdc_tf_profiler.c:179] PDC_SERVER[0]: New CPU sample: Elapsed Total Time = 0.00 sec, Elapsed Progress Time = 0.00 sec, CPU Utilization = 0.719946
+[22:10:31.759054] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 0: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:31.759404] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 1: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:31.759412] [WARNING] [pdc_tf_profiler.c:179] PDC_SERVER[0]: New CPU sample: Elapsed Total Time = 0.00 sec, Elapsed Progress Time = 0.00 sec, CPU Utilization = 0.311361
+[22:10:31.759765] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 0: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:31.760158] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 1: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:31.760174] [WARNING] [pdc_tf_profiler.c:179] PDC_SERVER[0]: New CPU sample: Elapsed Total Time = 0.00 sec, Elapsed Progress Time = 0.00 sec, CPU Utilization = 0.695051
+[22:10:31.958353] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 0: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:31.958523] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 1: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:31.958549] [WARNING] [pdc_tf_profiler.c:179] PDC_SERVER[0]: New CPU sample: Elapsed Total Time = 0.20 sec, Elapsed Progress Time = 0.20 sec, CPU Utilization = 0.000069
+[22:10:31.972668] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 0: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:31.972857] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 1: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:31.972889] [WARNING] [pdc_tf_profiler.c:179] PDC_SERVER[0]: New CPU sample: Elapsed Total Time = 0.01 sec, Elapsed Progress Time = 0.01 sec, CPU Utilization = 0.000513
+[22:10:32.023113] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 0: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:32.023171] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 1: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:32.023182] [WARNING] [pdc_tf_profiler.c:179] PDC_SERVER[0]: New CPU sample: Elapsed Total Time = 0.05 sec, Elapsed Progress Time = 0.00 sec, CPU Utilization = 0.997898
+[22:10:32.903394] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 0: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:32.903437] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 1: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:32.903446] [WARNING] [pdc_tf_profiler.c:179] PDC_SERVER[0]: New CPU sample: Elapsed Total Time = 0.88 sec, Elapsed Progress Time = 0.01 sec, CPU Utilization = 0.987469
+[22:10:33.696575] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 0: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:33.696622] [WARNING] [pdc_tf_profiler.c:133] PDC_SERVER[0]: New NVML sample for device 1: GPU Utilization = 0.000000, Memory Utilization = 0.00%
+[22:10:33.696630] [WARNING] [pdc_tf_profiler.c:179] PDC_SERVER[0]: New CPU sample: Elapsed Total Time = 0.79 sec, Elapsed Progress Time = 0.01 sec, CPU Utilization = 0.981611
+[22:10:33.730702] [WARNING] [pdc_tf_server.c:202] PDC_SERVER[0]: Avg CPU utilization: 0.988992
+[22:10:33.730716] [WARNING] [pdc_tf_server.c:204] PDC_SERVER[0]: Avg GPU utilization device 0: 0.000000
+[22:10:33.730721] [WARNING] [pdc_tf_server.c:204] PDC_SERVER[0]: Avg GPU utilization device 1: 0.000000
+[22:10:33.730730] [WARNING] [pdc_tf_server.c:259] PDC_SERVER[0]: Edge 0: func=zfp_decompress, dev=GPU, last_avg_time=0.0000, expected_time=0.0000
+[22:10:33.730734] [WARNING] [pdc_tf_server.c:259] PDC_SERVER[0]: Edge 1: func=zfp_decompress, dev=CPU, last_avg_time=0.0000, expected_time=0.0000
+[22:10:33.730738] [WARNING] [pdc_tf_server.c:276] PDC_SERVER[0]: Setting device to 0 for edge 0 with func zfp_decompress
+[22:10:41.107375] [WARNING] [pdc_tf_server.c:305] PDC_SERVER[0]: Time for (GPU) transformation zfp_decompress: 0.9526 s, projected: 0.8574 s
+[22:10:41.143479] [WARNING] [pdc_tf_server.c:202] PDC_SERVER[0]: Avg CPU utilization: 0.988992
+[22:10:41.143496] [WARNING] [pdc_tf_server.c:204] PDC_SERVER[0]: Avg GPU utilization device 0: 0.000000
+[22:10:41.143501] [WARNING] [pdc_tf_server.c:204] PDC_SERVER[0]: Avg GPU utilization device 1: 0.000000
+[22:10:41.143505] [WARNING] [pdc_tf_server.c:259] PDC_SERVER[0]: Edge 0: func=zfp_decompress, dev=GPU, last_avg_time=0.1715, expected_time=0.1715
+[22:10:41.143510] [WARNING] [pdc_tf_server.c:259] PDC_SERVER[0]: Edge 1: func=zfp_decompress, dev=CPU, last_avg_time=0.0000, expected_time=0.0000

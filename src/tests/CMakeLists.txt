@@ -115,43 +115,69 @@ set(PROGRAMS
   transformation/all_compression_transform
 )
 
-# TODO: Check if import_vpic.c is needed. If yes, we have to add the following :
-# if (HDF5_FOUND) 
-#   set(TEST_EXT_LIB ${HDF5_LIBRARIES} ${TEST_EXT_LIB})
-#   set(TEST_EXT_INCLUDE_DIRS ${HDF5_INCLUDE_DIRS} ${TEST_EXT_INCLUDE_DIRS})
-# else ()
-#   message(FATAL_ERROR "Could not find HDF5, please make sure that HDF5 has been compiled with shared libraries enabled.")
-# endif()
+# Use C compiler for C files
+set(CMAKE_C_COMPILER gcc)
+set(CMAKE_CXX_COMPILER g++)  # still needed for linking C++/CUDA
 
-if(TARGET ZFP::zfp)
-    set(ZFP_LIB ZFP::zfp)
-else()
-    set(ZFP_LIB ${ZFP_LIBRARIES})
+# Path to your CUDA library
+if(DEFINED ENV{CUDA_ROOT_DIR} AND NOT "$ENV{CUDA_ROOT_DIR}" STREQUAL "")
+    set(CUDA_ROOT $ENV{CUDA_ROOT_DIR})
 endif()
+
+# Path to your existing CUDA library
+find_package(MPI REQUIRED)
+set(PI_GPU_LIB_PATH /pscratch/sd/n/nlewi26/src/work_space/source/pdc/libpi_gpu.so)
+set(PI_GPU_INCLUDE_PATH /pscratch/sd/n/nlewi26/src/work_space/source/pdc)
+
+# Create an imported library target for your CUDA library
+add_library(pi_gpu SHARED IMPORTED)
+set_target_properties(pi_gpu PROPERTIES
+    IMPORTED_LOCATION ${PI_GPU_LIB_PATH}
+    INTERFACE_INCLUDE_DIRECTORIES ${PI_GPU_INCLUDE_PATH}
+)
+
+# Link CUDA runtime from your CUDA_ROOT
+set(CUDA_RUNTIME_LIB ${CUDA_ROOT}/lib64/libcudart.so)
+target_link_libraries(pi_gpu INTERFACE ${CUDA_RUNTIME_LIB})
+set(CMAKE_C_COMPILER mpicc)
+set(CMAKE_CXX_COMPILER mpicxx)
+
+# Iterate through your programs
 foreach(program ${PROGRAMS})
-  get_filename_component(program_name ${program} NAME)
-  get_filename_component(program_dir ${program} DIRECTORY)
+    get_filename_component(program_name ${program} NAME)
+    get_filename_component(program_dir ${program} DIRECTORY)
+    set(SOURCE_FILE "${CMAKE_CURRENT_SOURCE_DIR}/${program}.c")
 
-  set(SOURCE_FILE "${CMAKE_CURRENT_SOURCE_DIR}/${program}.c")
+    if(EXISTS ${SOURCE_FILE})
+        add_executable(${program_name} ${SOURCE_FILE})
+        
+        # Use C linker for pure C source files
+        set_target_properties(${program_name} PROPERTIES LINKER_LANGUAGE C)
+        
+        # Include directories
+        target_include_directories(${program_name} PRIVATE 
+            ${CMAKE_SOURCE_DIR}/include
+            ${CMAKE_SOURCE_DIR}/src/tests/include
+            ${PI_GPU_INCLUDE_PATH}
+            ${MPI_C_INCLUDE_PATH}
+        )
 
-  if(EXISTS ${SOURCE_FILE})
-    add_executable(${program_name} ${SOURCE_FILE})
-    target_include_directories(${program_name} PRIVATE 
-      ${CMAKE_SOURCE_DIR}/include 
-      ${CMAKE_SOURCE_DIR}/src/tests/include
-    )
-    target_link_libraries(${program_name} pdc pdc_commons ${TEST_EXT_LIB})
-
-    target_link_libraries(${program_name}
+        # Link libraries
+        target_link_libraries(${program_name}
+            pi_gpu
+            pdc
+            pdc_commons
+            ${TEST_EXT_LIB}
             ${MERCURY_LIBRARY}
             ${PDC_COMMONS_LIBRARIES}
             -lm -ldl
             ${PDC_EXT_LIB_DEPENDENCIES}
-            ${ZFP_LIB}
-    )
-  else()
-    message(WARNING "Source file ${SOURCE_FILE} not found, skipping ${program_name}.")
-  endif()
+            ${ZFP_LIB} 
+            ${MPI_C_LIBRARIES}
+        )
+    else()
+        message(WARNING "Source file ${SOURCE_FILE} not found, skipping ${program_name}.")
+    endif()
 endforeach()
 
 if(BUILD_MPI_TESTING)

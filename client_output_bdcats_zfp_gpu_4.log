@@ -1,0 +1,165 @@
+[12:50:00.787389] [WARNING] [bdcats.c:94] PDC_CLIENT[0]: Reading 8388608 particles per rank for 5 steps with 40 sec sleep time.
+SMs: 108
+Clock: 1410000000 Hz
+Target cycles: 56400000000  (~40 s)
+Saturation blocks: 864  (8 per SM)
+BBP blocks: 391
+
+--- Launching kernels ---
+Saturator launch error: no error
+BBP kernel finished. Saturation still running...
+
+=== Results ===
+Pi hex digits (first 80): 
+
+=== Timing ===
+Saturator:   40041.016 ms  (40.041 s)
+BBP kernel:  11299.222 ms
+Target was:  40.000 s
+[12:50:52.455796] [WARNING] [bdcats.c:140] PDC_CLIENT[0]: 
+#Step  0
+[12:50:52.459118] [WARNING] [bdcats.c:160] PDC_CLIENT[0]: Obj open time: 3.29448e-03
+[12:50:52.459156] [WARNING] [bdcats.c:176] PDC_CLIENT[0]: Transfer create time: 3.88750e-05
+[12:50:52.539279] [WARNING] [bdcats.c:192] PDC_CLIENT[0]: Transfer start time: 8.01212e-02
+[12:50:52.539310] [WARNING] [bdcats.c:197] PDC_CLIENT[0]: Sleep start: 40.00
+[12:50:52.539316] [WARNING] [bdcats.c:201] PDC_CLIENT[0]: 
+=== Iteration 1 ===
+SMs: 108
+Clock: 1410000000 Hz
+Target cycles: 56400000000  (~40 s)
+Saturation blocks: 864  (8 per SM)
+BBP blocks: 391
+
+--- Launching kernels ---
+Saturator launch error: no error
+BBP kernel finished. Saturation still running...
+
+=== Results ===
+Pi hex digits (first 80): 
+
+=== Timing ===
+Saturator:   40037.199 ms  (40.037 s)
+BBP kernel:  11299.023 ms
+Target was:  40.000 s
+[12:51:43.923246] [WARNING] [bdcats.c:208] PDC_CLIENT[0]: 
+Total time for 1 iterations: 51.383924 s
+[12:51:43.923272] [WARNING] [bdcats.c:211] PDC_CLIENT[0]: Sleep end: 40.00
+[12:51:44.083235] [WARNING] [bdcats.c:227] PDC_CLIENT[0]: Transfer wait time: 1.59950e-01
+[12:51:44.160323] [WARNING] [bdcats.c:241] PDC_CLIENT[0]: Transfer close time: 7.70913e-02
+[12:51:44.160348] [WARNING] [bdcats.c:255] PDC_CLIENT[0]: Obj close time: 2.54590e-05
+[12:51:44.160356] [WARNING] [bdcats.c:140] PDC_CLIENT[0]: 
+#Step  1
+[12:51:44.161427] [WARNING] [bdcats.c:160] PDC_CLIENT[0]: Obj open time: 1.06786e-03
+[12:51:44.161444] [WARNING] [bdcats.c:176] PDC_CLIENT[0]: Transfer create time: 1.65520e-05
+[12:51:44.241515] [WARNING] [bdcats.c:192] PDC_CLIENT[0]: Transfer start time: 8.00690e-02
+[12:51:44.241536] [WARNING] [bdcats.c:197] PDC_CLIENT[0]: Sleep start: 40.00
+[12:51:44.241542] [WARNING] [bdcats.c:201] PDC_CLIENT[0]: 
+=== Iteration 1 ===
+SMs: 108
+Clock: 1410000000 Hz
+Target cycles: 56400000000  (~40 s)
+Saturation blocks: 864  (8 per SM)
+BBP blocks: 391
+
+--- Launching kernels ---
+Saturator launch error: no error
+BBP kernel finished. Saturation still running...
+
+=== Results ===
+Pi hex digits (first 80): 
+
+=== Timing ===
+Saturator:   40033.180 ms  (40.033 s)
+BBP kernel:  11307.511 ms
+Target was:  40.000 s
+[12:52:35.583712] [WARNING] [bdcats.c:208] PDC_CLIENT[0]: 
+Total time for 1 iterations: 51.342171 s
+[12:52:35.583728] [WARNING] [bdcats.c:211] PDC_CLIENT[0]: Sleep end: 40.00
+[12:52:35.694723] [WARNING] [bdcats.c:227] PDC_CLIENT[0]: Transfer wait time: 7.94875e-02
+[12:52:35.748329] [WARNING] [bdcats.c:241] PDC_CLIENT[0]: Transfer close time: 5.36076e-02
+[12:52:35.748355] [WARNING] [bdcats.c:255] PDC_CLIENT[0]: Obj close time: 2.79140e-05
+[12:52:35.748363] [WARNING] [bdcats.c:140] PDC_CLIENT[0]: 
+#Step  2
+[12:52:35.755617] [WARNING] [bdcats.c:160] PDC_CLIENT[0]: Obj open time: 7.24931e-03
+[12:52:35.755636] [WARNING] [bdcats.c:176] PDC_CLIENT[0]: Transfer create time: 1.96280e-05
+[12:52:35.835862] [WARNING] [bdcats.c:192] PDC_CLIENT[0]: Transfer start time: 8.02246e-02
+[12:52:35.835884] [WARNING] [bdcats.c:197] PDC_CLIENT[0]: Sleep start: 40.00
+[12:52:35.835890] [WARNING] [bdcats.c:201] PDC_CLIENT[0]: 
+=== Iteration 1 ===
+SMs: 108
+Clock: 1410000000 Hz
+Target cycles: 56400000000  (~40 s)
+Saturation blocks: 864  (8 per SM)
+BBP blocks: 391
+
+--- Launching kernels ---
+Saturator launch error: no error
+BBP kernel finished. Saturation still running...
+
+=== Results ===
+Pi hex digits (first 80): 
+
+=== Timing ===
+Saturator:   40046.281 ms  (40.046 s)
+BBP kernel:  11304.053 ms
+Target was:  40.000 s
+[12:53:27.195475] [WARNING] [bdcats.c:208] PDC_CLIENT[0]: 
+Total time for 1 iterations: 51.359586 s
+[12:53:27.195491] [WARNING] [bdcats.c:211] PDC_CLIENT[0]: Sleep end: 40.00
+[12:53:27.275806] [WARNING] [bdcats.c:227] PDC_CLIENT[0]: Transfer wait time: 7.87864e-02
+[12:53:27.344319] [WARNING] [bdcats.c:241] PDC_CLIENT[0]: Transfer close time: 6.85150e-02
+[12:53:27.344349] [WARNING] [bdcats.c:255] PDC_CLIENT[0]: Obj close time: 3.07690e-05
+[12:53:27.344357] [WARNING] [bdcats.c:140] PDC_CLIENT[0]: 
+#Step  3
+[12:53:27.354753] [WARNING] [bdcats.c:160] PDC_CLIENT[0]: Obj open time: 1.03921e-02
+[12:53:27.354771] [WARNING] [bdcats.c:176] PDC_CLIENT[0]: Transfer create time: 1.82350e-05
+[12:53:27.479198] [WARNING] [bdcats.c:192] PDC_CLIENT[0]: Transfer start time: 1.24422e-01
+[12:53:27.479234] [WARNING] [bdcats.c:197] PDC_CLIENT[0]: Sleep start: 40.00
+[12:53:27.479241] [WARNING] [bdcats.c:201] PDC_CLIENT[0]: 
+=== Iteration 1 ===
+SMs: 108
+Clock: 1410000000 Hz
+Target cycles: 56400000000  (~40 s)
+Saturation blocks: 864  (8 per SM)
+BBP blocks: 391
+
+--- Launching kernels ---
+Saturator launch error: no error
+BBP kernel finished. Saturation still running...
+
+=== Results ===
+Pi hex digits (first 80): 
+
+=== Timing ===
+Saturator:   40034.926 ms  (40.035 s)
+BBP kernel:  11299.060 ms
+Target was:  40.000 s
+[12:54:18.814628] [WARNING] [bdcats.c:208] PDC_CLIENT[0]: 
+Total time for 1 iterations: 51.335381 s
+[12:54:18.814648] [WARNING] [bdcats.c:211] PDC_CLIENT[0]: Sleep end: 40.00
+[12:54:18.930722] [WARNING] [bdcats.c:227] PDC_CLIENT[0]: Transfer wait time: 1.11353e-01
+[12:54:18.996318] [WARNING] [bdcats.c:241] PDC_CLIENT[0]: Transfer close time: 6.55979e-02
+[12:54:18.996348] [WARNING] [bdcats.c:255] PDC_CLIENT[0]: Obj close time: 3.12400e-05
+[12:54:18.996356] [WARNING] [bdcats.c:140] PDC_CLIENT[0]: 
+#Step  4
+[12:54:19.004371] [WARNING] [bdcats.c:160] PDC_CLIENT[0]: Obj open time: 8.01131e-03
+[12:54:19.004388] [WARNING] [bdcats.c:176] PDC_CLIENT[0]: Transfer create time: 1.74530e-05
+[12:54:19.093092] [WARNING] [bdcats.c:192] PDC_CLIENT[0]: Transfer start time: 8.87016e-02
+[12:54:20.053392] [WARNING] [bdcats.c:227] PDC_CLIENT[0]: Transfer wait time: 9.60272e-01
+[12:54:20.186112] [WARNING] [bdcats.c:241] PDC_CLIENT[0]: Transfer close time: 1.32720e-01
+[12:54:20.186142] [WARNING] [bdcats.c:255] PDC_CLIENT[0]: Obj close time: 3.13510e-05
+Saturator launch error: no error
+Saturator launch error: no error
+Saturator launch error: no error
+Saturator launch error: no error
+Saturator launch error: no error
+Saturator launch error: no error
+Saturator launch error: no error
+Saturator launch error: no error
+Saturator launch error: no error
+Saturator launch error: no error
+Saturator launch error: no error
+Saturator launch error: no error
+Saturator launch error: no error
+Saturator launch error: no error
+Saturator launch error: no error

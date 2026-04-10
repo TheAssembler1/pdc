@@ -63,9 +63,6 @@ PDCtf_add_builtin_func(char *func_name, c_func_t c_func, pdc_tf_dev_t dev)
     builtin_func->c_func = c_func;
     builtin_func->dev    = dev;
 
-    LOG_DEBUG("Successfully added builtin function %s %s\n", func_name,
-              (dev == PDC_TF_CPU_DEVICE) ? "CPU" : "GPU");
-
 done:
     FUNC_LEAVE(ret_value);
 }
@@ -176,8 +173,6 @@ PDCtf_region_has_attached_graph(struct pdc_tf_obj_t *tf_obj, int ndim, size_t un
         PGOTO_DONE(false);
     }
 
-    LOG_DEBUG("Num region mappings: %d\n", pdc_vector_size(tf_obj->region_mappings_vector));
-
     region_mappings_iter = pdc_vector_iterator_new(tf_obj->region_mappings_vector);
     while (pdc_vector_iterator_has_next(region_mappings_iter)) {
         *region_mapping                    = pdc_vector_iterator_next(region_mappings_iter);
@@ -190,33 +185,18 @@ PDCtf_region_has_attached_graph(struct pdc_tf_obj_t *tf_obj, int ndim, size_t un
         bool offset_matches = true;
         bool size_matches   = true;
 
-        // print high-level debug info first
-        LOG_DEBUG("Checking region:\n"
-                  "  ndim: expected=%d, actual=%d (matches=%d)\n"
-                  "  unit: expected=%zu, actual=%zu (matches=%d)\n",
-                  conceptual_region->ndim, ndim, ndim_matches,
-                  PDC_get_var_type_size(conceptual_region->pdc_var_type), unit, unit_matches);
-
         // print per-dimension details
         for (int i = 0; i < ndim; i++) {
             bool offset_i_match = (conceptual_offset[i] == offset[i]);
             bool size_i_match   = (conceptual_region->size[i] == size[i]);
-            LOG_DEBUG("  dim[%d]: offset expected=%lu, actual=%lu (match=%d) | "
-                      "size expected=%lu, actual=%lu (match=%d)\n",
-                      i, conceptual_offset[i], offset[i], offset_i_match, conceptual_region->size[i], size[i],
-                      size_i_match);
             offset_matches &= offset_i_match;
             size_matches &= size_i_match;
         }
 
         if (ndim_matches && offset_matches && size_matches && unit_matches) {
-            LOG_DEBUG("Found matching region!\n");
             PGOTO_DONE(true);
         }
     }
-
-    LOG_DEBUG("No matching region found for ndim=%d, unit=%zu, offset[0]=%lu, size[0]=%lu\n", ndim, unit,
-              offset ? offset[0] : 0, size ? size[0] : 0);
 
 done:
     if (region_mappings_iter != NULL)
@@ -308,8 +288,6 @@ graph_free(void *data)
 {
     FUNC_ENTER(NULL);
 
-    LOG_DEBUG("graph_free called\n");
-
     char *json_filepath = (char *)data;
     json_filepath       = PDC_free(data);
 
@@ -320,8 +298,6 @@ static void
 edge_free(void *data)
 {
     FUNC_ENTER(NULL);
-
-    LOG_DEBUG("edge_free called\n");
 
     pdc_tf_func_t *      f              = (pdc_tf_func_t *)data;
     PDC_VECTOR_ITERATOR *dg_params_iter = pdc_vector_iterator_new(f->pdc_tf_dg_params_vector);
@@ -343,8 +319,6 @@ static void
 vertex_free(void *data)
 {
     FUNC_ENTER(NULL);
-
-    LOG_DEBUG("vertex_free called\n");
 
     pdc_tf_state_t *     s              = (pdc_tf_state_t *)data;
     PDC_VECTOR_ITERATOR *dg_params_iter = pdc_vector_iterator_new(s->pdc_tf_dg_params_vector);
@@ -378,19 +352,14 @@ PDCtf_dg_json_create_common(char *filepath)
     if (read_file(fp, &io_buffer) != 0)
         PGOTO_ERROR(NULL, "Failed to read_file");
 
-    LOG_DEBUG("File size was %ld bytes\n", io_buffer.size);
-
     // Parse and pretty print JSON
     if ((json_obj = json_tokener_parse(io_buffer.buffer)) == NULL)
         PGOTO_ERROR(NULL, "Failed to parse JSON");
-
-    LOG_DEBUG("================START loading JSON into PDC===================\n");
 
     // Get directed graph name
     const char *dg_name = get_json_string(json_obj, "name", true);
     if (dg_name == NULL)
         PGOTO_ERROR(NULL, "Failed to find graph name");
-    LOG_DEBUG("Directed graph name: %s\n", dg_name);
     const char *lib_path = NULL;
     if ((lib_path = get_json_string(json_obj, "lib_path", false)) != NULL) {
         LOG_DEBUG("Library path: %s\n", lib_path);
@@ -419,8 +388,6 @@ PDCtf_dg_json_create_common(char *filepath)
 
         if (s_name == NULL)
             PGOTO_DONE(NULL);
-
-        LOG_DEBUG("Found state: %s\n", s_name);
 
         // Add vertex to the directed graph data structure
         pdc_tf_state_t *dg_state = PDC_calloc(1, sizeof(pdc_tf_state_t));
@@ -451,14 +418,6 @@ PDCtf_dg_json_create_common(char *filepath)
 
         if (f_name == NULL || f_input_state == NULL || f_output_state == NULL || f_location == NULL)
             PGOTO_DONE(NULL);
-
-        LOG_DEBUG("Found function: %s\n", f_name);
-        LOG_DEBUG("\tDevice: %s\n", f_device);
-        LOG_DEBUG("\tInput state: %s\n", f_input_state);
-        LOG_DEBUG("\tOutput state: %s\n", f_output_state);
-        LOG_DEBUG("\tLocation: %s\n", f_location);
-        LOG_DEBUG("\tParams string: %s\n", (f_params_str) ? f_params_str : "None");
-
         pdc_tf_func_t *dg_func = PDC_calloc(1, sizeof(pdc_tf_func_t));
 
         // Validate device
@@ -529,7 +488,6 @@ PDCtf_dg_json_create_common(char *filepath)
             PGOTO_ERROR(NULL, "Failed to add edge to directed graph\n");
     }
 
-    LOG_DEBUG("================DONE loading JSON into PDC===================\n");
 done:
     if (fp != NULL)
         close_file(fp);
@@ -587,19 +545,6 @@ void
 PDCtf_log_pdc_region_t(pdc_tf_region_t reg)
 {
     FUNC_ENTER(NULL);
-
-    if (reg.ndim <= 0 || reg.ndim > 4) {
-        LOG_DEBUG("Invalid region ndim: %lu\n", reg.ndim);
-        abort();
-    }
-
-    LOG_DEBUG("region ndim: %lu\n", reg.ndim);
-    LOG_DEBUG("region unit index: %d\n", reg.pdc_var_type);
-    LOG_DEBUG("region unit: %lu\n", PDC_get_var_type_size(reg.pdc_var_type));
-    for (int i = 0; i < reg.ndim; i++)
-        LOG_DEBUG("\tsize[%d] = %lu\n", i, reg.size[i]);
-    LOG_DEBUG("region bytes: %zu\n", PDCtf_get_pdc_region_t_bytes(reg));
-
     FUNC_LEAVE_VOID();
 }
 
@@ -618,14 +563,11 @@ PDCtf_print_exec_path_common(pdc_dg_t *dg, char *cur_state, char *desired_state)
     uint32_t       num_edges;
 
     if (PDCdg_shortest_path(dg, &tf_cur_state, &tf_desired_state, &edges_out, &num_edges)) {
-        LOG_DEBUG("Path was found:\n");
         for (uint32_t j = 0; j < num_edges; j++) {
             pdc_dg_edge_t e = edges_out[j];
 
             pdc_tf_state_t *v1 = (pdc_tf_state_t *)(dg->vertices[e.v1_id]->data);
             pdc_tf_state_t *v2 = (pdc_tf_state_t *)(dg->vertices[e.v2_id]->data);
-
-            LOG_DEBUG("%d: %s(%s) = %s\n", j + 1, ((pdc_tf_func_t *)(e.data))->name, v1->name, v2->name);
         }
     }
     else

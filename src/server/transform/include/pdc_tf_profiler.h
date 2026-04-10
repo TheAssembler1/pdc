@@ -8,7 +8,7 @@
 #include "pdc_timing.h"
 #include "pdc_malloc.h"
 
-#define MAX_VECTOR_SIZE 10 // Rolling buffer size
+#define MAX_VECTOR_SIZE 3 // Rolling buffer size
 
 // Flag to indicate if profiler has been initialized
 extern int pdc_tf_profiler_init;
