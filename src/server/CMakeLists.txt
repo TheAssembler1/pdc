@@ -68,7 +68,12 @@ add_library(pdc_server_lib
                transform/pdc_tf_user.c
                transform/pdc_tf_server.c
                transform/pdc_tf_common.c
-               transform/pdc_tf_builtin_common.c
+               transform/pdc_tf_builtin_zfp_cpu.c
+               transform/pdc_tf_builtin_zfp_gpu.c
+               transform/pdc_tf_builtin_sz_cpu.c
+               transform/pdc_tf_builtin_sz_gpu.c
+               transform/pdc_tf_builtin_encrypt_cpu.c
+               transform/pdc_tf_builtin_turbo_cpu.c
                transform/pdc_tf_profiler.c
                dablooms/pdc_dablooms.c
                dablooms/pdc_murmur.c

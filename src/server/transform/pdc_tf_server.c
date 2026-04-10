@@ -143,8 +143,8 @@ done:
     FUNC_LEAVE(ret_value);
 }
 
-static double prev_gpu_times[NUM_TF_FUNC_TIMES] = {0};
-static double prev_cpu_times[NUM_TF_FUNC_TIMES] = {0};
+static double prev_gpu_times[NUM_TF_FUNC_TIMES] = {[0 ... NUM_TF_FUNC_TIMES-1] = 0.001};
+static double prev_cpu_times[NUM_TF_FUNC_TIMES] = {[0 ... NUM_TF_FUNC_TIMES-1] = 1.0};
 static int    gpu_time_index = 0;
 static int    cpu_time_index = 0;
 
@@ -196,9 +196,12 @@ perr_t PDCtf_exec_graph(pdc_dg_t *dg, uint64_t flat_conceptual_offset, char *cur
             double avg_cpu_utilization = pdc_tf_avg_cpu_utilization();
 
             if (pdc_server_rank_g == 0) {
-                LOG_DEBUG("Avg CPU utilization: %f\n", avg_cpu_utilization);
+                LOG_WARNING("SCHED: avg_cpu_util=%.4f min_avg_gpu_util=%.4f gpu_device=%d nvml_count=%d always_use_gpu=%d close_time_g=%d\n",
+                            avg_cpu_utilization, min_avg_gpu_utilization,
+                            min_gpu_utilization_device_index, pdc_tf_profiler_nvml_device_count,
+                            always_use_gpu, close_time_g);
                 for (int i = 0; i < pdc_tf_profiler_nvml_device_count; i++) {
-                    LOG_DEBUG("Avg GPU utilization device %d: %f\n", i, pdc_tf_avg_gpu_utilization(i));
+                    LOG_WARNING("SCHED: GPU device %d utilization: %.4f\n", i, pdc_tf_avg_gpu_utilization(i));
                 }
             }
 
@@ -231,8 +234,12 @@ perr_t PDCtf_exec_graph(pdc_dg_t *dg, uint64_t flat_conceptual_offset, char *cur
                     pdc_tf_func_t *f = (pdc_tf_func_t *)(e->data);
 
                     // Skip GPU edges if utilization too high
-                    if (f->dev == PDC_TF_GPU_DEVICE && min_avg_gpu_utilization > 0.5)
+                    if (f->dev == PDC_TF_GPU_DEVICE && min_avg_gpu_utilization > 0.5) {
+                        if (pdc_server_rank_g == 0)
+                            LOG_WARNING("SCHED: skipping GPU edge %u due to high utilization %.4f\n",
+                                        idx, min_avg_gpu_utilization);
                         continue;
+                    }
 
                     // Compute average past time
                     double last_avg_time = 0.0;
@@ -249,16 +256,25 @@ perr_t PDCtf_exec_graph(pdc_dg_t *dg, uint64_t flat_conceptual_offset, char *cur
                         ? last_avg_time / fmax(0.1, 1.0 - avg_cpu_utilization)
                         : last_avg_time / fmax(0.1, 1.0 - min_avg_gpu_utilization);
 
+                    if (pdc_server_rank_g == 0) {
+                        LOG_WARNING("SCHED: edge %u func=%s dev=%s last_avg_time=%.4f expected_time=%.4f best_so_far=%.4f\n",
+                                    idx, f->name,
+                                    f->dev == PDC_TF_CPU_DEVICE ? "CPU" : "GPU",
+                                    last_avg_time, expected_time, best_expected_time);
+                    }
+
                     if (expected_time < best_expected_time) {
                         best_expected_time = expected_time;
                         best_edge_idx = idx;
                     }
+                }
 
-                    if (pdc_server_rank_g == 0) {
-                        LOG_DEBUG("Edge %u: func=%s, dev=%s, last_avg_time=%.4f, expected_time=%.4f\n",
-                                    idx, f->name, f->dev == PDC_TF_CPU_DEVICE ? "CPU" : "GPU",
-                                    last_avg_time, expected_time);
-                    }
+                if (pdc_server_rank_g == 0) {
+                    pdc_tf_func_t *chosen = (pdc_tf_func_t *)edges_out[best_edge_idx].data;
+                    LOG_WARNING("SCHED: chose edge %u func=%s dev=%s expected_time=%.4f\n",
+                                best_edge_idx, chosen->name,
+                                chosen->dev == PDC_TF_CPU_DEVICE ? "CPU" : "GPU",
+                                best_expected_time);
                 }
             }
 
@@ -271,7 +287,7 @@ perr_t PDCtf_exec_graph(pdc_dg_t *dg, uint64_t flat_conceptual_offset, char *cur
             internal_params.flat_conceptual_offset = flat_conceptual_offset;
 
             if (f->dev == PDC_TF_GPU_DEVICE) {
-                LOG_DEBUG("Setting device to %d for edge %u with func %s\n",
+                LOG_WARNING("SCHED: setting CUDA device to %d for edge %u func=%s\n",
                             always_use_gpu ? 0 : min_gpu_utilization_device_index,
                             best_edge_idx, f->name);
                 cudaError_t err = cudaSetDevice(always_use_gpu ? 0 : min_gpu_utilization_device_index);
@@ -281,7 +297,10 @@ perr_t PDCtf_exec_graph(pdc_dg_t *dg, uint64_t flat_conceptual_offset, char *cur
                 }
             }
 
-            LOG_DEBUG("------------------ TRANSFORM_START ------------------\n");
+            LOG_WARNING("SCHED: executing edge %u func=%s dev=%s\n",
+                        best_edge_idx, f->name,
+                        f->dev == PDC_TF_CPU_DEVICE ? "CPU" : "GPU");
+
             void *prev_input = *input;
             struct timespec start_time, end_time;
             clock_gettime(CLOCK_MONOTONIC, &start_time);
@@ -312,17 +331,23 @@ perr_t PDCtf_exec_graph(pdc_dg_t *dg, uint64_t flat_conceptual_offset, char *cur
                 cpu_time_index = (cpu_time_index + 1) % NUM_TF_FUNC_TIMES;
                 for (int i = 0; i < NUM_TF_FUNC_TIMES; i++) last_avg_time += prev_cpu_times[i];
                 last_avg_time /= NUM_TF_FUNC_TIMES;
+                if (pdc_server_rank_g == 0)
+                    LOG_WARNING("SCHED: updated cpu_times[%d]=%.4f new_avg=%.4f\n",
+                                (cpu_time_index - 1 + NUM_TF_FUNC_TIMES) % NUM_TF_FUNC_TIMES,
+                                projected_time, last_avg_time);
             } else {
                 prev_gpu_times[gpu_time_index] = projected_time;
                 gpu_time_index = (gpu_time_index + 1) % NUM_TF_FUNC_TIMES;
                 for (int i = 0; i < NUM_TF_FUNC_TIMES; i++) last_avg_time += prev_gpu_times[i];
                 last_avg_time /= NUM_TF_FUNC_TIMES;
+                if (pdc_server_rank_g == 0)
+                    LOG_WARNING("SCHED: updated gpu_times[%d]=%.4f new_avg=%.4f\n",
+                                (gpu_time_index - 1 + NUM_TF_FUNC_TIMES) % NUM_TF_FUNC_TIMES,
+                                projected_time, last_avg_time);
             }
 
             if (!(is_write && j == 0) && prev_input != *input)
                 prev_input = PDC_free(prev_input);
-
-            LOG_DEBUG("------------------ TRANSFORM_DONE ------------------\n");
 
             if (j + cur_edges_between_vertices != num_edges)
                 memcpy(&input_region, output_region, sizeof(pdc_tf_region_t));
@@ -330,7 +355,7 @@ perr_t PDCtf_exec_graph(pdc_dg_t *dg, uint64_t flat_conceptual_offset, char *cur
             j += cur_edges_between_vertices;
         }
 
-        LOG_DEBUG("Done running transformations\n");
+        LOG_WARNING("SCHED: done running transformations\n");
     } else {
         LOG_ERROR("JSON filepath %s\n", (char *)dg->data);
         LOG_ERROR("Current state %s, desired state %s\n", cur_state, desired_state);

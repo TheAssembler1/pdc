@@ -38,7 +38,7 @@
 
 #define dLEAP 2
 #define PRECISION_INIT 2
-#define PRECISION_HEX 100
+#define PRECISION_HEX 20000000
 
 #define WARP_SIZE 32
 #define WARPS_PER_BLOCK 2
