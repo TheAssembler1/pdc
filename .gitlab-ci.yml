@@ -454,7 +454,7 @@ perlmutter-metrics:
     tags:
         - perlmutter
     variables:
-        SCHEDULER_PARAMETERS: "-A ${PDC_PROJECT} --qos=${PDC_QUEUE} --constraint=cpu --tasks-per-node=${PDC_N_CLIENTS} -N ${PDC_N_NODES} -t 00:30:00"
+        SCHEDULER_PARAMETERS: "-A ${PDC_PROJECT} --qos=${PDC_QUEUE} --constraint=cpu --tasks-per-node=${PDC_N_CLIENTS} -N ${PDC_N_NODES} -t 01:00:00"
         SUPERCOMPUTER: "perlmutter"
         MERCURY_DIR: "/global/cfs/cdirs/${PDC_PROJECT}/pdc-perlmutter/mercury/install"
         PDC_TMPDIR: "${CI_BUILDS_DIR}/${CI_PROJECT_NAME}/${CI_JOB_ID}/pdc-tmp-metrics"
