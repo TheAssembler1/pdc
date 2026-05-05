@@ -63,6 +63,8 @@ typedef struct pdc_tf_pkg_t {
     hg_string_t store_state;
 } pdc_tf_pkg_t;
 
+#define NUM_TF_FUNC_TIMES 5
+
 /**
  * This structure used to store our builtin functions
  * Functions are unique according to name and device
@@ -73,31 +75,38 @@ typedef struct pdc_tf_builtin_func_t {
     char *       name;
     pdc_tf_dev_t dev;
     c_func_t     c_func;
+
+    // These are in milliseconds
+    int cur_host_to_dev_avg_time_index;
+    int cur_dev_to_host_avg_time;
+    int cur_exec_avg_time;
+    double cur_host_to_dev_avg_time[NUM_TF_FUNC_TIMES];
+    double cur_dev_to_host_avg_time[NUM_TF_FUNC_TIMES];
+    double cur_exec_avg_time[NUM_TF_FUNC_TIMES];
 } pdc_tf_builtin_func_t;
+
+void append_host_to_dev_time(pdc_tf_builtin_func_t *func, double value);
+void append_dev_to_host_time(pdc_tf_builtin_func_t *func, double value);
+void append_exec_time(pdc_tf_builtin_func_t *func, double value);
+
+double get_host_to_dev_avg(const pdc_tf_builtin_func_t *func);
+double get_dev_to_host_avg(const pdc_tf_builtin_func_t *func);
+double get_exec_avg(const pdc_tf_builtin_func_t *func);
 
 // this is our global array of builtin functions
 extern PDC_VECTOR *pdc_tf_builtin_funcs_vector_g;
 
-Here's the header with doc comments for each function: c
-
-#ifndef PDC_TF_BUILTIN_COMMON_H
-#define PDC_TF_BUILTIN_COMMON_H
-
-#include <stdint.h>
-#include <stdbool.h>
-#include "pdc_tf_common.h"
-
-    /**
-     * @brief Initializes a pdc_tf_region_t with the given dimensionality, type, and sizes.
-     *
-     * @param dest         Pointer to the region struct to populate.
-     * @param ndim         Number of dimensions.
-     * @param pdc_var_type Element type (e.g. PDC_FLOAT, PDC_DOUBLE).
-     * @param size         Array of per-dimension sizes (must have at least ndim elements).
-     * @return SUCCEED on success, FAIL otherwise.
-     */
-    perr_t
-    PDCtf_set_tf_region_t(pdc_tf_region_t *dest, uint8_t ndim, pdc_var_type_t pdc_var_type, uint64_t *size);
+/**
+    * @brief Initializes a pdc_tf_region_t with the given dimensionality, type, and sizes.
+    *
+    * @param dest         Pointer to the region struct to populate.
+    * @param ndim         Number of dimensions.
+    * @param pdc_var_type Element type (e.g. PDC_FLOAT, PDC_DOUBLE).
+    * @param size         Array of per-dimension sizes (must have at least ndim elements).
+    * @return SUCCEED on success, FAIL otherwise.
+    */
+perr_t
+PDCtf_set_tf_region_t(pdc_tf_region_t *dest, uint8_t ndim, pdc_var_type_t pdc_var_type, uint64_t *size);
 
 /**
  * @brief Deep-copies a pdc_tf_region_t from src into dest.

@@ -33,6 +33,8 @@ typedef struct pdc_tf_region_t {
 typedef struct pdc_tf_internal_param {
     pdc_dg_t *dg;
     uint64_t  flat_conceptual_offset;
+    double host_to_dev_time;
+    double dev_to_host_time;
 } pdc_tf_internal_param;
 
 /**
@@ -52,8 +54,6 @@ typedef struct pdc_tf_internal_param {
 typedef bool (*c_func_t)(pdc_tf_internal_param internal_param, char *params_str, void **region_data,
                          pdc_tf_region_t input_region, pdc_tf_region_t *output_region);
 
-#define NUM_TF_FUNC_TIMES 5
-
 typedef struct pdc_tf_func_t {
     pdc_tf_dev_t      dev;
     pdc_tf_location_t location;
@@ -62,9 +62,6 @@ typedef struct pdc_tf_func_t {
     uint32_t          cur_num_params;
     char *            params_str;
     c_func_t          c_func;
-    // avg last 5 times
-    int    tf_func_times_index;
-    double tf_func_times[NUM_TF_FUNC_TIMES];
 } pdc_tf_func_t;
 
 /**
@@ -149,6 +146,70 @@ bool PDCtf_get_func_param(pdc_dg_t *dg, char *func_name, pdc_tf_dev_t dev, uint6
     do {                                                                                                     \
         PDCtf_get_func_param(internal_param.dg, name, dev, internal_param.flat_conceptual_offset, params,    \
                              params_size);                                                                   \
+    } while (0)
+
+/**
+ * @brief Start timing a host-to-device transfer.
+ *
+ * This macro records the start timestamp for a host-to-device transfer
+ * into a stack-allocated timespec. Pair with END_HOST_TO_DEV_TIME to
+ * accumulate the elapsed duration into internal_param.host_to_dev_time.
+ */
+#define START_HOST_TO_DEV_TIME()                                                                             \
+    struct timespec __host_to_dev_start_time__;                                                              \
+    do {                                                                                                     \
+        clock_gettime(CLOCK_MONOTONIC, &__host_to_dev_start_time__);                                         \
+    } while (0)
+
+/**
+ * @brief End timing a host-to-device transfer.
+ *
+ * This macro records the end timestamp and accumulates the elapsed time
+ * since the matching START_HOST_TO_DEV_TIME() call into
+ * internal_param.host_to_dev_time.
+ *
+ * @note May be called multiple times if there are multiple transfer
+ *       segments; each call adds to the running total.
+ */
+#define END_HOST_TO_DEV_TIME()                                                                               \
+    do {                                                                                                     \
+        struct timespec __host_to_dev_end_time__;                                                            \
+        clock_gettime(CLOCK_MONOTONIC, &__host_to_dev_end_time__);                                           \
+        internal_param.host_to_dev_time +=                                                                   \
+            (__host_to_dev_end_time__.tv_sec - __host_to_dev_start_time__.tv_sec) +                          \
+            (__host_to_dev_end_time__.tv_nsec - __host_to_dev_start_time__.tv_nsec) / 1e9;                   \
+    } while (0)
+
+/**
+ * @brief Start timing a device-to-host transfer.
+ *
+ * This macro records the start timestamp for a device-to-host transfer
+ * into a stack-allocated timespec. Pair with END_DEV_TO_HOST_TIME to
+ * accumulate the elapsed duration into internal_param.dev_to_host_time.
+ */
+#define START_DEV_TO_HOST_TIME()                                                                             \
+    struct timespec __dev_to_host_start_time__;                                                              \
+    do {                                                                                                     \
+        clock_gettime(CLOCK_MONOTONIC, &__dev_to_host_start_time__);                                         \
+    } while (0)
+
+/**
+ * @brief End timing a device-to-host transfer.
+ *
+ * This macro records the end timestamp and accumulates the elapsed time
+ * since the matching START_DEV_TO_HOST_TIME() call into
+ * internal_param.dev_to_host_time.
+ *
+ * @note May be called multiple times if there are multiple transfer
+ *       segments; each call adds to the running total.
+ */
+#define END_DEV_TO_HOST_TIME()                                                                               \
+    do {                                                                                                     \
+        struct timespec __dev_to_host_end_time__;                                                            \
+        clock_gettime(CLOCK_MONOTONIC, &__dev_to_host_end_time__);                                           \
+        internal_param.dev_to_host_time +=                                                                   \
+            (__dev_to_host_end_time__.tv_sec - __dev_to_host_start_time__.tv_sec) +                          \
+            (__dev_to_host_end_time__.tv_nsec - __dev_to_host_start_time__.tv_nsec) / 1e9;                   \
     } while (0)
 
 #endif

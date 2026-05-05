@@ -154,8 +154,6 @@ metadata about which device it runs on and where it is located (builtin vs. exte
        char             *name;       // e.g. "zfp_compress"
        char             *params_str; // Optional JSON params string from graph file
        c_func_t          c_func;    // The actual function pointer
-       int    tf_func_times_index;
-       double tf_func_times[NUM_TF_FUNC_TIMES]; // Rolling execution time history
        PDC_VECTOR *pdc_tf_dg_params_vector;     // Per-region output params storage
    } pdc_tf_func_t;
 
@@ -592,7 +590,7 @@ Declared in ``pdc_tf_profiler.h``, implemented in ``pdc_tf_profiler.c``.
 Rolling Buffer
 --------------
 
-All samples are stored in a fixed-size rolling buffer of length ``MAX_VECTOR_SIZE = 3``.
+All samples are stored in a fixed-size rolling buffer of length ``PDC_TF_PROFILE_SAMPLE_VECTOR_MAX_SIZE = 3``.
 Older samples are overwritten as new ones arrive. Averages are computed over all
 non-null entries in the buffer.
 

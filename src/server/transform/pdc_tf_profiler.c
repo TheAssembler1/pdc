@@ -9,7 +9,7 @@ pdc_tf_profiler_samples_t pdc_tf_profiler_samples           = {0};
 static pthread_mutex_t    profiler_lock                     = PTHREAD_MUTEX_INITIALIZER;
 
 /**
- * Get the average GPU utilization for a specific device over the last MAX_VECTOR_SIZE samples.
+ * Get the average GPU utilization for a specific device over the last PDC_TF_PROFILE_SAMPLE_VECTOR_MAX_SIZE samples.
  * @param device_index Index of the GPU device (0-based)
  * @return Average GPU utilization (%) for that device, or -1.0 if invalid
  */
@@ -25,7 +25,7 @@ pdc_tf_avg_gpu_utilization(unsigned int device_index)
     int    count = 0;
     double sum   = 0.0;
 
-    for (int i = 0; i < MAX_VECTOR_SIZE; i++) {
+    for (int i = 0; i < PDC_TF_PROFILE_SAMPLE_VECTOR_MAX_SIZE; i++) {
         pdc_tf_profiler_nvml_sample_t *samples = pdc_tf_profiler_samples.nvml_samples[i];
         if (samples != NULL) {
             sum += samples[device_index].gpu_utilization;
@@ -42,7 +42,7 @@ pdc_tf_avg_gpu_utilization(unsigned int device_index)
 }
 
 /**
- * Get the average CPU utilization over the last MAX_VECTOR_SIZE samples.
+ * Get the average CPU utilization over the last PDC_TF_PROFILE_SAMPLE_VECTOR_MAX_SIZE samples.
  */
 double
 pdc_tf_avg_cpu_utilization()
@@ -52,7 +52,7 @@ pdc_tf_avg_cpu_utilization()
     int    count = 0;
     double sum   = 0.0;
 
-    for (int i = 0; i < MAX_VECTOR_SIZE; i++) {
+    for (int i = 0; i < PDC_TF_PROFILE_SAMPLE_VECTOR_MAX_SIZE; i++) {
         pdc_tf_profiler_cpu_sample_t *sample = pdc_tf_profiler_samples.cpu_samples[i];
         if (sample != NULL) {
             sum += sample->cpu_utilization;
@@ -96,7 +96,7 @@ pdc_tf_nvml_profiler_update()
 
         // pthread_mutex_lock(&profiler_lock);
         pdc_tf_profiler_samples.nvml_device_count = pdc_tf_profiler_nvml_device_count;
-        for (int i = 0; i < MAX_VECTOR_SIZE; i++)
+        for (int i = 0; i < PDC_TF_PROFILE_SAMPLE_VECTOR_MAX_SIZE; i++)
             pdc_tf_profiler_samples.nvml_samples[i] = NULL;
     }
     else {
@@ -139,7 +139,7 @@ pdc_tf_nvml_profiler_update()
         nvml_sample[i].memory_free        = mem_info.free;
     }
 
-    int idx = pdc_tf_profiler_samples.nvml_head % MAX_VECTOR_SIZE;
+    int idx = pdc_tf_profiler_samples.nvml_head % PDC_TF_PROFILE_SAMPLE_VECTOR_MAX_SIZE;
     if (pdc_tf_profiler_samples.nvml_samples[idx] != NULL)
         PDC_free(pdc_tf_profiler_samples.nvml_samples[idx]);
     pdc_tf_profiler_samples.nvml_samples[idx] = nvml_sample;
@@ -162,7 +162,7 @@ pdc_tf_cpu_profiler_update(double elapsed_total_time_sec, double elapsed_progres
         // pthread_mutex_lock(&profiler_lock);
         if (!pdc_tf_profiler_cpu_init) {
             pdc_tf_profiler_cpu_init = 1;
-            for (int i = 0; i < MAX_VECTOR_SIZE; i++)
+            for (int i = 0; i < PDC_TF_PROFILE_SAMPLE_VECTOR_MAX_SIZE; i++)
                 pdc_tf_profiler_samples.cpu_samples[i] = NULL;
         }
         // pthread_mutex_unlock(&profiler_lock);
@@ -186,7 +186,7 @@ pdc_tf_cpu_profiler_update(double elapsed_total_time_sec, double elapsed_progres
 
     // Update rolling buffer under lock
     // pthread_mutex_lock(&profiler_lock);
-    int idx = pdc_tf_profiler_samples.cpu_head % MAX_VECTOR_SIZE;
+    int idx = pdc_tf_profiler_samples.cpu_head % PDC_TF_PROFILE_SAMPLE_VECTOR_MAX_SIZE;
     if (pdc_tf_profiler_samples.cpu_samples[idx] != NULL)
         PDC_free(pdc_tf_profiler_samples.cpu_samples[idx]);
     pdc_tf_profiler_samples.cpu_samples[idx] = cpu_sample;

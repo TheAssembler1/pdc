@@ -16,6 +16,66 @@
 
 PDC_VECTOR *pdc_tf_builtin_funcs_vector_g = NULL;
 
+void
+append_host_to_dev_time(pdc_tf_builtin_func_t *func, double value)
+{
+    func->host_to_dev_avg_time[func->cur_host_to_dev_avg_time_index] = value;
+
+    func->cur_host_to_dev_avg_time_index =
+        (func->cur_host_to_dev_avg_time_index + 1) % NUM_TF_FUNC_TIMES;
+}
+
+void
+append_dev_to_host_time(pdc_tf_builtin_func_t *func, double value)
+{
+    func->dev_to_host_avg_time[func->cur_dev_to_host_avg_time] = value;
+
+    func->cur_dev_to_host_avg_time =
+        (func->cur_dev_to_host_avg_time + 1) % NUM_TF_FUNC_TIMES;
+}
+
+void
+append_exec_time(pdc_tf_builtin_func_t *func, double value)
+{
+    func->exec_avg_time[func->cur_exec_avg_time] = value;
+
+    func->cur_exec_avg_time =
+        (func->cur_exec_avg_time + 1) % NUM_TF_FUNC_TIMES;
+}
+
+double
+get_host_to_dev_avg(const pdc_tf_builtin_func_t *func)
+{
+    double sum = 0.0;
+
+    for (int i = 0; i < NUM_TF_FUNC_TIMES; i++)
+        sum += func->cur_host_to_dev_avg_time[i];
+
+    return sum / NUM_TF_FUNC_TIMES;
+}
+
+double
+get_dev_to_host_avg(const pdc_tf_builtin_func_t *func)
+{
+    double sum = 0.0;
+
+    for (int i = 0; i < NUM_TF_FUNC_TIMES; i++)
+        sum += func->dev_to_host_avg_time[i];
+
+    return sum / NUM_TF_FUNC_TIMES;
+}
+
+double
+get_exec_avg(const pdc_tf_builtin_func_t *func)
+{
+    double sum = 0.0;
+
+    for (int i = 0; i < NUM_TF_FUNC_TIMES; i++)
+        sum += func->exec_avg_time[i];
+
+    return sum / NUM_TF_FUNC_TIMES;
+}
+
 perr_t
 PDCtf_set_tf_region_t(pdc_tf_region_t *dest, uint8_t ndim, pdc_var_type_t pdc_var_type, uint64_t *size)
 {
@@ -62,6 +122,18 @@ PDCtf_add_builtin_func(char *func_name, c_func_t c_func, pdc_tf_dev_t dev)
     builtin_func->name   = strdup(func_name);
     builtin_func->c_func = c_func;
     builtin_func->dev    = dev;
+    
+    /* Initialize rolling history indices */
+    builtin_func->cur_host_to_dev_avg_time_index = 0;
+    builtin_func->cur_dev_to_host_avg_time       = 0;
+    builtin_func->cur_exec_avg_time              = 0;
+
+    /* Initialize timing histories */
+    for (int i = 0; i < NUM_TF_FUNC_TIMES; i++) {
+        builtin_func->cur_host_to_dev_avg_time[i] = 0.0;
+        builtin_func->cur_dev_to_host_avg_time[i] = 0.0;
+        builtin_func->cur_exec_avg_time[i]        = 0.0;
+    }
 
 done:
     FUNC_LEAVE(ret_value);

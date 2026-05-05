@@ -62,7 +62,10 @@ pdc_tf_builtin_zfp_compress_cuda_helper(pdc_tf_internal_param internal_param, ch
     void *dev_in  = NULL;
     void *dev_out = NULL;
     CUDA_CHECK(cudaMalloc(&dev_in, num_bytes));
+
+    START_HOST_TO_DEV_TIME();
     CUDA_CHECK(cudaMemcpy(dev_in, *region_data, num_bytes, cudaMemcpyHostToDevice));
+    END_HOST_TO_DEV_TIME();
 
     zfp_field *field = NULL;
     switch (input_region.ndim) {
@@ -101,7 +104,11 @@ pdc_tf_builtin_zfp_compress_cuda_helper(pdc_tf_internal_param internal_param, ch
     assert(compressed_size > 0);
 
     void *host_compressed = malloc(compressed_size);
+
+    START_DEV_TO_HOST_TIME();
     CUDA_CHECK(cudaMemcpy(host_compressed, dev_out, compressed_size, cudaMemcpyDeviceToHost));
+    END_DEV_TO_HOST_TIME();
+
     CUDA_CHECK(cudaFree(dev_in));
     CUDA_CHECK(cudaFree(dev_out));
 
@@ -178,7 +185,10 @@ pdc_tf_builtin_zfp_decompress_cuda_helper(pdc_tf_internal_param internal_param, 
     void *dev_uncompressed = NULL;
     CUDA_CHECK(cudaMalloc(&dev_compressed, compressed_size + 64));
     CUDA_CHECK(cudaMalloc(&dev_uncompressed, uncompressed_size));
+
+    START_HOST_TO_DEV_TIME();
     CUDA_CHECK(cudaMemcpy(dev_compressed, *region_data, compressed_size, cudaMemcpyHostToDevice));
+    END_HOST_TO_DEV_TIME();
 
     zfp_field *field = NULL;
     switch (in_params->decompressed_region.ndim) {
@@ -254,7 +264,10 @@ pdc_tf_builtin_zfp_decompress_cuda_helper(pdc_tf_internal_param internal_param, 
         return false;
     }
 
+    START_DEV_TO_HOST_TIME();
     CUDA_CHECK(cudaMemcpy(host_buf, dev_uncompressed, uncompressed_size, cudaMemcpyDeviceToHost));
+    END_DEV_TO_HOST_TIME();
+
     CUDA_CHECK(cudaFree(dev_compressed));
     CUDA_CHECK(cudaFree(dev_uncompressed));
 
