@@ -40,7 +40,7 @@ print_ztype(zfp_type z_type)
 }
 
 static bool
-pdc_tf_builtin_zfp_compress_helper(pdc_tf_internal_param internal_param, char *params_str, void **region_data,
+pdc_tf_builtin_zfp_compress_helper(pdc_tf_internal_param *internal_param, char *params_str, void **region_data,
                                    pdc_tf_region_t input_region, pdc_tf_region_t *output_region)
 {
     LOG_DEBUG("pdc_tf_builtin_zfp_compress was called\n");
@@ -126,7 +126,7 @@ pdc_tf_builtin_zfp_compress_helper(pdc_tf_internal_param internal_param, char *p
 }
 
 static bool
-pdc_tf_builtin_zfp_decompress_helper(pdc_tf_internal_param internal_param, char *params_str,
+pdc_tf_builtin_zfp_decompress_helper(pdc_tf_internal_param *internal_param, char *params_str,
                                      void **region_data, pdc_tf_region_t input_region,
                                      pdc_tf_region_t *output_region)
 {
@@ -238,7 +238,7 @@ pdc_tf_builtin_zfp_decompress_helper(pdc_tf_internal_param internal_param, char 
 }
 
 bool
-pdc_tf_builtin_zfp_compress(pdc_tf_internal_param internal_param, char *params_str, void **region_data,
+pdc_tf_builtin_zfp_compress(pdc_tf_internal_param *internal_param, char *params_str, void **region_data,
                             pdc_tf_region_t input_region, pdc_tf_region_t *output_region)
 {
     return pdc_tf_builtin_zfp_compress_helper(internal_param, params_str, region_data, input_region,
@@ -246,7 +246,7 @@ pdc_tf_builtin_zfp_compress(pdc_tf_internal_param internal_param, char *params_s
 }
 
 bool
-pdc_tf_builtin_zfp_decompress(pdc_tf_internal_param internal_param, char *params_str, void **region_data,
+pdc_tf_builtin_zfp_decompress(pdc_tf_internal_param *internal_param, char *params_str, void **region_data,
                               pdc_tf_region_t input_region, pdc_tf_region_t *output_region)
 {
     return pdc_tf_builtin_zfp_decompress_helper(internal_param, params_str, region_data, input_region,

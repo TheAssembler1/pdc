@@ -63,28 +63,6 @@ typedef struct pdc_tf_pkg_t {
     hg_string_t store_state;
 } pdc_tf_pkg_t;
 
-#define NUM_TF_FUNC_TIMES 5
-
-/**
- * This structure used to store our builtin functions
- * Functions are unique according to name and device
- * Allows for identical functions to be differentiated by device
- * Such as zfp compression on the CPU and zfp compression on the GPU
- */
-typedef struct pdc_tf_builtin_func_t {
-    char *       name;
-    pdc_tf_dev_t dev;
-    c_func_t     c_func;
-
-    // These are in milliseconds
-    int cur_host_to_dev_avg_time_index;
-    int cur_dev_to_host_avg_time;
-    int cur_exec_avg_time;
-    double cur_host_to_dev_avg_time[NUM_TF_FUNC_TIMES];
-    double cur_dev_to_host_avg_time[NUM_TF_FUNC_TIMES];
-    double cur_exec_avg_time[NUM_TF_FUNC_TIMES];
-} pdc_tf_builtin_func_t;
-
 void append_host_to_dev_time(pdc_tf_builtin_func_t *func, double value);
 void append_dev_to_host_time(pdc_tf_builtin_func_t *func, double value);
 void append_exec_time(pdc_tf_builtin_func_t *func, double value);

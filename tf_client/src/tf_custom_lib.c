@@ -4,7 +4,7 @@
 #include "pdc_tf_user.h"
 
 bool
-tf_client_write(pdc_tf_internal_param internal_param, char *params_str, void **region_data,
+tf_client_write(pdc_tf_internal_param *internal_param, char *params_str, void **region_data,
                 pdc_tf_region_t input_region, pdc_tf_region_t *output_region)
 {
     printf("tf_client_write called\n");
@@ -12,7 +12,7 @@ tf_client_write(pdc_tf_internal_param internal_param, char *params_str, void **r
 }
 
 bool
-tf_client_read(pdc_tf_internal_param internal_param, char *params_str, void **region_data,
+tf_client_read(pdc_tf_internal_param *internal_param, char *params_str, void **region_data,
                pdc_tf_region_t input_region, pdc_tf_region_t *output_region)
 {
     printf("tf_client_read called\n");

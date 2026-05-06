@@ -81,6 +81,7 @@ set(PDC_SRCS
   ${PDC_SOURCE_DIR}/src/server/pdc_client_server_common.c
   ${PDC_SOURCE_DIR}/src/server/transform/pdc_tf_server.c
   ${PDC_SOURCE_DIR}/src/server/transform/pdc_tf_common.c
+  ${PDC_SOURCE_DIR}/src/server/transform/pdc_tf_poly_sched.c
   ${PDC_SOURCE_DIR}/src/server/transform/pdc_tf_user.c
   ${PDC_SOURCE_DIR}/src/server/transform/pdc_tf_builtin_zfp_cpu.c
   ${PDC_SOURCE_DIR}/src/server/transform/pdc_tf_builtin_zfp_gpu.c

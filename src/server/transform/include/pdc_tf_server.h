@@ -39,7 +39,26 @@ typedef struct pdc_tf_obj_id_to_dg_t {
 perr_t PDCtf_store_json_mapping(pdcid_t obj_id, char *json_filepath, char *cur_state, char *client_state,
                                 char *store_state, uint64_t *offset, uint64_t *size, uint8_t ndim,
                                 pdc_var_type_t pdc_var_type);
+
+
+/* ── scheduling mode enum ────────────────────────────────────────────────────
+ * Pass to PDCtf_exec_graph() to select scheduling strategy.
+ *
+ * PDC_TF_SCHED_DYNAMIC : polynomial-based GPU selection (default)
+ *   - Predicts total_ms for each GPU using the fitted degree-3 polynomial
+ *   - Selects the GPU with lowest predicted total_ms
+ *   - Updates lag features after each transformation
+ *
+ * PDC_TF_SCHED_STATIC  : always use GPU 0 (baseline for comparison)
+ *   - Mirrors the behavior of USE_GPU=1 with a fixed device
+ *   - Used to measure scheduler benefit vs no scheduling
+ * ────────────────────────────────────────────────────────────────────────── */
+typedef enum {
+    PDC_TF_SCHED_DYNAMIC = 0,
+    PDC_TF_SCHED_STATIC  = 1,
+} pdc_tf_sched_mode_t;
+
 perr_t PDCtf_exec_graph(pdc_dg_t *dg, uint64_t flat_conceptual_offset, char *cur_state, char *desired_state,
                         pdc_tf_region_t input_region, pdc_tf_region_t *output_region, void **input,
-                        int is_write);
+                        int is_write, pdc_tf_sched_mode_t sched_mode);
 #endif

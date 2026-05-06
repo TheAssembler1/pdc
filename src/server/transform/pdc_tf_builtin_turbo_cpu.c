@@ -14,7 +14,7 @@ typedef struct turbo_compress_params_t {
 } turbo_compress_params_t;
 
 bool
-pdc_tf_builtin_turbo_compress(pdc_tf_internal_param internal_param, char *params_str, void **region_data,
+pdc_tf_builtin_turbo_compress(pdc_tf_internal_param *internal_param, char *params_str, void **region_data,
                               pdc_tf_region_t input_region, pdc_tf_region_t *output_region)
 {
     LOG_DEBUG("pdc_tf_builtin_turbo_compress called\n");
@@ -54,7 +54,7 @@ pdc_tf_builtin_turbo_compress(pdc_tf_internal_param internal_param, char *params
 }
 
 bool
-pdc_tf_builtin_turbo_decompress(pdc_tf_internal_param internal_param, char *params_str, void **region_data,
+pdc_tf_builtin_turbo_decompress(pdc_tf_internal_param *internal_param, char *params_str, void **region_data,
                                 pdc_tf_region_t input_region, pdc_tf_region_t *output_region)
 {
     LOG_DEBUG("pdc_tf_builtin_turbo_decompress called\n");

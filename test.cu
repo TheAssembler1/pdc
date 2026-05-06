@@ -1,199 +1,128 @@
+/*
+ * test.cu — libpi_gpu.so source
+ *
+ * Provides run_gemm_compute() for VPIC-IO and BDCats to simulate
+ * realistic HPC compute overlapping with PDC async transformation.
+ *
+ * Each rank is pinned to GPU (rank % 4) and runs repeated SGEMM
+ * with N=8192 for ~10 seconds to create sustained GPU contention
+ * that overlaps with PDC server-side ZFP compression.
+ *
+ * Timing breakdown printed to stderr on rank 0 only.
+ * Set GEMM_N=0 to skip GEMM entirely.
+ */
+
 #include <stdio.h>
 #include <stdlib.h>
+#include <time.h>
 #include <cuda_runtime.h>
-#include <mpi.h>
-#include "pi.h"
+#include <cublas_v2.h>
 
-// ─── Config ───────────────────────────────────────────────────────────────────
-#define DLEAP             2
-#define PRECISION_INIT    2
-#define PRECISION_HEX     200000
-
-#define WARP_SIZE         32
-#define WARPS_PER_BLOCK   8
-#define THREADS_PER_BLOCK (WARPS_PER_BLOCK * WARP_SIZE)
-#define BLOCKS_NUM        ((PRECISION_HEX / DLEAP / THREADS_PER_BLOCK) + 1)
-
-#define SATURATE_SECONDS  40.0
-#define BLOCKS_PER_SM     8        // enough to hide latency without starving BBP
-
-// ─── MPI helper ───────────────────────────────────────────────────────────────
-#define PRINT_IF_RANK0(...) \
-    do { int _r; MPI_Comm_rank(MPI_COMM_WORLD,&_r); if(!_r) printf(__VA_ARGS__); } while(0)
-
-// ─── CUDA error helper ────────────────────────────────────────────────────────
-static void check(cudaError_t err) {
-    if (err != cudaSuccess) {
-        fprintf(stderr, "CUDA error: %s\n", cudaGetErrorString(err));
-        exit(EXIT_FAILURE);
-    }
-}
-
-// ─── BBP helpers ──────────────────────────────────────────────────────────────
-__device__ long long biexp(long long a, long long b, long long mod) {
-    long long ret = 1;
-    while (b) {
-        if (b & 1) ret = (ret * a) % mod;
-        a = (a * a) % mod;
-        b >>= 1;
-    }
-    return ret;
-}
-
-__device__ double F16dSj(long long d, int j) {
-    double sum = 0.0;
-    for (long long k = 0; k <= d; k++)
-        sum += (double)biexp(16, d - k, 8*k+j) / (8*k+j);
-    return sum - (int)sum;
-}
-
-// ─── Constant memory ──────────────────────────────────────────────────────────
-__constant__ char hex_table[16];
-
-static void hex_table_init(void) {
-    char h[16] = {'0','1','2','3','4','5','6','7',
-                  '8','9','A','B','C','D','E','F'};
-    check(cudaMemcpyToSymbol(hex_table, h, 16));
-}
-
-// ─── BBP kernel ───────────────────────────────────────────────────────────────
-__global__ void PiOnGPU_Kernel(
-    long long precision_init,
-    long long precision_hex,
-    long long dLeap,
-    unsigned char *result_dec,
-    char         *result_hex)
+extern "C" void run_gemm_compute(int rank)
 {
-    long long tid = blockIdx.x * blockDim.x + threadIdx.x;
-    long long pc  = precision_init + tid * dLeap;
-    if (pc >= precision_hex - 1) return;
-
-    double x = 4*F16dSj(pc,1) - 2*F16dSj(pc,4)
-                               -   F16dSj(pc,5)
-                               -   F16dSj(pc,6);
-    x = (x > 0) ? (x - (int)x) : (x - (int)x + 1);
-
-    for (long long i = pc; i < pc + dLeap; i++) {
-        x *= 16.0;
-        result_dec[i] = (int)x;
-        x -= result_dec[i];
-        result_hex[i] = hex_table[result_dec[i]];
+    /* skip if GEMM_N=0 */
+    const char *gemm_env = getenv("GEMM_N");
+    if (gemm_env && atoi(gemm_env) == 0) {
+        if (rank == 0)
+            fprintf(stderr, "[GEMM] GEMM_N=0, skipping compute phase\n");
+        return;
     }
-}
 
-// ─── Persistent spin / saturation kernel ──────────────────────────────────────
-//
-// Every thread spins on clock64() for exactly `target_cycles` GPU cycles.
-// Because no thread ever exits early the SMs stay 100% occupied the whole
-// time, leaving zero headroom for the zfp server to sneak in.
-//
-__global__ void saturate_kernel(long long target_cycles) {
-    long long start = clock64();
-    long long dummy = 0;
-    while ((clock64() - start) < target_cycles) {
-        // Dummy arithmetic prevents the loop being optimised away.
-        // __threadfence() would also work but is heavier than we need.
-        dummy ^= clock64();
+    /* pin this rank to a specific GPU */
+    int gpu_id = rank % 4;
+    cudaSetDevice(gpu_id);
+
+    /* fixed N=8192 — ~160ms per iteration on A100, ~62 iters = 10s */
+    int gemm_n = 8192;
+
+    size_t mat_elems = (size_t)gemm_n * gemm_n;
+    size_t mat_bytes = mat_elems * sizeof(float);
+
+    /* pinned host memory */
+    float *h_A, *h_B, *h_C;
+    cudaMallocHost(&h_A, mat_bytes);
+    cudaMallocHost(&h_B, mat_bytes);
+    cudaMallocHost(&h_C, mat_bytes);
+    for (size_t i = 0; i < mat_elems; i++) {
+        h_A[i] = (float)(i % 100) * 0.01f;
+        h_B[i] = (float)((i + 7) % 100) * 0.01f;
+        h_C[i] = 0.0f;
     }
-    // Write dummy to global mem so the compiler can't elide the loop.
-    if (dummy == 0x1234567890ABCDEFLL) {
-        // Never true in practice; just blocks dead-code elimination.
-        asm volatile("" ::: "memory");
-    }
-}
 
-// ─── Main timed wrapper ───────────────────────────────────────────────────────
-void run_pi_gpu_timed(int rank) {
-    check(cudaSetDevice(rank % 4));
+    /* device memory */
+    float *d_A, *d_B, *d_C;
+    cudaMalloc(&d_A, mat_bytes);
+    cudaMalloc(&d_B, mat_bytes);
+    cudaMalloc(&d_C, mat_bytes);
 
-    // ── Query device so we size the saturator correctly ──────────────────────
-    cudaDeviceProp prop;
-    check(cudaGetDeviceProperties(&prop, 0));
+    cublasHandle_t handle;
+    cublasCreate(&handle);
 
-    int    sm_count      = prop.multiProcessorCount;
-    long long clock_hz   = (long long)prop.clockRate * 1000LL; // clockRate is kHz
-    long long target_cyc = (long long)(SATURATE_SECONDS * clock_hz);
-    int    sat_blocks    = sm_count * BLOCKS_PER_SM;
+    /* CUDA events for H2D and D2H timing */
+    cudaEvent_t ev_h2d_start, ev_h2d_done, ev_d2h_start, ev_d2h_done;
+    cudaEventCreate(&ev_h2d_start);
+    cudaEventCreate(&ev_h2d_done);
+    cudaEventCreate(&ev_d2h_start);
+    cudaEventCreate(&ev_d2h_done);
 
-    PRINT_IF_RANK0("SMs: %d\n", sm_count);
-    PRINT_IF_RANK0("Clock: %lld Hz\n", clock_hz);
-    PRINT_IF_RANK0("Target cycles: %lld  (~%.0f s)\n", target_cyc, SATURATE_SECONDS);
-    PRINT_IF_RANK0("Saturation blocks: %d  (%d per SM)\n", sat_blocks, BLOCKS_PER_SM);
-    PRINT_IF_RANK0("BBP blocks: %d\n\n", BLOCKS_NUM);
+    /* ── H2D ─────────────────────────────────────────────────────── */
+    cudaEventRecord(ev_h2d_start, 0);
+    cudaMemcpy(d_A, h_A, mat_bytes, cudaMemcpyHostToDevice);
+    cudaMemcpy(d_B, h_B, mat_bytes, cudaMemcpyHostToDevice);
+    cudaEventRecord(ev_h2d_done, 0);
+    cudaEventSynchronize(ev_h2d_done);
 
-    // ── Allocate BBP buffers ──────────────────────────────────────────────────
-    size_t dec_bytes = PRECISION_HEX * sizeof(unsigned char);
-    size_t hex_bytes = (PRECISION_HEX + 1) * sizeof(char);
+    /* ── GEMM loop: run for ~10 seconds ──────────────────────────── */
+    const float alpha = 1.0f, beta = 0.0f;
+    double target_sec = 10.0;
+    struct timespec t0, t1;
+    int iters = 0;
 
-    unsigned char *d_dec; char *d_hex;
-    check(cudaMalloc(&d_dec, dec_bytes));
-    check(cudaMalloc(&d_hex, hex_bytes));
+    clock_gettime(CLOCK_MONOTONIC, &t0);
+    do {
+        cublasSgemm(handle,
+                    CUBLAS_OP_N, CUBLAS_OP_N,
+                    gemm_n, gemm_n, gemm_n,
+                    &alpha, d_A, gemm_n,
+                            d_B, gemm_n,
+                    &beta,  d_C, gemm_n);
+        cudaDeviceSynchronize();
+        clock_gettime(CLOCK_MONOTONIC, &t1);
+        iters++;
+    } while ((t1.tv_sec - t0.tv_sec) +
+             (t1.tv_nsec - t0.tv_nsec) / 1e9 < target_sec);
 
-    unsigned char *h_dec = (unsigned char*)malloc(dec_bytes);
-    char          *h_hex = (char*)         malloc(hex_bytes);
-    if (!h_dec || !h_hex) { fputs("malloc failed\n", stderr); exit(1); }
+    double compute_sec = (t1.tv_sec - t0.tv_sec) +
+                         (t1.tv_nsec - t0.tv_nsec) / 1e9;
 
-    hex_table_init();
+    /* ── D2H ─────────────────────────────────────────────────────── */
+    cudaEventRecord(ev_d2h_start, 0);
+    cudaMemcpy(h_C, d_C, mat_bytes, cudaMemcpyDeviceToHost);
+    cudaEventRecord(ev_d2h_done, 0);
+    cudaEventSynchronize(ev_d2h_done);
 
-    // ── Create two independent, non-default streams ───────────────────────────
-    //
-    // Using the default (null) stream for either kernel would serialize them
-    // with everything else in this context.  Two named streams let CUDA
-    // schedule them concurrently while still being in the same process —
-    // this matches what the separate zfp server process sees.
-    //
-    cudaStream_t stream_sat, stream_bbp;
-    check(cudaStreamCreate(&stream_sat));
-    check(cudaStreamCreate(&stream_bbp));
+    /* ── timing ──────────────────────────────────────────────────── */
+    float h2d_ms = 0, d2h_ms = 0;
+    cudaEventElapsedTime(&h2d_ms, ev_h2d_start, ev_h2d_done);
+    cudaEventElapsedTime(&d2h_ms, ev_d2h_start, ev_d2h_done);
 
-    // ── Timing ───────────────────────────────────────────────────────────────
-    cudaEvent_t t0, t1, b0, b1;
-    check(cudaEventCreate(&t0)); check(cudaEventCreate(&t1));
-    check(cudaEventCreate(&b0)); check(cudaEventCreate(&b1));
+    double gflops_per_iter = 2.0 * (double)gemm_n * (double)gemm_n * (double)gemm_n / 1e9;
+    double avg_gflops = gflops_per_iter * iters / compute_sec;
 
-    PRINT_IF_RANK0("--- Launching kernels ---\n");
+    if (rank == 0)
+        fprintf(stderr,
+                "[GEMM] rank=%d gpu=%d N=%d  h2d=%.3f ms  "
+                "compute=%.3f s (%d iters, %.1f GFLOPS avg)"
+                "  d2h=%.3f ms\n",
+                rank, gpu_id, gemm_n,
+                h2d_ms, compute_sec, iters, avg_gflops, d2h_ms);
 
-    // Launch saturator first so it has SM presence before BBP arrives.
-    check(cudaEventRecord(t0, stream_sat));
-    saturate_kernel<<<sat_blocks, THREADS_PER_BLOCK, 0, stream_sat>>>(target_cyc);
-    cudaError_t err = cudaGetLastError();
-    check(cudaEventRecord(t1, stream_sat));
-
-    // Launch BBP concurrently on the second stream.
-    check(cudaEventRecord(b0, stream_bbp));
-    PiOnGPU_Kernel<<<BLOCKS_NUM, THREADS_PER_BLOCK, 0, stream_bbp>>>(
-        PRECISION_INIT, PRECISION_HEX, DLEAP, d_dec, d_hex);
-    check(cudaEventRecord(b1, stream_bbp));
-
-    // Wait for BBP to finish and copy results while saturator still runs.
-    check(cudaStreamSynchronize(stream_bbp));
-    float bbp_ms = 0;
-    check(cudaEventElapsedTime(&bbp_ms, b0, b1));
-
-    check(cudaMemcpy(h_hex, d_hex, hex_bytes, cudaMemcpyDeviceToHost));
-    h_hex[PRECISION_HEX] = '\0';
-
-    PRINT_IF_RANK0("BBP kernel finished. Saturation still running...\n");
-
-    // Wait for saturator to finish.
-    check(cudaStreamSynchronize(stream_sat));
-    float sat_ms = 0;
-    check(cudaEventElapsedTime(&sat_ms, t0, t1));
-
-    // ── Results ───────────────────────────────────────────────────────────────
-    PRINT_IF_RANK0("\n=== Results ===\n");
-    PRINT_IF_RANK0("Pi hex digits (first 80): %.80s\n", h_hex);
-
-    PRINT_IF_RANK0("\n=== Timing ===\n");
-    PRINT_IF_RANK0("Saturator:   %.3f ms  (%.3f s)\n", sat_ms, sat_ms/1000.0f);
-    PRINT_IF_RANK0("BBP kernel:  %.3f ms\n", bbp_ms);
-    PRINT_IF_RANK0("Target was:  %.3f s\n", SATURATE_SECONDS);
-
-    // ── Cleanup ───────────────────────────────────────────────────────────────
-    cudaStreamDestroy(stream_sat);
-    cudaStreamDestroy(stream_bbp);
-    cudaEventDestroy(t0); cudaEventDestroy(t1);
-    cudaEventDestroy(b0); cudaEventDestroy(b1);
-    cudaFree(d_dec); cudaFree(d_hex);
-    free(h_dec); free(h_hex);
+    /* ── cleanup ─────────────────────────────────────────────────── */
+    cublasDestroy(handle);
+    cudaFree(d_A); cudaFree(d_B); cudaFree(d_C);
+    cudaFreeHost(h_A); cudaFreeHost(h_B); cudaFreeHost(h_C);
+    cudaEventDestroy(ev_h2d_start);
+    cudaEventDestroy(ev_h2d_done);
+    cudaEventDestroy(ev_d2h_start);
+    cudaEventDestroy(ev_d2h_done);
 }

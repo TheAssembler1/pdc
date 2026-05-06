@@ -14,7 +14,7 @@ typedef struct sz_compress_params_t {
 } sz_compress_params_t;
 
 bool
-pdc_tf_builtin_sz_compress(pdc_tf_internal_param internal_param, char *params_str, void **region_data,
+pdc_tf_builtin_sz_compress(pdc_tf_internal_param *internal_param, char *params_str, void **region_data,
                            pdc_tf_region_t input_region, pdc_tf_region_t *output_region)
 {
     LOG_DEBUG("pdc_tf_builtin_sz_compress was called\n");
@@ -74,7 +74,7 @@ pdc_tf_builtin_sz_compress(pdc_tf_internal_param internal_param, char *params_st
 }
 
 bool
-pdc_tf_builtin_sz_decompress(pdc_tf_internal_param internal_param, char *params_str, void **region_data,
+pdc_tf_builtin_sz_decompress(pdc_tf_internal_param *internal_param, char *params_str, void **region_data,
                              pdc_tf_region_t input_region, pdc_tf_region_t *output_region)
 {
     LOG_DEBUG("pdc_tf_builtin_sz_decompress was called\n");

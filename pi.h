@@ -8,7 +8,7 @@ extern "C" {
 #include <cuda_runtime.h>
 
 // Function to run Pi calculation on GPU
-void run_pi_gpu_timed(int rank);
+void run_gemm_compute(int rank);
 
 #ifdef __cplusplus
 }

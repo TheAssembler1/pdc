@@ -9,6 +9,8 @@ MPICH_DIR="/opt/cray/pe/mpich/8.1.30/ofi/gnu/12.3"  # adjust as needed
   -Xcompiler -fPIC \
   -I"$MPICH_DIR/include" \
   -L"$MPICH_DIR/lib" -lmpich \
+  -L/opt/nvidia/hpc_sdk/Linux_x86_64/25.5/math_libs/12.9/targets/x86_64-linux/lib \
+  -lcublas \
   -shared \
   ./test.cu \
   -o libpi_gpu.so

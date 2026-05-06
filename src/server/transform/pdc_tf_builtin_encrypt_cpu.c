@@ -17,7 +17,7 @@ typedef struct encrypt_params_t {
 } encrypt_params_t;
 
 bool
-pdc_tf_builtin_encrypt(pdc_tf_internal_param internal_param, char *params_str, void **region_data,
+pdc_tf_builtin_encrypt(pdc_tf_internal_param *internal_param, char *params_str, void **region_data,
                        pdc_tf_region_t input_region, pdc_tf_region_t *output_region)
 {
     LOG_DEBUG("pdc_tf_builtin_encrypt called\n");
@@ -51,7 +51,7 @@ pdc_tf_builtin_encrypt(pdc_tf_internal_param internal_param, char *params_str, v
 }
 
 bool
-pdc_tf_builtin_decrypt(pdc_tf_internal_param internal_param, char *params_str, void **region_data,
+pdc_tf_builtin_decrypt(pdc_tf_internal_param *internal_param, char *params_str, void **region_data,
                        pdc_tf_region_t input_region, pdc_tf_region_t *output_region)
 {
     LOG_DEBUG("pdc_tf_builtin_decrypt called\n");

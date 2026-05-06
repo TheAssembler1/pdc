@@ -26,7 +26,7 @@ typedef struct sz_compress_params_t {
     } while (0)
 
 bool
-pdc_tf_builtin_sz_compress_cuda(pdc_tf_internal_param internal_param, char *params_str, void **region_data,
+pdc_tf_builtin_sz_compress_cuda(pdc_tf_internal_param *internal_param, char *params_str, void **region_data,
                                 pdc_tf_region_t input_region, pdc_tf_region_t *output_region)
 {
     LOG_DEBUG("pdc_tf_builtin_sz_compress_cuda called\n");
@@ -102,7 +102,7 @@ pdc_tf_builtin_sz_compress_cuda(pdc_tf_internal_param internal_param, char *para
 }
 
 bool
-pdc_tf_builtin_sz_decompress_cuda(pdc_tf_internal_param internal_param, char *params_str, void **region_data,
+pdc_tf_builtin_sz_decompress_cuda(pdc_tf_internal_param *internal_param, char *params_str, void **region_data,
                                   pdc_tf_region_t input_region, pdc_tf_region_t *output_region)
 {
     LOG_DEBUG("pdc_tf_builtin_sz_decompress_cuda called\n");

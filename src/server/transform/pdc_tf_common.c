@@ -12,6 +12,7 @@
 #include "pdc_tf.h"
 #include "pdc_timing.h"
 #include "pdc_interface.h"
+#include "pdc_tf_poly_sched.h"
 #include "json-c/json.h"
 
 PDC_VECTOR *pdc_tf_builtin_funcs_vector_g = NULL;
@@ -20,7 +21,6 @@ void
 append_host_to_dev_time(pdc_tf_builtin_func_t *func, double value)
 {
     func->host_to_dev_avg_time[func->cur_host_to_dev_avg_time_index] = value;
-
     func->cur_host_to_dev_avg_time_index =
         (func->cur_host_to_dev_avg_time_index + 1) % NUM_TF_FUNC_TIMES;
 }
@@ -28,29 +28,25 @@ append_host_to_dev_time(pdc_tf_builtin_func_t *func, double value)
 void
 append_dev_to_host_time(pdc_tf_builtin_func_t *func, double value)
 {
-    func->dev_to_host_avg_time[func->cur_dev_to_host_avg_time] = value;
-
-    func->cur_dev_to_host_avg_time =
-        (func->cur_dev_to_host_avg_time + 1) % NUM_TF_FUNC_TIMES;
+    func->dev_to_host_avg_time[func->cur_dev_to_host_avg_time_index] = value;
+    func->cur_dev_to_host_avg_time_index =
+        (func->cur_dev_to_host_avg_time_index + 1) % NUM_TF_FUNC_TIMES;
 }
 
 void
 append_exec_time(pdc_tf_builtin_func_t *func, double value)
 {
-    func->exec_avg_time[func->cur_exec_avg_time] = value;
-
-    func->cur_exec_avg_time =
-        (func->cur_exec_avg_time + 1) % NUM_TF_FUNC_TIMES;
+    func->exec_avg_time[func->cur_exec_avg_time_index] = value;
+    func->cur_exec_avg_time_index =
+        (func->cur_exec_avg_time_index + 1) % NUM_TF_FUNC_TIMES;
 }
 
 double
 get_host_to_dev_avg(const pdc_tf_builtin_func_t *func)
 {
     double sum = 0.0;
-
     for (int i = 0; i < NUM_TF_FUNC_TIMES; i++)
-        sum += func->cur_host_to_dev_avg_time[i];
-
+        sum += func->host_to_dev_avg_time[i];
     return sum / NUM_TF_FUNC_TIMES;
 }
 
@@ -58,10 +54,8 @@ double
 get_dev_to_host_avg(const pdc_tf_builtin_func_t *func)
 {
     double sum = 0.0;
-
     for (int i = 0; i < NUM_TF_FUNC_TIMES; i++)
         sum += func->dev_to_host_avg_time[i];
-
     return sum / NUM_TF_FUNC_TIMES;
 }
 
@@ -69,10 +63,8 @@ double
 get_exec_avg(const pdc_tf_builtin_func_t *func)
 {
     double sum = 0.0;
-
     for (int i = 0; i < NUM_TF_FUNC_TIMES; i++)
         sum += func->exec_avg_time[i];
-
     return sum / NUM_TF_FUNC_TIMES;
 }
 
@@ -122,17 +114,17 @@ PDCtf_add_builtin_func(char *func_name, c_func_t c_func, pdc_tf_dev_t dev)
     builtin_func->name   = strdup(func_name);
     builtin_func->c_func = c_func;
     builtin_func->dev    = dev;
-    
+
     /* Initialize rolling history indices */
     builtin_func->cur_host_to_dev_avg_time_index = 0;
-    builtin_func->cur_dev_to_host_avg_time       = 0;
-    builtin_func->cur_exec_avg_time              = 0;
+    builtin_func->cur_dev_to_host_avg_time_index = 0;
+    builtin_func->cur_exec_avg_time_index        = 0;
 
     /* Initialize timing histories */
     for (int i = 0; i < NUM_TF_FUNC_TIMES; i++) {
-        builtin_func->cur_host_to_dev_avg_time[i] = 0.0;
-        builtin_func->cur_dev_to_host_avg_time[i] = 0.0;
-        builtin_func->cur_exec_avg_time[i]        = 0.0;
+        builtin_func->host_to_dev_avg_time[i] = 0.0;
+        builtin_func->dev_to_host_avg_time[i] = 0.0;
+	    builtin_func->exec_avg_time[i] = (builtin_func->dev == PDC_TF_CPU_DEVICE) ? 0.750 : 0.0;
     }
 
 done:
@@ -178,6 +170,14 @@ PDCtf_init_builtin_funcs()
 
     perr_t ret_value = SUCCEED;
 
+#ifdef CUDA_ENABLED
+    const char *coeff_file = getenv("PDC_POLY_COEFF_FILE");
+    if (coeff_file == NULL)
+        coeff_file = "/pscratch/sd/n/nlewi26/src/work_space/poly_coefficients.txt";
+    if (pdc_tf_poly_sched_init(coeff_file) != 0)
+        PGOTO_ERROR(FAIL, "Failed to initialize polynomial scheduler from %s", coeff_file);
+#endif
+
     if (pdc_tf_builtin_funcs_vector_g == NULL)
         pdc_tf_builtin_funcs_vector_g = pdc_vector_create(16, 2.0);
     if (pdc_tf_builtin_funcs_vector_g == NULL)
@@ -194,7 +194,7 @@ PDCtf_init_builtin_funcs()
         PGOTO_ERROR(FAIL, "Failed to add builtin func sz_compress CPU");
     if (PDCtf_add_builtin_func("sz_decompress", pdc_tf_builtin_sz_decompress, PDC_TF_CPU_DEVICE) != SUCCEED)
         PGOTO_ERROR(FAIL, "Failed to add builtin func sz_decompress CPU");
-#endif // ENABLE_TF_SZ_COMPRESSION
+#endif
 #ifdef ENABLE_TF_ZFP_COMPRESSION
     if (PDCtf_add_builtin_func("zfp_compress", pdc_tf_builtin_zfp_compress, PDC_TF_CPU_DEVICE) != SUCCEED)
         PGOTO_ERROR(FAIL, "Failed to add builtin func zfp_compress CPU");
@@ -207,14 +207,14 @@ PDCtf_init_builtin_funcs()
     if (PDCtf_add_builtin_func("zfp_decompress", pdc_tf_builtin_zfp_decompress_cuda, PDC_TF_GPU_DEVICE) !=
         SUCCEED)
         PGOTO_ERROR(FAIL, "Failed to add builtin func zfp_decompress GPU");
-#endif // CUDA_ENABLED
-#endif // ENABLE_TF_ZFP_COMPRESSION
+#endif
+#endif
 #ifdef ENABLE_TF_SECRET_BOX_ENCRYPTION
     if (PDCtf_add_builtin_func("secret_box_encrypt", pdc_tf_builtin_encrypt, PDC_TF_CPU_DEVICE) != SUCCEED)
         PGOTO_ERROR(FAIL, "Failed to add builtin func secret_box_encrypt CPU");
     if (PDCtf_add_builtin_func("secret_box_decrypt", pdc_tf_builtin_decrypt, PDC_TF_CPU_DEVICE) != SUCCEED)
         PGOTO_ERROR(FAIL, "Failed to add builtin func secret_box_decrypt CPU");
-#endif // ENABLE_TF_SECRET_BOX_ENCRYPTION
+#endif
 #ifdef ENABLE_TF_TURBO_COMPRESSION
     if (PDCtf_add_builtin_func("turbo_compress", pdc_tf_builtin_turbo_compress, PDC_TF_CPU_DEVICE) != SUCCEED)
         PGOTO_ERROR(FAIL, "Failed to add builtin func turbo_compress CPU");
@@ -251,13 +251,11 @@ PDCtf_region_has_attached_graph(struct pdc_tf_obj_t *tf_obj, int ndim, size_t un
         pdc_tf_region_t *conceptual_region = &((*region_mapping)->conceptual_region);
         uint64_t *       conceptual_offset = (*region_mapping)->conceptual_offset;
 
-        // check if client ndim, offset, dims, unit match
         bool ndim_matches   = conceptual_region->ndim == ndim;
         bool unit_matches   = PDC_get_var_type_size(conceptual_region->pdc_var_type) == unit;
         bool offset_matches = true;
         bool size_matches   = true;
 
-        // print per-dimension details
         for (int i = 0; i < ndim; i++) {
             bool offset_i_match = (conceptual_offset[i] == offset[i]);
             bool size_i_match   = (conceptual_region->size[i] == size[i]);
@@ -316,30 +314,6 @@ done:
     FUNC_LEAVE(json_object_get_string(str_json_obj));
 }
 
-/**
- * {
- *   "states": [
- *     {
- *       "name": "string",
- *     },
- *     ...
- *   ],
- *   "functions": [
- *     {
- *       "device": "CPU | GPU",
- *       "input_state": "states[i].name",
- *       "output_state": "states[j].name",
- *       "location": "built-in | external",
- *       "name": "string"
- *     },
- *     ...
- *   ],
- *   "lib_path?": "string",
- *   "name": "string"
- * }
- */
-
-// NOTE: These must match the order of the enum in the header
 char *pdc_tf_dev_strs[]      = {"CPU", "GPU"};
 char *pdc_tf_location_strs[] = {"builtin", "external"};
 
@@ -359,10 +333,8 @@ static void
 graph_free(void *data)
 {
     FUNC_ENTER(NULL);
-
     char *json_filepath = (char *)data;
     json_filepath       = PDC_free(data);
-
     FUNC_LEAVE_VOID();
 }
 
@@ -418,62 +390,45 @@ PDCtf_dg_json_create_common(char *filepath)
     io_buffer_t         io_buffer;
     memset(&io_buffer, 0, sizeof(io_buffer_t));
 
-    // Open and read JSON file into buffer
     if ((fp = open_file(filepath, IO_MODE_READ)) == NULL)
         PGOTO_ERROR(0, "Failed to open_file: %s\n", filepath);
     if (read_file(fp, &io_buffer) != 0)
         PGOTO_ERROR(NULL, "Failed to read_file");
 
-    // Parse and pretty print JSON
     if ((json_obj = json_tokener_parse(io_buffer.buffer)) == NULL)
         PGOTO_ERROR(NULL, "Failed to parse JSON");
 
-    // Get directed graph name
     const char *dg_name = get_json_string(json_obj, "name", true);
     if (dg_name == NULL)
         PGOTO_ERROR(NULL, "Failed to find graph name");
     const char *lib_path = NULL;
-    if ((lib_path = get_json_string(json_obj, "lib_path", false)) != NULL) {
+    if ((lib_path = get_json_string(json_obj, "lib_path", false)) != NULL)
         LOG_DEBUG("Library path: %s\n", lib_path);
-    }
 
-    // Actually create directed graph data structure
     ret_value         = PDCdg_create(graph_free, vertices_are_equal, NULL, edge_free, vertex_free);
     dg_cpy            = ret_value;
     (ret_value)->data = strdup(filepath);
 
-    // Parse and pretty print JSON
     struct array_list *states    = get_json_array(json_obj, "states");
     struct array_list *functions = get_json_array(json_obj, "functions");
     if (states == NULL || functions == NULL)
         PGOTO_DONE(NULL);
 
-    /**
-     * Extract states
-     * FIXME: Need to validate all this
-     */
     int states_length = array_list_length(states);
     for (int i = 0; i < states_length; i++) {
-        struct json_object *s = array_list_get_idx(states, i);
-
-        char *s_name = strdup(get_json_string(s, "name", true));
+        struct json_object *s      = array_list_get_idx(states, i);
+        char *              s_name = strdup(get_json_string(s, "name", true));
 
         if (s_name == NULL)
             PGOTO_DONE(NULL);
 
-        // Add vertex to the directed graph data structure
         pdc_tf_state_t *dg_state = PDC_calloc(1, sizeof(pdc_tf_state_t));
-
-        dg_state->name = s_name;
+        dg_state->name           = s_name;
 
         if (PDCdg_add_vertex(ret_value, dg_state) == PDC_DG_INVALID_VERTEX)
             PGOTO_ERROR(NULL, "Failed to add vertex to directed graph");
     }
 
-    /**
-     * Extract functions
-     * FIXME: Need to validate all this
-     */
     int functions_length = array_list_length(functions);
     for (int i = 0; i < functions_length; i++) {
         struct json_object *f = array_list_get_idx(functions, i);
@@ -481,8 +436,7 @@ PDCtf_dg_json_create_common(char *filepath)
         char *f_name         = strdup(get_json_string(f, "name", true));
         char *f_input_state  = strdup(get_json_string(f, "input_state", true));
         char *f_output_state = strdup(get_json_string(f, "output_state", true));
-        // The params strings are optional
-        char *f_params_str = NULL;
+        char *f_params_str   = NULL;
         if (get_json_string(f, "params", false) != NULL)
             f_params_str = strdup(get_json_string(f, "params", false));
         const char *f_device   = get_json_string(f, "device", true);
@@ -490,9 +444,9 @@ PDCtf_dg_json_create_common(char *filepath)
 
         if (f_name == NULL || f_input_state == NULL || f_output_state == NULL || f_location == NULL)
             PGOTO_DONE(NULL);
+
         pdc_tf_func_t *dg_func = PDC_calloc(1, sizeof(pdc_tf_func_t));
 
-        // Validate device
         pdc_tf_dev_t dev;
         bool         found_device = false;
         for (int j = 0; j < PDC_TF_NUM_DEVICES; j++) {
@@ -505,7 +459,6 @@ PDCtf_dg_json_create_common(char *filepath)
         if (!found_device)
             PGOTO_ERROR(NULL, "Invalid device %s\n", f_device);
 
-        // Validate location
         pdc_tf_location_t location;
         bool              found_location = false;
         for (int j = 0; j < PDC_TF_NUM_LOCATIONS; j++) {
@@ -518,24 +471,20 @@ PDCtf_dg_json_create_common(char *filepath)
         if (!found_location)
             PGOTO_ERROR(NULL, "Invalid location %s\n", f_location);
 
-        /**
-         * Here we need to dl_open on the lib path
-         * and try and link to the function.
-         */
         if (location == PDC_TF_EXTERNAL) {
-            if (lib_path == NULL) {
+            if (lib_path == NULL)
                 PGOTO_ERROR(NULL, "Function %s is external but no lib_path was provided\n", f_name);
-            }
+
             void *handle = dlopen(lib_path, RTLD_LAZY);
-            if (!handle) {
+            if (!handle)
                 PGOTO_ERROR(NULL, "Failed to dlopen library at path %s: %s\n", lib_path, dlerror());
-            }
-            dlerror(); // Clear any existing error
+
+            dlerror();
             void *func_ptr = dlsym(handle, f_name);
             char *error;
-            if ((error = dlerror()) != NULL) {
+            if ((error = dlerror()) != NULL)
                 PGOTO_ERROR(NULL, "Failed to find symbol %s in library %s: %s\n", f_name, lib_path, error);
-            }
+
             dg_func->c_func = func_ptr;
 
             if (PDCtf_add_builtin_func(f_name, dg_func->c_func, dev) != SUCCEED)
@@ -549,10 +498,6 @@ PDCtf_dg_json_create_common(char *filepath)
         dg_func->name       = f_name;
         dg_func->params_str = (f_params_str) ? f_params_str : NULL;
 
-        /**
-         * Construct input/output dg states
-         * NOTE: the compare function is based only on the name string
-         */
         pdc_tf_state_t i_state = {.name = (char *)f_input_state};
         pdc_tf_state_t o_state = {.name = (char *)f_output_state};
 
@@ -568,7 +513,7 @@ done:
     if (json_obj != NULL)
         json_object_put(json_obj);
     if (ret_value == NULL && dg_cpy != NULL) {
-        LOG_ERROR("Failed load JSOn freeing graph\n");
+        LOG_ERROR("Failed load JSON freeing graph\n");
         PDCdg_destroy(dg_cpy);
     }
 
@@ -581,9 +526,8 @@ PDCtf_get_pdc_region_t_elements(pdc_tf_region_t reg)
     FUNC_ENTER(NULL);
 
     size_t num_elements = 1;
-    for (int i = 0; i < reg.ndim; ++i) {
+    for (int i = 0; i < reg.ndim; ++i)
         num_elements *= reg.size[i];
-    }
 
     FUNC_LEAVE(num_elements);
 }
@@ -636,8 +580,7 @@ PDCtf_print_exec_path_common(pdc_dg_t *dg, char *cur_state, char *desired_state)
 
     if (PDCdg_shortest_path(dg, &tf_cur_state, &tf_desired_state, &edges_out, &num_edges)) {
         for (uint32_t j = 0; j < num_edges; j++) {
-            pdc_dg_edge_t e = edges_out[j];
-
+            pdc_dg_edge_t   e  = edges_out[j];
             pdc_tf_state_t *v1 = (pdc_tf_state_t *)(dg->vertices[e.v1_id]->data);
             pdc_tf_state_t *v2 = (pdc_tf_state_t *)(dg->vertices[e.v2_id]->data);
         }
@@ -678,7 +621,6 @@ PDCtf_print_dg_common(pdc_dg_t *dg, bool write_to_file)
         close(file_fd);
     }
 
-    // --- Begin printing graph ---
     LOG_JUST_PRINT("\tdigraph G {\n");
     LOG_JUST_PRINT("legend [shape=none, margin=0, label=<\n");
     LOG_JUST_PRINT("  <TABLE BORDER=\"0\" CELLBORDER=\"1\" CELLSPACING=\"0\" CELLPADDING=\"0\">\n");
@@ -702,7 +644,6 @@ PDCtf_print_dg_common(pdc_dg_t *dg, bool write_to_file)
     for (int i = 0; i < dg->edge_count; i++) {
         pdc_dg_edge_t *edge = dg->edges[i];
 
-        // Correctly cast vertex data to state*
         pdc_tf_state_t *input_state  = (pdc_tf_state_t *)PDCdg_get_vertex_data(dg, edge->v1_id);
         pdc_tf_state_t *output_state = (pdc_tf_state_t *)PDCdg_get_vertex_data(dg, edge->v2_id);
         pdc_tf_func_t * edge_func    = (pdc_tf_func_t *)edge->data;
@@ -716,13 +657,9 @@ PDCtf_print_dg_common(pdc_dg_t *dg, bool write_to_file)
     LOG_JUST_PRINT("}\n");
 
     if (write_to_file) {
-        // --- End printing graph ---
         fflush(stdout);
-
-        // restore original stdout
-        if (dup2(stdout_fd, STDOUT_FILENO) == -1) {
+        if (dup2(stdout_fd, STDOUT_FILENO) == -1)
             perror("dup2 restore");
-        }
         close(stdout_fd);
     }
 }

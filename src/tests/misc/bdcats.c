@@ -130,8 +130,6 @@ main(int argc, char **argv)
     region_local  = PDCregion_create(ndim, offset_local, mysize);
     region_remote = PDCregion_create(ndim, offset_remote, mysize);
 
-    run_pi_gpu_timed(rank);
-
     for (int iter = 0; iter < steps; iter++) {
 
 #ifdef ENABLE_MPI
@@ -196,13 +194,7 @@ main(int argc, char **argv)
             if (rank == 0)
                 LOG_WARNING("Sleep start: %llu.00\n", sleeptime);
             double loop_start = MPI_Wtime();
-            for (int i = 0; i < NUM_ITERATIONS; i++) {
-                if (rank == 0)
-                    LOG_WARNING("\n=== Iteration %d ===\n", i + 1);
-                MPI_Barrier(MPI_COMM_WORLD);
-                run_pi_gpu_timed(rank);
-                MPI_Barrier(MPI_COMM_WORLD);
-            }
+            run_gemm_compute(rank);
             double loop_end = MPI_Wtime();
             if (rank == 0) {
                 LOG_WARNING("\nTotal time for %d iterations: %f s\n", NUM_ITERATIONS, loop_end - loop_start);

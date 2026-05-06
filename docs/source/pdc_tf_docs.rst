@@ -969,7 +969,7 @@ Your function must match the ``c_func_t`` prototype exactly:
 
    #include "pdc_tf_user.h"
 
-   bool my_transform(pdc_tf_internal_param internal_param, char *params_str,
+   bool my_transform(pdc_tf_internal_param *internal_param, char *params_str,
                      void **region_data, pdc_tf_region_t input_region,
                      pdc_tf_region_t *output_region)
    {
