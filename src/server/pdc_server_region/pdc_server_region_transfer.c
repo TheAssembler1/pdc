@@ -731,7 +731,7 @@ PDC_Server_data_io_region_per_file_transformations(uint64_t obj_id, int obj_ndim
         PGOTO_DONE(SUCCEED);
     }
     else if (PDCtf_exec_graph(dg, flat_conceptual_offset, region_mapping->region_state.cur_state,
-                              desired_state, input_region, &output_region, &buf, is_write, PDC_TF_SCHED_DYNAMIC) != SUCCEED) {
+                              desired_state, input_region, &output_region, &buf, is_write, PDC_TF_SCHED_STATIC) != SUCCEED) {
         PGOTO_ERROR(FAIL, "Error with PDCtf_exec_graph");
     }
 

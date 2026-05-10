@@ -32,7 +32,7 @@
 #include <inttypes.h>
 #include "pdc.h"
 #include "pdc_timing.h"
-#include "/pscratch/sd/n/nlewi26/src/work_space/source/pdc/pi.h"
+//#include "/pscratch/sd/n/nlewi26/src/work_space/source/pdc/pi.h"
 
 #define dLEAP          2
 #define PRECISION_INIT 2
@@ -279,7 +279,7 @@ main(int argc, char **argv)
                 LOG_WARNING("Sleep start: %llu.00\n", sleeptime);
             double loop_start = MPI_Wtime();
             // Call C function which launches kernel here
-            run_gemm_compute(rank);
+	    sleep(sleeptime);
             double loop_end = MPI_Wtime();
             if (rank == 0) {
                 LOG_WARNING("\nTotal time for %d iterations: %f s\n", NUM_ITERATIONS, loop_end - loop_start);

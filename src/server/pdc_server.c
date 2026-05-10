@@ -2284,11 +2284,11 @@ PDC_Server_loop(hg_context_t *hg_context)
         double elapsed_progress_time_sec = (hg_progress_end.tv_sec - hg_progress_start.tv_sec) +
                                            (hg_progress_end.tv_nsec - hg_progress_start.tv_nsec) / 1e9;
         // NOTE: this must be called after HG_Progress
-        if (pdc_tf_update_profiler(elapsed_total_time_sec, elapsed_progress_time_sec) != SUCCEED) {
+        /*if (pdc_tf_update_profiler(elapsed_total_time_sec, elapsed_progress_time_sec) != SUCCEED) {
             LOG_ERROR("Error updating profiler\n");
             ret_value = FAIL;
             break;
-        }
+        }*/
     } while (hg_ret == HG_SUCCESS || hg_ret == HG_TIMEOUT);
 
     if (hg_ret == HG_SUCCESS)
