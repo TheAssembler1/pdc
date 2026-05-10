@@ -80,22 +80,24 @@ pdc_tf_nvml_profiler_update(void)
     if (pdc_tf_profiler_nvml_device_count == 0)
         goto done;
 
-    pdc_tf_profiler_nvml_sample_t *nvml_sample =
-        (pdc_tf_profiler_nvml_sample_t *)PDC_malloc(
-            sizeof(pdc_tf_profiler_nvml_sample_t) * pdc_tf_profiler_nvml_device_count);
+    pdc_tf_profiler_nvml_sample_t *nvml_sample = (pdc_tf_profiler_nvml_sample_t *)PDC_malloc(
+        sizeof(pdc_tf_profiler_nvml_sample_t) * pdc_tf_profiler_nvml_device_count);
 
     for (int i = 0; i < (int)pdc_tf_profiler_nvml_device_count; i++) {
         nvmlDevice_t device;
         nvml_ret = nvmlDeviceGetHandleByIndex(i, &device);
-        if (nvml_ret != NVML_SUCCESS) continue;
+        if (nvml_ret != NVML_SUCCESS)
+            continue;
 
         nvmlMemory_t mem_info;
         nvml_ret = nvmlDeviceGetMemoryInfo(device, &mem_info);
-        if (nvml_ret != NVML_SUCCESS) continue;
+        if (nvml_ret != NVML_SUCCESS)
+            continue;
 
         nvmlUtilization_t util_info;
         nvml_ret = nvmlDeviceGetUtilizationRates(device, &util_info);
-        if (nvml_ret != NVML_SUCCESS) continue;
+        if (nvml_ret != NVML_SUCCESS)
+            continue;
 
         nvml_sample[i].gpu_utilization    = (double)util_info.gpu / 100.0;
         nvml_sample[i].memory_utilization = util_info.memory;
@@ -107,8 +109,7 @@ pdc_tf_nvml_profiler_update(void)
         nvmlDeviceGetPowerUsage(device, &power_mw);
         nvml_sample[i].power_mw = power_mw;
 
-        LOG_DEBUG("NVML device %d: util=%.1f%% power=%u mW\n",
-                  i, (double)util_info.gpu, power_mw);
+        LOG_DEBUG("NVML device %d: util=%.1f%% power=%u mW\n", i, (double)util_info.gpu, power_mw);
     }
 
     /* with buffer size 1, always write to slot 0 */
@@ -203,12 +204,13 @@ pdc_tf_lag_init(void)
 }
 
 void
-pdc_tf_update_device_lag(unsigned int device_index,
-                          double h2d_ms, double comp_ms,
-                          double d2h_ms, double total_ms)
+pdc_tf_update_device_lag(unsigned int device_index, double h2d_ms, double comp_ms, double d2h_ms,
+                         double total_ms)
 {
-    if (!pdc_tf_device_lag_initialized) pdc_tf_lag_init();
-    if (device_index >= PDC_TF_MAX_GPU_DEVICES) return;
+    if (!pdc_tf_device_lag_initialized)
+        pdc_tf_lag_init();
+    if (device_index >= PDC_TF_MAX_GPU_DEVICES)
+        return;
     pdc_tf_device_lag[device_index].prev_h2d_ms   = h2d_ms;
     pdc_tf_device_lag[device_index].prev_comp_ms  = comp_ms;
     pdc_tf_device_lag[device_index].prev_d2h_ms   = d2h_ms;
@@ -216,13 +218,12 @@ pdc_tf_update_device_lag(unsigned int device_index,
 }
 
 void
-pdc_tf_get_device_lag(unsigned int device_index,
-                       double *prev_h2d_ms, double *prev_comp_ms,
-                       double *prev_d2h_ms, double *prev_total_ms)
+pdc_tf_get_device_lag(unsigned int device_index, double *prev_h2d_ms, double *prev_comp_ms,
+                      double *prev_d2h_ms, double *prev_total_ms)
 {
-    if (!pdc_tf_device_lag_initialized) pdc_tf_lag_init();
-    if (device_index >= PDC_TF_MAX_GPU_DEVICES ||
-        device_index >= pdc_tf_profiler_nvml_device_count) {
+    if (!pdc_tf_device_lag_initialized)
+        pdc_tf_lag_init();
+    if (device_index >= PDC_TF_MAX_GPU_DEVICES || device_index >= pdc_tf_profiler_nvml_device_count) {
         *prev_h2d_ms = *prev_comp_ms = *prev_d2h_ms = *prev_total_ms = -1.0;
         return;
     }
@@ -235,10 +236,13 @@ pdc_tf_get_device_lag(unsigned int device_index,
 double
 pdc_tf_avg_gpu_power_mw(unsigned int device_index)
 {
-    if (device_index >= pdc_tf_profiler_nvml_device_count) return 0.0;
-    double sum = 0.0; int count = 0;
+    if (device_index >= pdc_tf_profiler_nvml_device_count)
+        return 0.0;
+    double sum   = 0.0;
+    int    count = 0;
     for (int i = 0; i < PDC_TF_PROFILE_SAMPLE_VECTOR_MAX_SIZE; i++) {
-        if (pdc_tf_profiler_samples.nvml_samples[i] == NULL) continue;
+        if (pdc_tf_profiler_samples.nvml_samples[i] == NULL)
+            continue;
         sum += (double)pdc_tf_profiler_samples.nvml_samples[i][device_index].power_mw;
         count++;
     }
@@ -248,10 +252,13 @@ pdc_tf_avg_gpu_power_mw(unsigned int device_index)
 unsigned long
 pdc_tf_avg_gpu_mem_used(unsigned int device_index)
 {
-    if (device_index >= pdc_tf_profiler_nvml_device_count) return 0UL;
-    double sum = 0.0; int count = 0;
+    if (device_index >= pdc_tf_profiler_nvml_device_count)
+        return 0UL;
+    double sum   = 0.0;
+    int    count = 0;
     for (int i = 0; i < PDC_TF_PROFILE_SAMPLE_VECTOR_MAX_SIZE; i++) {
-        if (pdc_tf_profiler_samples.nvml_samples[i] == NULL) continue;
+        if (pdc_tf_profiler_samples.nvml_samples[i] == NULL)
+            continue;
         sum += (double)pdc_tf_profiler_samples.nvml_samples[i][device_index].memory_used;
         count++;
     }

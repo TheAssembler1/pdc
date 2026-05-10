@@ -40,8 +40,9 @@ print_ztype(zfp_type z_type)
 }
 
 static bool
-pdc_tf_builtin_zfp_compress_helper(pdc_tf_internal_param *internal_param, char *params_str, void **region_data,
-                                   pdc_tf_region_t input_region, pdc_tf_region_t *output_region)
+pdc_tf_builtin_zfp_compress_helper(pdc_tf_internal_param *internal_param, char *params_str,
+                                   void **region_data, pdc_tf_region_t input_region,
+                                   pdc_tf_region_t *output_region)
 {
     LOG_DEBUG("pdc_tf_builtin_zfp_compress was called\n");
     PDCtf_log_pdc_region_t(input_region);

@@ -24,7 +24,8 @@ PDCtf_store_json_mapping(pdcid_t obj_id, char *json_filepath, char *cur_state, c
 }
 perr_t
 PDCtf_exec_graph(pdc_dg_t *dg, uint64_t flat_conceptual_offset, char *cur_state, char *desired_state,
-                 pdc_tf_region_t input_region, pdc_tf_region_t *output_region, void **input, int is_write, pdc_tf_sched_mode_t sched_mode)
+                 pdc_tf_region_t input_region, pdc_tf_region_t *output_region, void **input, int is_write,
+                 pdc_tf_sched_mode_t sched_mode)
 {
     FUNC_ENTER(NULL);
     FUNC_LEAVE(SUCCEED);
@@ -205,8 +206,8 @@ expected_exec_time(pdc_tf_func_t *f, double avg_cpu_utilization, double min_avg_
 static uint32_t
 select_best_edge(pdc_dg_edge_t *edges_out, uint32_t j, uint32_t cur_edges_between_vertices,
                  double avg_cpu_utilization, double min_avg_gpu_utilization,
-                 int *min_gpu_utilization_device_index_out, bool always_use_gpu,
-                 bool *force_selected_out, double predicted_gpu_ms)
+                 int *min_gpu_utilization_device_index_out, bool always_use_gpu, bool *force_selected_out,
+                 double predicted_gpu_ms)
 {
     uint32_t best_edge_idx  = j;
     bool     force_selected = false;
@@ -237,11 +238,12 @@ select_best_edge(pdc_dg_edge_t *edges_out, uint32_t j, uint32_t cur_edges_betwee
             double exp_time;
             if (f->dev == PDC_TF_GPU_DEVICE && predicted_gpu_ms >= 0.0) {
                 exp_time = predicted_gpu_ms;
-            } else {
+            }
+            else {
                 double cpu_rolling = rolling_avg(f->exec_avg_time);
-                exp_time = (cpu_rolling < 0.001)
-                        ? 0.750
-                        : expected_exec_time(f, avg_cpu_utilization, min_avg_gpu_utilization);
+                exp_time           = (cpu_rolling < 0.001)
+                               ? 0.750
+                               : expected_exec_time(f, avg_cpu_utilization, min_avg_gpu_utilization);
             }
             if (pdc_server_rank_g == 0)
                 LOG_WARNING("SCHED: edge %u func=%s dev=%s last_avg_time=%.4f expected_time=%.4f "
@@ -268,8 +270,8 @@ select_best_edge(pdc_dg_edge_t *edges_out, uint32_t j, uint32_t cur_edges_betwee
 
 perr_t
 PDCtf_exec_graph(pdc_dg_t *dg, uint64_t flat_conceptual_offset, char *cur_state, char *desired_state,
-                 pdc_tf_region_t input_region, pdc_tf_region_t *output_region, void **input,
-                 int is_write, pdc_tf_sched_mode_t sched_mode)
+                 pdc_tf_region_t input_region, pdc_tf_region_t *output_region, void **input, int is_write,
+                 pdc_tf_sched_mode_t sched_mode)
 {
     FUNC_ENTER(NULL);
 
@@ -300,11 +302,11 @@ PDCtf_exec_graph(pdc_dg_t *dg, uint64_t flat_conceptual_offset, char *cur_state,
             }
 
             /* hoisted so execute and post-execution blocks can both access */
-            int    min_gpu_utilization_device_index = 0;
-            double predicted_total_ms               = -1.0;
-            double avg_cpu_utilization              = 0.0;
-            double min_avg_gpu_utilization          = 0.0;
-            uint32_t best_edge_idx                  = j;
+            int      min_gpu_utilization_device_index = 0;
+            double   predicted_total_ms               = -1.0;
+            double   avg_cpu_utilization              = 0.0;
+            double   min_avg_gpu_utilization          = 0.0;
+            uint32_t best_edge_idx                    = j;
 
             /* ── fast path: single edge, skip profiling and scheduling ── */
             if (cur_edges_between_vertices > 1) {
@@ -321,21 +323,19 @@ PDCtf_exec_graph(pdc_dg_t *dg, uint64_t flat_conceptual_offset, char *cur_state,
 
                     double poly_features[PDC_POLY_N_FEATURES];
                     double prev_h2d_ms_log, prev_comp_ms_log, prev_d2h_ms_log, prev_total_ms_log;
-                    pdc_tf_get_device_lag(min_gpu_utilization_device_index,
-                                        &prev_h2d_ms_log, &prev_comp_ms_log,
-                                        &prev_d2h_ms_log, &prev_total_ms_log);
-                    poly_features[0] = data_size_mb;
-                    poly_features[1] = pdc_tf_avg_gpu_utilization(min_gpu_utilization_device_index) * 100.0;
-                    poly_features[2] = prev_h2d_ms_log;
-                    poly_features[3] = prev_d2h_ms_log;
+                    pdc_tf_get_device_lag(min_gpu_utilization_device_index, &prev_h2d_ms_log,
+                                          &prev_comp_ms_log, &prev_d2h_ms_log, &prev_total_ms_log);
+                    poly_features[0]   = data_size_mb;
+                    poly_features[1]   = pdc_tf_avg_gpu_utilization(min_gpu_utilization_device_index) * 100.0;
+                    poly_features[2]   = prev_h2d_ms_log;
+                    poly_features[3]   = prev_d2h_ms_log;
                     predicted_total_ms = pdc_tf_poly_predict(poly_features);
                 }
                 else {
                     min_gpu_utilization_device_index = 0;
                 }
 
-                min_avg_gpu_utilization =
-                    pdc_tf_avg_gpu_utilization(min_gpu_utilization_device_index);
+                min_avg_gpu_utilization = pdc_tf_avg_gpu_utilization(min_gpu_utilization_device_index);
 
                 /* ── pre-execution logging ────────────────────────────────── */
                 if (true || pdc_server_rank_g == 0) {
@@ -351,28 +351,24 @@ PDCtf_exec_graph(pdc_dg_t *dg, uint64_t flat_conceptual_offset, char *cur_state,
                         LOG_WARNING("SCHED: GPU[%d] util=%.1f%% power=%.0f mW "
                                     "mem_used=%.0f MB prev_h2d=%.2f ms prev_d2h=%.2f ms "
                                     "prev_total=%.2f ms\n",
-                                    i,
-                                    pdc_tf_avg_gpu_utilization(i) * 100.0,
+                                    i, pdc_tf_avg_gpu_utilization(i) * 100.0,
                                     (double)pdc_tf_avg_gpu_power_mw(i),
-                                    (double)(pdc_tf_avg_gpu_mem_used(i) / (1024UL * 1024UL)),
-                                    ph, pd, pt);
+                                    (double)(pdc_tf_avg_gpu_mem_used(i) / (1024UL * 1024UL)), ph, pd, pt);
                     }
 
                     if (sched_mode == PDC_TF_SCHED_DYNAMIC)
                         LOG_WARNING("SCHED: data_size=%.2f MB  predicted_total=%.2f ms  "
                                     "selected_gpu=%d\n",
-                                    data_size_mb, predicted_total_ms,
-                                    min_gpu_utilization_device_index);
+                                    data_size_mb, predicted_total_ms, min_gpu_utilization_device_index);
                     else
                         LOG_WARNING("SCHED: data_size=%.2f MB  static_gpu=0\n", data_size_mb);
                 }
 
                 /* ── edge selection ───────────────────────────────────────── */
                 bool force_selected = false;
-                best_edge_idx = select_best_edge(edges_out, j, cur_edges_between_vertices,
-                                                 avg_cpu_utilization, min_avg_gpu_utilization,
-                                                 &min_gpu_utilization_device_index,
-                                                 &force_selected, false, predicted_total_ms / 1000.0);
+                best_edge_idx       = select_best_edge(
+                    edges_out, j, cur_edges_between_vertices, avg_cpu_utilization, min_avg_gpu_utilization,
+                    &min_gpu_utilization_device_index, &force_selected, false, predicted_total_ms / 1000.0);
             }
 
             /* ── execute transformation ───────────────────────────────── */
@@ -387,8 +383,8 @@ PDCtf_exec_graph(pdc_dg_t *dg, uint64_t flat_conceptual_offset, char *cur_state,
 
             if (f->dev == PDC_TF_GPU_DEVICE) {
                 int gpu_idx = close_time_g ? 0 : min_gpu_utilization_device_index;
-                LOG_WARNING("SCHED: setting CUDA device to %d for edge %u func=%s\n",
-                            gpu_idx, best_edge_idx, f->name);
+                LOG_WARNING("SCHED: setting CUDA device to %d for edge %u func=%s\n", gpu_idx, best_edge_idx,
+                            f->name);
                 cudaError_t err = cudaSetDevice(gpu_idx);
                 if (err != cudaSuccess)
                     PGOTO_ERROR(FAIL, "Failed to set device %d\n", gpu_idx);
@@ -407,8 +403,7 @@ PDCtf_exec_graph(pdc_dg_t *dg, uint64_t flat_conceptual_offset, char *cur_state,
 
             clock_gettime(CLOCK_MONOTONIC, &end_time);
             double transform_time =
-                (end_time.tv_sec - start_time.tv_sec) +
-                (end_time.tv_nsec - start_time.tv_nsec) / 1e9;
+                (end_time.tv_sec - start_time.tv_sec) + (end_time.tv_nsec - start_time.tv_nsec) / 1e9;
             double transform_time_ms = transform_time * 1000.0;
 
             /* ── post-execution: only for multi-edge paths ────────────── */
@@ -418,22 +413,20 @@ PDCtf_exec_graph(pdc_dg_t *dg, uint64_t flat_conceptual_offset, char *cur_state,
                                             ? exec_only_time * (1.0 - fmax(avg_cpu_utilization, 0.1))
                                             : exec_only_time * (1.0 - fmax(min_avg_gpu_utilization, 0.1));
 
-                double h2d_ms  = internal_params.host_to_dev_time >= 0
-                                     ? internal_params.host_to_dev_time * 1000.0 : 0.0;
-                double d2h_ms  = internal_params.dev_to_host_time >= 0
-                                     ? internal_params.dev_to_host_time * 1000.0 : 0.0;
+                double h2d_ms =
+                    internal_params.host_to_dev_time >= 0 ? internal_params.host_to_dev_time * 1000.0 : 0.0;
+                double d2h_ms =
+                    internal_params.dev_to_host_time >= 0 ? internal_params.dev_to_host_time * 1000.0 : 0.0;
                 double comp_ms = exec_only_time * 1000.0;
 
                 if (true || pdc_server_rank_g == 0) {
                     LOG_WARNING("TIMING: mode=%s func=%s dev=%s gpu=%d "
                                 "h2d=%.4f ms comp=%.4f ms d2h=%.4f ms "
                                 "total=%.4f ms exec_only=%.4f ms projected=%.4f ms",
-                                sched_mode == PDC_TF_SCHED_DYNAMIC ? "DYNAMIC" : "STATIC",
-                                f->name,
-                                f->dev == PDC_TF_CPU_DEVICE ? "CPU" : "GPU",
-                                min_gpu_utilization_device_index,
-                                h2d_ms, comp_ms, d2h_ms,
-                                transform_time_ms, exec_only_time * 1000.0, projected_time * 1000.0);
+                                sched_mode == PDC_TF_SCHED_DYNAMIC ? "DYNAMIC" : "STATIC", f->name,
+                                f->dev == PDC_TF_CPU_DEVICE ? "CPU" : "GPU", min_gpu_utilization_device_index,
+                                h2d_ms, comp_ms, d2h_ms, transform_time_ms, exec_only_time * 1000.0,
+                                projected_time * 1000.0);
 
                     if (sched_mode == PDC_TF_SCHED_DYNAMIC && f->dev == PDC_TF_GPU_DEVICE)
                         LOG_WARNING("TIMING: predicted=%.4f ms actual=%.4f ms error=%.4f ms\n",
@@ -446,12 +439,10 @@ PDCtf_exec_graph(pdc_dg_t *dg, uint64_t flat_conceptual_offset, char *cur_state,
                 update_func_history(f, internal_params, projected_time);
 
                 if (sched_mode == PDC_TF_SCHED_DYNAMIC) {
-                    pdc_tf_poly_update(
-                        min_gpu_utilization_device_index,
-                        internal_params.host_to_dev_time >= 0 ? h2d_ms  : -1.0,
-                        comp_ms,
-                        internal_params.dev_to_host_time >= 0 ? d2h_ms  : -1.0,
-                        transform_time_ms);
+                    pdc_tf_poly_update(min_gpu_utilization_device_index,
+                                       internal_params.host_to_dev_time >= 0 ? h2d_ms : -1.0, comp_ms,
+                                       internal_params.dev_to_host_time >= 0 ? d2h_ms : -1.0,
+                                       transform_time_ms);
                 }
             }
 
@@ -481,8 +472,8 @@ done:
 
 perr_t
 PDCtf_exec_graph_backup(pdc_dg_t *dg, uint64_t flat_conceptual_offset, char *cur_state, char *desired_state,
-                 pdc_tf_region_t input_region, pdc_tf_region_t *output_region, void **input,
-                 int is_write, pdc_tf_sched_mode_t sched_mode)
+                        pdc_tf_region_t input_region, pdc_tf_region_t *output_region, void **input,
+                        int is_write, pdc_tf_sched_mode_t sched_mode)
 {
     FUNC_ENTER(NULL);
 
@@ -533,13 +524,12 @@ PDCtf_exec_graph_backup(pdc_dg_t *dg, uint64_t flat_conceptual_offset, char *cur
                 /* build feature vector for logging predicted vs actual */
                 double poly_features[PDC_POLY_N_FEATURES];
                 double prev_h2d_ms_log, prev_comp_ms_log, prev_d2h_ms_log, prev_total_ms_log;
-                pdc_tf_get_device_lag(min_gpu_utilization_device_index,
-                                    &prev_h2d_ms_log, &prev_comp_ms_log,
-                                    &prev_d2h_ms_log, &prev_total_ms_log);
-                poly_features[0] = data_size_mb;
-                poly_features[1] = pdc_tf_avg_gpu_utilization(min_gpu_utilization_device_index) * 100.0;
-                poly_features[2] = prev_h2d_ms_log;
-                poly_features[3] = prev_d2h_ms_log;
+                pdc_tf_get_device_lag(min_gpu_utilization_device_index, &prev_h2d_ms_log, &prev_comp_ms_log,
+                                      &prev_d2h_ms_log, &prev_total_ms_log);
+                poly_features[0]   = data_size_mb;
+                poly_features[1]   = pdc_tf_avg_gpu_utilization(min_gpu_utilization_device_index) * 100.0;
+                poly_features[2]   = prev_h2d_ms_log;
+                poly_features[3]   = prev_d2h_ms_log;
                 predicted_total_ms = pdc_tf_poly_predict(poly_features);
             }
             else {
@@ -547,16 +537,15 @@ PDCtf_exec_graph_backup(pdc_dg_t *dg, uint64_t flat_conceptual_offset, char *cur
                 min_gpu_utilization_device_index = 0;
             }
 
-            double min_avg_gpu_utilization =
-                pdc_tf_avg_gpu_utilization(min_gpu_utilization_device_index);
+            double min_avg_gpu_utilization = pdc_tf_avg_gpu_utilization(min_gpu_utilization_device_index);
 
             /* ── pre-execution logging ────────────────────────────────── */
             if (true || pdc_server_rank_g == 0) {
                 LOG_WARNING("SCHED: mode=%s avg_cpu_util=%.4f selected_gpu=%d "
                             "nvml_count=%d always_use_gpu=%d close_time_g=%d\n",
-                            sched_mode == PDC_TF_SCHED_DYNAMIC ? "DYNAMIC" : "STATIC",
-                            avg_cpu_utilization, min_gpu_utilization_device_index,
-                            pdc_tf_profiler_nvml_device_count, always_use_gpu, close_time_g);
+                            sched_mode == PDC_TF_SCHED_DYNAMIC ? "DYNAMIC" : "STATIC", avg_cpu_utilization,
+                            min_gpu_utilization_device_index, pdc_tf_profiler_nvml_device_count,
+                            always_use_gpu, close_time_g);
 
                 /* per-GPU state used by polynomial */
                 for (int i = 0; i < (int)pdc_tf_profiler_nvml_device_count; i++) {
@@ -565,27 +554,22 @@ PDCtf_exec_graph_backup(pdc_dg_t *dg, uint64_t flat_conceptual_offset, char *cur
                     LOG_WARNING("SCHED: GPU[%d] util=%.1f%% power=%.0f mW "
                                 "mem_used=%.0f MB prev_h2d=%.2f ms prev_d2h=%.2f ms "
                                 "prev_total=%.2f ms\n",
-                                i,
-                                pdc_tf_avg_gpu_utilization(i) * 100.0,
-                                (double)pdc_tf_avg_gpu_power_mw(i),
-                                (double)(pdc_tf_avg_gpu_mem_used(i) / (1024UL * 1024UL)),
-                                ph, pd, pt);
+                                i, pdc_tf_avg_gpu_utilization(i) * 100.0, (double)pdc_tf_avg_gpu_power_mw(i),
+                                (double)(pdc_tf_avg_gpu_mem_used(i) / (1024UL * 1024UL)), ph, pd, pt);
                 }
 
                 if (sched_mode == PDC_TF_SCHED_DYNAMIC)
                     LOG_WARNING("SCHED: data_size=%.2f MB  predicted_total=%.2f ms  "
                                 "selected_gpu=%d\n",
-                                data_size_mb, predicted_total_ms,
-                                min_gpu_utilization_device_index);
+                                data_size_mb, predicted_total_ms, min_gpu_utilization_device_index);
                 else
                     LOG_WARNING("SCHED: data_size=%.2f MB  static_gpu=0\n", data_size_mb);
             }
 
             /* ── edge selection ───────────────────────────────────────── */
-            uint32_t best_edge_idx = select_best_edge(edges_out, j, cur_edges_between_vertices,
-                                                    avg_cpu_utilization, min_avg_gpu_utilization,
-                                                    &min_gpu_utilization_device_index, always_use_gpu,
-                                                    false, predicted_total_ms / 1000.0);
+            uint32_t best_edge_idx = select_best_edge(
+                edges_out, j, cur_edges_between_vertices, avg_cpu_utilization, min_avg_gpu_utilization,
+                &min_gpu_utilization_device_index, always_use_gpu, false, predicted_total_ms / 1000.0);
 
             /* ── execute transformation ───────────────────────────────── */
             pdc_dg_edge_t  e = edges_out[best_edge_idx];
@@ -602,12 +586,10 @@ PDCtf_exec_graph_backup(pdc_dg_t *dg, uint64_t flat_conceptual_offset, char *cur
                             (always_use_gpu || close_time_g) ? 0 : min_gpu_utilization_device_index,
                             best_edge_idx, f->name);
                 cudaError_t err =
-                    cudaSetDevice((always_use_gpu || close_time_g)
-                                  ? 0 : min_gpu_utilization_device_index);
+                    cudaSetDevice((always_use_gpu || close_time_g) ? 0 : min_gpu_utilization_device_index);
                 if (err != cudaSuccess)
                     PGOTO_ERROR(FAIL, "Failed to set device %d\n",
-                                (always_use_gpu || close_time_g)
-                                ? 0 : min_gpu_utilization_device_index);
+                                (always_use_gpu || close_time_g) ? 0 : min_gpu_utilization_device_index);
             }
 
             LOG_WARNING("SCHED: executing edge %u func=%s dev=%s\n", best_edge_idx, f->name,
@@ -623,8 +605,7 @@ PDCtf_exec_graph_backup(pdc_dg_t *dg, uint64_t flat_conceptual_offset, char *cur
 
             clock_gettime(CLOCK_MONOTONIC, &end_time);
             double transform_time =
-                (end_time.tv_sec - start_time.tv_sec) +
-                (end_time.tv_nsec - start_time.tv_nsec) / 1e9;
+                (end_time.tv_sec - start_time.tv_sec) + (end_time.tv_nsec - start_time.tv_nsec) / 1e9;
             double transform_time_ms = transform_time * 1000.0;
 
             double exec_only_time = pure_exec_time(transform_time, internal_params);
@@ -632,10 +613,10 @@ PDCtf_exec_graph_backup(pdc_dg_t *dg, uint64_t flat_conceptual_offset, char *cur
                                         ? exec_only_time * (1.0 - fmax(avg_cpu_utilization, 0.1))
                                         : exec_only_time * (1.0 - fmax(min_avg_gpu_utilization, 0.1));
 
-            double h2d_ms = internal_params.host_to_dev_time >= 0
-                                ? internal_params.host_to_dev_time * 1000.0 : 0.0;
-            double d2h_ms = internal_params.dev_to_host_time >= 0
-                                ? internal_params.dev_to_host_time * 1000.0 : 0.0;
+            double h2d_ms =
+                internal_params.host_to_dev_time >= 0 ? internal_params.host_to_dev_time * 1000.0 : 0.0;
+            double d2h_ms =
+                internal_params.dev_to_host_time >= 0 ? internal_params.dev_to_host_time * 1000.0 : 0.0;
             double comp_ms = exec_only_time * 1000.0;
 
             /* ── post-execution logging ───────────────────────────────────
@@ -646,12 +627,10 @@ PDCtf_exec_graph_backup(pdc_dg_t *dg, uint64_t flat_conceptual_offset, char *cur
                 LOG_WARNING("TIMING: mode=%s func=%s dev=%s gpu=%d "
                             "h2d=%.4f ms comp=%.4f ms d2h=%.4f ms "
                             "total=%.4f ms exec_only=%.4f ms projected=%.4f ms",
-                            sched_mode == PDC_TF_SCHED_DYNAMIC ? "DYNAMIC" : "STATIC",
-                            f->name,
-                            f->dev == PDC_TF_CPU_DEVICE ? "CPU" : "GPU",
-                            min_gpu_utilization_device_index,
-                            h2d_ms, comp_ms, d2h_ms,
-                            transform_time_ms, exec_only_time * 1000.0, projected_time * 1000.0);
+                            sched_mode == PDC_TF_SCHED_DYNAMIC ? "DYNAMIC" : "STATIC", f->name,
+                            f->dev == PDC_TF_CPU_DEVICE ? "CPU" : "GPU", min_gpu_utilization_device_index,
+                            h2d_ms, comp_ms, d2h_ms, transform_time_ms, exec_only_time * 1000.0,
+                            projected_time * 1000.0);
 
                 if (sched_mode == PDC_TF_SCHED_DYNAMIC && f->dev == PDC_TF_GPU_DEVICE)
                     LOG_WARNING("TIMING: predicted=%.4f ms actual=%.4f ms error=%.4f ms\n",
@@ -669,12 +648,9 @@ PDCtf_exec_graph_backup(pdc_dg_t *dg, uint64_t flat_conceptual_offset, char *cur
              * Only updated in DYNAMIC mode — STATIC has no model to feed.
              * ─────────────────────────────────────────────────────────── */
             if (sched_mode == PDC_TF_SCHED_DYNAMIC) {
-                pdc_tf_poly_update(
-                    min_gpu_utilization_device_index,
-                    internal_params.host_to_dev_time >= 0 ? h2d_ms  : -1.0,
-                    comp_ms,
-                    internal_params.dev_to_host_time >= 0 ? d2h_ms  : -1.0,
-                    transform_time_ms);
+                pdc_tf_poly_update(min_gpu_utilization_device_index,
+                                   internal_params.host_to_dev_time >= 0 ? h2d_ms : -1.0, comp_ms,
+                                   internal_params.dev_to_host_time >= 0 ? d2h_ms : -1.0, transform_time_ms);
             }
 
             if (!(is_write && j == 0) && prev_input != *input)

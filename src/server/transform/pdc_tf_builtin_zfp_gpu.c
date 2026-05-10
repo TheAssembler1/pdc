@@ -292,8 +292,9 @@ pdc_tf_builtin_zfp_compress_cuda(pdc_tf_internal_param *internal_param, char *pa
 }
 
 bool
-pdc_tf_builtin_zfp_decompress_cuda(pdc_tf_internal_param *internal_param, char *params_str, void **region_data,
-                                   pdc_tf_region_t input_region, pdc_tf_region_t *output_region)
+pdc_tf_builtin_zfp_decompress_cuda(pdc_tf_internal_param *internal_param, char *params_str,
+                                   void **region_data, pdc_tf_region_t input_region,
+                                   pdc_tf_region_t *output_region)
 {
     return pdc_tf_builtin_zfp_decompress_cuda_helper(internal_param, params_str, region_data, input_region,
                                                      output_region);

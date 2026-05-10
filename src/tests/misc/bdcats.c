@@ -194,7 +194,7 @@ main(int argc, char **argv)
             if (rank == 0)
                 LOG_WARNING("Sleep start: %llu.00\n", sleeptime);
             double loop_start = MPI_Wtime();
-	    sleep(40);
+            sleep(40);
             double loop_end = MPI_Wtime();
             if (rank == 0) {
                 LOG_WARNING("\nTotal time for %d iterations: %f s\n", NUM_ITERATIONS, loop_end - loop_start);

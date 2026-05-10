@@ -40,7 +40,6 @@ perr_t PDCtf_store_json_mapping(pdcid_t obj_id, char *json_filepath, char *cur_s
                                 char *store_state, uint64_t *offset, uint64_t *size, uint8_t ndim,
                                 pdc_var_type_t pdc_var_type);
 
-
 /* ── scheduling mode enum ────────────────────────────────────────────────────
  * Pass to PDCtf_exec_graph() to select scheduling strategy.
  *

@@ -6,7 +6,7 @@
 #include "pdc_timing.h"
 #include "pdc_malloc.h"
 
-#define PDC_TF_PROFILE_SAMPLE_VECTOR_MAX_SIZE 1  /* single fresh sample */
+#define PDC_TF_PROFILE_SAMPLE_VECTOR_MAX_SIZE 1 /* single fresh sample */
 
 extern int          pdc_tf_profiler_init;
 extern int          pdc_tf_profiler_nvml_init;
@@ -29,7 +29,7 @@ typedef struct {
 typedef struct {
     pdc_tf_profiler_nvml_sample_t *nvml_samples[PDC_TF_PROFILE_SAMPLE_VECTOR_MAX_SIZE];
     int                            nvml_head;
-    pdc_tf_profiler_cpu_sample_t  *cpu_samples[PDC_TF_PROFILE_SAMPLE_VECTOR_MAX_SIZE];
+    pdc_tf_profiler_cpu_sample_t * cpu_samples[PDC_TF_PROFILE_SAMPLE_VECTOR_MAX_SIZE];
     int                            cpu_head;
     unsigned int                   nvml_device_count;
 } pdc_tf_profiler_samples_t;
@@ -49,11 +49,9 @@ double        pdc_tf_avg_gpu_power_mw(unsigned int device_index);
 unsigned long pdc_tf_avg_gpu_mem_used(unsigned int device_index);
 
 /* lag storage for polynomial scheduler */
-void pdc_tf_update_device_lag(unsigned int device_index,
-                               double h2d_ms, double comp_ms,
-                               double d2h_ms, double total_ms);
-void pdc_tf_get_device_lag(unsigned int device_index,
-                            double *prev_h2d_ms, double *prev_comp_ms,
-                            double *prev_d2h_ms, double *prev_total_ms);
+void pdc_tf_update_device_lag(unsigned int device_index, double h2d_ms, double comp_ms, double d2h_ms,
+                              double total_ms);
+void pdc_tf_get_device_lag(unsigned int device_index, double *prev_h2d_ms, double *prev_comp_ms,
+                           double *prev_d2h_ms, double *prev_total_ms);
 
 #endif /* PDC_TF_PROFILER_H */

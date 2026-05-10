@@ -18,7 +18,9 @@
 
 pdc_tf_poly_model_t pdc_tf_poly_model = {.initialized = 0};
 
-int pdc_tf_poly_sched_init(const char *coeff_file) {
+int
+pdc_tf_poly_sched_init(const char *coeff_file)
+{
     FILE *f = fopen(coeff_file, "r");
     if (!f) {
         LOG_ERROR("pdc_tf_poly_sched_init: cannot open %s\n", coeff_file);
@@ -54,16 +56,19 @@ int pdc_tf_poly_sched_init(const char *coeff_file) {
 
     fclose(f);
     pdc_tf_poly_model.initialized = 1;
-    LOG_WARNING("pdc_tf_poly_sched_init: loaded %d polynomial terms from %s\n",
-                n_terms, coeff_file);
+    LOG_WARNING("pdc_tf_poly_sched_init: loaded %d polynomial terms from %s\n", n_terms, coeff_file);
     return 0;
 }
 
-void pdc_tf_poly_sched_finalize(void) {
+void
+pdc_tf_poly_sched_finalize(void)
+{
     pdc_tf_poly_model.initialized = 0;
 }
 
-double pdc_tf_poly_predict(const double features[PDC_POLY_N_FEATURES]) {
+double
+pdc_tf_poly_predict(const double features[PDC_POLY_N_FEATURES])
+{
     if (!pdc_tf_poly_model.initialized)
         return -1.0;
 
@@ -76,7 +81,8 @@ double pdc_tf_poly_predict(const double features[PDC_POLY_N_FEATURES]) {
         double term = pdc_tf_poly_model.coefficients[t];
         for (int i = 0; i < PDC_POLY_N_FEATURES; i++) {
             int exp = pdc_tf_poly_model.powers[t][i];
-            if (exp == 0) continue;
+            if (exp == 0)
+                continue;
             double base = f[i];
             for (int e = 0; e < exp; e++)
                 term *= base;
@@ -86,7 +92,9 @@ double pdc_tf_poly_predict(const double features[PDC_POLY_N_FEATURES]) {
     return (result < 5.0) ? 5.0 : result;
 }
 
-int pdc_tf_poly_select_gpu(double data_size_mb) {
+int
+pdc_tf_poly_select_gpu(double data_size_mb)
+{
     unsigned int n_devs = pdc_tf_profiler_nvml_device_count;
     if (n_devs == 0)
         return 0;
@@ -98,7 +106,10 @@ int pdc_tf_poly_select_gpu(double data_size_mb) {
         unsigned int best_dev  = 0;
         for (unsigned int i = 0; i < n_devs; i++) {
             double u = pdc_tf_avg_gpu_utilization(i);
-            if (u < best_util) { best_util = u; best_dev = i; }
+            if (u < best_util) {
+                best_util = u;
+                best_dev  = i;
+            }
         }
         return (int)best_dev;
     }
@@ -108,8 +119,7 @@ int pdc_tf_poly_select_gpu(double data_size_mb) {
 
     for (unsigned int i = 0; i < n_devs; i++) {
         double prev_h2d_ms, prev_comp_ms, prev_d2h_ms, prev_total_ms;
-        pdc_tf_get_device_lag(i, &prev_h2d_ms, &prev_comp_ms,
-                               &prev_d2h_ms, &prev_total_ms);
+        pdc_tf_get_device_lag(i, &prev_h2d_ms, &prev_comp_ms, &prev_d2h_ms, &prev_total_ms);
 
         /* feature order must match export_coefficients.py FEATURES list:
          *   [0] data_size_mb
@@ -125,14 +135,13 @@ int pdc_tf_poly_select_gpu(double data_size_mb) {
 
         double pred = pdc_tf_poly_predict(features);
         /* floor cold-start GPUs (no lag data yet) at 5ms so they
-        * don't appear artificially cheaper than warmed-up GPUs */
+         * don't appear artificially cheaper than warmed-up GPUs */
         if (prev_h2d_ms < 0.0 || prev_d2h_ms < 0.0)
             pred = fmax(pred, 5.0);
 
         LOG_WARNING("pdc_tf_poly_select_gpu: GPU %u  data=%.1f MB  util=%.1f%%  "
                     "prev_h2d=%.2f ms  prev_d2h=%.2f ms  predicted=%.2f ms\n",
-                    i, data_size_mb, features[1],
-                    prev_h2d_ms, prev_d2h_ms, pred);
+                    i, data_size_mb, features[1], prev_h2d_ms, prev_d2h_ms, pred);
 
         if (pred < best_pred) {
             best_pred = pred;
@@ -140,15 +149,12 @@ int pdc_tf_poly_select_gpu(double data_size_mb) {
         }
     }
 
-    LOG_WARNING("pdc_tf_poly_select_gpu: selected GPU %u (predicted %.2f ms)\n",
-                best_dev, best_pred);
+    LOG_WARNING("pdc_tf_poly_select_gpu: selected GPU %u (predicted %.2f ms)\n", best_dev, best_pred);
     return (int)best_dev;
 }
 
-void pdc_tf_poly_update(unsigned int device_index,
-                         double       h2d_ms,
-                         double       comp_ms,
-                         double       d2h_ms,
-                         double       total_ms) {
+void
+pdc_tf_poly_update(unsigned int device_index, double h2d_ms, double comp_ms, double d2h_ms, double total_ms)
+{
     pdc_tf_update_device_lag(device_index, h2d_ms, comp_ms, d2h_ms, total_ms);
 }

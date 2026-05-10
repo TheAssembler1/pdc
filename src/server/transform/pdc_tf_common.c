@@ -21,24 +21,21 @@ void
 append_host_to_dev_time(pdc_tf_builtin_func_t *func, double value)
 {
     func->host_to_dev_avg_time[func->cur_host_to_dev_avg_time_index] = value;
-    func->cur_host_to_dev_avg_time_index =
-        (func->cur_host_to_dev_avg_time_index + 1) % NUM_TF_FUNC_TIMES;
+    func->cur_host_to_dev_avg_time_index = (func->cur_host_to_dev_avg_time_index + 1) % NUM_TF_FUNC_TIMES;
 }
 
 void
 append_dev_to_host_time(pdc_tf_builtin_func_t *func, double value)
 {
     func->dev_to_host_avg_time[func->cur_dev_to_host_avg_time_index] = value;
-    func->cur_dev_to_host_avg_time_index =
-        (func->cur_dev_to_host_avg_time_index + 1) % NUM_TF_FUNC_TIMES;
+    func->cur_dev_to_host_avg_time_index = (func->cur_dev_to_host_avg_time_index + 1) % NUM_TF_FUNC_TIMES;
 }
 
 void
 append_exec_time(pdc_tf_builtin_func_t *func, double value)
 {
     func->exec_avg_time[func->cur_exec_avg_time_index] = value;
-    func->cur_exec_avg_time_index =
-        (func->cur_exec_avg_time_index + 1) % NUM_TF_FUNC_TIMES;
+    func->cur_exec_avg_time_index = (func->cur_exec_avg_time_index + 1) % NUM_TF_FUNC_TIMES;
 }
 
 double
@@ -124,7 +121,7 @@ PDCtf_add_builtin_func(char *func_name, c_func_t c_func, pdc_tf_dev_t dev)
     for (int i = 0; i < NUM_TF_FUNC_TIMES; i++) {
         builtin_func->host_to_dev_avg_time[i] = 0.0;
         builtin_func->dev_to_host_avg_time[i] = 0.0;
-	    builtin_func->exec_avg_time[i] = (builtin_func->dev == PDC_TF_CPU_DEVICE) ? 0.750 : 0.0;
+        builtin_func->exec_avg_time[i]        = (builtin_func->dev == PDC_TF_CPU_DEVICE) ? 0.750 : 0.0;
     }
 
 done:

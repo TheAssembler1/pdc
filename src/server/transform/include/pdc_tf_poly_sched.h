@@ -38,19 +38,19 @@
 #include "pdc_tf_profiler.h"
 
 /* ── polynomial model constants ──────────────────────────────────────────── */
-#define PDC_POLY_N_FEATURES   4       /* number of input features             */
-#define PDC_POLY_DEGREE       3       /* polynomial degree                    */
+#define PDC_POLY_N_FEATURES 4 /* number of input features             */
+#define PDC_POLY_DEGREE     3 /* polynomial degree                    */
 
 /* Maximum number of polynomial terms for degree=3, n_features=6:
  * C(6+3, 3) = C(9,3) = 84 terms                                            */
-#define PDC_POLY_MAX_TERMS    84
+#define PDC_POLY_MAX_TERMS 84
 
 /* ── polynomial model state ──────────────────────────────────────────────── */
 typedef struct {
-    double coefficients[PDC_POLY_MAX_TERMS]; /* fitted coefficients           */
-    int    n_terms;                           /* actual number of terms        */
+    double coefficients[PDC_POLY_MAX_TERMS];                /* fitted coefficients           */
+    int    n_terms;                                         /* actual number of terms        */
     int    powers[PDC_POLY_MAX_TERMS][PDC_POLY_N_FEATURES]; /* exponent matrix */
-    int    initialized;                       /* 1 if loaded successfully      */
+    int    initialized;                                     /* 1 if loaded successfully      */
 } pdc_tf_poly_model_t;
 
 extern pdc_tf_poly_model_t pdc_tf_poly_model;
@@ -61,7 +61,7 @@ extern pdc_tf_poly_model_t pdc_tf_poly_model;
  *
  * Returns 0 on success, -1 on failure.
  * ─────────────────────────────────────────────────────────────────────── */
-int pdc_tf_poly_sched_init(const char *coeff_file);
+int  pdc_tf_poly_sched_init(const char *coeff_file);
 void pdc_tf_poly_sched_finalize(void);
 
 /* ── predict total transformation time for one GPU ───────────────────────
@@ -95,10 +95,7 @@ int pdc_tf_poly_select_gpu(double data_size_mb);
  *
  * Wraps pdc_tf_update_device_lag() from pdc_tf_profiler.h.
  * ─────────────────────────────────────────────────────────────────────── */
-void pdc_tf_poly_update(unsigned int device_index,
-                         double       h2d_ms,
-                         double       comp_ms,
-                         double       d2h_ms,
-                         double       total_ms);
+void pdc_tf_poly_update(unsigned int device_index, double h2d_ms, double comp_ms, double d2h_ms,
+                        double total_ms);
 
 #endif /* PDC_TF_POLY_SCHED_H */

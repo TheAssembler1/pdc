@@ -35,8 +35,8 @@ typedef struct pdc_tf_region_t {
 typedef struct pdc_tf_internal_param {
     pdc_dg_t *dg;
     uint64_t  flat_conceptual_offset;
-    double host_to_dev_time;
-    double dev_to_host_time;
+    double    host_to_dev_time;
+    double    dev_to_host_time;
 } pdc_tf_internal_param;
 
 /**
@@ -63,12 +63,12 @@ typedef struct pdc_tf_builtin_func_t {
     c_func_t          c_func;
     char *            params_str;
     PDC_VECTOR *      pdc_tf_dg_params_vector;
-    uint32_t cur_host_to_dev_avg_time_index;
-    uint32_t cur_dev_to_host_avg_time_index;
-    uint32_t cur_exec_avg_time_index;
-    double host_to_dev_avg_time[NUM_TF_FUNC_TIMES];
-    double dev_to_host_avg_time[NUM_TF_FUNC_TIMES];
-    double exec_avg_time[NUM_TF_FUNC_TIMES];
+    uint32_t          cur_host_to_dev_avg_time_index;
+    uint32_t          cur_dev_to_host_avg_time_index;
+    uint32_t          cur_exec_avg_time_index;
+    double            host_to_dev_avg_time[NUM_TF_FUNC_TIMES];
+    double            dev_to_host_avg_time[NUM_TF_FUNC_TIMES];
+    double            exec_avg_time[NUM_TF_FUNC_TIMES];
 } pdc_tf_builtin_func_t;
 
 typedef pdc_tf_builtin_func_t pdc_tf_func_t;
@@ -139,7 +139,7 @@ bool PDCtf_get_func_param(pdc_dg_t *dg, char *func_name, pdc_tf_dev_t dev, uint6
  */
 #define SET_FUNC_PARAMS(name, dev, params, params_size)                                                      \
     do {                                                                                                     \
-        PDCtf_set_func_param(internal_param->dg, name, dev, internal_param->flat_conceptual_offset, params,    \
+        PDCtf_set_func_param(internal_param->dg, name, dev, internal_param->flat_conceptual_offset, params,  \
                              params_size);                                                                   \
     } while (0)
 
@@ -152,7 +152,7 @@ bool PDCtf_get_func_param(pdc_dg_t *dg, char *func_name, pdc_tf_dev_t dev, uint6
  */
 #define GET_FUNC_PARAMS(name, dev, params, params_size)                                                      \
     do {                                                                                                     \
-        PDCtf_get_func_param(internal_param->dg, name, dev, internal_param->flat_conceptual_offset, params,    \
+        PDCtf_get_func_param(internal_param->dg, name, dev, internal_param->flat_conceptual_offset, params,  \
                              params_size);                                                                   \
     } while (0)
 
@@ -183,7 +183,7 @@ bool PDCtf_get_func_param(pdc_dg_t *dg, char *func_name, pdc_tf_dev_t dev, uint6
     do {                                                                                                     \
         struct timespec __host_to_dev_end_time__;                                                            \
         clock_gettime(CLOCK_MONOTONIC, &__host_to_dev_end_time__);                                           \
-        internal_param->host_to_dev_time +=                                                                   \
+        internal_param->host_to_dev_time +=                                                                  \
             (__host_to_dev_end_time__.tv_sec - __host_to_dev_start_time__.tv_sec) +                          \
             (__host_to_dev_end_time__.tv_nsec - __host_to_dev_start_time__.tv_nsec) / 1e9;                   \
     } while (0)
@@ -215,7 +215,7 @@ bool PDCtf_get_func_param(pdc_dg_t *dg, char *func_name, pdc_tf_dev_t dev, uint6
     do {                                                                                                     \
         struct timespec __dev_to_host_end_time__;                                                            \
         clock_gettime(CLOCK_MONOTONIC, &__dev_to_host_end_time__);                                           \
-        internal_param->dev_to_host_time +=                                                                   \
+        internal_param->dev_to_host_time +=                                                                  \
             (__dev_to_host_end_time__.tv_sec - __dev_to_host_start_time__.tv_sec) +                          \
             (__dev_to_host_end_time__.tv_nsec - __dev_to_host_start_time__.tv_nsec) / 1e9;                   \
     } while (0)

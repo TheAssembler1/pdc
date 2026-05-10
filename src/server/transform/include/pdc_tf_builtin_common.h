@@ -34,8 +34,9 @@ bool pdc_tf_builtin_sz_decompress(pdc_tf_internal_param *internal_param, char *p
 #ifdef ENABLE_TF_ZFP_COMPRESSION
 bool pdc_tf_builtin_zfp_compress(pdc_tf_internal_param *internal_param, char *params_str, void **region_data,
                                  pdc_tf_region_t input_region, pdc_tf_region_t *output_region);
-bool pdc_tf_builtin_zfp_decompress(pdc_tf_internal_param *internal_param, char *params_str, void **region_data,
-                                   pdc_tf_region_t input_region, pdc_tf_region_t *output_region);
+bool pdc_tf_builtin_zfp_decompress(pdc_tf_internal_param *internal_param, char *params_str,
+                                   void **region_data, pdc_tf_region_t input_region,
+                                   pdc_tf_region_t *output_region);
 #endif
 #if defined(ENABLE_TF_ZFP_COMPRESSION) && defined(CUDA_ENABLED)
 bool pdc_tf_builtin_zfp_compress_cuda(pdc_tf_internal_param *internal_param, char *params_str,
@@ -54,8 +55,9 @@ bool pdc_tf_builtin_decrypt(pdc_tf_internal_param *internal_param, char *params_
 #endif
 
 #ifdef ENABLE_TF_TURBO_COMPRESSION
-bool pdc_tf_builtin_turbo_compress(pdc_tf_internal_param *internal_param, char *params_str, void **region_data,
-                                   pdc_tf_region_t input_region, pdc_tf_region_t *output_region);
+bool pdc_tf_builtin_turbo_compress(pdc_tf_internal_param *internal_param, char *params_str,
+                                   void **region_data, pdc_tf_region_t input_region,
+                                   pdc_tf_region_t *output_region);
 bool pdc_tf_builtin_turbo_decompress(pdc_tf_internal_param *internal_param, char *params_str,
                                      void **region_data, pdc_tf_region_t input_region,
                                      pdc_tf_region_t *output_region);
