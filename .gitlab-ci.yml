@@ -488,7 +488,7 @@ perlmutter-metrics:
         - echo "JOBID ${SLURM_JOB_ID}"
         - export NERSC_HOST=`cat /etc/clustername`
         - export MPICH_OFI_USE_PROVIDER="tcp;ofi_rxm"
-	- module unload libfabric darshan
+        - module unload libfabric darshan
         - module load python
         - export LD_LIBRARY_PATH="$LIBFABRIC_DIR/lib:$MERCURY_DIR/lib:$LD_LIBRARY_PATH"
         - export LD_LIBRARY_PATH="$PDC_INSTALL_PATH/lib:$LD_LIBRARY_PATH"
