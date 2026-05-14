@@ -1,2 +1,0 @@
-/home/ta1/src/workspace/source/pdc/CMakeFiles/edit_cache.dir
-/home/ta1/src/workspace/source/pdc/CMakeFiles/rebuild_cache.dir
