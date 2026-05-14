@@ -1,2 +1,0 @@
-[22:10:51.474232] [ERROR] [pdc_mercury_auth.c:152] PDC_CLIENT[0]: Unable to discover Perlmutter CXI service/VNI
-[22:10:51.474294] [WARNING] [pdc_client_connect.c:1423] PDC_CLIENT[0]: Unable to scope Slingshot CXI auth for Mercury, falling back to provider defaults[22:10:51.808652] [ERROR] [pdc_client_connect.c:634] PDC_CLIENT[0]: Error with HG_Get_output[22:10:51.812309] [WARNING] [close_server.c:56] PDC_CLIENT[0]: total close time = 0.356534
