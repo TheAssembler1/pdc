@@ -64,7 +64,7 @@ main(int argc, char **argv)
     }
     // create a container
     sprintf(cont_name, "c");
-    cont = PDCcont_create_col(cont_name, cont_prop);
+    cont = PDCcont_create_coll(cont_name, cont_prop, MPI_COMM_WORLD);
     // cont = PDCcont_create(cont_name, cont_prop);
     if (cont > 0) {
         LOG_INFO("Rank %d Create a container %s\n", rank, cont_name);

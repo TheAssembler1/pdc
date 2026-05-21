@@ -123,8 +123,8 @@ main(int argc, char **argv)
     TASSERT((cont_prop = PDCprop_create(PDC_CONT_CREATE, pdc)) != 0, "Call to PDCprop_create succeeded",
             "Call to PDCprop_create failed");
     // create a container
-    TASSERT((cont = PDCcont_create_col("c1", cont_prop)) != 0, "Call to PDCcont_create_col succeeded",
-            "Call to PDCcont_create_col failed");
+    TASSERT((cont = PDCcont_create_coll("c1", cont_prop, MPI_COMM_WORLD)) != 0, "Call to PDCcont_create_coll succeeded",
+            "Call to PDCcont_create_coll failed");
 
     char *cont_tags = "cont_tags0=123";
     if (rank == 0) {

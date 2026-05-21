@@ -47,7 +47,7 @@ main(int argc, char **argv)
 
     pdc = PDCinit("pdc");
 
-    obj = PDCobj_open_col("run1", pdc);
+    obj = PDCobj_open_coll("run1", pdc, MPI_COMM_WORLD);
     if (obj <= 0)
         LOG_ERROR("Failed to open object");
 

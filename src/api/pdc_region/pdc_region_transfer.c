@@ -1533,7 +1533,7 @@ PDCregion_transfer_start_all(pdcid_t *transfer_request_id, int size)
 
 #ifdef ENABLE_MPI
 perr_t
-PDCregion_transfer_start_all_mpi(pdcid_t *transfer_request_id, int size, MPI_Comm comm)
+PDCregion_transfer_start_all_coll(pdcid_t *transfer_request_id, int size, MPI_Comm comm)
 {
     FUNC_ENTER(NULL);
 
@@ -1575,7 +1575,7 @@ PDCregion_transfer_start_common(pdcid_t transfer_request_id,
     if (transfer_request->region_partition == PDC_REGION_DYNAMIC ||
         transfer_request->region_partition == PDC_REGION_LOCAL) {
 #ifdef ENABLE_MPI
-        PDCregion_transfer_start_all_mpi(&transfer_request_id, 1, comm);
+        PDCregion_transfer_start_all_coll(&transfer_request_id, 1, comm);
 #else
         PDCregion_transfer_start_all(&transfer_request_id, 1);
 #endif
@@ -1671,7 +1671,7 @@ PDCregion_transfer_start(pdcid_t transfer_request_id)
 
 #ifdef ENABLE_MPI
 perr_t
-PDCregion_transfer_start_mpi(pdcid_t transfer_request_id, MPI_Comm comm)
+PDCregion_transfer_start_coll(pdcid_t transfer_request_id, MPI_Comm comm)
 {
     FUNC_ENTER(NULL);
 

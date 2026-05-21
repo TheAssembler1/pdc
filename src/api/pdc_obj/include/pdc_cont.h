@@ -26,6 +26,9 @@
 #define PDC_CONT_H
 
 #include "pdc_public.h"
+#ifdef ENABLE_MPI
+#include <mpi.h>
+#endif
 
 typedef struct _pdc_id_info cont_handle;
 
@@ -62,7 +65,12 @@ pdcid_t PDCcont_create(const char *cont_name, pdcid_t cont_create_prop);
  *
  * \return Container id on success/Zero on failure
  */
-pdcid_t PDCcont_create_col(const char *cont_name, pdcid_t cont_prop_id);
+pdcid_t PDCcont_create_coll(const char *cont_name, pdcid_t cont_prop_id, 
+#ifdef ENABLE_MPI
+  MPI_Comm comm);
+#else 
+  int comm);
+#endif
 
 /**
  * Open a container
@@ -82,7 +90,12 @@ pdcid_t PDCcont_open(const char *cont_name, pdcid_t pdc_id);
  *
  * \return Container id on success/Zero on failure
  */
-pdcid_t PDCcont_open_col(const char *cont_name, pdcid_t pdc_id);
+pdcid_t PDCcont_open_coll(const char *cont_name, pdcid_t pdc_id, 
+#ifdef ENABLE_MPI
+  MPI_Comm comm);
+#else 
+  int comm);
+#endif
 
 /**
  * Close a container

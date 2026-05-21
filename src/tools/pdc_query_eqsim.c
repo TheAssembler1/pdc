@@ -139,7 +139,7 @@ main(int argc, char **argv)
     PDCprop_set_obj_app_name(obj_prop, "EQSIM");
     /* PDCprop_set_obj_transfer_region_type(obj_prop, PDC_REGION_LOCAL); */
 
-    obj = PDCobj_create_mpi(cont, "run1", obj_prop, 0, MPI_COMM_WORLD);
+    obj = PDCobj_create_coll(cont, "run1", obj_prop, 0, MPI_COMM_WORLD);
     /* obj = PDCobj_create(cont, "run1", obj_prop); */
     if (obj <= 0)
         LOG_ERROR("Failed to create object\n");

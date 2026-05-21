@@ -30,7 +30,7 @@
 #include "pdc_mpi.h"
 
 pdcid_t
-PDCobj_create_mpi(pdcid_t cont_id, const char *obj_name, pdcid_t obj_prop_id, int rank_id, MPI_Comm comm)
+PDCobj_create_coll(pdcid_t cont_id, const char *obj_name, pdcid_t obj_prop_id, int rank_id, MPI_Comm comm)
 {
     FUNC_ENTER(NULL);
 
