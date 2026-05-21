@@ -109,7 +109,7 @@ main(int argc, char **argv)
     // create a container
 #ifdef ENABLE_MPI
     cont_id = PDCcont_create_coll("c1", cont_prop, MPI_COMM_WORLD);
-#else 
+#else
     cont_id = PDCcont_create("c1", cont_prop);
 #endif
     if (cont_id <= 0) {

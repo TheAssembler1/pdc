@@ -42,6 +42,6 @@
  * \return Object ID on success/Zero on failure
  */
 pdcid_t PDCobj_create_coll(pdcid_t cont_id, const char *obj_name, pdcid_t obj_create_prop, int rank_id,
-                          MPI_Comm comm);
+                           MPI_Comm comm);
 
 #endif /* PDC_MPI_H */

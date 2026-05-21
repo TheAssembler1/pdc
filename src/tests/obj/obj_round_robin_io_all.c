@@ -128,9 +128,9 @@ main(int argc, char **argv)
     // create a container
     sprintf(cont_name, "c");
 #ifdef ENABLE_MPI
-    TASSERT((cont = PDCcont_create_coll(cont_name, cont_prop, MPI_COMM_WORLD)) != 0, "Call to PDCcont_create_coll succeeded",
-            "Call to PDCcont_create_coll failed");
-#else 
+    TASSERT((cont = PDCcont_create_coll(cont_name, cont_prop, MPI_COMM_WORLD)) != 0,
+            "Call to PDCcont_create_coll succeeded", "Call to PDCcont_create_coll failed");
+#else
     TASSERT((cont = PDCcont_create(cont_name, cont_prop)) != 0, "Call to PDCcont_create succeeded",
             "Call to PDCcont_create failed");
 #endif

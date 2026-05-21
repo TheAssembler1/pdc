@@ -98,11 +98,12 @@ done:
     FUNC_LEAVE(ret_value);
 }
 
-pdcid_t PDCcont_create_coll(const char *cont_name, pdcid_t cont_prop_id, 
+pdcid_t
+PDCcont_create_coll(const char *cont_name, pdcid_t cont_prop_id,
 #ifdef ENABLE_MPI
-  MPI_Comm comm)
-#else 
-  int comm)
+                    MPI_Comm comm)
+#else
+                    int comm)
 #endif
 {
     FUNC_ENTER(NULL);
@@ -288,12 +289,12 @@ done:
 }
 
 pdcid_t
-PDCcont_open_coll(const char *cont_name, pdcid_t pdc, 
+PDCcont_open_coll(const char *cont_name, pdcid_t pdc,
 #ifdef ENABLE_MPI
-    MPI_Comm comm
-#else 
-    int comm
- #endif
+                  MPI_Comm comm
+#else
+                  int   comm
+#endif
 )
 {
     FUNC_ENTER(NULL);

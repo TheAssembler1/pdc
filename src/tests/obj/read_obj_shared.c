@@ -114,8 +114,8 @@ main(int argc, char **argv)
     // create a container
     /* sprintf(cont_name, "c%d", rank); */
     sprintf(cont_name, "c");
-    TASSERT((cont = PDCcont_create_coll(cont_name, cont_prop, comm)) != 0, "Call to PDCcont_create_coll succeeded",
-            "Call to PDCcont_create_coll failed");
+    TASSERT((cont = PDCcont_create_coll(cont_name, cont_prop, comm)) != 0,
+            "Call to PDCcont_create_coll succeeded", "Call to PDCcont_create_coll failed");
     // create an object property
     TASSERT((obj_prop = PDCprop_create(PDC_OBJ_CREATE, pdc)) != 0, "Call to PDCprop_create succeeded",
             "Call to PDCprop_create failed");

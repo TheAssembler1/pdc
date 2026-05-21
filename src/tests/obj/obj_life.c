@@ -47,9 +47,9 @@ main(int argc, char **argv)
             "Call to PDCprop_create failed");
 #ifdef ENABLE_MPI
     // create a container
-    TASSERT((cont = PDCcont_create_coll("c1", cont_prop, MPI_COMM_WORLD)) != 0, "Call to PDCcont_create_coll succeeded",
-            "Call to PDCcont_create_coll failed");
-#else 
+    TASSERT((cont = PDCcont_create_coll("c1", cont_prop, MPI_COMM_WORLD)) != 0,
+            "Call to PDCcont_create_coll succeeded", "Call to PDCcont_create_coll failed");
+#else
     TASSERT((cont = PDCcont_create("c1", cont_prop)) != 0, "Call to PDCcont_create succeeded",
             "Call to PDCcont_create failed");
 #endif
