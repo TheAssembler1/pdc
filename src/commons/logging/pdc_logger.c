@@ -3,6 +3,8 @@
 #include <sys/stat.h>
 #include <sys/time.h>
 #include <time.h>
+#include <fcntl.h>
+#include <unistd.h>
 
 void
 setLogFile(PDC_LogLevel level, const char *fileName)
@@ -22,7 +24,8 @@ setLogFile(PDC_LogLevel level, const char *fileName)
         else {
             strncpy(logFilenames[level], fileName, sizeof(logFilenames[level]) - 1);
             logFilenames[level][sizeof(logFilenames[level]) - 1] = '\0';
-            logFiles[level]                                      = fopen(fileName, "a");
+            int fd          = open(fileName, O_WRONLY | O_CREAT | O_APPEND, 0644);
+            logFiles[level] = fdopen(fd, "a");
         }
     }
     else {
@@ -55,19 +58,21 @@ rotate_log_file(PDC_LogLevel level)
         logFiles[level] = NULL;
     }
 
-    char       newFilename[MAX_LOG_FILE_NAME_LENGTH];
-    char       timeStr[20];
-    time_t     rawtime  = time(NULL);
-    struct tm *timeinfo = localtime(&rawtime);
+    char      newFilename[MAX_LOG_FILE_NAME_LENGTH];
+    char      timeStr[20];
+    time_t    rawtime = time(NULL);
+    struct tm timeinfo;
 
-    strftime(timeStr, 20, "%Y%m%d%H:%M:%S", timeinfo);
+    // Use localtime_r for thread safety
+    localtime_r(&rawtime, &timeinfo);
+
+    strftime(timeStr, sizeof(timeStr), "%Y%m%d%H:%M:%S", &timeinfo);
     newFilename[strlen(newFilename) - 1] = '\0'; // Remove trailing newline
 
     snprintf(newFilename, MAX_LOG_FILE_NAME_LENGTH, "%s_%s", logFilenames[level], timeStr);
     rename(logFilenames[level], newFilename);
-    logFiles[level] = fopen(logFilenames[level], "a");
-
-    FUNC_LEAVE_VOID();
+    int fd          = open(logFilenames[level], O_WRONLY | O_CREAT | O_APPEND, 0644);
+    logFiles[level] = fdopen(fd, "a");
 }
 
 static FILE *

@@ -284,6 +284,8 @@ PDC_Server_get_client_addr(const struct hg_cb_info *callback_info)
     hg_thread_mutex_lock(&pdc_client_info_mutex_g);
 #endif
     if (pdc_client_info_g == NULL) {
+        if (in->nclient <= 0 || in->nclient > 65536)
+            PGOTO_ERROR(FAIL, "Invalid nclient value %d", in->nclient);
         pdc_client_num_g  = in->nclient;
         pdc_client_info_g = (pdc_client_info_t *)PDC_calloc(sizeof(pdc_client_info_t), in->nclient);
         if (pdc_client_info_g == NULL)
@@ -344,10 +346,13 @@ PDC_Server_write_addr_to_file(char **addr_strings, int n)
     int    i;
 
     // write to file
+    if (strpbrk(pdc_server_tmp_dir_g, ";&|`$<>") != NULL)
+        PGOTO_ERROR(FAIL, "Invalid characters in server tmp dir path");
     snprintf(config_fname, ADDR_MAX, "%s%s", pdc_server_tmp_dir_g, pdc_server_cfg_name_g);
-    FILE *na_config = fopen(config_fname, "w+");
-    if (!na_config)
+    int _na_fd = open(config_fname, O_WRONLY | O_CREAT | O_TRUNC, 0600);
+    if (_na_fd < 0)
         PGOTO_ERROR(FAIL, "Could not open config file from: %s", config_fname);
+    FILE *na_config = fdopen(_na_fd, "w");
 
     fprintf(na_config, "%d\n", n);
     for (i = 0; i < n; i++) {
@@ -769,6 +774,10 @@ PDC_Server_init(int port, hg_class_t **hg_class, hg_context_t **hg_context)
     // Create server tmp dir
     PDC_mkdir(pdc_server_tmp_dir_g);
 
+    if (pdc_server_size_g <= 0 || pdc_server_size_g > 65536) {
+        LOG_ERROR("Invalid pdc_server_size_g %d\n", pdc_server_size_g);
+        FUNC_LEAVE(FAIL);
+    }
     all_addr_strings_1d_g = (char *)PDC_calloc(sizeof(char), pdc_server_size_g * ADDR_MAX);
     all_addr_strings_g    = (char **)PDC_calloc(sizeof(char *), pdc_server_size_g);
     total_mem_usage_g += (sizeof(char) + sizeof(char *));
@@ -778,8 +787,11 @@ PDC_Server_init(int port, hg_class_t **hg_class, hg_context_t **hg_context)
         if (pdc_server_rank_g == 0)
             LOG_INFO("Environment variable HG_TRANSPORT was NOT set, default to %s\n", hg_transport);
     }
-    else
+    else {
         LOG_INFO("Environment variable HG_TRANSPORT was set\n");
+        if (strpbrk(hg_transport, ";&|`$<>") != NULL)
+            hg_transport = default_hg_transport;
+    }
     if ((hostname = getenv("HG_HOST")) == NULL) {
         hostname = PDC_malloc(HOSTNAME_LEN);
         memset(hostname, 0, HOSTNAME_LEN);
@@ -854,6 +866,7 @@ drc_access_again:
     PDC_get_self_addr(*hg_class, self_addr_string);
 
     // Init server to server communication.
+    /* pdc_server_size_g already validated above */
     pdc_remote_server_info_g =
         (pdc_remote_server_info_t *)PDC_calloc(sizeof(pdc_remote_server_info_t), pdc_server_size_g);
 
@@ -934,6 +947,8 @@ drc_access_again:
     // TODO: support restart with different number of servers than previous run
     char checkpoint_file[ADDR_MAX + sizeof(int) + 1];
     if (is_restart_g == 1) {
+        if (strpbrk(pdc_server_tmp_dir_g, ";&|`$<>") != NULL)
+            PGOTO_ERROR(FAIL, "Invalid characters in server tmp dir path");
         snprintf(checkpoint_file, ADDR_MAX, "%s/%d/metadata_checkpoint.%d", pdc_server_tmp_dir_g,
                  pdc_server_rank_g, pdc_server_rank_g);
 
@@ -1196,6 +1211,7 @@ PDC_Server_checkpoint()
     uint64_t          checkpoint_size;
     bool              use_tmpfs = false;
     FILE *            file;
+    int               fd;
 
 #ifdef PDC_TIMING
     // Timing
@@ -1210,12 +1226,17 @@ PDC_Server_checkpoint()
     if (env_char && atoi(env_char) != 0)
         use_tmpfs = true;
 
-    snprintf(cmd, 4096, "mkdir -p %s/%d", pdc_server_tmp_dir_g, pdc_server_rank_g);
-    system(cmd);
+    {
+        char _dir[4096];
+        snprintf(_dir, sizeof(_dir), "%s/%d", pdc_server_tmp_dir_g, pdc_server_rank_g);
+        mkdir(_dir, 0755);
+    }
 #ifdef ENABLE_LUSTRE
-    snprintf(cmd, 4096, "lfs setstripe -c 1 -S 16m -i %d %s/%d", pdc_server_rank_g % lustre_total_ost_g,
-             pdc_server_tmp_dir_g, pdc_server_rank_g);
-    system(cmd);
+    if (strpbrk(pdc_server_tmp_dir_g, ";&|`$<>\\") == NULL) {
+        snprintf(cmd, 4096, "lfs setstripe -c 1 -S 16m -i %d %s/%d", pdc_server_rank_g % lustre_total_ost_g,
+                 pdc_server_tmp_dir_g, pdc_server_rank_g);
+        system(cmd);
+    }
 #endif
     snprintf(checkpoint_file, ADDR_MAX, "%s/%d/metadata_checkpoint.%d", pdc_server_tmp_dir_g,
              pdc_server_rank_g, pdc_server_rank_g);
@@ -1224,9 +1245,10 @@ PDC_Server_checkpoint()
         LOG_INFO("Checkpoint file [%s]\n", checkpoint_file);
 
     if (use_tmpfs)
-        file = fopen(checkpoint_file_local, "w+");
+        fd = open(checkpoint_file_local, O_RDWR | O_CREAT | O_TRUNC, 0600);
     else
-        file = fopen(checkpoint_file, "w+");
+        fd = open(checkpoint_file, O_RDWR | O_CREAT | O_TRUNC, 0600);
+    file = fdopen(fd, "w+");
 
     if (file == NULL)
         PGOTO_ERROR(FAIL, "Checkpoint file open error");
@@ -1339,8 +1361,8 @@ PDC_Server_checkpoint()
         LOG_INFO("Write to tmpfs took %7.2fs\n", checkpoint_time);
 #endif
         // Copy from /tmp to target under $PDC_TMPDIR
-        snprintf(cmd, 4096, "mv %s %s", checkpoint_file_local, checkpoint_file);
-        system(cmd);
+        if (rename(checkpoint_file_local, checkpoint_file) != 0)
+            PGOTO_ERROR(FAIL, "rename checkpoint failed\n");
     }
 
 #ifdef PDC_TIMING
@@ -1473,6 +1495,9 @@ PDC_Server_restart(char *filename)
         }
         total_mem_usage_g += sizeof(uint32_t);
 
+        if (count <= 0 || count > 10000000)
+            PGOTO_ERROR(FAIL, "Suspicious count value %d from checkpoint", count);
+
         // Reconstruct hash table
         entry           = (pdc_hash_table_entry_head *)PDC_malloc(sizeof(pdc_hash_table_entry_head));
         entry->n_obj    = 0;
@@ -1507,6 +1532,10 @@ PDC_Server_restart(char *filename)
                 if (fread(&key_len, sizeof(int), 1, file) != 1) {
                     LOG_ERROR("Read failed for key_len\n");
                 }
+                if (key_len <= 0 || key_len > 65536) {
+                    LOG_ERROR("Invalid key_len\n");
+                    break;
+                }
                 kvtag_list->kvtag->name = PDC_malloc(key_len);
                 if (fread((void *)(kvtag_list->kvtag->name), key_len, 1, file) != 1) {
                     LOG_ERROR("Read failed for kvtag_list->kvtag->name\n");
@@ -1514,9 +1543,15 @@ PDC_Server_restart(char *filename)
                 if (fread(&kvtag_list->kvtag->size, sizeof(uint32_t), 1, file) != 1) {
                     LOG_ERROR("Read failed for kvtag_list->kvtag->size\n");
                 }
+                if (kvtag_list->kvtag->size == 0 || kvtag_list->kvtag->size > (1u << 24))
+                    PGOTO_ERROR(FAIL, "Invalid kvtag size in checkpoint");
                 if (fread(&kvtag_list->kvtag->type, sizeof(int8_t), 1, file) != 1) {
                     LOG_ERROR("Read failed for kvtag_list->kvtag->type\n");
                 }
+                if (kvtag_list->kvtag->size == 0)
+                    PGOTO_ERROR(FAIL, "Invalid kvtag size in checkpoint");
+                if (kvtag_list->kvtag->size > (1u << 24))
+                    kvtag_list->kvtag->size = (1u << 24);
                 kvtag_list->kvtag->value = PDC_malloc(kvtag_list->kvtag->size);
                 if (fread(kvtag_list->kvtag->value, kvtag_list->kvtag->size, 1, file) != 1) {
                     LOG_ERROR("Read failed for kvtag_list->kvtag->value\n");
@@ -1527,8 +1562,8 @@ PDC_Server_restart(char *filename)
             if (fread(&n_region, sizeof(int), 1, file) != 1) {
                 LOG_ERROR("Read failed for n_region\n");
             }
-            if (n_region < 0)
-                PGOTO_ERROR(FAIL, "Checkpoint file region was less than 0");
+            if (n_region < 0 || n_region > 1000000)
+                PGOTO_ERROR(FAIL, "Suspicious n_region value %d from checkpoint", n_region);
 
             /* if (n_region == 0) */
             /*     continue; */
@@ -1553,10 +1588,16 @@ PDC_Server_restart(char *filename)
                     if (fread(&region_list->region_hist->nbin, sizeof(int), 1, file) != 1) {
                         LOG_ERROR("Read failed for region_list->region_hist->nbin\n");
                     }
-                    if (region_list->region_hist->nbin == 0) {
-                        LOG_ERROR("Checkpoint file histogram size is 0\n");
+                    if (region_list->region_hist->nbin == 0 || region_list->region_hist->nbin > 65536) {
+                        LOG_ERROR("Checkpoint file histogram size invalid: %d\n",
+                                  region_list->region_hist->nbin);
+                        PGOTO_ERROR(FAIL, "Invalid histogram nbin");
                     }
 
+                    if (region_list->region_hist->nbin == 0)
+                        PGOTO_ERROR(FAIL, "Invalid nbin in checkpoint");
+                    if (region_list->region_hist->nbin > 65536)
+                        region_list->region_hist->nbin = 65536;
                     region_list->region_hist->range =
                         (double *)PDC_malloc(sizeof(double) * region_list->region_hist->nbin * 2);
                     region_list->region_hist->bin =
@@ -1660,6 +1701,10 @@ PDC_Server_restart(char *filename)
 
     if (fread(&checkpoint_size, sizeof(uint64_t), 1, file) != 1) {
         LOG_ERROR("Read failed for checkpoint size\n");
+    }
+    if (checkpoint_size == 0 || checkpoint_size > (1ULL << 32)) {
+        LOG_ERROR("Suspicious checkpoint_size %" PRIu64 "\n", checkpoint_size);
+        PGOTO_ERROR(FAIL, "Invalid checkpoint_size");
     }
     checkpoint_buf = (char *)PDC_malloc(checkpoint_size);
     if (fread(checkpoint_buf, checkpoint_size, 1, file) != 1) {
@@ -2022,6 +2067,10 @@ PDC_Server_get_env()
     if (tmp_env_char == NULL)
         tmp_env_char = "./pdc_tmp";
 
+    if (strpbrk(tmp_env_char, ";&|`$<>\\") != NULL) {
+        fprintf(stderr, "Invalid characters in PDC_TMPDIR, using default\n");
+        tmp_env_char = "./pdc_tmp";
+    }
     snprintf(pdc_server_tmp_dir_g, TMP_DIR_STRING_LEN, "%s/", tmp_env_char);
 
     lustre_total_ost_g = 1;
