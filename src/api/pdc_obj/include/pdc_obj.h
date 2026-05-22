@@ -136,7 +136,7 @@ pdcid_t PDCobj_open_coll(const char *obj_name, pdcid_t pdc_id,
 #else
                          int
 #endif
-			 comm);
+                             comm);
 
 /**
 

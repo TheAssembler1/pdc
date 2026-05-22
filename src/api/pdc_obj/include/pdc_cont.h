@@ -66,13 +66,13 @@ pdcid_t PDCcont_create(const char *cont_name, pdcid_t cont_create_prop);
  *
  * \return Container id on success/Zero on failure
  */
-pdcid_t PDCcont_create_coll(const char *cont_name, pdcid_t cont_prop_id, 
+pdcid_t PDCcont_create_coll(const char *cont_name, pdcid_t cont_prop_id,
 #ifdef ENABLE_MPI
-		MPI_Comm
-#else 
-		int
+                            MPI_Comm
+#else
+                            int
 #endif
-		comm);
+                                comm);
 
 /**
  * Open a container
@@ -94,11 +94,11 @@ pdcid_t PDCcont_open(const char *cont_name, pdcid_t pdc_id);
  */
 pdcid_t PDCcont_open_coll(const char *cont_name, pdcid_t pdc_id,
 #ifdef ENABLE_MPI
-		MPI_Comm
-#else 
-		int
+                          MPI_Comm
+#else
+                          int
 #endif
-		comm);
+                              comm);
 
 /**
  * Close a container
