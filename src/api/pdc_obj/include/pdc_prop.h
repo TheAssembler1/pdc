@@ -38,6 +38,7 @@ struct pdc_obj_prop {
     pdc_var_type_t         type;
     pdc_region_partition_t region_partition;
     pdc_consistency_t      consistency;
+    pdc_region_writeout_strategy_t writeout_strategy;
 };
 
 /*******************/

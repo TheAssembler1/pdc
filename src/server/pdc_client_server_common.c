@@ -819,6 +819,7 @@ PDC_metadata_t_to_transfer_t(pdc_metadata_t *meta, pdc_metadata_transfer_t *tran
     transfer->data_server_id   = meta->data_server_id;
     transfer->region_partition = meta->region_partition;
     transfer->consistency      = meta->consistency;
+    transfer->writeout_strategy = meta->writeout_strategy;
     transfer->ndim             = meta->ndim;
     transfer->dims0            = meta->dims[0];
     transfer->dims1            = meta->dims[1];
@@ -857,6 +858,7 @@ PDC_transfer_t_to_metadata_t(pdc_metadata_transfer_t *transfer, pdc_metadata_t *
     meta->data_server_id   = transfer->data_server_id;
     meta->region_partition = transfer->region_partition;
     meta->consistency      = transfer->consistency;
+    meta->writeout_strategy = transfer->writeout_strategy;
     meta->time_step        = transfer->time_step;
     meta->ndim             = transfer->ndim;
     meta->dims[0]          = transfer->dims0;

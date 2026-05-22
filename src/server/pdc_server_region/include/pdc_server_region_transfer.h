@@ -3,29 +3,6 @@
 
 #include "pdc_region.h"
 
-typedef enum pdc_region_writeout_strategy {
-    /**
-     * Store data as multiple regions inside a single file.
-     * Overlapping writes that are not fully contained append new regions
-     * to the end of the file, with metadata tracking region locations.
-     * Supports incremental updates without rewriting large parts of the file.
-     */
-    STORE_REGION_BY_REGION_SINGLE_FILE = 0,
-
-    /**
-     * Store the entire object as a single flat file.
-     * Reads and writes operate by seeking directly within the file.
-     * No region metadata bookkeeping; simpler but less flexible for partial updates.
-     */
-    STORE_FLATTENED_SINGLE_FILE,
-
-    /**
-     * Store each flattened region in its own separate file.
-     * Enables independent file management per region.
-     */
-    STORE_FLATTENED_REGION_PER_FILE
-} pdc_region_writeout_strategy;
-
 typedef struct transfer_request_all_data {
     uint64_t **obj_dims;
     uint64_t **remote_offset;
@@ -54,11 +31,8 @@ pthread_mutex_t              transfer_request_id_mutex;
 uint64_t                     transfer_request_id_g;
 
 perr_t PDC_server_transfer_request_init();
-
 perr_t PDC_server_transfer_request_finalize();
-
 int try_reset_dims();
-
 int get_server_rank();
 
 /*

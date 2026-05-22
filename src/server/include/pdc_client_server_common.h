@@ -217,6 +217,7 @@ typedef struct pdc_metadata_transfer_t {
     uint32_t data_server_id;
     uint8_t  region_partition;
     uint8_t  consistency;
+    uint8_t  writeout_strategy;
 
     // The following support state changes to objects
     // as a result of a transform.
@@ -358,6 +359,7 @@ typedef struct pdc_metadata_t {
     uint32_t       data_server_id;
     uint8_t        region_partition;
     uint8_t        consistency;
+    uint8_t writeout_strategy;
 
     char              tags[TAG_LEN_MAX];
     pdc_kvtag_list_t *kvtag_list_head;
@@ -1625,6 +1627,10 @@ hg_proc_pdc_metadata_transfer_t(hg_proc_t proc, void *data)
         FUNC_LEAVE(ret);
     }
     ret = hg_proc_uint8_t(proc, &struct_data->consistency);
+    if (ret != HG_SUCCESS) {
+        FUNC_LEAVE(ret);
+    }
+    ret = hg_proc_uint8_t(proc, &struct_data->writeout_strategy);  
     if (ret != HG_SUCCESS) {
         FUNC_LEAVE(ret);
     }

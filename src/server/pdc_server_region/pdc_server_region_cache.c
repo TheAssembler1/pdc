@@ -30,6 +30,7 @@ typedef struct pdc_obj_cache {
     pdc_region_cache *    region_cache;
     pdc_region_cache *    region_cache_end;
     int                   region_cache_size;
+    pdc_region_writeout_strategy_t writeout_strategy;
     struct timeval        timestamp;
 } pdc_obj_cache;
 
@@ -436,7 +437,7 @@ PDC_region_cache_copy(char *buf, char *buf2, const uint64_t *offset, const uint6
 int
 PDC_region_cache_register(uint64_t obj_id, int obj_ndim, const uint64_t *obj_dims, const char *buf,
                           size_t buf_size, const uint64_t *offset, const uint64_t *size, int ndim,
-                          size_t unit)
+                          size_t unit, pdc_region_writeout_strategy_t writeout_strategy)
 {
     FUNC_ENTER(NULL);
 

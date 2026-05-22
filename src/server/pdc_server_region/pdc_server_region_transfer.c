@@ -3,22 +3,10 @@
 #include "pdc_timing.h"
 #include "pdc_logger.h"
 #include "pdc_malloc.h"
+#include "pdc_server_metadata.h"
 
 #include <errno.h>
 #include <assert.h>
-
-/**
- * Global variable used to indicated data region storage strategy
- *
- * Current options are:
- *      STORE_REGION_BY_REGION_SINGLE_FILE
- *      STORE_FLATTENED_SINGLE_FILE
- *      STORE_FLATTENED_REGION_PER_FILE
- *
- * See enum pdc_region_writeout_strategy in the associated header for
- * more details
- */
-static pdc_region_writeout_strategy storage_strategy_g = STORE_FLATTENED_REGION_PER_FILE;
 
 /**
  * Used to indicate if current storage strategy supports
@@ -27,7 +15,7 @@ static pdc_region_writeout_strategy storage_strategy_g = STORE_FLATTENED_REGION_
 int
 try_reset_dims()
 {
-    return storage_strategy_g == STORE_REGION_BY_REGION_SINGLE_FILE;
+    return false;
 }
 
 perr_t
@@ -731,11 +719,12 @@ PDC_Server_transfer_request_io(uint64_t obj_id, int obj_ndim, const uint64_t *ob
                                struct pdc_region_info *region_info, void *buf, size_t unit, int is_write)
 {
     FUNC_ENTER(NULL);
-
     LOG_DEBUG("PDC_Server_transfer_request_io was called\n");
-
     perr_t ret_value = SUCCEED;
     int    my_rank   = PDC_get_rank();
+
+    pdc_metadata_t *             meta     = PDC_Server_get_obj_metadata(obj_id);
+    pdc_region_writeout_strategy_t strategy = (pdc_region_writeout_strategy_t)meta->writeout_strategy;
 
     // --- Validate input parameters ---
     if (obj_id == 0)
@@ -754,7 +743,7 @@ PDC_Server_transfer_request_io(uint64_t obj_id, int obj_ndim, const uint64_t *ob
     /**
      * Switch between storage strategies and hand off to correct handler
      */
-    if (storage_strategy_g == STORE_REGION_BY_REGION_SINGLE_FILE || obj_ndim == 0) {
+    if (strategy == STORE_REGION_BY_REGION_SINGLE_FILE || obj_ndim == 0) {
         if (my_rank == 0)
             LOG_INFO("Running %s storage strategy STORE_REGION_BY_REGION_SINGLE_FILE\n",
                      (is_write) ? "write" : "read");
@@ -763,28 +752,25 @@ PDC_Server_transfer_request_io(uint64_t obj_id, int obj_ndim, const uint64_t *ob
         else
             PGOTO_DONE(PDC_Server_data_read_from(obj_id, region_info, buf, unit));
     }
-    else if (storage_strategy_g == STORE_FLATTENED_SINGLE_FILE) {
+    else if (strategy == STORE_FLATTENED_SINGLE_FILE) {
         if (my_rank == 0)
             LOG_INFO("Running %s storage strategy STORE_FLATTENED_SINGLE_FILE\n",
                      (is_write) ? "write" : "read");
         PGOTO_DONE(
             PDC_Server_data_io_flattened(obj_id, obj_ndim, obj_dims, region_info, buf, unit, is_write));
     }
-    else if (storage_strategy_g == STORE_FLATTENED_REGION_PER_FILE) {
+    else if (strategy == STORE_FLATTENED_REGION_PER_FILE) {
         uint64_t temp_file_dims[DIM_MAX];
         if (PDC_shrink_file_dims(temp_file_dims, obj_dims, obj_ndim, unit) != SUCCEED)
             PGOTO_ERROR(FAIL, "Error with PDC_shrink_file_dims");
-
         if (my_rank == 0)
             LOG_INFO("Running %s storage strategy STORE_FLATTENED_REGION_PER_FILE\n",
                      (is_write) ? "write" : "read");
-
         PGOTO_DONE(PDC_Server_data_io_region_per_file(obj_id, obj_ndim, obj_dims, temp_file_dims, region_info,
                                                       buf, unit, is_write));
     }
     else
         PGOTO_ERROR(FAIL, "Invalid storage strategy");
-
 done:
     FUNC_LEAVE(ret_value);
 }
