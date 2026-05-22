@@ -177,7 +177,8 @@ If the transfer is intended to be performed collectively across MPI ranks, use:
 
 .. code-block:: C
 
-    PDCregion_transfer_start_coll(transfer_request_id, comm);
+    MPI_Comm comm = MPI_COMM_WORLD;
+    PDCregion_transfer_start_coll(xfer, comm);
 
 This function should be called by all processes participating in 
 the transfer and is useful for coordinated I/O in distributed 
