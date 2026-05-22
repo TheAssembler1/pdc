@@ -132,10 +132,11 @@ pdcid_t PDCobj_open(const char *obj_name, pdcid_t pdc_id);
  */
 pdcid_t PDCobj_open_coll(const char *obj_name, pdcid_t pdc_id,
 #ifdef ENABLE_MPI
-                         MPI_Comm comm);
+                         MPI_Comm
 #else
-                         int comm);
+                         int
 #endif
+			 comm);
 
 /**
 

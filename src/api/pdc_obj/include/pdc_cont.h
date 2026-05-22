@@ -26,8 +26,8 @@
 #define PDC_CONT_H
 
 #include "pdc_public.h"
-#include "pdc_mpi.h"
 #ifdef ENABLE_MPI
+#include "pdc_mpi.h"
 #include <mpi.h>
 #endif
 
