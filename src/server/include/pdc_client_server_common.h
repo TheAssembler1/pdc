@@ -549,6 +549,7 @@ typedef struct {
     uint8_t                data_type;
     size_t                 data_unit;
     uint8_t                lock_mode;
+    uint8_t                writeout_strategy;
 } region_lock_in_t;
 
 /* FIXME:  The bulk_args->in structure (shown below) appears is defined as a
@@ -791,6 +792,7 @@ typedef struct {
     uint32_t               meta_server_id;
 
     uint8_t access_type;
+    uint8_t writeout_strategy;
 } transfer_request_in_t;
 
 /* Define transfer_request_out_t */
@@ -1301,6 +1303,10 @@ hg_proc_region_lock_in_t(hg_proc_t proc, void *data)
         FUNC_LEAVE(ret);
     }
     ret = hg_proc_uint8_t(proc, &struct_data->lock_mode);
+    if (ret != HG_SUCCESS) {
+        FUNC_LEAVE(ret);
+    }
+    ret = hg_proc_uint8_t(proc, &struct_data->writeout_strategy);
     if (ret != HG_SUCCESS) {
         FUNC_LEAVE(ret);
     }
@@ -2645,6 +2651,10 @@ hg_proc_transfer_request_in_t(hg_proc_t proc, void *data)
         FUNC_LEAVE(ret);
     }
     ret = hg_proc_uint8_t(proc, &struct_data->access_type);
+    if (ret != HG_SUCCESS) {
+        FUNC_LEAVE(ret);
+    }
+    ret = hg_proc_uint8_t(proc, &struct_data->writeout_strategy);
     if (ret != HG_SUCCESS) {
         FUNC_LEAVE(ret);
     }
@@ -4823,6 +4833,6 @@ hg_return_t PDC_Client_recv_nhits(const struct hg_cb_info *callback_info);
 
 perr_t PDC_Server_transfer_request_io(uint64_t obj_id, int obj_ndim, const uint64_t *obj_dims,
                                       struct pdc_region_info *region_info, void *buf, size_t unit,
-                                      int is_write);
+                                      int is_write, pdc_region_writeout_strategy_t strategy);
 
 #endif /* PDC_CLIENT_SERVER_COMMON_H */

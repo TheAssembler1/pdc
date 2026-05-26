@@ -1,4 +1,6 @@
 #include "pdc_client_server_common.h"
+#include "pdc_server_data.h"
+#include "pdc_server_metadata.h"
 #include "pdc_server_region_cache.h"
 #include "pdc_timing.h"
 #include "pdc_logger.h"
@@ -487,6 +489,7 @@ PDC_region_cache_register(uint64_t obj_id, int obj_ndim, const uint64_t *obj_dim
         }
         obj_cache = obj_cache_list_end;
     }
+    obj_cache->writeout_strategy = writeout_strategy;
 
     if (obj_cache->region_cache == NULL) {
         obj_cache->region_cache           = (pdc_region_cache *)PDC_malloc(sizeof(pdc_region_cache));
@@ -554,9 +557,21 @@ PDC_region_cache_free()
     FUNC_LEAVE(0);
 }
 
+
+pdc_region_writeout_strategy_t
+PDC_get_obj_writeout_strategy(uint64_t obj_id)
+{
+    pdc_metadata_t *meta = PDC_Server_get_obj_metadata(obj_id);
+    if (!meta) {
+        LOG_INFO("PDC_get_obj_writeout_strategy: failed to get metadata for obj_id %lu, defaulting\n", obj_id);
+        return STORE_REGION_BY_REGION_SINGLE_FILE;
+    }
+    return (pdc_region_writeout_strategy_t)meta->writeout_strategy;
+}
 perr_t
 PDC_transfer_request_data_write_out(uint64_t obj_id, int obj_ndim, const uint64_t *obj_dims,
-                                    struct pdc_region_info *region_info, void *buf, size_t unit)
+                                    struct pdc_region_info *region_info, void *buf, size_t unit,
+                                    pdc_region_writeout_strategy_t writeout_strategy)
 {
     FUNC_ENTER(NULL);
 
@@ -622,7 +637,7 @@ PDC_transfer_request_data_write_out(uint64_t obj_id, int obj_ndim, const uint64_
 
     if (!flag) {
         PDC_region_cache_register(obj_id, obj_ndim, obj_dims, buf, write_size, region_info->offset,
-                                  region_info->size, region_info->ndim, unit);
+                                  region_info->size, region_info->ndim, unit, writeout_strategy);
     }
 
 #ifdef PDC_TIMING
@@ -800,8 +815,10 @@ PDC_region_cache_flush_by_pointer(uint64_t obj_id, pdc_obj_cache *obj_cache, int
     region_cache_iter = obj_cache->region_cache;
     while (region_cache_iter != NULL) {
         region_cache_info = region_cache_iter->region_cache_info;
+        LOG_INFO("Flushing obj_id %lu with writeout_strategy %d\n", obj_id, (int)obj_cache->writeout_strategy);
         PDC_Server_transfer_request_io(obj_id, obj_cache->ndim, obj_cache->dims, region_cache_info,
-                                       region_cache_info->buf, region_cache_info->unit, 1);
+                                       region_cache_info->buf, region_cache_info->unit, 1,
+                                       obj_cache->writeout_strategy);
         if (obj_cache->ndim >= 1)
             write_size = region_cache_info->unit * region_cache_info->size[0];
         if (obj_cache->ndim >= 2)
@@ -1030,10 +1047,12 @@ PDC_region_fetch(uint64_t obj_id, int obj_ndim, const uint64_t *obj_dims, struct
         }
     }
     if (!flag) {
+        pdc_region_writeout_strategy_t strategy = PDC_get_obj_writeout_strategy(obj_id);
         if (obj_cache != NULL) {
             PDC_region_cache_flush_by_pointer(obj_id, obj_cache, 0);
         }
-        PDC_Server_transfer_request_io(obj_id, obj_ndim, obj_dims, region_info, buf, unit, 0);
+        PDC_Server_transfer_request_io(obj_id, obj_ndim, obj_dims, region_info, buf, unit, 0,
+                                       PDC_get_obj_writeout_strategy(obj_id));
     }
 
     FUNC_LEAVE(0);

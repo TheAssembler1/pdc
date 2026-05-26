@@ -3288,7 +3288,7 @@ perr_t
 PDC_Client_transfer_request(hg_bulk_t *bulk_handle, void *buf, pdcid_t obj_id, uint32_t data_server_id,
                             int obj_ndim, uint64_t *obj_dims, int remote_ndim, uint64_t *remote_offset,
                             uint64_t *remote_size, size_t unit, pdc_access_t access_type,
-                            pdcid_t *metadata_id)
+                            pdcid_t *metadata_id, pdc_region_writeout_strategy_t writeout_strategy)
 {
     FUNC_ENTER(NULL);
 
@@ -3313,6 +3313,7 @@ PDC_Client_transfer_request(hg_bulk_t *bulk_handle, void *buf, pdcid_t obj_id, u
 
     LOG_DEBUG("rank = %d, data_server_id = %u\n", pdc_client_mpi_rank_g, data_server_id);
     in.access_type = access_type;
+    in.writeout_strategy = (uint8_t)writeout_strategy;
     in.remote_unit = unit;
     in.obj_id      = obj_id;
 

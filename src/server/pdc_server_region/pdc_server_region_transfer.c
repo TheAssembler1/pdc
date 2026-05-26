@@ -4,6 +4,7 @@
 #include "pdc_logger.h"
 #include "pdc_malloc.h"
 #include "pdc_server_metadata.h"
+#include "pdc_server_region_cache.h"
 
 #include <errno.h>
 #include <assert.h>
@@ -716,15 +717,14 @@ done:
  */
 perr_t
 PDC_Server_transfer_request_io(uint64_t obj_id, int obj_ndim, const uint64_t *obj_dims,
-                               struct pdc_region_info *region_info, void *buf, size_t unit, int is_write)
+                               struct pdc_region_info *region_info, void *buf, size_t unit, int is_write,
+                               pdc_region_writeout_strategy_t strategy)
 {
     FUNC_ENTER(NULL);
     LOG_DEBUG("PDC_Server_transfer_request_io was called\n");
     perr_t ret_value = SUCCEED;
     int    my_rank   = PDC_get_rank();
 
-    pdc_metadata_t *             meta     = PDC_Server_get_obj_metadata(obj_id);
-    pdc_region_writeout_strategy_t strategy = (pdc_region_writeout_strategy_t)meta->writeout_strategy;
 
     // --- Validate input parameters ---
     if (obj_id == 0)
@@ -808,6 +808,7 @@ parse_bulk_data(void *buf, transfer_request_all_data *request_data, pdc_access_t
     request_data->obj_dims      = request_data->remote_length + request_data->n_objs;
     request_data->unit          = (size_t *)PDC_malloc(sizeof(size_t) * request_data->n_objs);
     request_data->data_buf      = (char **)PDC_malloc(sizeof(char *) * request_data->n_objs);
+    request_data->writeout_strategy = (uint8_t *)PDC_malloc(sizeof(uint8_t) * request_data->n_objs);
 
     /*
      * The following times n_objs (one set per object).
@@ -825,6 +826,8 @@ parse_bulk_data(void *buf, transfer_request_all_data *request_data, pdc_access_t
         ptr += sizeof(int);
         request_data->unit[i] = *((pdcid_t *)ptr);
         ptr += sizeof(size_t);
+        request_data->writeout_strategy[i] = *((uint8_t *)ptr);
+        ptr += sizeof(uint8_t);
     }
     /*
      * For each of objects

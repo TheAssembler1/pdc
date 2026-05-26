@@ -13,6 +13,7 @@ typedef struct transfer_request_all_data {
     int *      remote_ndim;
     char **    data_buf;
     int        n_objs;
+    uint8_t   *writeout_strategy;
 } transfer_request_all_data;
 
 typedef struct pdc_transfer_request_status {
@@ -75,7 +76,7 @@ pdcid_t PDC_transfer_request_id_register();
 
 perr_t PDC_Server_transfer_request_io(uint64_t obj_id, int obj_ndim, const uint64_t *obj_dims,
                                       struct pdc_region_info *region_info, void *buf, size_t unit,
-                                      int is_write);
+                                      int is_write, pdc_region_writeout_strategy_t strategy);
 
 int clean_write_bulk_data(transfer_request_all_data *request_data);
 
