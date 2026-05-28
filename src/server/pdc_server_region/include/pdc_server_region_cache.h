@@ -9,6 +9,8 @@
 #include "pdc_client_server_common.h"
 #include "pdc_timing.h"
 
+pdc_region_writeout_strategy_t PDC_get_obj_writeout_strategy(uint64_t obj_id);
+
 #ifdef PDC_SERVER_CACHE
 
 #define PDC_REGION_CONTAINED       0
@@ -23,7 +25,6 @@ pthread_mutex_t pdc_obj_cache_list_mutex;
 int   PDC_region_server_cache_init();
 int   PDC_region_server_cache_finalize();
 int   PDC_region_cache_flush_all();
-pdc_region_writeout_strategy_t PDC_get_obj_writeout_strategy(uint64_t obj_id);
 int   PDC_region_cache_flush(uint64_t obj_id);
 int   PDC_region_fetch(uint64_t obj_id, int obj_ndim, const uint64_t *obj_dims,
                        struct pdc_region_info *region_info, void *buf, size_t unit);

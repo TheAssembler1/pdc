@@ -5,6 +5,16 @@
 #include "pdc_timing.h"
 #include "pdc_logger.h"
 
+pdc_region_writeout_strategy_t
+PDC_get_obj_writeout_strategy(uint64_t obj_id)
+{
+    pdc_metadata_t *meta = PDC_Server_get_obj_metadata(obj_id);
+    if (!meta) {
+        LOG_INFO("PDC_get_obj_writeout_strategy: failed to get metadata for obj_id %lu, defaulting\n", obj_id);
+        return STORE_REGION_BY_REGION_SINGLE_FILE;
+    }
+    return (pdc_region_writeout_strategy_t)meta->writeout_strategy;
+}
 #ifdef PDC_SERVER_CACHE
 
 #ifdef PDC_SERVER_CACHE_MAX_GB
@@ -558,16 +568,6 @@ PDC_region_cache_free()
 }
 
 
-pdc_region_writeout_strategy_t
-PDC_get_obj_writeout_strategy(uint64_t obj_id)
-{
-    pdc_metadata_t *meta = PDC_Server_get_obj_metadata(obj_id);
-    if (!meta) {
-        LOG_INFO("PDC_get_obj_writeout_strategy: failed to get metadata for obj_id %lu, defaulting\n", obj_id);
-        return STORE_REGION_BY_REGION_SINGLE_FILE;
-    }
-    return (pdc_region_writeout_strategy_t)meta->writeout_strategy;
-}
 perr_t
 PDC_transfer_request_data_write_out(uint64_t obj_id, int obj_ndim, const uint64_t *obj_dims,
                                     struct pdc_region_info *region_info, void *buf, size_t unit,
