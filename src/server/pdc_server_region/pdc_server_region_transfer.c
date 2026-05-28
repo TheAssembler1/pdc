@@ -725,7 +725,6 @@ PDC_Server_transfer_request_io(uint64_t obj_id, int obj_ndim, const uint64_t *ob
     perr_t ret_value = SUCCEED;
     int    my_rank   = PDC_get_rank();
 
-
     // --- Validate input parameters ---
     if (obj_id == 0)
         PGOTO_ERROR(FAIL, "obj_id is zero");
@@ -800,14 +799,14 @@ parse_bulk_data(void *buf, transfer_request_all_data *request_data, pdc_access_t
     uint64_t data_size;
 
     // preallocate arrays of size number of objects
-    request_data->obj_id        = (pdcid_t *)PDC_malloc(sizeof(pdcid_t) * request_data->n_objs);
-    request_data->obj_ndim      = (int *)PDC_malloc(sizeof(int) * request_data->n_objs);
-    request_data->remote_ndim   = (int *)PDC_malloc(sizeof(int) * request_data->n_objs);
-    request_data->remote_offset = (uint64_t **)PDC_malloc(sizeof(uint64_t *) * request_data->n_objs * 3);
-    request_data->remote_length = request_data->remote_offset + request_data->n_objs;
-    request_data->obj_dims      = request_data->remote_length + request_data->n_objs;
-    request_data->unit          = (size_t *)PDC_malloc(sizeof(size_t) * request_data->n_objs);
-    request_data->data_buf      = (char **)PDC_malloc(sizeof(char *) * request_data->n_objs);
+    request_data->obj_id            = (pdcid_t *)PDC_malloc(sizeof(pdcid_t) * request_data->n_objs);
+    request_data->obj_ndim          = (int *)PDC_malloc(sizeof(int) * request_data->n_objs);
+    request_data->remote_ndim       = (int *)PDC_malloc(sizeof(int) * request_data->n_objs);
+    request_data->remote_offset     = (uint64_t **)PDC_malloc(sizeof(uint64_t *) * request_data->n_objs * 3);
+    request_data->remote_length     = request_data->remote_offset + request_data->n_objs;
+    request_data->obj_dims          = request_data->remote_length + request_data->n_objs;
+    request_data->unit              = (size_t *)PDC_malloc(sizeof(size_t) * request_data->n_objs);
+    request_data->data_buf          = (char **)PDC_malloc(sizeof(char *) * request_data->n_objs);
     request_data->writeout_strategy = (uint8_t *)PDC_malloc(sizeof(uint8_t) * request_data->n_objs);
 
     /*

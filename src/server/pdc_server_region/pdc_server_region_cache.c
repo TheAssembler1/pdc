@@ -10,7 +10,8 @@ PDC_get_obj_writeout_strategy(uint64_t obj_id)
 {
     pdc_metadata_t *meta = PDC_Server_get_obj_metadata(obj_id);
     if (!meta) {
-        LOG_INFO("PDC_get_obj_writeout_strategy: failed to get metadata for obj_id %lu, defaulting\n", obj_id);
+        LOG_INFO("PDC_get_obj_writeout_strategy: failed to get metadata for obj_id %lu, defaulting\n",
+                 obj_id);
         return STORE_REGION_BY_REGION_SINGLE_FILE;
     }
     return (pdc_region_writeout_strategy_t)meta->writeout_strategy;
@@ -35,15 +36,15 @@ typedef struct pdc_region_cache {
 } pdc_region_cache;
 
 typedef struct pdc_obj_cache {
-    struct pdc_obj_cache *next;
-    uint64_t              obj_id;
-    int                   ndim;
-    uint64_t *            dims;
-    pdc_region_cache *    region_cache;
-    pdc_region_cache *    region_cache_end;
-    int                   region_cache_size;
+    struct pdc_obj_cache *         next;
+    uint64_t                       obj_id;
+    int                            ndim;
+    uint64_t *                     dims;
+    pdc_region_cache *             region_cache;
+    pdc_region_cache *             region_cache_end;
+    int                            region_cache_size;
     pdc_region_writeout_strategy_t writeout_strategy;
-    struct timeval        timestamp;
+    struct timeval                 timestamp;
 } pdc_obj_cache;
 
 static pdc_obj_cache *obj_cache_list, *obj_cache_list_end;
@@ -567,7 +568,6 @@ PDC_region_cache_free()
     FUNC_LEAVE(0);
 }
 
-
 perr_t
 PDC_transfer_request_data_write_out(uint64_t obj_id, int obj_ndim, const uint64_t *obj_dims,
                                     struct pdc_region_info *region_info, void *buf, size_t unit,
@@ -815,7 +815,8 @@ PDC_region_cache_flush_by_pointer(uint64_t obj_id, pdc_obj_cache *obj_cache, int
     region_cache_iter = obj_cache->region_cache;
     while (region_cache_iter != NULL) {
         region_cache_info = region_cache_iter->region_cache_info;
-        LOG_INFO("Flushing obj_id %lu with writeout_strategy %d\n", obj_id, (int)obj_cache->writeout_strategy);
+        LOG_INFO("Flushing obj_id %lu with writeout_strategy %d\n", obj_id,
+                 (int)obj_cache->writeout_strategy);
         PDC_Server_transfer_request_io(obj_id, obj_cache->ndim, obj_cache->dims, region_cache_info,
                                        region_cache_info->buf, region_cache_info->unit, 1,
                                        obj_cache->writeout_strategy);

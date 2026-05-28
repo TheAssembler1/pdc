@@ -80,9 +80,9 @@ PDCobj_create(pdcid_t cont_id, const char *obj_name, pdcid_t obj_prop_id)
 static perr_t
 PDC_Client_attach_metadata_to_local_obj(const char *obj_name, uint64_t obj_id, uint64_t cont_id,
                                         uint32_t data_server_id, pdc_region_partition_t region_partition,
-                                        pdc_consistency_t consistency,
-                                        pdc_region_writeout_strategy_t writeout_strategy,  /* NEW */
-                                        struct _pdc_obj_info *obj_info)
+                                        pdc_consistency_t              consistency,
+                                        pdc_region_writeout_strategy_t writeout_strategy, /* NEW */
+                                        struct _pdc_obj_info *         obj_info)
 {
     FUNC_ENTER(NULL);
 
@@ -93,12 +93,12 @@ PDC_Client_attach_metadata_to_local_obj(const char *obj_name, uint64_t obj_id, u
         strcpy(((pdc_metadata_t *)obj_info->metadata)->app_name, obj_info->obj_pt->app_name);
     if (NULL != obj_name)
         strcpy(((pdc_metadata_t *)obj_info->metadata)->obj_name, obj_name);
-    ((pdc_metadata_t *)obj_info->metadata)->time_step        = obj_info->obj_pt->time_step;
-    ((pdc_metadata_t *)obj_info->metadata)->obj_id           = obj_id;
-    ((pdc_metadata_t *)obj_info->metadata)->cont_id          = cont_id;
-    ((pdc_metadata_t *)obj_info->metadata)->data_server_id   = data_server_id;
-    ((pdc_metadata_t *)obj_info->metadata)->region_partition = region_partition;
-    ((pdc_metadata_t *)obj_info->metadata)->consistency      = consistency;
+    ((pdc_metadata_t *)obj_info->metadata)->time_step         = obj_info->obj_pt->time_step;
+    ((pdc_metadata_t *)obj_info->metadata)->obj_id            = obj_id;
+    ((pdc_metadata_t *)obj_info->metadata)->cont_id           = cont_id;
+    ((pdc_metadata_t *)obj_info->metadata)->data_server_id    = data_server_id;
+    ((pdc_metadata_t *)obj_info->metadata)->region_partition  = region_partition;
+    ((pdc_metadata_t *)obj_info->metadata)->consistency       = consistency;
     ((pdc_metadata_t *)obj_info->metadata)->writeout_strategy = writeout_strategy;
     if (NULL != obj_info->obj_pt->tags)
         strcpy(((pdc_metadata_t *)obj_info->metadata)->tags, obj_info->obj_pt->tags);
@@ -207,10 +207,10 @@ PDC_obj_create(pdcid_t cont_id, const char *obj_name, pdcid_t obj_prop_id, _pdc_
         PGOTO_ERROR(0, "Cannot allocate ret_value->dims");
     for (i = 0; i < obj_prop->obj_prop_pub->ndim; i++)
         p->obj_pt->obj_prop_pub->dims[i] = obj_prop->obj_prop_pub->dims[i];
-    p->obj_pt->obj_prop_pub->type             = obj_prop->obj_prop_pub->type;
-    p->obj_pt->obj_prop_pub->region_partition = obj_prop->obj_prop_pub->region_partition;
-    p->obj_pt->obj_prop_pub->consistency      = obj_prop->obj_prop_pub->consistency;
-    p->obj_pt->obj_prop_pub->writeout_strategy = obj_prop->obj_prop_pub->writeout_strategy; 
+    p->obj_pt->obj_prop_pub->type              = obj_prop->obj_prop_pub->type;
+    p->obj_pt->obj_prop_pub->region_partition  = obj_prop->obj_prop_pub->region_partition;
+    p->obj_pt->obj_prop_pub->consistency       = obj_prop->obj_prop_pub->consistency;
+    p->obj_pt->obj_prop_pub->writeout_strategy = obj_prop->obj_prop_pub->writeout_strategy;
     if (obj_prop->app_name)
         p->obj_pt->app_name = strdup(obj_prop->app_name);
     if (obj_prop->data_loc)
@@ -238,10 +238,9 @@ PDC_obj_create(pdcid_t cont_id, const char *obj_name, pdcid_t obj_prop_id, _pdc_
     p->obj_info_pub->metadata_server_id = (pdcid_t)metadata_server_id;
 
     PDC_Client_attach_metadata_to_local_obj(obj_name, p->obj_info_pub->meta_id, meta_id, data_server_id,
-                                        p->obj_pt->obj_prop_pub->region_partition,
-                                        p->obj_pt->obj_prop_pub->consistency,
-                                        p->obj_pt->obj_prop_pub->writeout_strategy, 
-                                        p);
+                                            p->obj_pt->obj_prop_pub->region_partition,
+                                            p->obj_pt->obj_prop_pub->consistency,
+                                            p->obj_pt->obj_prop_pub->writeout_strategy, p);
 
     p->obj_info_pub->obj_pt = (struct pdc_obj_prop *)PDC_calloc(1, sizeof(struct pdc_obj_prop));
     if (!p->obj_info_pub->obj_pt)
@@ -484,12 +483,12 @@ PDCobj_open_common(const char *obj_name, pdcid_t pdc, int is_col)
     /* 'app_name' is a char array */
     if (strlen(out->app_name) > 0)
         p->obj_pt->app_name = strdup(out->app_name);
-    p->obj_pt->obj_prop_pub->type             = out->data_type;
-    p->obj_pt->obj_prop_pub->region_partition = out->region_partition;
-    p->obj_pt->obj_prop_pub->consistency      = out->consistency;
-    p->obj_pt->obj_prop_pub->writeout_strategy = out->writeout_strategy; 
-    p->obj_pt->time_step                      = out->time_step;
-    p->obj_pt->user_id                        = out->user_id;
+    p->obj_pt->obj_prop_pub->type              = out->data_type;
+    p->obj_pt->obj_prop_pub->region_partition  = out->region_partition;
+    p->obj_pt->obj_prop_pub->consistency       = out->consistency;
+    p->obj_pt->obj_prop_pub->writeout_strategy = out->writeout_strategy;
+    p->obj_pt->time_step                       = out->time_step;
+    p->obj_pt->user_id                         = out->user_id;
 
     if (out->transform_state > 0) {
         p->obj_pt->locus                        = SERVER_MEMORY;
@@ -804,8 +803,8 @@ PDCprop_set_obj_writeout_strategy(pdcid_t obj_prop, pdc_region_writeout_strategy
     struct _pdc_obj_prop *prop;
     if ((info = PDC_find_id(obj_prop)) == NULL)
         PGOTO_ERROR(FAIL, "Failed to find PDC ID: %d", obj_prop);
-    prop                                    = (struct _pdc_obj_prop *)(info->obj_ptr);
-    prop->obj_prop_pub->writeout_strategy   = strategy;
+    prop                                  = (struct _pdc_obj_prop *)(info->obj_ptr);
+    prop->obj_prop_pub->writeout_strategy = strategy;
 done:
     FUNC_LEAVE(ret_value);
 }

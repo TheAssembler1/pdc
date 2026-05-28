@@ -205,10 +205,10 @@ transfer_request_all_bulk_transfer_write_cb(const struct hg_cb_info *info)
         remote_reg_info->offset = request_data.remote_offset[i];
         remote_reg_info->size   = request_data.remote_length[i];
 #ifdef PDC_SERVER_CACHE
-        PDC_transfer_request_data_write_out(request_data.obj_id[i], request_data.obj_ndim[i],
-                                            request_data.obj_dims[i], remote_reg_info,
-                                            (void *)request_data.data_buf[i], request_data.unit[i],
-                                            (pdc_region_writeout_strategy_t)request_data.writeout_strategy[i]);
+        PDC_transfer_request_data_write_out(
+            request_data.obj_id[i], request_data.obj_ndim[i], request_data.obj_dims[i], remote_reg_info,
+            (void *)request_data.data_buf[i], request_data.unit[i],
+            (pdc_region_writeout_strategy_t)request_data.writeout_strategy[i]);
 #else
         PDC_Server_transfer_request_io(request_data.obj_id[i], request_data.obj_ndim[i],
                                        request_data.obj_dims[i], remote_reg_info,
@@ -340,10 +340,10 @@ transfer_request_bulk_transfer_write_cb(const struct hg_cb_info *info)
     PDC_copy_region_desc((local_bulk_args->in).obj_dims, obj_dims, remote_reg_info->ndim,
                          remote_reg_info->ndim);
 #ifdef PDC_SERVER_CACHE
-    PDC_transfer_request_data_write_out(local_bulk_args->in.obj_id, local_bulk_args->in.obj_ndim, obj_dims,
-                                        remote_reg_info, (void *)local_bulk_args->data_buf,
-                                        local_bulk_args->in.remote_unit,
-                                        (pdc_region_writeout_strategy_t)local_bulk_args->in.writeout_strategy);
+    PDC_transfer_request_data_write_out(
+        local_bulk_args->in.obj_id, local_bulk_args->in.obj_ndim, obj_dims, remote_reg_info,
+        (void *)local_bulk_args->data_buf, local_bulk_args->in.remote_unit,
+        (pdc_region_writeout_strategy_t)local_bulk_args->in.writeout_strategy);
 #else
     PDC_Server_transfer_request_io(local_bulk_args->in.obj_id, local_bulk_args->in.obj_ndim, obj_dims,
                                    remote_reg_info, (void *)local_bulk_args->data_buf,

@@ -34,7 +34,9 @@
 #ifdef ENABLE_MPI
 #include <mpi.h>
 #else
-static inline double MPI_Wtime(void) {
+static inline double
+MPI_Wtime(void)
+{
     struct timeval tv;
     gettimeofday(&tv, NULL);
     return tv.tv_sec + tv.tv_usec * 1e-6;
