@@ -1869,10 +1869,10 @@ PDC_Server_cache_region_to_BB(region_list_t *region)
     // Prepare update
     strncpy(region->storage_location, pdc_cache_file_path_g, sizeof(region->storage_location) - 1);
     region->storage_location[sizeof(region->storage_location) - 1] = '\0';
-    region->offset = offset;
+    region->offset                                                 = offset;
     strncpy(region->cache_location, pdc_cache_file_path_g, sizeof(region->cache_location) - 1);
     region->cache_location[sizeof(region->cache_location) - 1] = '\0';
-    region->cache_offset = offset;
+    region->cache_offset                                       = offset;
 
     // Update storage meta
     ret_value = PDC_Server_update_region_storagelocation_offset(region, PDC_UPDATE_CACHE);
