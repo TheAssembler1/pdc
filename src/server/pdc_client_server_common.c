@@ -4701,9 +4701,12 @@ remove_relative_dirs(char *workingDir, char *application)
             *slash = 0;
     }
     k = strlen(workingDir);
+    if (k >= PATH_MAX) {
+        PGOTO_ERROR(FAIL, "workingDir length exceeds PATH_MAX");
+    }
     if ((appName[0] == '.') && (appName[1] == '/'))
         appName += 2;
-    snprintf(&workingDir[k], PATH_MAX, "/%s", appName);
+    snprintf(&workingDir[k], PATH_MAX - k, "/%s", appName);
 
     ret_value = strdup(workingDir);
 

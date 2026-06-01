@@ -56,8 +56,14 @@ test_base_type()
     BULKI_free(bulki, 1);
 
     // read the file and deserialize
-    fd = open("test_bulki.bin", O_RDONLY | O_CREAT | O_TRUNC, 0644);
+    fd = open("test_bulki.bin", O_RDONLY);
+    if (fd < 0)
+        FUNC_LEAVE(-1);
     fp = fdopen(fd, "rb");
+    if (fp == NULL) {
+        close(fd);
+        FUNC_LEAVE(-1);
+    }
     fseek(fp, 0, SEEK_END);
     long fsize = ftell(fp);
     fseek(fp, 0, SEEK_SET); /* same as rewind(f); */

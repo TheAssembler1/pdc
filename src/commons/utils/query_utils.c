@@ -93,8 +93,6 @@ gen_query_key_value(query_gen_input_t *input, query_gen_output_t *output)
         char *temp_value = NULL;
         value_ptr_len    = _gen_affix_for_token((char *)input->base_tag->value, input->value_query_type,
                                              affix_len, &temp_value);
-        value_ptr        = (char *)PDC_calloc(value_ptr_len + 3, sizeof(char));
-        snprintf(value_ptr, value_ptr_len + 3, "\"%s\"", temp_value);
 
         if (value_ptr_len == 0) {
             LOG_ERROR("Failed to generate value query\n");
@@ -102,7 +100,7 @@ gen_query_key_value(query_gen_input_t *input, query_gen_output_t *output)
         }
 
         // Allocate space for: '"' + temp_value + '"' + '\0'
-        value_ptr = (char *)calloc(value_ptr_len + 3, sizeof(char));
+        value_ptr = (char *)PDC_calloc(value_ptr_len + 3, sizeof(char));
         if (!value_ptr) {
             LOG_ERROR("Memory allocation failed for value_ptr");
             return;
@@ -111,7 +109,7 @@ gen_query_key_value(query_gen_input_t *input, query_gen_output_t *output)
         int written = snprintf(value_ptr, value_ptr_len + 3, "\"%s\"", temp_value);
         if (written < 0 || written >= value_ptr_len + 3) {
             LOG_ERROR("Value string formatting failed or was truncated");
-            free(value_ptr);
+            value_ptr = (char *)PDC_free(value_ptr);
             value_ptr = NULL;
             return;
         }

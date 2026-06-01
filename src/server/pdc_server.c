@@ -353,6 +353,10 @@ PDC_Server_write_addr_to_file(char **addr_strings, int n)
     if (_na_fd < 0)
         PGOTO_ERROR(FAIL, "Could not open config file from: %s", config_fname);
     FILE *na_config = fdopen(_na_fd, "w");
+    if (na_config == NULL) {
+        close(_na_fd);
+        PGOTO_ERROR(FAIL, "Could not fdopen config file from: %s", config_fname);
+    }
 
     fprintf(na_config, "%d\n", n);
     for (i = 0; i < n; i++) {

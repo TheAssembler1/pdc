@@ -24,8 +24,15 @@ setLogFile(PDC_LogLevel level, const char *fileName)
         else {
             strncpy(logFilenames[level], fileName, sizeof(logFilenames[level]) - 1);
             logFilenames[level][sizeof(logFilenames[level]) - 1] = '\0';
-            int fd          = open(fileName, O_WRONLY | O_CREAT | O_APPEND, 0644);
-            logFiles[level] = fdopen(fd, "a");
+            int fd = open(fileName, O_WRONLY | O_CREAT | O_APPEND, 0600);
+            if (fd < 0) {
+                logFiles[level] = NULL;
+            }
+            else {
+                logFiles[level] = fdopen(fd, "a");
+                if (logFiles[level] == NULL)
+                    close(fd);
+            }
         }
     }
     else {
@@ -67,12 +74,22 @@ rotate_log_file(PDC_LogLevel level)
     localtime_r(&rawtime, &timeinfo);
 
     strftime(timeStr, sizeof(timeStr), "%Y%m%d%H:%M:%S", &timeinfo);
-    newFilename[strlen(newFilename) - 1] = '\0'; // Remove trailing newline
 
     snprintf(newFilename, MAX_LOG_FILE_NAME_LENGTH, "%s_%s", logFilenames[level], timeStr);
-    rename(logFilenames[level], newFilename);
-    int fd          = open(logFilenames[level], O_WRONLY | O_CREAT | O_APPEND, 0644);
+    if (rename(logFilenames[level], newFilename) != 0) {
+        logFiles[level] = NULL;
+        FUNC_LEAVE_VOID();
+    }
+    int fd = open(logFilenames[level], O_WRONLY | O_CREAT | O_APPEND, 0600);
+    if (fd < 0) {
+        logFiles[level] = NULL;
+        FUNC_LEAVE_VOID();
+    }
     logFiles[level] = fdopen(fd, "a");
+    if (logFiles[level] == NULL)
+        close(fd);
+
+    FUNC_LEAVE_VOID();
 }
 
 static FILE *

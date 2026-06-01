@@ -17,9 +17,9 @@ env:
 
 on:
   push:
-    branches: [ "pdc_codeql" ]
+    branches: [ "stable", "develop" ]
   pull_request:
-    branches: [ "pdc_codeql" ]
+    branches: [ "stable", "develop" ]
   schedule:
     - cron: '33 23 * * 2'
 

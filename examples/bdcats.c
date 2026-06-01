@@ -84,7 +84,7 @@ main(int argc, char **argv)
     }
 
     if (numparticles > MAX_PARTICLES) {
-        LOG_ERRROR("numparticles exceeds max size\n");
+        LOG_ERROR("numparticles exceeds max size\n");
         goto done;
     }
 

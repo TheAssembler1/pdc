@@ -1867,9 +1867,11 @@ PDC_Server_cache_region_to_BB(region_list_t *region)
 #endif
 
     // Prepare update
-    strncpy(region->storage_location, pdc_cache_file_path_g, sizeof(region->storage_location));
+    strncpy(region->storage_location, pdc_cache_file_path_g, sizeof(region->storage_location) - 1);
+    region->storage_location[sizeof(region->storage_location) - 1] = '\0';
     region->offset = offset;
-    strncpy(region->cache_location, pdc_cache_file_path_g, sizeof(region->cache_location));
+    strncpy(region->cache_location, pdc_cache_file_path_g, sizeof(region->cache_location) - 1);
+    region->cache_location[sizeof(region->cache_location) - 1] = '\0';
     region->cache_offset = offset;
 
     // Update storage meta
@@ -4087,7 +4089,8 @@ PDC_Server_data_write_out(uint64_t obj_id, struct pdc_region_info *region_info, 
     request_region->ndim      = region_info->ndim;
     request_region->unit_size = unit;
     strncpy(request_region->storage_location, region->storage_location,
-            sizeof(request_region->storage_location));
+            sizeof(request_region->storage_location) - 1);
+    request_region->storage_location[sizeof(request_region->storage_location) - 1] = '\0';
 #ifdef ENABLE_TIMING
     struct timeval pdc_timer_start, pdc_timer_end;
     double         write_total_sec;
