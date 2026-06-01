@@ -1591,8 +1591,7 @@ PDC_Server_restart(char *filename)
                     /* nbin is a signed int read from an untrusted checkpoint file.
                      * Reject (not clamp) anything outside (0, 65536] so the value is
                      * provably bounded on the path to the allocations below. */
-                    if (region_list->region_hist->nbin <= 0 ||
-                        region_list->region_hist->nbin > 65536) {
+                    if (region_list->region_hist->nbin <= 0 || region_list->region_hist->nbin > 65536) {
                         LOG_ERROR("Checkpoint file histogram size invalid: %d\n",
                                   region_list->region_hist->nbin);
                         PGOTO_ERROR(FAIL, "Invalid histogram nbin");
