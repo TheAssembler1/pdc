@@ -1252,11 +1252,11 @@ PDC_Server_checkpoint()
         fd = open(checkpoint_file_local, O_RDWR | O_CREAT | O_TRUNC, 0600);
     else
         fd = open(checkpoint_file, O_RDWR | O_CREAT | O_TRUNC, 0600);
-    if(fd < 0)
+    if (fd < 0)
         PGOTO_ERROR(FAIL, "Failed to open checkpoint file");
     file = fdopen(fd, "w+");
     if (file == NULL) {
-	close(fd);
+        close(fd);
         PGOTO_ERROR(FAIL, "Checkpoint file open error");
     }
 

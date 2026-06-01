@@ -692,7 +692,7 @@ PDC_Server_add_tag_metadata(metadata_add_tag_in_t *in, metadata_add_tag_out_t *o
                     if (written < 0 || (size_t)written >= space_left) {
                         PGOTO_ERROR(FAIL, "Not enough space in target->tags to append new_tag with snprintf");
                     }
-		    out->ret = 1;
+                    out->ret = 1;
                 }
                 else
                     out->ret = FAIL;
