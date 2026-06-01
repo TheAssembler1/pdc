@@ -124,7 +124,8 @@ transfer_request_metadata_query_init(int pdc_server_size_input, char *checkpoint
                 metadata_server_objs_end->regions_end->reg_offset + ndim;
             metadata_server_objs_end->regions_end->data_server_id = *(uint32_t *)ptr;
             ptr += sizeof(uint32_t);
-            memcpy(metadata_server_objs_end->regions_end->reg_offset, ptr, sizeof(uint64_t) * (size_t)ndim * 2);
+            memcpy(metadata_server_objs_end->regions_end->reg_offset, ptr,
+                   sizeof(uint64_t) * (size_t)ndim * 2);
             ptr += sizeof(uint64_t) * (size_t)ndim * 2;
 
             for (j = 1; j < reg_count; ++j) {
@@ -139,7 +140,8 @@ transfer_request_metadata_query_init(int pdc_server_size_input, char *checkpoint
                     metadata_server_objs_end->regions_end->reg_offset + ndim;
                 metadata_server_objs_end->regions_end->data_server_id = *(uint32_t *)ptr;
                 ptr += sizeof(uint32_t);
-                memcpy(metadata_server_objs_end->regions_end->reg_offset, ptr, sizeof(uint64_t) * (size_t)ndim * 2);
+                memcpy(metadata_server_objs_end->regions_end->reg_offset, ptr,
+                       sizeof(uint64_t) * (size_t)ndim * 2);
                 ptr += sizeof(uint64_t) * (size_t)ndim * 2;
             }
         }
