@@ -89,9 +89,12 @@ PDC_Client_attach_metadata_to_local_obj(const char *obj_name, uint64_t obj_id, u
     ((pdc_metadata_t *)obj_info->metadata)->user_id = obj_info->obj_pt->user_id;
     if (NULL != obj_info->obj_pt->app_name)
         strcpy(((pdc_metadata_t *)obj_info->metadata)->app_name, obj_info->obj_pt->app_name);
-    if (NULL != obj_name)
+    if (NULL != obj_name) {
         strncpy(((pdc_metadata_t *)obj_info->metadata)->obj_name, obj_name,
                 sizeof(((pdc_metadata_t *)obj_info->metadata)->obj_name));
+    ((pdc_metadata_t *)obj_info->metadata)
+        ->obj_name[sizeof(((pdc_metadata_t *)obj_info->metadata)->obj_name) - 1] = '\0';
+    }
     ((pdc_metadata_t *)obj_info->metadata)->time_step        = obj_info->obj_pt->time_step;
     ((pdc_metadata_t *)obj_info->metadata)->obj_id           = obj_id;
     ((pdc_metadata_t *)obj_info->metadata)->cont_id          = cont_id;
