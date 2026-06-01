@@ -64,7 +64,7 @@ transfer_request_metadata_query_init(int pdc_server_size_input, char *checkpoint
 
     hg_return_t ret_value = HG_SUCCESS;
     char *      ptr;
-    int         n_objs, reg_count;
+    int         n_objs, reg_count, ndim;
     int         i, j;
 
     metadata_server_objs     = NULL;
@@ -97,9 +97,16 @@ transfer_request_metadata_query_init(int pdc_server_size_input, char *checkpoint
 
             metadata_server_objs_end->obj_id = *(uint64_t *)ptr;
             ptr += sizeof(uint64_t);
-            metadata_server_objs_end->ndim = *(int *)ptr;
+            /* Read ndim into a local, validate it, then use the validated local
+             * for every allocation/copy so the bound is provable to analysis. */
+            ndim = *(int *)ptr;
             ptr += sizeof(int);
-            reg_count = *(int *)ptr;
+            if (ndim <= 0 || ndim > 4) {
+                LOG_ERROR("Invalid ndim %d\n", ndim);
+                FUNC_LEAVE(FAIL);
+            }
+            metadata_server_objs_end->ndim = ndim;
+            reg_count                      = *(int *)ptr;
             ptr += sizeof(int);
             if (reg_count < 0 || reg_count > 1000000) {
                 LOG_ERROR("Invalid reg_count %d\n", reg_count);
@@ -111,19 +118,14 @@ transfer_request_metadata_query_init(int pdc_server_size_input, char *checkpoint
             metadata_server_objs_end->regions_end = metadata_server_objs_end->regions;
 
             metadata_server_objs_end->regions_end->next = NULL;
-            /* ndim comes from an untrusted buffer; reject (not clamp) anything
-             * outside [1,4] so the allocation size is provably bounded. */
-            if (metadata_server_objs_end->ndim <= 0 || metadata_server_objs_end->ndim > 4)
-                FUNC_LEAVE(FAIL);
             metadata_server_objs_end->regions_end->reg_offset =
-                (uint64_t *)PDC_malloc(sizeof(uint64_t) * (size_t)metadata_server_objs_end->ndim * 2);
+                (uint64_t *)PDC_malloc(sizeof(uint64_t) * (size_t)ndim * 2);
             metadata_server_objs_end->regions_end->reg_size =
-                metadata_server_objs_end->regions_end->reg_offset + metadata_server_objs_end->ndim;
+                metadata_server_objs_end->regions_end->reg_offset + ndim;
             metadata_server_objs_end->regions_end->data_server_id = *(uint32_t *)ptr;
             ptr += sizeof(uint32_t);
-            memcpy(metadata_server_objs_end->regions_end->reg_offset, ptr,
-                   sizeof(uint64_t) * metadata_server_objs_end->ndim * 2);
-            ptr += sizeof(uint64_t) * metadata_server_objs_end->ndim * 2;
+            memcpy(metadata_server_objs_end->regions_end->reg_offset, ptr, sizeof(uint64_t) * (size_t)ndim * 2);
+            ptr += sizeof(uint64_t) * (size_t)ndim * 2;
 
             for (j = 1; j < reg_count; ++j) {
                 metadata_server_objs_end->regions->next =
@@ -131,19 +133,14 @@ transfer_request_metadata_query_init(int pdc_server_size_input, char *checkpoint
                 metadata_server_objs_end->regions_end = metadata_server_objs_end->regions_end->next;
 
                 metadata_server_objs_end->regions_end->next = NULL;
-                /* ndim comes from an untrusted buffer; reject (not clamp) anything
-                 * outside [1,4] so the allocation size is provably bounded. */
-                if (metadata_server_objs_end->ndim <= 0 || metadata_server_objs_end->ndim > 4)
-                    FUNC_LEAVE(FAIL);
                 metadata_server_objs_end->regions_end->reg_offset =
-                    (uint64_t *)PDC_malloc(sizeof(uint64_t) * (size_t)metadata_server_objs_end->ndim * 2);
+                    (uint64_t *)PDC_malloc(sizeof(uint64_t) * (size_t)ndim * 2);
                 metadata_server_objs_end->regions_end->reg_size =
-                    metadata_server_objs_end->regions_end->reg_offset + metadata_server_objs_end->ndim;
+                    metadata_server_objs_end->regions_end->reg_offset + ndim;
                 metadata_server_objs_end->regions_end->data_server_id = *(uint32_t *)ptr;
                 ptr += sizeof(uint32_t);
-                memcpy(metadata_server_objs_end->regions_end->reg_offset, ptr,
-                       sizeof(uint64_t) * metadata_server_objs_end->ndim * 2);
-                ptr += sizeof(uint64_t) * metadata_server_objs_end->ndim * 2;
+                memcpy(metadata_server_objs_end->regions_end->reg_offset, ptr, sizeof(uint64_t) * (size_t)ndim * 2);
+                ptr += sizeof(uint64_t) * (size_t)ndim * 2;
             }
         }
     }
