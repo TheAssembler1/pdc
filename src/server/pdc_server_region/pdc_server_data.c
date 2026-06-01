@@ -1835,11 +1835,14 @@ PDC_Server_cache_region_to_BB(region_list_t *region)
                      pdc_server_rank_g);
             LOG_ERROR("No PDC_BB_LOC specified, use [%s]\n", bb_data_path);
         }
-
-        {
-            int _cfd             = open(pdc_cache_file_path_g, O_WRONLY | O_CREAT | O_APPEND, 0600);
-            pdc_cache_file_ptr_g = (_cfd >= 0) ? fdopen(_cfd, "ab") : NULL;
+        int _cfd = open(pdc_cache_file_path_g, O_WRONLY | O_CREAT | O_APPEND, 0600);
+        if (_cfd >= 0) {
+	   pdc_cache_file_ptr_g = fdopen(_cfd, "ab");
+	   if (pdc_cache_file_ptr_g == NULL)
+	       close(_cfd);
         }
+        else
+	   pdc_cache_file_ptr_g = NULL;
         if (NULL == pdc_cache_file_ptr_g)
             PGOTO_ERROR(FAIL, "fopen failed [%s]\n", pdc_cache_file_path_g);
         n_fopen_g++;
@@ -3846,8 +3849,13 @@ PDC_Server_posix_one_file_io(region_list_t *region_list_head)
                 // server process access this file, so no lock is needed.
                 if (strpbrk(region_elt->storage_location, ";&|`$<>") != NULL)
                     PGOTO_ERROR(FAIL, "Invalid characters in storage location");
-                int fd   = open(region_elt->storage_location, O_WRONLY | O_CREAT | O_APPEND, 0600);
-                fp_write = fdopen(fd, "ab");
+                 int fd = open(region_elt->storage_location, O_WRONLY | O_CREAT | O_APPEND, 0600);
+                 if (fd < 0)
+                     PGOTO_ERROR(FAIL, "open failed [%s]", region_elt->storage_location);
+                 if (fp_write == NULL) {
+                     close(fd);
+                     PGOTO_ERROR(FAIL, "fdopen failed [%s]", region_elt->storage_location);
+                 }
                 n_fopen_g++;
 
 #ifdef ENABLE_TIMING

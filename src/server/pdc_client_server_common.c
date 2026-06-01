@@ -4702,7 +4702,7 @@ remove_relative_dirs(char *workingDir, char *application)
     }
     k = strlen(workingDir);
     if (k >= PATH_MAX) {
-        PGOTO_ERROR(FAIL, "workingDir length exceeds PATH_MAX");
+        PGOTO_ERROR(NULL, "workingDir length exceeds PATH_MAX");
     }
     if ((appName[0] == '.') && (appName[1] == '/'))
         appName += 2;
@@ -4710,6 +4710,7 @@ remove_relative_dirs(char *workingDir, char *application)
 
     ret_value = strdup(workingDir);
 
+done:
     FUNC_LEAVE(ret_value);
 }
 
@@ -4756,7 +4757,7 @@ PDC_find_in_path(char *workingDir, char *application)
                 if (chdir(workingDir) != 0) {
                     LOG_ERROR("Check dir failed\n");
                 }
-                snprintf(&checkPath[offset], PATH_MAX, "/%s", appName);
+                snprintf(&checkPath[offset], sizeof(checkPath) - offset, "/%s", appName);
                 PGOTO_DONE(strdup(checkPath));
             }
         }

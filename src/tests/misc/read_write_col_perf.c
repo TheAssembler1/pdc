@@ -358,10 +358,10 @@ main(int argc, char **argv)
     free(data);
 #endif
 
+done:
 #ifdef ENABLE_MPI
     MPI_Finalize();
 #endif
 
-done:
     return ret_value;
 }
