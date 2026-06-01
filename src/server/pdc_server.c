@@ -1548,11 +1548,11 @@ PDC_Server_restart(char *filename)
                 if (fread(&kvtag_list->kvtag->type, sizeof(int8_t), 1, file) != 1) {
                     LOG_ERROR("Read failed for kvtag_list->kvtag->type\n");
                 }
-                if (kvtag_list->kvtag->size == 0)
+                /* size is validated to be within (0, 1<<24] above; reject (not clamp)
+                 * keeps the value provably bounded on the path to PDC_malloc. */
+                if (kvtag_list->kvtag->size == 0 || kvtag_list->kvtag->size > (1u << 24))
                     PGOTO_ERROR(FAIL, "Invalid kvtag size in checkpoint");
-                if (kvtag_list->kvtag->size > (1u << 24))
-                    kvtag_list->kvtag->size = (1u << 24);
-                kvtag_list->kvtag->value = PDC_malloc(kvtag_list->kvtag->size);
+                kvtag_list->kvtag->value = PDC_malloc((size_t)kvtag_list->kvtag->size);
                 if (fread(kvtag_list->kvtag->value, kvtag_list->kvtag->size, 1, file) != 1) {
                     LOG_ERROR("Read failed for kvtag_list->kvtag->value\n");
                 }
@@ -1588,20 +1588,20 @@ PDC_Server_restart(char *filename)
                     if (fread(&region_list->region_hist->nbin, sizeof(int), 1, file) != 1) {
                         LOG_ERROR("Read failed for region_list->region_hist->nbin\n");
                     }
-                    if (region_list->region_hist->nbin == 0 || region_list->region_hist->nbin > 65536) {
+                    /* nbin is a signed int read from an untrusted checkpoint file.
+                     * Reject (not clamp) anything outside (0, 65536] so the value is
+                     * provably bounded on the path to the allocations below. */
+                    if (region_list->region_hist->nbin <= 0 ||
+                        region_list->region_hist->nbin > 65536) {
                         LOG_ERROR("Checkpoint file histogram size invalid: %d\n",
                                   region_list->region_hist->nbin);
                         PGOTO_ERROR(FAIL, "Invalid histogram nbin");
                     }
 
-                    if (region_list->region_hist->nbin == 0)
-                        PGOTO_ERROR(FAIL, "Invalid nbin in checkpoint");
-                    if (region_list->region_hist->nbin > 65536)
-                        region_list->region_hist->nbin = 65536;
                     region_list->region_hist->range =
-                        (double *)PDC_malloc(sizeof(double) * region_list->region_hist->nbin * 2);
+                        (double *)PDC_malloc(sizeof(double) * (size_t)region_list->region_hist->nbin * 2);
                     region_list->region_hist->bin =
-                        (uint64_t *)PDC_malloc(sizeof(uint64_t) * region_list->region_hist->nbin);
+                        (uint64_t *)PDC_malloc(sizeof(uint64_t) * (size_t)region_list->region_hist->nbin);
 
                     if (fread(region_list->region_hist->range, sizeof(double),
                               region_list->region_hist->nbin * 2, file) != 1) {

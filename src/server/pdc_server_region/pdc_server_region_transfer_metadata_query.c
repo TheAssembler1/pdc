@@ -111,10 +111,10 @@ transfer_request_metadata_query_init(int pdc_server_size_input, char *checkpoint
             metadata_server_objs_end->regions_end = metadata_server_objs_end->regions;
 
             metadata_server_objs_end->regions_end->next = NULL;
-            if (metadata_server_objs_end->ndim <= 0)
+            /* ndim comes from an untrusted buffer; reject (not clamp) anything
+             * outside [1,4] so the allocation size is provably bounded. */
+            if (metadata_server_objs_end->ndim <= 0 || metadata_server_objs_end->ndim > 4)
                 FUNC_LEAVE(FAIL);
-            if (metadata_server_objs_end->ndim > 4)
-                metadata_server_objs_end->ndim = 4;
             metadata_server_objs_end->regions_end->reg_offset =
                 (uint64_t *)PDC_malloc(sizeof(uint64_t) * (size_t)metadata_server_objs_end->ndim * 2);
             metadata_server_objs_end->regions_end->reg_size =
@@ -131,10 +131,10 @@ transfer_request_metadata_query_init(int pdc_server_size_input, char *checkpoint
                 metadata_server_objs_end->regions_end = metadata_server_objs_end->regions_end->next;
 
                 metadata_server_objs_end->regions_end->next = NULL;
-                if (metadata_server_objs_end->ndim <= 0)
+                /* ndim comes from an untrusted buffer; reject (not clamp) anything
+                 * outside [1,4] so the allocation size is provably bounded. */
+                if (metadata_server_objs_end->ndim <= 0 || metadata_server_objs_end->ndim > 4)
                     FUNC_LEAVE(FAIL);
-                if (metadata_server_objs_end->ndim > 4)
-                    metadata_server_objs_end->ndim = 4;
                 metadata_server_objs_end->regions_end->reg_offset =
                     (uint64_t *)PDC_malloc(sizeof(uint64_t) * (size_t)metadata_server_objs_end->ndim * 2);
                 metadata_server_objs_end->regions_end->reg_size =

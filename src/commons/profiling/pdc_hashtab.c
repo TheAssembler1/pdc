@@ -214,6 +214,8 @@ htab_eq   eq_f;
 htab_del  del_f;
 {
     FUNC_ENTER(NULL);
+    if (size > (size_t)2147483647)
+        size = (size_t)2147483647;
     FUNC_LEAVE(htab_create_alloc(size, hash_f, eq_f, del_f, calloc, free));
 }
 
