@@ -1426,7 +1426,8 @@ PDC_Server_restart(char *filename)
 
     perr_t ret_value = SUCCEED;
     int    n_entry, count, i, j, nobj = 0, all_nobj = 0, all_n_region, n_region, n_objs, total_region = 0,
-                              n_kvtag, key_len;
+                              n_kvtag, key_len, nbin;
+    uint32_t                     kv_size;
     int                          n_cont, all_cont;
     pdc_metadata_t *             metadata, *elt;
     region_list_t *              region_list;
@@ -1543,17 +1544,15 @@ PDC_Server_restart(char *filename)
                 if (fread(&kvtag_list->kvtag->size, sizeof(uint32_t), 1, file) != 1) {
                     LOG_ERROR("Read failed for kvtag_list->kvtag->size\n");
                 }
-                if (kvtag_list->kvtag->size == 0 || kvtag_list->kvtag->size > (1u << 24))
+                kv_size = kvtag_list->kvtag->size;
+                if (kv_size == 0 || kv_size > (1u << 24))
                     PGOTO_ERROR(FAIL, "Invalid kvtag size in checkpoint");
+                kvtag_list->kvtag->size = kv_size;
                 if (fread(&kvtag_list->kvtag->type, sizeof(int8_t), 1, file) != 1) {
                     LOG_ERROR("Read failed for kvtag_list->kvtag->type\n");
                 }
-                /* size is validated to be within (0, 1<<24] above; reject (not clamp)
-                 * keeps the value provably bounded on the path to PDC_malloc. */
-                if (kvtag_list->kvtag->size == 0 || kvtag_list->kvtag->size > (1u << 24))
-                    PGOTO_ERROR(FAIL, "Invalid kvtag size in checkpoint");
-                kvtag_list->kvtag->value = PDC_malloc((size_t)kvtag_list->kvtag->size);
-                if (fread(kvtag_list->kvtag->value, kvtag_list->kvtag->size, 1, file) != 1) {
+                kvtag_list->kvtag->value = PDC_malloc((size_t)kv_size);
+                if (fread(kvtag_list->kvtag->value, (size_t)kv_size, 1, file) != 1) {
                     LOG_ERROR("Read failed for kvtag_list->kvtag->value\n");
                 }
                 DL_APPEND((metadata + i)->kvtag_list_head, kvtag_list);
@@ -1588,26 +1587,20 @@ PDC_Server_restart(char *filename)
                     if (fread(&region_list->region_hist->nbin, sizeof(int), 1, file) != 1) {
                         LOG_ERROR("Read failed for region_list->region_hist->nbin\n");
                     }
-                    /* nbin is a signed int read from an untrusted checkpoint file.
-                     * Reject (not clamp) anything outside (0, 65536] so the value is
-                     * provably bounded on the path to the allocations below. */
-                    if (region_list->region_hist->nbin <= 0 || region_list->region_hist->nbin > 65536) {
-                        LOG_ERROR("Checkpoint file histogram size invalid: %d\n",
-                                  region_list->region_hist->nbin);
+                    nbin = region_list->region_hist->nbin;
+                    if (nbin <= 0 || nbin > 65536) {
+                        LOG_ERROR("Checkpoint file histogram size invalid: %d\n", nbin);
                         PGOTO_ERROR(FAIL, "Invalid histogram nbin");
                     }
+                    region_list->region_hist->nbin = nbin;
 
-                    region_list->region_hist->range =
-                        (double *)PDC_malloc(sizeof(double) * (size_t)region_list->region_hist->nbin * 2);
-                    region_list->region_hist->bin =
-                        (uint64_t *)PDC_malloc(sizeof(uint64_t) * (size_t)region_list->region_hist->nbin);
+                    region_list->region_hist->range = (double *)PDC_malloc(sizeof(double) * (size_t)nbin * 2);
+                    region_list->region_hist->bin   = (uint64_t *)PDC_malloc(sizeof(uint64_t) * (size_t)nbin);
 
-                    if (fread(region_list->region_hist->range, sizeof(double),
-                              region_list->region_hist->nbin * 2, file) != 1) {
+                    if (fread(region_list->region_hist->range, sizeof(double), (size_t)nbin * 2, file) != 1) {
                         LOG_ERROR("Read failed for region_list->region_hist->range\n");
                     }
-                    if (fread(region_list->region_hist->bin, sizeof(uint64_t), region_list->region_hist->nbin,
-                              file) != 1) {
+                    if (fread(region_list->region_hist->bin, sizeof(uint64_t), (size_t)nbin, file) != 1) {
                         LOG_ERROR("Read failed for region_list->region_hist->bin\n");
                     }
                     if (fread(&region_list->region_hist->incr, sizeof(double), 1, file) != 1) {
