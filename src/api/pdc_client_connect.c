@@ -1458,7 +1458,8 @@ PDC_Client_init()
     tmp_dir = getenv("PDC_TMPDIR");
     if (tmp_dir == NULL) {
         strncpy(pdc_client_tmp_dir_g, "./pdc_tmp", sizeof(pdc_client_tmp_dir_g));
-    } else {
+    }
+    else {
         strncpy(pdc_client_tmp_dir_g, tmp_dir, sizeof(pdc_client_tmp_dir_g));
     }
     pdc_client_tmp_dir_g[sizeof(pdc_client_tmp_dir_g) - 1] = '\0';
