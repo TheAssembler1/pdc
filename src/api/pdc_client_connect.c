@@ -4503,7 +4503,7 @@ PDC_Client_wait(struct pdc_request *request, unsigned long max_wait_ms, unsigned
     gettimeofday(&start_time, 0);
     // TODO: Calculate region size and estimate the wait time
     // Write is 4-5x faster
-    while (completed != 1 && cnt < PDC_MAX_TRIAL_NUM) {
+    while (completed != 0 && cnt < PDC_MAX_TRIAL_NUM) {
         ret_value = PDC_Client_test(request, &completed);
         if (ret_value != SUCCEED)
             PGOTO_ERROR(FAIL, "PDC_Client_test error");
