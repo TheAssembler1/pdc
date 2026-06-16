@@ -1,0 +1,72 @@
+name: Spack Installation
+
+on:
+  pull_request:
+    branches:
+      - develop
+      - stable
+  push:
+    branches:
+      - develop
+      - stable
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  spack-install-and-test:
+    name: Spack Install + Test (Ubuntu)
+    runs-on: ubuntu-22.04
+    timeout-minutes: 90
+
+    steps:
+      - name: Checkout PDC
+        uses: actions/checkout@v4
+
+      - name: Set up Spack
+        uses: spack/setup-spack@v3
+        with:
+          buildcache: true
+
+      # Install all PDC dependencies from Spack's binary cache.
+      # We skip PDC itself and build it below with CMake so that
+      # BUILD_TESTING=ON and run_test.sh work out of the box.
+      - name: Install PDC dependencies via Spack
+        run: |
+          spack install --only dependencies pdc \
+            ^libfabric fabrics=sockets,tcp,udp,rxm
+
+      # Capture the full Spack load environment (PATH, LD_LIBRARY_PATH,
+      # PKG_CONFIG_PATH, etc.) into a file we can source in later steps.
+      - name: Capture Spack environment
+        run: |
+          spack load --sh --only dependencies pdc \
+            ^libfabric fabrics=sockets,tcp,udp,rxm \
+            > $GITHUB_WORKSPACE/spack-env.sh
+          echo "=== spack-env.sh ==="
+          cat $GITHUB_WORKSPACE/spack-env.sh
+
+      - name: Build PDC with tests
+        run: |
+          source $GITHUB_WORKSPACE/spack-env.sh
+          mkdir build && cd build
+          cmake ../ \
+            -DBUILD_MPI_TESTING=ON \
+            -DBUILD_SHARED_LIBS=ON \
+            -DPDC_SERVER_CACHE=ON \
+            -DBUILD_TESTING=ON \
+            -DPDC_ENABLE_MPI=ON \
+            -DCMAKE_C_COMPILER=mpicc \
+            -DCMAKE_POLICY_VERSION_MINIMUM=3.5
+          make -j$(nproc)
+
+      # run_test.sh (called by every CTest entry) backgrounds pdc_server,
+      # runs the client binary, then calls close_server — so ctest handles
+      # the full server lifecycle automatically.
+      - name: Run serial tests
+        working-directory: build
+        run: |
+          source $GITHUB_WORKSPACE/spack-env.sh
+          ctest -L serial --output-on-failure
