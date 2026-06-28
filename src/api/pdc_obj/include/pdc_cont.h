@@ -161,8 +161,7 @@ cont_handle *PDCcont_iter_start();
 /**
  * Check if container handle is pointing to NULL
  *
- * \param chandle [IN]          Pointer to cont_handle struct,
- *                              returned by PDCcont_iter_start(pdcid_t pdc_id)
+ *                              returned by PDCcont_iter_start()
  *
  * \return 1 on success/0 on failure
  */
@@ -171,8 +170,7 @@ pbool_t PDCcont_iter_null(cont_handle *chandle);
 /**
  * Move to the next container within a PDC
  *
- * \param chandle [IN]          Pointer to cont_handle struct, returned by
- *                              PDCcont_iter_start(pdcid_t pdc_id)
+ *                              PDCcont_iter_start()
  *
  * \return Pointer to cont_handle struct/NULL on failure or no more containers
  */
@@ -181,8 +179,7 @@ cont_handle *PDCcont_iter_next(cont_handle *chandle);
 /**
  * Retrieve container information
  *
- * \param chandle [IN]          A cont_handle struct, returned by
- *                              PDCcont_iter_start(pdcid_t pdc_id)
+ *                              PDCcont_iter_start()
  *
  * \return Pointer to a PDC_cont_info struct/NULL on failure
  */
