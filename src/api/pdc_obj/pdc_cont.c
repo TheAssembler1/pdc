@@ -22,6 +22,7 @@
  * perform publicly and display publicly, and to permit other to do so.
  */
 
+#include "pdc_config.h"
 #include "pdc_cont.h"
 #include "pdc_cont_pkg.h"
 #include "pdc_malloc.h"
