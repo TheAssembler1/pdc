@@ -39,6 +39,8 @@ jobs:
         run: |
           spack load --sh openmpi libfabric mercury boost \
             > $GITHUB_WORKSPACE/spack-env.sh
+          echo "export CPATH=$(spack location -i boost)/include:\$CPATH" \
+            >> $GITHUB_WORKSPACE/spack-env.sh
           echo "=== spack-env.sh ==="
           cat $GITHUB_WORKSPACE/spack-env.sh
 
