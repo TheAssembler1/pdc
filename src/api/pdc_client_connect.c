@@ -2659,6 +2659,8 @@ PDC_Client_send_name_recv_id(const char *obj_name, uint64_t cont_id, pdcid_t obj
     in.data.data_server_id    = PDC_CLIENT_DATA_SERVER();
     in.data.region_partition  = create_prop->obj_prop_pub->region_partition;
     in.data.writeout_strategy = create_prop->obj_prop_pub->writeout_strategy;
+    for (int i = 0; i < DIM_MAX; i++)
+        in.data.obj_split_elems[i] = create_prop->obj_prop_pub->obj_split_elems[i];
     LOG_DEBUG("prepare for sending region partition %d with obj name %s\n", (int)in.data.region_partition,
               obj_name);
     *data_server_id = in.data.data_server_id;

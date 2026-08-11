@@ -1169,6 +1169,8 @@ PDC_insert_metadata_to_hash_table(gen_obj_id_in_t *in, gen_obj_id_out_t *out)
     metadata->region_partition  = in->data.region_partition;
     metadata->consistency       = in->data.consistency;
     metadata->writeout_strategy = in->data.writeout_strategy;
+    for (int j = 0; j < DIM_MAX; j++)
+        metadata->obj_split_elems[j] = in->data.obj_split_elems[j];
     metadata->time_step         = in->data.time_step;
     metadata->ndim              = in->data.ndim;
     metadata->dims[0]           = in->data.dims0;

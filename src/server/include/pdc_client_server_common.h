@@ -218,6 +218,7 @@ typedef struct pdc_metadata_transfer_t {
     uint8_t  region_partition;
     uint8_t  consistency;
     uint8_t  writeout_strategy;
+    uint32_t obj_split_elems[DIM_MAX];
 
     // The following support state changes to objects
     // as a result of a transform.
@@ -360,6 +361,7 @@ typedef struct pdc_metadata_t {
     uint8_t        region_partition;
     uint8_t        consistency;
     uint8_t        writeout_strategy;
+    uint32_t       obj_split_elems[DIM_MAX];
 
     char              tags[TAG_LEN_MAX];
     pdc_kvtag_list_t *kvtag_list_head;
@@ -550,6 +552,7 @@ typedef struct {
     size_t                 data_unit;
     uint8_t                lock_mode;
     uint8_t                writeout_strategy;
+    uint32_t               obj_split_elems[DIM_MAX];
 } region_lock_in_t;
 
 /* FIXME:  The bulk_args->in structure (shown below) appears is defined as a
@@ -793,6 +796,7 @@ typedef struct {
 
     uint8_t access_type;
     uint8_t writeout_strategy;
+    uint32_t obj_split_elems[DIM_MAX];
 } transfer_request_in_t;
 
 /* Define transfer_request_out_t */
@@ -1310,6 +1314,12 @@ hg_proc_region_lock_in_t(hg_proc_t proc, void *data)
     if (ret != HG_SUCCESS) {
         FUNC_LEAVE(ret);
     }
+    for (int i = 0; i < DIM_MAX; i++) {
+        ret = hg_proc_uint32_t(proc, &struct_data->obj_split_elems[i]);
+        if (ret != HG_SUCCESS) {
+            FUNC_LEAVE(ret);
+        }
+    }
 
     FUNC_LEAVE(ret);
 }
@@ -1639,6 +1649,12 @@ hg_proc_pdc_metadata_transfer_t(hg_proc_t proc, void *data)
     ret = hg_proc_uint8_t(proc, &struct_data->writeout_strategy);
     if (ret != HG_SUCCESS) {
         FUNC_LEAVE(ret);
+    }
+    for (int i = 0; i < DIM_MAX; i++) {
+        ret = hg_proc_uint32_t(proc, &struct_data->obj_split_elems[i]);
+        if (ret != HG_SUCCESS) {
+            FUNC_LEAVE(ret);
+        }
     }
     // Added to support transforms
     ret = hg_proc_int32_t(proc, &struct_data->current_state);
@@ -2657,6 +2673,12 @@ hg_proc_transfer_request_in_t(hg_proc_t proc, void *data)
     ret = hg_proc_uint8_t(proc, &struct_data->writeout_strategy);
     if (ret != HG_SUCCESS) {
         FUNC_LEAVE(ret);
+    }
+    for (int i = 0; i < DIM_MAX; i++) {
+        ret = hg_proc_uint32_t(proc, &struct_data->obj_split_elems[i]);
+        if (ret != HG_SUCCESS) {
+            FUNC_LEAVE(ret);
+        }
     }
 
     FUNC_LEAVE(ret);

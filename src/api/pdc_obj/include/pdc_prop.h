@@ -27,6 +27,7 @@
 
 #include "pdc_public.h"
 #include "pdc_obj.h"
+#include "pdc_region.h"
 
 /*******************/
 /* Public Structs */
@@ -39,6 +40,7 @@ struct pdc_obj_prop {
     pdc_region_partition_t         region_partition;
     pdc_consistency_t              consistency;
     pdc_region_writeout_strategy_t writeout_strategy;
+    uint32_t                       obj_split_elems[DIM_MAX];
 };
 
 /*******************/

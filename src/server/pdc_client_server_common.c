@@ -820,6 +820,8 @@ PDC_metadata_t_to_transfer_t(pdc_metadata_t *meta, pdc_metadata_transfer_t *tran
     transfer->region_partition  = meta->region_partition;
     transfer->consistency       = meta->consistency;
     transfer->writeout_strategy = meta->writeout_strategy;
+    for (int i = 0; i < DIM_MAX; i++)
+        transfer->obj_split_elems[i] = meta->obj_split_elems[i];
     transfer->ndim              = meta->ndim;
     transfer->dims0             = meta->dims[0];
     transfer->dims1             = meta->dims[1];
@@ -859,6 +861,8 @@ PDC_transfer_t_to_metadata_t(pdc_metadata_transfer_t *transfer, pdc_metadata_t *
     meta->region_partition  = transfer->region_partition;
     meta->consistency       = transfer->consistency;
     meta->writeout_strategy = transfer->writeout_strategy;
+    for (int i = 0; i < DIM_MAX; i++)
+        meta->obj_split_elems[i] = transfer->obj_split_elems[i];
     meta->time_step         = transfer->time_step;
     meta->ndim              = transfer->ndim;
     meta->dims[0]           = transfer->dims0;

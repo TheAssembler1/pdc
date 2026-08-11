@@ -301,6 +301,17 @@ perr_t PDCprop_set_obj_transfer_region_type(pdcid_t obj_prop, pdc_region_partiti
 perr_t PDCprop_set_obj_writeout_strategy(pdcid_t obj_prop, pdc_region_writeout_strategy_t strategy);
 
 /**
+ * Set per-dimension element split counts for an object property.
+ *
+ * \param obj_prop   [IN]  ID of object property
+ * \param split_elems [IN] Array of element counts, one per dimension
+ * \param ndim       [IN]  Number of dimensions (clamped to DIM_MAX)
+ *
+ * \return Non-negative on success/Negative on failure
+ */
+perr_t PDCprop_set_obj_split_elems(pdcid_t obj_prop, uint32_t *split_elems, int ndim);
+
+/**
 
  * Set object consistency semantics
  *

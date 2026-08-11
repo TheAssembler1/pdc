@@ -99,6 +99,7 @@ PDCprop_create(pdc_prop_type_t type, pdcid_t pdcid)
         q->obj_prop_pub->region_partition  = PDC_REGION_STATIC;
         q->obj_prop_pub->consistency       = PDC_CONSISTENCY_EVENTUAL;
         q->obj_prop_pub->writeout_strategy = STORE_REGION_BY_REGION_SINGLE_FILE;
+        memset(q->obj_prop_pub->obj_split_elems, 0, sizeof(uint32_t) * DIM_MAX);
         q->data_loc                        = NULL;
         q->app_name                        = NULL;
         q->time_step                       = 0;
@@ -166,6 +167,8 @@ PDCprop_obj_dup(pdcid_t prop_id)
     q->obj_prop_pub->region_partition  = info->obj_prop_pub->region_partition;
     q->obj_prop_pub->consistency       = info->obj_prop_pub->consistency;
     q->obj_prop_pub->writeout_strategy = info->obj_prop_pub->writeout_strategy;
+    for (int j = 0; j < DIM_MAX; j++)
+        q->obj_prop_pub->obj_split_elems[j] = info->obj_prop_pub->obj_split_elems[j];
     for (i = 0; i < info->obj_prop_pub->ndim; i++)
         (q->obj_prop_pub->dims)[i] = (info->obj_prop_pub->dims)[i];
 

@@ -100,6 +100,8 @@ PDC_Client_attach_metadata_to_local_obj(const char *obj_name, uint64_t obj_id, u
     ((pdc_metadata_t *)obj_info->metadata)->region_partition  = region_partition;
     ((pdc_metadata_t *)obj_info->metadata)->consistency       = consistency;
     ((pdc_metadata_t *)obj_info->metadata)->writeout_strategy = writeout_strategy;
+    for (int i = 0; i < DIM_MAX; i++)
+        ((pdc_metadata_t *)obj_info->metadata)->obj_split_elems[i] = obj_info->obj_pt->obj_prop_pub->obj_split_elems[i];
     if (NULL != obj_info->obj_pt->tags)
         strcpy(((pdc_metadata_t *)obj_info->metadata)->tags, obj_info->obj_pt->tags);
     if (NULL != obj_info->obj_pt->data_loc)
@@ -211,6 +213,8 @@ PDC_obj_create(pdcid_t cont_id, const char *obj_name, pdcid_t obj_prop_id, _pdc_
     p->obj_pt->obj_prop_pub->region_partition  = obj_prop->obj_prop_pub->region_partition;
     p->obj_pt->obj_prop_pub->consistency       = obj_prop->obj_prop_pub->consistency;
     p->obj_pt->obj_prop_pub->writeout_strategy = obj_prop->obj_prop_pub->writeout_strategy;
+    for (int j = 0; j < DIM_MAX; j++)
+        p->obj_pt->obj_prop_pub->obj_split_elems[j] = obj_prop->obj_prop_pub->obj_split_elems[j];
     if (obj_prop->app_name)
         p->obj_pt->app_name = strdup(obj_prop->app_name);
     if (obj_prop->data_loc)
@@ -487,6 +491,8 @@ PDCobj_open_common(const char *obj_name, pdcid_t pdc, int is_col)
     p->obj_pt->obj_prop_pub->region_partition  = out->region_partition;
     p->obj_pt->obj_prop_pub->consistency       = out->consistency;
     p->obj_pt->obj_prop_pub->writeout_strategy = out->writeout_strategy;
+    for (int j = 0; j < DIM_MAX; j++)
+        p->obj_pt->obj_prop_pub->obj_split_elems[j] = out->obj_split_elems[j];
     p->obj_pt->time_step                       = out->time_step;
     p->obj_pt->user_id                         = out->user_id;
 
@@ -805,6 +811,22 @@ PDCprop_set_obj_writeout_strategy(pdcid_t obj_prop, pdc_region_writeout_strategy
         PGOTO_ERROR(FAIL, "Failed to find PDC ID: %d", obj_prop);
     prop                                  = (struct _pdc_obj_prop *)(info->obj_ptr);
     prop->obj_prop_pub->writeout_strategy = strategy;
+done:
+    FUNC_LEAVE(ret_value);
+}
+
+perr_t
+PDCprop_set_obj_split_elems(pdcid_t obj_prop, uint32_t *split_elems, int ndim)
+{
+    FUNC_ENTER(NULL);
+    perr_t                ret_value = SUCCEED;
+    struct _pdc_id_info * info;
+    struct _pdc_obj_prop *prop;
+    if ((info = PDC_find_id(obj_prop)) == NULL)
+        PGOTO_ERROR(FAIL, "Failed to find PDC ID: %d", obj_prop);
+    prop = (struct _pdc_obj_prop *)(info->obj_ptr);
+    for (int i = 0; i < ndim && i < DIM_MAX; i++)
+        prop->obj_prop_pub->obj_split_elems[i] = split_elems[i];
 done:
     FUNC_LEAVE(ret_value);
 }

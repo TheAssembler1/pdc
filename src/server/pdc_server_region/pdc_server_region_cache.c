@@ -747,7 +747,7 @@ PDC_region_cache_flush_by_pointer(uint64_t obj_id, pdc_obj_cache *obj_cache, int
     }
 
     // For 1D case, we can merge regions to minimize the number of POSIX calls.
-    if (obj_cache->ndim == 1 && obj_cache->region_cache_size) {
+    if (obj_cache->ndim == 1 && obj_cache->region_cache_size && obj_cache->writeout_strategy != STORE_FLATTENED_REGION_PER_FILE) {
         start = (uint64_t *)PDC_malloc(sizeof(uint64_t) * obj_cache->region_cache_size * 2);
         end   = start + obj_cache->region_cache_size;
         buf   = (char **)PDC_malloc(sizeof(char *) * obj_cache->region_cache_size);
@@ -934,8 +934,8 @@ PDC_region_cache_clock_cycle(void *ptr)
                 /* pthread_mutex_lock(&pdc_obj_cache_list_mutex); */
                 obj_cache = obj_cache_iter;
 
-                elapsed_time = current_time.tv_sec - last_cache_activity_timeval_g.tv_sec +
-                               (current_time.tv_usec - last_cache_activity_timeval_g.tv_usec) / 1000000.0;
+                elapsed_time = current_time.tv_sec - obj_cache->timestamp.tv_sec +
+                               (current_time.tv_usec - obj_cache->timestamp.tv_usec) / 1000000.0;
 
                 if (elapsed_time >= pdc_idle_flush_time_g) {
                     pthread_mutex_lock(&pdc_obj_cache_list_mutex);

@@ -496,6 +496,12 @@ PDC_Server_data_io_region_per_file(uint64_t obj_id, int obj_ndim, const uint64_t
     size_t  file_chunk_bytes;
     ssize_t bytes_read, cur_bytes_read, bytes_written, cur_bytes_written;
 
+    struct timeval _t0, _t1;
+    double total_open_time   = 0.0;
+    double total_pread_time  = 0.0;
+    double total_memcpy_time = 0.0;
+    double total_pwrite_time = 0.0;
+
     if (obj_ndim != (int)region_info->ndim)
         PGOTO_ERROR(FAIL, "Obj dim does not match region dim");
 
@@ -519,6 +525,68 @@ PDC_Server_data_io_region_per_file(uint64_t obj_id, int obj_ndim, const uint64_t
     file_chunk_elements = PDC_get_region_desc_size(file_dims, obj_ndim);
     file_chunk_bytes    = file_chunk_elements * unit;
 
+        // Fast path: region fits in a single file chunk, write directly
+    if (total_files == 1) {
+        double t_open, t_io, t_close;
+
+        storage_location = get_storage_location_region_per_file(obj_id, obj_ndim, temp_bufs_array[0]);
+
+        gettimeofday(&_t0, NULL);
+        int fd = open(storage_location, O_RDWR | O_CREAT, 0644);
+        gettimeofday(&_t1, NULL);
+        t_open = (_t1.tv_sec - _t0.tv_sec) + (_t1.tv_usec - _t0.tv_usec) / 1e6;
+
+        storage_location = PDC_free(storage_location);
+        if (fd < 0)
+            PGOTO_ERROR(FAIL, "Failed to open file: %s", strerror(errno));
+
+        gettimeofday(&_t0, NULL);
+        if (is_write) {
+            bytes_written = 0;
+            while ((size_t)bytes_written < file_chunk_bytes) {
+                cur_bytes_written = pwrite(fd, (char *)buf + bytes_written,
+                                           file_chunk_bytes - bytes_written, bytes_written);
+                if (cur_bytes_written < 0) {
+                    close(fd);
+                    PGOTO_ERROR(FAIL, "Fast path pwrite failed: %s", strerror(errno));
+                }
+                bytes_written += cur_bytes_written;
+            }
+        }
+        else {
+            bytes_read = 0;
+            while ((size_t)bytes_read < file_chunk_bytes) {
+                cur_bytes_read = pread(fd, (char *)buf + bytes_read,
+                                       file_chunk_bytes - bytes_read, bytes_read);
+                if (cur_bytes_read < 0) {
+                    close(fd);
+                    PGOTO_ERROR(FAIL, "Fast path pread failed: %s", strerror(errno));
+                }
+                if (cur_bytes_read == 0)
+                    break;
+                bytes_read += cur_bytes_read;
+            }
+        }
+        gettimeofday(&_t1, NULL);
+        t_io = (_t1.tv_sec - _t0.tv_sec) + (_t1.tv_usec - _t0.tv_usec) / 1e6;
+
+        gettimeofday(&_t0, NULL);
+        close(fd);
+        gettimeofday(&_t1, NULL);
+        t_close = (_t1.tv_sec - _t0.tv_sec) + (_t1.tv_usec - _t0.tv_usec) / 1e6;
+
+        LOG_INFO("region_per_file obj_id=%lu %s FAST PATH: file_chunk=%.2fMB open=%.4fs %s=%.4fs close=%.4fs\n",
+                 obj_id, (is_write) ? "write" : "read",
+                 (double)file_chunk_bytes / (1024.0 * 1024.0),
+                 t_open, (is_write) ? "pwrite" : "pread", t_io, t_close);
+        PGOTO_DONE(SUCCEED);
+    }
+
+    LOG_INFO("region_per_file obj_id=%lu %s: total_files=%lu file_chunk=%.2fMB total_data=%.2fMB\n",
+             obj_id, (is_write) ? "write" : "read",
+             total_files, (double)file_chunk_bytes / (1024.0 * 1024.0),
+             (double)(total_files * file_chunk_bytes) / (1024.0 * 1024.0));
+
     // Allocate contiguous temp buffer
     all_temp_bufs = PDC_malloc(total_files * file_chunk_bytes);
     temp_bufs     = PDC_malloc(total_files * sizeof(char *));
@@ -539,8 +607,12 @@ PDC_Server_data_io_region_per_file(uint64_t obj_id, int obj_ndim, const uint64_t
         if (buf_idx >= total_files)
             PGOTO_ERROR(FAIL, "buf_idx exceeded total_files");
 
-        errno        = 0;
+        errno = 0;
+        gettimeofday(&_t0, NULL);
         fds[buf_idx] = open(storage_location, O_RDWR | O_CREAT, 0644);
+        gettimeofday(&_t1, NULL);
+        total_open_time += (_t1.tv_sec - _t0.tv_sec) + (_t1.tv_usec - _t0.tv_usec) / 1e6;
+
         if (fds[buf_idx] < 0) {
             if (errno == ENOENT) {
                 memset(temp_bufs[buf_idx], 0, file_chunk_bytes);
@@ -552,6 +624,7 @@ PDC_Server_data_io_region_per_file(uint64_t obj_id, int obj_ndim, const uint64_t
         }
         else {
             bytes_read = 0;
+            gettimeofday(&_t0, NULL);
             while ((size_t)bytes_read < file_chunk_bytes) {
                 cur_bytes_read = pread(fds[buf_idx], temp_bufs[buf_idx] + bytes_read,
                                        file_chunk_bytes - bytes_read, bytes_read);
@@ -560,10 +633,12 @@ PDC_Server_data_io_region_per_file(uint64_t obj_id, int obj_ndim, const uint64_t
                     PGOTO_ERROR(FAIL, "Failed to read file %s: %s", storage_location, strerror(errno));
                 }
                 if (cur_bytes_read == 0)
-                    break; // EOF
+                    break;
                 bytes_read += cur_bytes_read;
             }
-            // zero-fill remainder if any
+            gettimeofday(&_t1, NULL);
+            total_pread_time += (_t1.tv_sec - _t0.tv_sec) + (_t1.tv_usec - _t0.tv_usec) / 1e6;
+
             if ((size_t)bytes_read < file_chunk_bytes)
                 memset(temp_bufs[buf_idx] + bytes_read, 0, file_chunk_bytes - bytes_read);
         }
@@ -587,10 +662,10 @@ PDC_Server_data_io_region_per_file(uint64_t obj_id, int obj_ndim, const uint64_t
     for (i = 0; i < (uint64_t)obj_ndim; i++)
         total_elements *= region_info->size[i];
 
-    // Allocate maps
     elem_to_buf_idx   = PDC_malloc(total_elements * sizeof(uint64_t));
     elem_to_local_idx = PDC_malloc(total_elements * sizeof(uint64_t));
 
+    gettimeofday(&_t0, NULL);
     for (e = 0; e < total_elements; e++) {
         remainder = e;
         for (int d = obj_ndim - 1; d >= 0; d--) {
@@ -605,8 +680,12 @@ PDC_Server_data_io_region_per_file(uint64_t obj_id, int obj_ndim, const uint64_t
         elem_to_buf_idx[e]   = flatten_index(file_indices_local, dims, obj_ndim);
         elem_to_local_idx[e] = flatten_index(local_coords, file_dims, obj_ndim);
     }
+        gettimeofday(&_t1, NULL);
+    double total_precompute_time = (_t1.tv_sec - _t0.tv_sec) + (_t1.tv_usec - _t0.tv_usec) / 1e6;
+
 
     // Copy data
+    gettimeofday(&_t0, NULL);
     for (e = 0; e < total_elements; e++) {
         buf_idx      = elem_to_buf_idx[e];
         local_idx    = elem_to_local_idx[e];
@@ -617,10 +696,11 @@ PDC_Server_data_io_region_per_file(uint64_t obj_id, int obj_ndim, const uint64_t
         else
             memcpy(user_buf_ptr, temp_buf_ptr, unit);
     }
+    gettimeofday(&_t1, NULL);
+    total_memcpy_time = (_t1.tv_sec - _t0.tv_sec) + (_t1.tv_usec - _t0.tv_usec) / 1e6;
 
     // Write back files if writing
     if (is_write) {
-        // Reset indices
         for (i = 0; i < (uint64_t)obj_ndim; i++)
             indices[i] = temp_bufs_array[i][FILE_START];
 
@@ -629,8 +709,8 @@ PDC_Server_data_io_region_per_file(uint64_t obj_id, int obj_ndim, const uint64_t
                 local_indices[d] = indices[d] - temp_bufs_array[d][FILE_START];
             buf_idx = flatten_index(local_indices, dims, obj_ndim);
 
-            // Write entire buffer at once
             bytes_written = 0;
+            gettimeofday(&_t0, NULL);
             while ((size_t)bytes_written < file_chunk_bytes) {
                 cur_bytes_written = pwrite(fds[buf_idx], temp_bufs[buf_idx] + bytes_written,
                                            file_chunk_bytes - bytes_written, bytes_written);
@@ -641,9 +721,10 @@ PDC_Server_data_io_region_per_file(uint64_t obj_id, int obj_ndim, const uint64_t
                 }
                 bytes_written += cur_bytes_written;
             }
+            gettimeofday(&_t1, NULL);
+            total_pwrite_time += (_t1.tv_sec - _t0.tv_sec) + (_t1.tv_usec - _t0.tv_usec) / 1e6;
             close(fds[buf_idx]);
 
-            // Increment indices multi-dimensionally
             dim = obj_ndim - 1;
             while (dim >= 0) {
                 if (++indices[dim] <= temp_bufs_array[dim][FILE_END])
@@ -656,6 +737,9 @@ PDC_Server_data_io_region_per_file(uint64_t obj_id, int obj_ndim, const uint64_t
         }
     }
 
+LOG_INFO("region_per_file obj_id=%lu %s DONE: open=%.4fs pread=%.4fs precompute=%.4fs memcpy=%.4fs pwrite=%.4fs\n",
+             obj_id, (is_write) ? "write" : "read",
+             total_open_time, total_pread_time, total_precompute_time, total_memcpy_time, total_pwrite_time);
 done:
     if (temp_bufs)
         temp_bufs = PDC_free(temp_bufs);
@@ -684,8 +768,8 @@ PDC_shrink_file_dims(uint64_t *temp_file_dims, const uint64_t *obj_dims, uint8_t
     for (int i = 0; i < obj_ndim; i++) {
         temp_file_dims[i] = obj_dims[i];
     }
-    // Default to 4 MB
-    uint64_t max_bytes_per_file = 4ULL * 1024 * 1024;
+    // Default to 128  MB
+    uint64_t max_bytes_per_file = 32ULL * 4ULL * 1024 * 1024;
 
     /**
      * We need to reduce the region file size to a reasonable size
@@ -739,6 +823,8 @@ PDC_Server_transfer_request_io(uint64_t obj_id, int obj_ndim, const uint64_t *ob
     if (unit == 0)
         PGOTO_ERROR(FAIL, "Unit is zero");
 
+    LOG_INFO("PDC_Server_transfer_request_io: obj_id=%lu strategy=%d\n", obj_id, (int)strategy);
+
     /**
      * Switch between storage strategies and hand off to correct handler
      */
@@ -759,17 +845,43 @@ PDC_Server_transfer_request_io(uint64_t obj_id, int obj_ndim, const uint64_t *ob
             PDC_Server_data_io_flattened(obj_id, obj_ndim, obj_dims, region_info, buf, unit, is_write));
     }
     else if (strategy == STORE_FLATTENED_REGION_PER_FILE) {
-        uint64_t temp_file_dims[DIM_MAX];
-        if (PDC_shrink_file_dims(temp_file_dims, obj_dims, obj_ndim, unit) != SUCCEED)
-            PGOTO_ERROR(FAIL, "Error with PDC_shrink_file_dims");
-        if (my_rank == 0)
-            LOG_INFO("Running %s storage strategy STORE_FLATTENED_REGION_PER_FILE\n",
-                     (is_write) ? "write" : "read");
+        uint64_t        temp_file_dims[DIM_MAX];
+        pdc_metadata_t *meta      = PDC_Server_get_obj_metadata(obj_id);
+        int             use_split = 0;
+        if (meta) {
+            use_split = 1;
+            for (int i = 0; i < obj_ndim; i++) {
+                if (meta->obj_split_elems[i] == 0) {
+                    use_split = 0;
+                    break;
+                }
+            }
+        }
+        else {
+            LOG_INFO("STORE_FLATTENED_REGION_PER_FILE: failed to get metadata for obj_id %lu, falling back to auto split\n", obj_id);
+        }
+        if (use_split) {
+            LOG_INFO("STORE_FLATTENED_REGION_PER_FILE: using user-defined split for obj_id %lu\n", obj_id);
+            for (int i = 0; i < obj_ndim; i++) {
+                temp_file_dims[i] = (uint64_t)meta->obj_split_elems[i];
+                LOG_INFO("  dim[%d]: obj_dim=%lu, file_dim=%lu (user)\n", i, obj_dims[i], temp_file_dims[i]);
+            }
+        }
+        else {
+            LOG_INFO("STORE_FLATTENED_REGION_PER_FILE: using auto split for obj_id %lu\n", obj_id);
+            if (PDC_shrink_file_dims(temp_file_dims, obj_dims, obj_ndim, unit) != SUCCEED)
+                PGOTO_ERROR(FAIL, "Error with PDC_shrink_file_dims");
+            for (int i = 0; i < obj_ndim; i++)
+                LOG_INFO("  dim[%d]: obj_dim=%lu, file_dim=%lu (auto)\n", i, obj_dims[i], temp_file_dims[i]);
+        }
+        LOG_INFO("STORE_FLATTENED_REGION_PER_FILE: dispatching %s for obj_id %lu, ndim=%d\n",
+                 (is_write) ? "write" : "read", obj_id, obj_ndim);
         PGOTO_DONE(PDC_Server_data_io_region_per_file(obj_id, obj_ndim, obj_dims, temp_file_dims, region_info,
                                                       buf, unit, is_write));
     }
     else
         PGOTO_ERROR(FAIL, "Invalid storage strategy");
+
 done:
     FUNC_LEAVE(ret_value);
 }
