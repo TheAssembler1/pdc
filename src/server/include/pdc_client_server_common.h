@@ -794,8 +794,8 @@ typedef struct {
     int32_t                obj_ndim;
     uint32_t               meta_server_id;
 
-    uint8_t access_type;
-    uint8_t writeout_strategy;
+    uint8_t  access_type;
+    uint8_t  writeout_strategy;
     uint32_t obj_split_elems[DIM_MAX];
 } transfer_request_in_t;
 

@@ -101,7 +101,8 @@ PDC_Client_attach_metadata_to_local_obj(const char *obj_name, uint64_t obj_id, u
     ((pdc_metadata_t *)obj_info->metadata)->consistency       = consistency;
     ((pdc_metadata_t *)obj_info->metadata)->writeout_strategy = writeout_strategy;
     for (int i = 0; i < DIM_MAX; i++)
-        ((pdc_metadata_t *)obj_info->metadata)->obj_split_elems[i] = obj_info->obj_pt->obj_prop_pub->obj_split_elems[i];
+        ((pdc_metadata_t *)obj_info->metadata)->obj_split_elems[i] =
+            obj_info->obj_pt->obj_prop_pub->obj_split_elems[i];
     if (NULL != obj_info->obj_pt->tags)
         strcpy(((pdc_metadata_t *)obj_info->metadata)->tags, obj_info->obj_pt->tags);
     if (NULL != obj_info->obj_pt->data_loc)
@@ -493,8 +494,8 @@ PDCobj_open_common(const char *obj_name, pdcid_t pdc, int is_col)
     p->obj_pt->obj_prop_pub->writeout_strategy = out->writeout_strategy;
     for (int j = 0; j < DIM_MAX; j++)
         p->obj_pt->obj_prop_pub->obj_split_elems[j] = out->obj_split_elems[j];
-    p->obj_pt->time_step                       = out->time_step;
-    p->obj_pt->user_id                         = out->user_id;
+    p->obj_pt->time_step = out->time_step;
+    p->obj_pt->user_id   = out->user_id;
 
     if (out->transform_state > 0) {
         p->obj_pt->locus                        = SERVER_MEMORY;

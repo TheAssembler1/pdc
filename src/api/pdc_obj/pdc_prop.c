@@ -100,13 +100,13 @@ PDCprop_create(pdc_prop_type_t type, pdcid_t pdcid)
         q->obj_prop_pub->consistency       = PDC_CONSISTENCY_EVENTUAL;
         q->obj_prop_pub->writeout_strategy = STORE_REGION_BY_REGION_SINGLE_FILE;
         memset(q->obj_prop_pub->obj_split_elems, 0, sizeof(uint32_t) * DIM_MAX);
-        q->data_loc                        = NULL;
-        q->app_name                        = NULL;
-        q->time_step                       = 0;
-        q->tags                            = NULL;
-        q->buf                             = NULL;
-        new_id_o                           = PDC_id_register(PDC_OBJ_PROP, q);
-        q->obj_prop_pub->obj_prop_id       = new_id_o;
+        q->data_loc                  = NULL;
+        q->app_name                  = NULL;
+        q->time_step                 = 0;
+        q->tags                      = NULL;
+        q->buf                       = NULL;
+        new_id_o                     = PDC_id_register(PDC_OBJ_PROP, q);
+        q->obj_prop_pub->obj_prop_id = new_id_o;
         if ((id_info = PDC_find_id(pdcid)) == NULL)
             PGOTO_ERROR(0, "Failed to find PDC ID: %d", pdcid);
         pdc_class = (struct _pdc_class *)(id_info->obj_ptr);

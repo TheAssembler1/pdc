@@ -1171,12 +1171,12 @@ PDC_insert_metadata_to_hash_table(gen_obj_id_in_t *in, gen_obj_id_out_t *out)
     metadata->writeout_strategy = in->data.writeout_strategy;
     for (int j = 0; j < DIM_MAX; j++)
         metadata->obj_split_elems[j] = in->data.obj_split_elems[j];
-    metadata->time_step         = in->data.time_step;
-    metadata->ndim              = in->data.ndim;
-    metadata->dims[0]           = in->data.dims0;
-    metadata->dims[1]           = in->data.dims1;
-    metadata->dims[2]           = in->data.dims2;
-    metadata->dims[3]           = in->data.dims3;
+    metadata->time_step = in->data.time_step;
+    metadata->ndim      = in->data.ndim;
+    metadata->dims[0]   = in->data.dims0;
+    metadata->dims[1]   = in->data.dims1;
+    metadata->dims[2]   = in->data.dims2;
+    metadata->dims[3]   = in->data.dims3;
     for (i = metadata->ndim; i < DIM_MAX; i++)
         metadata->dims[i] = 0;
 

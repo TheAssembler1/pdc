@@ -822,22 +822,22 @@ PDC_metadata_t_to_transfer_t(pdc_metadata_t *meta, pdc_metadata_transfer_t *tran
     transfer->writeout_strategy = meta->writeout_strategy;
     for (int i = 0; i < DIM_MAX; i++)
         transfer->obj_split_elems[i] = meta->obj_split_elems[i];
-    transfer->ndim              = meta->ndim;
-    transfer->dims0             = meta->dims[0];
-    transfer->dims1             = meta->dims[1];
-    transfer->dims2             = meta->dims[2];
-    transfer->dims3             = meta->dims[3];
-    transfer->tags              = meta->tags;
-    transfer->data_location     = meta->data_location;
-    transfer->current_state     = meta->transform_state;
-    transfer->t_storage_order   = meta->current_state.storage_order;
-    transfer->t_dtype           = meta->current_state.dtype;
-    transfer->t_ndim            = meta->current_state.ndim;
-    transfer->t_dims0           = meta->current_state.dims[0];
-    transfer->t_dims1           = meta->current_state.dims[1];
-    transfer->t_dims2           = meta->current_state.dims[2];
-    transfer->t_dims3           = meta->current_state.dims[3];
-    transfer->t_meta_index      = meta->current_state.meta_index;
+    transfer->ndim            = meta->ndim;
+    transfer->dims0           = meta->dims[0];
+    transfer->dims1           = meta->dims[1];
+    transfer->dims2           = meta->dims[2];
+    transfer->dims3           = meta->dims[3];
+    transfer->tags            = meta->tags;
+    transfer->data_location   = meta->data_location;
+    transfer->current_state   = meta->transform_state;
+    transfer->t_storage_order = meta->current_state.storage_order;
+    transfer->t_dtype         = meta->current_state.dtype;
+    transfer->t_ndim          = meta->current_state.ndim;
+    transfer->t_dims0         = meta->current_state.dims[0];
+    transfer->t_dims1         = meta->current_state.dims[1];
+    transfer->t_dims2         = meta->current_state.dims[2];
+    transfer->t_dims3         = meta->current_state.dims[3];
+    transfer->t_meta_index    = meta->current_state.meta_index;
 
 done:
     FUNC_LEAVE(ret_value);
@@ -863,12 +863,12 @@ PDC_transfer_t_to_metadata_t(pdc_metadata_transfer_t *transfer, pdc_metadata_t *
     meta->writeout_strategy = transfer->writeout_strategy;
     for (int i = 0; i < DIM_MAX; i++)
         meta->obj_split_elems[i] = transfer->obj_split_elems[i];
-    meta->time_step         = transfer->time_step;
-    meta->ndim              = transfer->ndim;
-    meta->dims[0]           = transfer->dims0;
-    meta->dims[1]           = transfer->dims1;
-    meta->dims[2]           = transfer->dims2;
-    meta->dims[3]           = transfer->dims3;
+    meta->time_step = transfer->time_step;
+    meta->ndim      = transfer->ndim;
+    meta->dims[0]   = transfer->dims0;
+    meta->dims[1]   = transfer->dims1;
+    meta->dims[2]   = transfer->dims2;
+    meta->dims[3]   = transfer->dims3;
 
     strcpy(meta->app_name, transfer->app_name);
     strcpy(meta->obj_name, transfer->obj_name);

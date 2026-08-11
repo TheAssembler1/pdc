@@ -747,7 +747,8 @@ PDC_region_cache_flush_by_pointer(uint64_t obj_id, pdc_obj_cache *obj_cache, int
     }
 
     // For 1D case, we can merge regions to minimize the number of POSIX calls.
-    if (obj_cache->ndim == 1 && obj_cache->region_cache_size && obj_cache->writeout_strategy != STORE_FLATTENED_REGION_PER_FILE) {
+    if (obj_cache->ndim == 1 && obj_cache->region_cache_size &&
+        obj_cache->writeout_strategy != STORE_FLATTENED_REGION_PER_FILE) {
         start = (uint64_t *)PDC_malloc(sizeof(uint64_t) * obj_cache->region_cache_size * 2);
         end   = start + obj_cache->region_cache_size;
         buf   = (char **)PDC_malloc(sizeof(char *) * obj_cache->region_cache_size);

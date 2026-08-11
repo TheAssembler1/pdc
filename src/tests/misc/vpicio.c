@@ -126,7 +126,7 @@ main(int argc, char **argv)
     PDCprop_set_obj_transfer_region_type(obj_prop_float, PDC_REGION_STATIC);
     PDCprop_set_obj_writeout_strategy(obj_prop_float, writeout_strategy);
     uint32_t split = (uint32_t)numparticles;
-    PDCprop_set_obj_split_elems(obj_prop_float, &split,1);
+    PDCprop_set_obj_split_elems(obj_prop_float, &split, 1);
 
     obj_prop_int = PDCprop_obj_dup(obj_prop_float);
     PDCprop_set_obj_type(obj_prop_int, PDC_INT);
