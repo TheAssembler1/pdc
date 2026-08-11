@@ -97,12 +97,12 @@ PDC_Client_attach_metadata_to_local_obj(const char *obj_name, uint64_t obj_id, u
         ((pdc_metadata_t *)obj_info->metadata)
             ->obj_name[sizeof(((pdc_metadata_t *)obj_info->metadata)->obj_name) - 1] = '\0';
     }
-    ((pdc_metadata_t *)obj_info->metadata)->time_step        = obj_info->obj_pt->time_step;
-    ((pdc_metadata_t *)obj_info->metadata)->obj_id           = obj_id;
-    ((pdc_metadata_t *)obj_info->metadata)->cont_id          = cont_id;
-    ((pdc_metadata_t *)obj_info->metadata)->data_server_id   = data_server_id;
-    ((pdc_metadata_t *)obj_info->metadata)->region_partition = region_partition;
-    ((pdc_metadata_t *)obj_info->metadata)->consistency      = consistency;
+    ((pdc_metadata_t *)obj_info->metadata)->time_step         = obj_info->obj_pt->time_step;
+    ((pdc_metadata_t *)obj_info->metadata)->obj_id            = obj_id;
+    ((pdc_metadata_t *)obj_info->metadata)->cont_id           = cont_id;
+    ((pdc_metadata_t *)obj_info->metadata)->data_server_id    = data_server_id;
+    ((pdc_metadata_t *)obj_info->metadata)->region_partition  = region_partition;
+    ((pdc_metadata_t *)obj_info->metadata)->consistency       = consistency;
     ((pdc_metadata_t *)obj_info->metadata)->writeout_strategy = writeout_strategy;
     for (int i = 0; i < DIM_MAX; i++)
         ((pdc_metadata_t *)obj_info->metadata)->obj_split_elems[i] =
