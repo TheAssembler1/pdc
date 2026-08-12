@@ -172,7 +172,8 @@ PDCtf_init_builtin_funcs()
     if (coeff_file == NULL)
         coeff_file = "/pscratch/sd/n/nlewi26/src/work_space/poly_coefficients.txt";
     if (pdc_tf_poly_sched_init(coeff_file) != 0)
-        PGOTO_ERROR(FAIL, "Failed to initialize polynomial scheduler from %s", coeff_file);
+        LOG_WARNING("Failed to initialize polynomial scheduler from %s; GPU scheduling will use fallback heuristic\n",
+                     coeff_file);
 #endif
 
     if (pdc_tf_builtin_funcs_vector_g == NULL)

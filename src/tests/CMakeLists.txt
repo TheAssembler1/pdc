@@ -126,19 +126,9 @@ endif()
 
 # Path to your existing CUDA library
 find_package(MPI REQUIRED)
-set(PI_GPU_LIB_PATH /pscratch/sd/n/nlewi26/src/work_space/source/pdc/libpi_gpu.so)
-set(PI_GPU_INCLUDE_PATH /pscratch/sd/n/nlewi26/src/work_space/source/pdc)
-
-# Create an imported library target for your CUDA library
-add_library(pi_gpu SHARED IMPORTED)
-set_target_properties(pi_gpu PROPERTIES
-    IMPORTED_LOCATION ${PI_GPU_LIB_PATH}
-    INTERFACE_INCLUDE_DIRECTORIES ${PI_GPU_INCLUDE_PATH}
-)
 
 # Link CUDA runtime from your CUDA_ROOT
 set(CUDA_RUNTIME_LIB ${CUDA_ROOT}/lib64/libcudart.so)
-target_link_libraries(pi_gpu INTERFACE ${CUDA_RUNTIME_LIB})
 set(CMAKE_C_COMPILER mpicc)
 set(CMAKE_CXX_COMPILER mpicxx)
 
@@ -164,7 +154,6 @@ foreach(program ${PROGRAMS})
 
         # Link libraries
         target_link_libraries(${program_name}
-            pi_gpu
             pdc
             pdc_commons
             ${TEST_EXT_LIB}

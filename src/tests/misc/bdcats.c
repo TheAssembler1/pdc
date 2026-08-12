@@ -34,7 +34,6 @@
 #include "pdc.h"
 #include <cuda_runtime.h>
 #include <mpi.h>
-#include "/pscratch/sd/n/nlewi26/src/work_space/source/pdc/pi.h"
 
 #define dLEAP          2
 #define PRECISION_INIT 2
