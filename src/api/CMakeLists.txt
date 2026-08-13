@@ -9,6 +9,7 @@ set(LOCAL_INCLUDE_DIR
   ${CMAKE_CURRENT_BINARY_DIR}
   ${PDC_SOURCE_DIR}/src/server/include
   ${PDC_SOURCE_DIR}/src/server/transform/include
+  ${PDC_SOURCE_DIR}/src/server/analysis/include
   ${PDC_SOURCE_DIR}/src/server/pdc_server_region
   ${PDC_SOURCE_DIR}/src/server/pdc_server_region/include
   ${PDC_SOURCE_DIR}/src/server/dablooms
@@ -19,6 +20,7 @@ set(LOCAL_INCLUDE_DIR
   ${PDC_SOURCE_DIR}/src/api/pdc_hist/include
   ${PDC_SOURCE_DIR}/src/api/profiling/include
   ${PDC_SOURCE_DIR}/src/api/pdc_tf/include
+  ${PDC_SOURCE_DIR}/src/api/pdc_an/include
   ${PDC_SOURCE_DIR}/src/utils/include
 )
 
@@ -78,6 +80,7 @@ set(PDC_SRCS
   ${PDC_SOURCE_DIR}/src/api/pdc_region/pdc_region.c
   ${PDC_SOURCE_DIR}/src/api/pdc_region/pdc_region_transfer.c
   ${PDC_SOURCE_DIR}/src/api/pdc_tf/pdc_tf.c
+  ${PDC_SOURCE_DIR}/src/api/pdc_an/pdc_an.c
   ${PDC_SOURCE_DIR}/src/server/pdc_client_server_common.c
   ${PDC_SOURCE_DIR}/src/server/transform/pdc_tf_server.c
   ${PDC_SOURCE_DIR}/src/server/transform/pdc_tf_common.c
@@ -90,6 +93,9 @@ set(PDC_SRCS
   ${PDC_SOURCE_DIR}/src/server/transform/pdc_tf_builtin_encrypt_cpu.c
   ${PDC_SOURCE_DIR}/src/server/transform/pdc_tf_builtin_turbo_cpu.c
   ${PDC_SOURCE_DIR}/src/server/transform/pdc_tf_profiler.c
+  ${PDC_SOURCE_DIR}/src/server/analysis/pdc_an_common.c
+  ${PDC_SOURCE_DIR}/src/server/analysis/pdc_an_server.c
+  ${PDC_SOURCE_DIR}/src/server/analysis/pdc_an_builtin_magnitude_cpu.c
   ${PDC_SOURCE_DIR}/src/server/pdc_server_region/pdc_server_region_transfer.c
   ${PDC_SOURCE_DIR}/src/server/pdc_server_region/pdc_server_region_cache.c
   ${PDC_SOURCE_DIR}/src/server/pdc_server_region/pdc_server_region_transfer_metadata_query.c
@@ -160,6 +166,7 @@ set(PDC_HEADERS
   ${PDC_SOURCE_DIR}/src/api/pdc_query/include/pdc_query.h
   ${PDC_SOURCE_DIR}/src/api/pdc_region/include/pdc_region.h
   ${PDC_SOURCE_DIR}/src/api/pdc_tf/include/pdc_tf.h
+  ${PDC_SOURCE_DIR}/src/api/pdc_an/include/pdc_an.h
   ${PDC_SOURCE_DIR}/src/api/include/pdc_client_connect.h
   ${PDC_SOURCE_DIR}/src/server/include/pdc_client_server_common.h
   ${PDC_SOURCE_DIR}/src/commons/utils/include/pdc_private.h

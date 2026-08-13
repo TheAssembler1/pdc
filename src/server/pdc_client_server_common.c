@@ -34,6 +34,8 @@
 #include "pdc_region.h"
 #include "pdc_logger.h"
 #include "pdc_timing.h"
+#include "pdc_tf_server.h"
+#include "pdc_an_server.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -4260,6 +4262,49 @@ done:
     FUNC_LEAVE(ret_value);
 }
 
+/* an_attach_region_rpc_cb(hg_handle_t handle) */
+HG_TEST_RPC_CB(an_attach_region_rpc, handle)
+{
+    FUNC_ENTER(NULL);
+
+    hg_return_t            ret_value = HG_SUCCESS;
+    an_attach_region_in_t in;
+    pdc_int_ret_t          out;
+
+    HG_Get_input(handle, &in);
+
+    perr_t an_ret = PDCan_store_attach_mapping(in.json_filepath, in.state_name, (pdcid_t)in.obj_id, in.offset,
+                                               in.size, in.ndim, in.obj_ndim, in.obj_dims,
+                                               (pdc_var_type_t)in.pdc_var_type);
+
+    /* The object/region being attached may also have a PDC TF graph
+     * attached client-side. That registration would otherwise never reach
+     * the server for an analysis output -- it's normally a side effect of
+     * a client write RPC's pdc_tf_pkg piggyback, and an analysis output is
+     * only ever written by PDCan_exec_graph running server-side, never by
+     * a client write RPC. Register it here instead, exactly as
+     * transfer_request_cb would have. */
+    perr_t tf_ret = SUCCEED;
+    if (an_ret == SUCCEED && in.tf_json_filepath != NULL && strlen(in.tf_json_filepath) > 0) {
+        tf_ret = PDCtf_store_json_mapping(in.obj_id, in.tf_json_filepath, in.tf_client_state,
+                                          in.tf_client_state, in.tf_store_state, in.offset, in.size, in.ndim,
+                                          (pdc_var_type_t)in.pdc_var_type);
+        if (tf_ret != SUCCEED)
+            LOG_ERROR("an_attach_region_rpc: failed to register PDC TF mapping \"%s\" for obj_id %" PRIu64
+                      "\n",
+                      in.tf_json_filepath, in.obj_id);
+    }
+
+    out.ret = (an_ret == SUCCEED && tf_ret == SUCCEED) ? 1 : -1;
+
+    ret_value = HG_Respond(handle, NULL, NULL, &out);
+
+    ret_value = HG_Free_input(handle, &in);
+    ret_value = HG_Destroy(handle);
+
+    FUNC_LEAVE(ret_value);
+}
+
 /* server_checkpoint_rpc_cb(hg_handle_t handle) */
 HG_TEST_RPC_CB(server_checkpoint_rpc, handle)
 {
@@ -4896,6 +4941,7 @@ HG_TEST_THREAD_CB(query_read_obj_name_rpc)
 HG_TEST_THREAD_CB(storage_meta_name_query_rpc)
 HG_TEST_THREAD_CB(get_storage_meta_name_query_bulk_result_rpc)
 HG_TEST_THREAD_CB(notify_client_multi_io_complete_rpc)
+HG_TEST_THREAD_CB(an_attach_region_rpc)
 HG_TEST_THREAD_CB(server_checkpoint_rpc)
 HG_TEST_THREAD_CB(send_shm)
 HG_TEST_THREAD_CB(client_test_connect)
@@ -5007,6 +5053,7 @@ PDC_FUNC_DECLARE_REGISTER_IN_OUT(query_read_obj_name_rpc, query_read_obj_name_in
 PDC_FUNC_DECLARE_REGISTER_IN_OUT(storage_meta_name_query_rpc, storage_meta_name_query_in_t, pdc_int_ret_t)
 PDC_FUNC_DECLARE_REGISTER_IN_OUT(get_storage_meta_name_query_bulk_result_rpc, bulk_rpc_in_t, pdc_int_ret_t)
 
+PDC_FUNC_DECLARE_REGISTER_IN_OUT(an_attach_region_rpc, an_attach_region_in_t, pdc_int_ret_t)
 PDC_FUNC_DECLARE_REGISTER_IN_OUT(server_checkpoint_rpc, pdc_int_send_t, pdc_int_ret_t)
 PDC_FUNC_DECLARE_REGISTER_IN_OUT(send_shm, send_shm_in_t, pdc_int_ret_t)
 PDC_FUNC_DECLARE_REGISTER_IN_OUT(cont_add_tags_rpc, cont_add_tags_rpc_in_t, pdc_int_ret_t)

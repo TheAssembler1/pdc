@@ -1,6 +1,8 @@
 #ifndef PDC_SERVER_REGION_TRANSFER_H
 #define PDC_SERVER_REGION_TRANSFER_H
 
+#include <stdbool.h>
+
 #include "pdc_region.h"
 
 typedef enum pdc_region_writeout_strategy {
@@ -111,6 +113,12 @@ pdcid_t PDC_transfer_request_id_register();
 perr_t PDC_Server_transfer_request_io(uint64_t obj_id, int obj_ndim, const uint64_t *obj_dims,
                                       struct pdc_region_info *region_info, void *buf, size_t unit,
                                       int is_write);
+
+perr_t PDC_Server_data_io_region_per_file_transformations(uint64_t obj_id, int obj_ndim,
+                                                          const uint64_t *obj_dims,
+                                                          struct pdc_region_info *region_info, void *buf,
+                                                          size_t unit, int is_write,
+                                                          bool *ran_transformation);
 
 int clean_write_bulk_data(transfer_request_all_data *request_data);
 

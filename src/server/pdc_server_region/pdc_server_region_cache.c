@@ -4,6 +4,7 @@
 #include "pdc_logger.h"
 #include "pdc_tf_profiler.h"
 #include "pdc_tf_server.h"
+#include "pdc_an_server.h"
 
 int close_time_g = 0;
 
@@ -645,6 +646,18 @@ PDC_transfer_request_data_write_out(uint64_t obj_id, int obj_ndim, const uint64_
         PDC_region_cache_register(obj_id, obj_ndim, obj_dims, buf, write_size, region_info->offset,
                                   region_info->size, region_info->ndim, unit);
     }
+
+    /* Ordinary writes are left in the cache for later, lazy flush. But a
+     * write to a region bound as an analysis input needs to actually reach
+     * storage right away for eager write-triggered computation to mean
+     * anything -- otherwise PDCan_notify_input_written (invoked only when
+     * PDC_Server_transfer_request_io actually runs, i.e. at flush time)
+     * wouldn't fire until whenever this object's cache entry happens to be
+     * evicted, which could be much later. PDC_region_cache_flush() takes
+     * no lock, so it's safe to call here. */
+    if (PDCan_region_is_analysis_input(obj_id, (uint8_t)region_info->ndim, region_info->offset,
+                                       region_info->size))
+        PDC_region_cache_flush(obj_id);
 
 #ifdef PDC_TIMING
     pdc_server_timings->PDCcache_write += MPI_Wtime() - start;

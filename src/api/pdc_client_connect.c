@@ -249,6 +249,7 @@ static hg_id_t data_server_write_register_id_g;
 static hg_id_t server_checkpoint_rpc_register_id_g;
 static hg_id_t send_shm_register_id_g;
 static hg_id_t send_rpc_register_id_g;
+static hg_id_t an_attach_region_rpc_register_id_g;
 
 // bulk
 static hg_id_t query_partial_register_id_g;
@@ -1454,6 +1455,7 @@ drc_access_again:
     data_server_write_check_register_id_g = PDC_data_server_write_check_register(*hg_class);
     data_server_write_register_id_g       = PDC_data_server_write_register(*hg_class);
     server_checkpoint_rpc_register_id_g   = PDC_server_checkpoint_rpc_register(*hg_class);
+    an_attach_region_rpc_register_id_g    = PDC_an_attach_region_rpc_register(*hg_class);
     send_shm_register_id_g                = PDC_send_shm_register(*hg_class);
     send_rpc_register_id_g                = PDC_send_rpc_register(*hg_class);
 
@@ -5462,6 +5464,66 @@ PDC_Client_server_checkpoint(uint32_t server_id)
 done:
     HG_Destroy(rpc_handle);
 
+    FUNC_LEAVE(ret_value);
+}
+
+// Attach a region-analysis graph state (input or output) to this rank's
+// local (obj_id, region) on its own data server. See PDCan_attach_to_region
+// in src/api/pdc_an/pdc_an.c for the public entry point.
+perr_t
+PDC_Client_an_attach_region(char *json_filepath, char *state_name, pdcid_t obj_id, uint8_t ndim,
+                            uint64_t *offset, uint64_t *size, int32_t obj_ndim, uint64_t *obj_dims,
+                            pdc_var_type_t pdc_var_type, char *tf_json_filepath, char *tf_client_state,
+                            char *tf_store_state)
+{
+    FUNC_ENTER(NULL);
+
+    perr_t                         ret_value = SUCCEED;
+    hg_return_t                    hg_ret;
+    an_attach_region_in_t          in;
+    struct _pdc_client_lookup_args lookup_args;
+    hg_handle_t                    rpc_handle;
+    uint32_t                       server_id;
+
+    server_id = PDC_get_local_server_id(pdc_client_mpi_rank_g, pdc_nclient_per_server_g, pdc_server_num_g);
+    debug_server_id_count[server_id]++;
+
+    if (PDC_Client_try_lookup_server(server_id, 0) != SUCCEED)
+        PGOTO_ERROR(FAIL, "Error with PDC_Client_try_lookup_server");
+
+    hg_ret = HG_Create(send_context_g, pdc_server_info_g[server_id].addr, an_attach_region_rpc_register_id_g,
+                       &rpc_handle);
+    if (hg_ret != HG_SUCCESS)
+        PGOTO_ERROR(FAIL, "Could not create handle");
+
+    in.json_filepath = json_filepath;
+    in.state_name    = state_name;
+    in.obj_id        = (uint64_t)obj_id;
+    in.obj_ndim      = obj_ndim;
+    memset(in.obj_dims, 0, sizeof(in.obj_dims));
+    memcpy(in.obj_dims, obj_dims, (size_t)obj_ndim * sizeof(uint64_t));
+    in.ndim = ndim;
+    memset(in.offset, 0, sizeof(in.offset));
+    memset(in.size, 0, sizeof(in.size));
+    memcpy(in.offset, offset, (size_t)ndim * sizeof(uint64_t));
+    memcpy(in.size, size, (size_t)ndim * sizeof(uint64_t));
+    in.pdc_var_type      = (uint32_t)pdc_var_type;
+    in.tf_json_filepath  = tf_json_filepath;
+    in.tf_client_state   = tf_client_state;
+    in.tf_store_state    = tf_store_state;
+
+    hg_ret = HG_Forward(rpc_handle, pdc_client_check_int_ret_cb, &lookup_args, &in);
+    if (hg_ret != HG_SUCCESS)
+        PGOTO_ERROR(FAIL, "Could not start forward to server");
+
+    hg_atomic_set32(&atomic_work_todo_g, 1);
+    PDC_Client_check_response(&send_context_g);
+
+    if (lookup_args.ret != 1)
+        PGOTO_ERROR(FAIL, "Server failed to attach region to analysis state \"%s\"", state_name);
+
+done:
+    HG_Destroy(rpc_handle);
     FUNC_LEAVE(ret_value);
 }
 

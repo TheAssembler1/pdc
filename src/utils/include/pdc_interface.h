@@ -57,7 +57,8 @@ typedef enum {
     PDC_REGION           = 6,  /* type ID for region                          */
     PDC_TRANSFER_REQUEST = 7,  /* type ID for region transfer                 */
     PDC_TF_DG            = 10, /* type ID for transformation graphs           */
-    PDC_NTYPES           = 11  /* number of library types, MUST BE LAST!      */
+    PDC_AN_DG             = 11, /* type ID for region-analysis graphs          */
+    PDC_NTYPES           = 12  /* number of library types, MUST BE LAST!      */
 } PDC_type_t;
 
 /***************************/

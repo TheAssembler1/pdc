@@ -967,6 +967,35 @@ typedef struct {
     int ret;
 } pdc_int_ret_t;
 
+/* Define an_attach_region_in_t -- carries everything PDCan_store_attach_mapping()
+ * needs: which graph (by JSON filepath, exactly like PDC TF's pdc_tf_pkg), which
+ * state within it, and the rank-local (obj_id, region) to bind to it.
+ *
+ * tf_json_filepath/tf_client_state/tf_store_state are optional (NULL when
+ * absent, exactly like pdc_tf_pkg's fields on transfer_request_in_t): if
+ * the object/region being attached also has a PDC TF graph attached
+ * client-side (PDCtf_attach_to_region/_to_obj), the client fills these in
+ * so the server can proactively register that mapping itself
+ * (PDCtf_store_json_mapping) here. That registration would otherwise never
+ * happen for an analysis output, since it's normally a side effect of a
+ * *client* write RPC's pdc_tf_pkg piggyback -- and an analysis output's
+ * writes come from PDCan_exec_graph running server-side, never from a
+ * client write RPC. See docs/design/region_analysis.md. */
+typedef struct {
+    hg_string_t json_filepath;
+    hg_string_t state_name;
+    uint64_t    obj_id;
+    int32_t     obj_ndim;
+    uint64_t    obj_dims[DIM_MAX];
+    uint8_t     ndim;
+    uint64_t    offset[DIM_MAX];
+    uint64_t    size[DIM_MAX];
+    uint32_t    pdc_var_type;
+    hg_string_t tf_json_filepath;
+    hg_string_t tf_client_state;
+    hg_string_t tf_store_state;
+} an_attach_region_in_t;
+
 /* Define pdc_aggregated_io_to_server_t */
 typedef struct {
     hg_string_t             buf;
@@ -3217,6 +3246,73 @@ hg_proc_pdc_int_ret_t(hg_proc_t proc, void *data)
     FUNC_LEAVE(ret);
 }
 
+/* Define hg_proc_an_attach_region_in_t */
+static HG_INLINE hg_return_t
+hg_proc_an_attach_region_in_t(hg_proc_t proc, void *data)
+{
+    FUNC_ENTER(NULL);
+
+    hg_return_t             ret;
+    an_attach_region_in_t *struct_data = (an_attach_region_in_t *)data;
+
+    ret = hg_proc_hg_string_t(proc, &struct_data->json_filepath);
+    if (ret != HG_SUCCESS) {
+        FUNC_LEAVE(ret);
+    }
+    ret = hg_proc_hg_string_t(proc, &struct_data->state_name);
+    if (ret != HG_SUCCESS) {
+        FUNC_LEAVE(ret);
+    }
+    ret = hg_proc_uint64_t(proc, &struct_data->obj_id);
+    if (ret != HG_SUCCESS) {
+        FUNC_LEAVE(ret);
+    }
+    ret = hg_proc_int32_t(proc, &struct_data->obj_ndim);
+    if (ret != HG_SUCCESS) {
+        FUNC_LEAVE(ret);
+    }
+    for (int i = 0; i < DIM_MAX; i++) {
+        ret = hg_proc_uint64_t(proc, &struct_data->obj_dims[i]);
+        if (ret != HG_SUCCESS) {
+            FUNC_LEAVE(ret);
+        }
+    }
+    ret = hg_proc_uint8_t(proc, &struct_data->ndim);
+    if (ret != HG_SUCCESS) {
+        FUNC_LEAVE(ret);
+    }
+    for (int i = 0; i < DIM_MAX; i++) {
+        ret = hg_proc_uint64_t(proc, &struct_data->offset[i]);
+        if (ret != HG_SUCCESS) {
+            FUNC_LEAVE(ret);
+        }
+    }
+    for (int i = 0; i < DIM_MAX; i++) {
+        ret = hg_proc_uint64_t(proc, &struct_data->size[i]);
+        if (ret != HG_SUCCESS) {
+            FUNC_LEAVE(ret);
+        }
+    }
+    ret = hg_proc_uint32_t(proc, &struct_data->pdc_var_type);
+    if (ret != HG_SUCCESS) {
+        FUNC_LEAVE(ret);
+    }
+    ret = hg_proc_hg_string_t(proc, &struct_data->tf_json_filepath);
+    if (ret != HG_SUCCESS) {
+        FUNC_LEAVE(ret);
+    }
+    ret = hg_proc_hg_string_t(proc, &struct_data->tf_client_state);
+    if (ret != HG_SUCCESS) {
+        FUNC_LEAVE(ret);
+    }
+    ret = hg_proc_hg_string_t(proc, &struct_data->tf_store_state);
+    if (ret != HG_SUCCESS) {
+        FUNC_LEAVE(ret);
+    }
+
+    FUNC_LEAVE(ret);
+}
+
 /* Define hg_proc_pdc_aggregated_io_to_server_t */
 static HG_INLINE hg_return_t
 hg_proc_pdc_aggregated_io_to_server_t(hg_proc_t proc, void *data)
@@ -3939,6 +4035,8 @@ hg_id_t PDC_metadata_add_kvtag_register(hg_class_t *hg_class);
 hg_id_t PDC_metadata_del_kvtag_register(hg_class_t *hg_class);
 hg_id_t PDC_metadata_get_kvtag_register(hg_class_t *hg_class);
 hg_id_t PDC_send_rpc_register(hg_class_t *hg_class);
+
+hg_id_t PDC_an_attach_region_rpc_register(hg_class_t *hg_class);
 
 hg_id_t PDC_transfer_request_register(hg_class_t *hg_class);
 hg_id_t PDC_transfer_request_all_register(hg_class_t *hg_class);

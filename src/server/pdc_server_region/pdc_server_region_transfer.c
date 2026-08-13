@@ -8,6 +8,7 @@
 #include "pdc_malloc.h"
 #include "pdc_tf_server.h"
 #include "pdc_tf_common.h"
+#include "pdc_an_server.h"
 #include "pdc_vector.h"
 
 static pdc_region_writeout_strategy storage_strategy_g = STORE_REGION_BY_REGION_SINGLE_FILE;
@@ -858,6 +859,18 @@ PDC_Server_transfer_request_io(uint64_t obj_id, int obj_ndim, const uint64_t *ob
         PGOTO_DONE(SUCCEED);
     }
 
+    // check if the obj/region is a bound region-analysis output
+    bool ran_analysis = false;
+    if (PDC_Server_data_io_region_analysis(obj_id, obj_ndim, obj_dims, region_info, buf, unit, is_write,
+                                           &ran_analysis) != SUCCEED) {
+        PGOTO_ERROR(FAIL, "Error with PDC_Server_data_io_region_analysis");
+    }
+    if (ran_analysis) {
+        if (my_rank == 0)
+            LOG_DEBUG("Ran %s as a region-analysis output\n", (is_write) ? "write" : "read");
+        PGOTO_DONE(SUCCEED);
+    }
+
     /**
      * Switch between storage strategies and hand off to correct handler
      */
@@ -866,16 +879,15 @@ PDC_Server_transfer_request_io(uint64_t obj_id, int obj_ndim, const uint64_t *ob
             LOG_DEBUG("Running %s storage strategy STORE_REGION_BY_REGION_SINGLE_FILE\n",
                       (is_write) ? "write" : "read");
         if (is_write)
-            PGOTO_DONE(PDC_Server_data_write_out(obj_id, region_info, buf, unit));
+            ret_value = PDC_Server_data_write_out(obj_id, region_info, buf, unit);
         else
-            PGOTO_DONE(PDC_Server_data_read_from(obj_id, region_info, buf, unit));
+            ret_value = PDC_Server_data_read_from(obj_id, region_info, buf, unit);
     }
     else if (storage_strategy_g == STORE_FLATTENED_SINGLE_FILE) {
         if (my_rank == 0)
             LOG_DEBUG("Running %s storage strategy STORE_FLATTENED_SINGLE_FILE\n",
                       (is_write) ? "write" : "read");
-        PGOTO_DONE(
-            PDC_Server_data_io_flattened(obj_id, obj_ndim, obj_dims, region_info, buf, unit, is_write));
+        ret_value = PDC_Server_data_io_flattened(obj_id, obj_ndim, obj_dims, region_info, buf, unit, is_write);
     }
     else if (storage_strategy_g == STORE_FLATTENED_REGION_PER_FILE) {
         // FIXME: Need to find a reasonable size for this or hints from client
@@ -886,11 +898,20 @@ PDC_Server_transfer_request_io(uint64_t obj_id, int obj_ndim, const uint64_t *ob
         if (my_rank == 0)
             LOG_DEBUG("Running %s storage strategy STORE_FLATTENED_REGION_PER_FILE\n",
                       (is_write) ? "write" : "read");
-        PGOTO_DONE(PDC_Server_data_io_region_per_file(obj_id, obj_ndim, obj_dims, temp_file_dims, region_info,
-                                                      buf, unit, is_write));
+        ret_value = PDC_Server_data_io_region_per_file(obj_id, obj_ndim, obj_dims, temp_file_dims, region_info,
+                                                       buf, unit, is_write);
     }
     else
         PGOTO_ERROR(FAIL, "Invalid storage strategy");
+
+    // A successful write to a region bound as an analysis input may make a
+    // transformation's inputs all available for the first time -- check and
+    // eagerly compute+persist its outputs now rather than waiting for a
+    // later read. No-op for any object/region that isn't a bound analysis
+    // input. See docs/design/region_analysis.md.
+    if (is_write && ret_value == SUCCEED)
+        PDCan_notify_input_written(obj_id, (uint8_t)region_info->ndim, region_info->offset,
+                                   region_info->size);
 
 done:
     FUNC_LEAVE(ret_value);

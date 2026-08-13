@@ -39,6 +39,7 @@ include_directories(
   ${PDC_SOURCE_DIR}/src/server/pdc_server_region/include
   ${PDC_SOURCE_DIR}/src/server/dablooms
   ${PDC_SOURCE_DIR}/src/server/transform/include
+  ${PDC_SOURCE_DIR}/src/server/analysis/include
   ${PDC_SOURCE_DIR}/src/api/include
   ${PDC_SOURCE_DIR}/src/api/pdc_obj/include
   ${PDC_SOURCE_DIR}/src/api/pdc_region/include
@@ -76,6 +77,9 @@ add_library(pdc_server_lib
                transform/pdc_tf_builtin_encrypt_cpu.c
                transform/pdc_tf_builtin_turbo_cpu.c
                transform/pdc_tf_profiler.c
+               analysis/pdc_an_common.c
+               analysis/pdc_an_server.c
+               analysis/pdc_an_builtin_magnitude_cpu.c
                dablooms/pdc_dablooms.c
                dablooms/pdc_murmur.c
                ${PDC_SOURCE_DIR}/src/server/pdc_server_region/pdc_server_data.c

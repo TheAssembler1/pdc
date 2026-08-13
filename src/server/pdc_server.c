@@ -59,6 +59,7 @@
 #include "pdc_malloc.h"
 #include "pdc_tf_server.h"
 #include "pdc_tf_profiler.h"
+#include "pdc_an_server.h"
 #include "pdc_mercury_auth.h"
 
 #ifdef PDC_HAS_CRAY_DRC
@@ -1103,6 +1104,8 @@ drc_access_again:
 
     if (PDCtf_init_builtin_funcs() != SUCCEED)
         PGOTO_ERROR(FAIL, "Error with PDCtf_init_builtin_funcs");
+    if (PDCan_init_builtin_funcs() != SUCCEED)
+        PGOTO_ERROR(FAIL, "Error with PDCan_init_builtin_funcs");
 
 done:
     FUNC_LEAVE(ret_value);
@@ -1698,6 +1701,12 @@ PDC_Server_checkpoint()
     if (pdc_server_rank_g == 0)
         LOG_WARNING("Writing checkpoint transformations done\n");
 
+    if (pdc_server_rank_g == 0)
+        LOG_WARNING("Writing checkpoint region-analysis state start\n");
+    PDCan_checkpoint(file);
+    if (pdc_server_rank_g == 0)
+        LOG_WARNING("Writing checkpoint region-analysis state done\n");
+
     fclose(file);
 
     if (use_tmpfs) {
@@ -2193,6 +2202,15 @@ PDC_Server_restart(char *filename)
     if (pdc_server_rank_g == 0)
         LOG_WARNING("Reading checkpoint transformations done\n");
 
+    // FIXME: this has to go somewhere else, mirroring the FIXME above for PDCtf_init_builtin_funcs()
+    PDCan_init_builtin_funcs();
+
+    if (pdc_server_rank_g == 0)
+        LOG_WARNING("Reading checkpoint region-analysis state start\n");
+    PDCan_restart_init(file);
+    if (pdc_server_rank_g == 0)
+        LOG_WARNING("Reading checkpoint region-analysis state done\n");
+
     fclose(file);
     file = NULL;
 #ifdef ENABLE_MPI
@@ -2484,6 +2502,9 @@ PDC_Server_mercury_register()
     PDC_query_read_obj_name_rpc_register(hg_class_g);
     PDC_query_read_obj_name_client_rpc_register(hg_class_g);
     PDC_send_shm_bulk_rpc_register(hg_class_g);
+
+    // Region analysis
+    PDC_an_attach_region_rpc_register(hg_class_g);
 
     // Mapping
     PDC_transfer_request_register(hg_class_g);

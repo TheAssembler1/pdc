@@ -568,6 +568,12 @@ if(NOT EXISTS "${TF_GRAPHS_DIR}")
 endif()
 add_compile_definitions(TF_GRAPHS_DIR="${TF_GRAPHS_DIR}")
 
+set(AN_GRAPHS_DIR "${CMAKE_SOURCE_DIR}/an_client/graphs/")
+if(NOT EXISTS "${AN_GRAPHS_DIR}")
+    message(FATAL_ERROR "Directory ${AN_GRAPHS_DIR} does not exist!")
+endif()
+add_compile_definitions(AN_GRAPHS_DIR="${AN_GRAPHS_DIR}")
+
 #-----------------------------------------------------------------------------
 # Wait for data fanalized in FS when object unmap is called
 #-----------------------------------------------------------------------------
