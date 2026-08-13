@@ -5507,10 +5507,10 @@ PDC_Client_an_attach_region(char *json_filepath, char *state_name, pdcid_t obj_i
     memset(in.size, 0, sizeof(in.size));
     memcpy(in.offset, offset, (size_t)ndim * sizeof(uint64_t));
     memcpy(in.size, size, (size_t)ndim * sizeof(uint64_t));
-    in.pdc_var_type      = (uint32_t)pdc_var_type;
-    in.tf_json_filepath  = tf_json_filepath;
-    in.tf_client_state   = tf_client_state;
-    in.tf_store_state    = tf_store_state;
+    in.pdc_var_type     = (uint32_t)pdc_var_type;
+    in.tf_json_filepath = tf_json_filepath;
+    in.tf_client_state  = tf_client_state;
+    in.tf_store_state   = tf_store_state;
 
     hg_ret = HG_Forward(rpc_handle, pdc_client_check_int_ret_cb, &lookup_args, &in);
     if (hg_ret != HG_SUCCESS)

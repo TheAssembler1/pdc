@@ -887,7 +887,8 @@ PDC_Server_transfer_request_io(uint64_t obj_id, int obj_ndim, const uint64_t *ob
         if (my_rank == 0)
             LOG_DEBUG("Running %s storage strategy STORE_FLATTENED_SINGLE_FILE\n",
                       (is_write) ? "write" : "read");
-        ret_value = PDC_Server_data_io_flattened(obj_id, obj_ndim, obj_dims, region_info, buf, unit, is_write);
+        ret_value =
+            PDC_Server_data_io_flattened(obj_id, obj_ndim, obj_dims, region_info, buf, unit, is_write);
     }
     else if (storage_strategy_g == STORE_FLATTENED_REGION_PER_FILE) {
         // FIXME: Need to find a reasonable size for this or hints from client
@@ -898,8 +899,8 @@ PDC_Server_transfer_request_io(uint64_t obj_id, int obj_ndim, const uint64_t *ob
         if (my_rank == 0)
             LOG_DEBUG("Running %s storage strategy STORE_FLATTENED_REGION_PER_FILE\n",
                       (is_write) ? "write" : "read");
-        ret_value = PDC_Server_data_io_region_per_file(obj_id, obj_ndim, obj_dims, temp_file_dims, region_info,
-                                                       buf, unit, is_write);
+        ret_value = PDC_Server_data_io_region_per_file(obj_id, obj_ndim, obj_dims, temp_file_dims,
+                                                       region_info, buf, unit, is_write);
     }
     else
         PGOTO_ERROR(FAIL, "Invalid storage strategy");

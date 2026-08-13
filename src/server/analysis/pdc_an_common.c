@@ -162,7 +162,7 @@ PDCan_link_builtin_func(char *func_name, pdc_tf_dev_t dev, pdc_an_func_t *f)
     FUNC_ENTER(NULL);
 
     perr_t ret_value = SUCCEED;
-    bool   found      = false;
+    bool   found     = false;
 
     if (func_name == NULL)
         PGOTO_ERROR(FAIL, "func_name was NULL");
@@ -278,7 +278,7 @@ PDCan_dg_json_create_common(char *filepath)
         if (s_persistence_str == NULL)
             PGOTO_DONE(NULL);
 
-        pdc_an_persistence_t persistence     = PDC_AN_TRANSIENT;
+        pdc_an_persistence_t persistence       = PDC_AN_TRANSIENT;
         bool                 found_persistence = false;
         for (int j = 0; j < PDC_AN_NUM_PERSISTENCE; j++) {
             if (!strcmp(s_persistence_str, pdc_an_persistence_strs[j])) {
@@ -334,8 +334,8 @@ PDCan_dg_json_create_common(char *filepath)
         if (t_num_inputs == 0 || t_num_outputs == 0)
             PGOTO_ERROR(NULL, "Transformation \"%s\" must have at least one input and one output\n", t_name);
 
-        pdc_tf_dev_t dev              = PDC_TF_CPU_DEVICE;
-        bool         found_device     = false;
+        pdc_tf_dev_t dev          = PDC_TF_CPU_DEVICE;
+        bool         found_device = false;
         for (int j = 0; j < PDC_TF_NUM_DEVICES; j++) {
             if (!strcmp(t_device, pdc_tf_dev_strs[j])) {
                 found_device = true;
@@ -347,7 +347,7 @@ PDCan_dg_json_create_common(char *filepath)
             PGOTO_ERROR(NULL, "Invalid device \"%s\" for transformation \"%s\"\n", t_device, t_name);
 
         pdc_tf_location_t location       = PDC_TF_BUILTIN;
-        bool               found_location = false;
+        bool              found_location = false;
         for (int j = 0; j < PDC_TF_NUM_LOCATIONS; j++) {
             if (!strcmp(t_location, pdc_tf_location_strs[j])) {
                 found_location = true;

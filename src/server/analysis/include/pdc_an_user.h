@@ -26,9 +26,9 @@ typedef enum pdc_an_persistence_t {
 extern char *pdc_an_persistence_strs[];
 
 typedef struct pdc_an_state_t {
-    char *                name;
-    pdc_an_persistence_t  persistence;
-    bool                  is_output; /* true once some transformation lists this state as an output */
+    char *               name;
+    pdc_an_persistence_t persistence;
+    bool                 is_output; /* true once some transformation lists this state as an output */
 } pdc_an_state_t;
 
 /**
@@ -44,11 +44,11 @@ typedef bool (*a_func_t)(pdc_tf_internal_param *internal_param, char *params_str
                          pdc_tf_region_t *output_regions, int num_outputs);
 
 typedef struct pdc_an_func_t {
-    char *             name; /* unprefixed transformation name, e.g. "merge_fields" */
-    pdc_tf_dev_t       dev;
-    pdc_tf_location_t  location;
-    a_func_t           a_func;
-    char *             params_str;
+    char *            name; /* unprefixed transformation name, e.g. "merge_fields" */
+    pdc_tf_dev_t      dev;
+    pdc_tf_location_t location;
+    a_func_t          a_func;
+    char *            params_str;
 
     char **input_names;
     int    num_inputs;

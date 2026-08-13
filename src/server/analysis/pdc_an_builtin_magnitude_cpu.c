@@ -72,8 +72,8 @@ pdc_an_builtin_vector_magnitude(pdc_tf_internal_param *internal_param, char *par
         out[e] = sqrt(sumsq);
     }
 
-    output_bufs[0]              = out;
-    output_regions[0]           = input_regions[0];
+    output_bufs[0]                 = out;
+    output_regions[0]              = input_regions[0];
     output_regions[0].pdc_var_type = PDC_DOUBLE;
 
     return true;

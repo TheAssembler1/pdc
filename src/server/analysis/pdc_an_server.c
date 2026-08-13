@@ -9,7 +9,7 @@
 #include "pdc_tf_common.h"
 #include "pdc_timing.h"
 
-PDC_VECTOR *an_dg_registry_g             = NULL;
+PDC_VECTOR *an_dg_registry_g              = NULL;
 PDC_VECTOR *an_obj_id_to_binding_vector_g = NULL;
 
 /* Set for the duration of a write-triggered eager PDCan_exec_graph call
@@ -133,7 +133,7 @@ find_binding_index_entry(pdcid_t obj_id, uint8_t ndim, const uint64_t *offset, c
     PDC_VECTOR_ITERATOR *iter = pdc_vector_iterator_new(an_obj_id_to_binding_vector_g);
     while (pdc_vector_iterator_has_next(iter)) {
         pdc_an_binding_index_entry_t *idx = (pdc_an_binding_index_entry_t *)pdc_vector_iterator_next(iter);
-        pdc_an_binding_t *             b  = idx->binding;
+        pdc_an_binding_t *            b   = idx->binding;
 
         if (b->obj_id != obj_id || b->ndim != ndim)
             continue;
@@ -192,10 +192,10 @@ find_or_create_dg_entry(char *json_filepath)
     if (dg == NULL)
         return NULL;
 
-    entry                   = PDC_calloc(1, sizeof(pdc_an_dg_entry_t));
-    entry->json_filepath    = strdup(json_filepath);
-    entry->dg               = dg;
-    entry->bindings_vector  = pdc_vector_create(8, 2.0);
+    entry                  = PDC_calloc(1, sizeof(pdc_an_dg_entry_t));
+    entry->json_filepath   = strdup(json_filepath);
+    entry->dg              = dg;
+    entry->bindings_vector = pdc_vector_create(8, 2.0);
     pdc_vector_add(an_dg_registry_g, entry);
 
     return entry;
@@ -277,7 +277,7 @@ collect_needed_funcs(pdc_dg_t *dg, pdc_an_dg_entry_t *entry, char **target_state
     FUNC_ENTER(NULL);
 
     perr_t      ret_value = SUCCEED;
-    PDC_VECTOR *frontier   = pdc_vector_create(8, 2.0);
+    PDC_VECTOR *frontier  = pdc_vector_create(8, 2.0);
 
     for (int i = 0; i < num_targets; i++) {
         pdc_an_node_t *state_node = PDCan_dg_get_node(dg, target_state_names[i]);
@@ -336,8 +336,8 @@ topo_sort_funcs(PDC_VECTOR *needed_funcs, PDC_VECTOR *exec_order)
     FUNC_ENTER(NULL);
 
     perr_t ret_value = SUCCEED;
-    size_t n          = pdc_vector_size(needed_funcs);
-    bool * scheduled   = (n > 0) ? PDC_calloc(n, sizeof(bool)) : NULL;
+    size_t n         = pdc_vector_size(needed_funcs);
+    bool * scheduled = (n > 0) ? PDC_calloc(n, sizeof(bool)) : NULL;
 
     for (size_t placed = 0; placed < n;) {
         bool made_progress = false;
@@ -390,8 +390,8 @@ PDCan_exec_graph(pdc_an_dg_entry_t *entry, char **target_state_names, int num_ta
 {
     FUNC_ENTER(NULL);
 
-    perr_t ret_value = SUCCEED;
-    pdc_dg_t *dg      = entry->dg;
+    perr_t    ret_value = SUCCEED;
+    pdc_dg_t *dg        = entry->dg;
 
     PDC_VECTOR *needed_funcs = pdc_vector_create(8, 2.0);
     PDC_VECTOR *exec_order   = pdc_vector_create(8, 2.0);
@@ -495,8 +495,8 @@ PDCan_exec_graph(pdc_an_dg_entry_t *entry, char **target_state_names, int num_ta
         pdc_tf_internal_param internal_params = {0};
         internal_params.dg                    = dg;
 
-        if (!f->a_func(&internal_params, f->params_str, input_bufs, input_regions, f->num_inputs,
-                       output_bufs, output_regions, f->num_outputs)) {
+        if (!f->a_func(&internal_params, f->params_str, input_bufs, input_regions, f->num_inputs, output_bufs,
+                       output_regions, f->num_outputs)) {
             PDC_free(input_bufs);
             PDC_free(input_regions);
             PDC_free(output_bufs);
@@ -665,7 +665,7 @@ PDC_Server_data_io_region_analysis(uint64_t obj_id, int obj_ndim, const uint64_t
     FUNC_ENTER(NULL);
 
     perr_t ret_value = SUCCEED;
-    *ran_analysis     = false;
+    *ran_analysis    = false;
 
     /* Analysis outputs are never client-written directly; only
      * PDCan_exec_graph writes them. A write to an object that happens to
@@ -706,8 +706,8 @@ PDC_Server_data_io_region_analysis(uint64_t obj_id, int obj_ndim, const uint64_t
      * on-disk and materialized-cache reads stay symmetric with the write
      * path -- see docs/design/region_analysis.md. */
     bool ran_transformation = false;
-    if (PDC_Server_data_io_region_per_file_transformations(obj_id, obj_ndim, obj_dims, region_info, buf,
-                                                           unit, 0, &ran_transformation) != SUCCEED)
+    if (PDC_Server_data_io_region_per_file_transformations(obj_id, obj_ndim, obj_dims, region_info, buf, unit,
+                                                           0, &ran_transformation) != SUCCEED)
         PGOTO_ERROR(FAIL, "Error with PDC_Server_data_io_region_per_file_transformations for \"%s\"\n",
                     binding->state_name);
 

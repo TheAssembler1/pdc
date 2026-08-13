@@ -4267,15 +4267,15 @@ HG_TEST_RPC_CB(an_attach_region_rpc, handle)
 {
     FUNC_ENTER(NULL);
 
-    hg_return_t            ret_value = HG_SUCCESS;
+    hg_return_t           ret_value = HG_SUCCESS;
     an_attach_region_in_t in;
-    pdc_int_ret_t          out;
+    pdc_int_ret_t         out;
 
     HG_Get_input(handle, &in);
 
-    perr_t an_ret = PDCan_store_attach_mapping(in.json_filepath, in.state_name, (pdcid_t)in.obj_id, in.offset,
-                                               in.size, in.ndim, in.obj_ndim, in.obj_dims,
-                                               (pdc_var_type_t)in.pdc_var_type);
+    perr_t an_ret =
+        PDCan_store_attach_mapping(in.json_filepath, in.state_name, (pdcid_t)in.obj_id, in.offset, in.size,
+                                   in.ndim, in.obj_ndim, in.obj_dims, (pdc_var_type_t)in.pdc_var_type);
 
     /* The object/region being attached may also have a PDC TF graph
      * attached client-side. That registration would otherwise never reach

@@ -167,12 +167,11 @@ PDCan_attach_to_region(pdcid_t dg_id, char *state_name, pdcid_t obj_id, pdcid_t 
     find_attached_tf_info(pdc_obj_info->pdc_tf_obj, region_info, &tf_json_filepath, &tf_client_state,
                           &tf_store_state);
 
-    if (PDC_Client_an_attach_region((char *)dg->data, state_name, pdc_obj_info->obj_info_pub->meta_id,
-                                    (uint8_t)region_info->ndim, region_info->offset, region_info->size,
-                                    (int32_t)pdc_obj_info->obj_pt->obj_prop_pub->ndim,
-                                    pdc_obj_info->obj_pt->obj_prop_pub->dims,
-                                    pdc_obj_info->obj_pt->obj_prop_pub->type, tf_json_filepath,
-                                    tf_client_state, tf_store_state) != SUCCEED)
+    if (PDC_Client_an_attach_region(
+            (char *)dg->data, state_name, pdc_obj_info->obj_info_pub->meta_id, (uint8_t)region_info->ndim,
+            region_info->offset, region_info->size, (int32_t)pdc_obj_info->obj_pt->obj_prop_pub->ndim,
+            pdc_obj_info->obj_pt->obj_prop_pub->dims, pdc_obj_info->obj_pt->obj_prop_pub->type,
+            tf_json_filepath, tf_client_state, tf_store_state) != SUCCEED)
         PGOTO_ERROR(FAIL, "Server failed to attach region to analysis state \"%s\"", state_name);
 
 done:

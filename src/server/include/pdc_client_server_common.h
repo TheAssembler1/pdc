@@ -3252,7 +3252,7 @@ hg_proc_an_attach_region_in_t(hg_proc_t proc, void *data)
 {
     FUNC_ENTER(NULL);
 
-    hg_return_t             ret;
+    hg_return_t            ret;
     an_attach_region_in_t *struct_data = (an_attach_region_in_t *)data;
 
     ret = hg_proc_hg_string_t(proc, &struct_data->json_filepath);

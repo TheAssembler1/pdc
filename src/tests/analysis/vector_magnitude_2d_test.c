@@ -29,7 +29,7 @@ main(int argc, char **argv)
     pdcid_t dg_id;
     pdcid_t transfer_request;
     char    cont_name[128];
-    int     rank = 0, i;
+    int     rank      = 0, i;
     int     ret_value = TSUCCEED;
 
     uint64_t offset[1], offset_length[1];
@@ -83,8 +83,8 @@ main(int argc, char **argv)
             "Call to PDCprop_set_obj_type failed");
     TASSERT(PDCprop_set_obj_dims(obj_prop_out, 1, dims) >= 0, "Call to PDCprop_set_obj_dims succeeded",
             "Call to PDCprop_set_obj_dims failed");
-    TASSERT(PDCprop_set_obj_user_id(obj_prop_out, getuid()) >= 0,
-            "Call to PDCprop_set_obj_user_id succeeded", "Call to PDCprop_set_obj_user_id failed");
+    TASSERT(PDCprop_set_obj_user_id(obj_prop_out, getuid()) >= 0, "Call to PDCprop_set_obj_user_id succeeded",
+            "Call to PDCprop_set_obj_user_id failed");
     TASSERT(PDCprop_set_obj_time_step(obj_prop_out, 0) >= 0, "Call to PDCprop_set_obj_time_step succeeded",
             "Call to PDCprop_set_obj_time_step failed");
     TASSERT(PDCprop_set_obj_app_name(obj_prop_out, "AnalysisTest2D") >= 0,
@@ -110,9 +110,11 @@ main(int argc, char **argv)
     TASSERT((dg_id = PDCan_dg_json_create(AN_GRAPHS_DIR "vector_magnitude_2d.json")) != 0,
             "Call to PDCan_dg_json_create succeeded", "Call to PDCan_dg_json_create failed");
     TASSERT(PDCan_attach_to_region(dg_id, "vx", vx_obj, reg_global) == SUCCEED,
-            "Call to PDCan_attach_to_region succeeded for vx", "Call to PDCan_attach_to_region failed for vx");
+            "Call to PDCan_attach_to_region succeeded for vx",
+            "Call to PDCan_attach_to_region failed for vx");
     TASSERT(PDCan_attach_to_region(dg_id, "vy", vy_obj, reg_global) == SUCCEED,
-            "Call to PDCan_attach_to_region succeeded for vy", "Call to PDCan_attach_to_region failed for vy");
+            "Call to PDCan_attach_to_region succeeded for vy",
+            "Call to PDCan_attach_to_region failed for vy");
     TASSERT(PDCan_attach_to_region(dg_id, "magnitude", mag_obj, reg_global) == SUCCEED,
             "Call to PDCan_attach_to_region succeeded for magnitude",
             "Call to PDCan_attach_to_region failed for magnitude");
@@ -160,7 +162,8 @@ main(int argc, char **argv)
     TASSERT(PDCobj_close(vy_obj) >= 0, "Call to PDCobj_close succeeded", "Call to PDCobj_close failed");
     TASSERT(PDCobj_close(mag_obj) >= 0, "Call to PDCobj_close succeeded", "Call to PDCobj_close failed");
     TASSERT(PDCcont_close(cont) >= 0, "Call to PDCcont_close succeeded", "Call to PDCcont_close failed");
-    TASSERT(PDCprop_close(obj_prop_in) >= 0, "Call to PDCprop_close succeeded", "Call to PDCprop_close failed");
+    TASSERT(PDCprop_close(obj_prop_in) >= 0, "Call to PDCprop_close succeeded",
+            "Call to PDCprop_close failed");
     TASSERT(PDCprop_close(obj_prop_out) >= 0, "Call to PDCprop_close succeeded",
             "Call to PDCprop_close failed");
     TASSERT(PDCprop_close(cont_prop) >= 0, "Call to PDCprop_close succeeded", "Call to PDCprop_close failed");

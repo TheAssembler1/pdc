@@ -32,7 +32,7 @@ main(int argc, char **argv)
     pdcid_t dg_id;
     pdcid_t transfer_request;
     char    cont_name[128];
-    int     rank = 0, i;
+    int     rank      = 0, i;
     int     ret_value = TSUCCEED;
 
     uint64_t offset[1], offset_length[1];
@@ -41,9 +41,9 @@ main(int argc, char **argv)
     offset_length[0] = BUF_LEN;
     dims[0]          = PDC_SIZE_UNLIMITED;
 
-    float * vx_data = (float *)malloc(sizeof(float) * BUF_LEN);
-    float * vy_data = (float *)malloc(sizeof(float) * BUF_LEN);
-    float * vz_data = (float *)malloc(sizeof(float) * BUF_LEN);
+    float * vx_data  = (float *)malloc(sizeof(float) * BUF_LEN);
+    float * vy_data  = (float *)malloc(sizeof(float) * BUF_LEN);
+    float * vz_data  = (float *)malloc(sizeof(float) * BUF_LEN);
     double *mag_data = (double *)malloc(sizeof(double) * BUF_LEN);
 
     for (i = 0; i < BUF_LEN; ++i) {
@@ -90,8 +90,8 @@ main(int argc, char **argv)
             "Call to PDCprop_set_obj_type failed");
     TASSERT(PDCprop_set_obj_dims(obj_prop_out, 1, dims) >= 0, "Call to PDCprop_set_obj_dims succeeded",
             "Call to PDCprop_set_obj_dims failed");
-    TASSERT(PDCprop_set_obj_user_id(obj_prop_out, getuid()) >= 0,
-            "Call to PDCprop_set_obj_user_id succeeded", "Call to PDCprop_set_obj_user_id failed");
+    TASSERT(PDCprop_set_obj_user_id(obj_prop_out, getuid()) >= 0, "Call to PDCprop_set_obj_user_id succeeded",
+            "Call to PDCprop_set_obj_user_id failed");
     TASSERT(PDCprop_set_obj_time_step(obj_prop_out, 0) >= 0, "Call to PDCprop_set_obj_time_step succeeded",
             "Call to PDCprop_set_obj_time_step failed");
     TASSERT(PDCprop_set_obj_app_name(obj_prop_out, "AnalysisTest") >= 0,
@@ -120,11 +120,14 @@ main(int argc, char **argv)
     TASSERT((dg_id = PDCan_dg_json_create(AN_GRAPHS_DIR "vector_magnitude.json")) != 0,
             "Call to PDCan_dg_json_create succeeded", "Call to PDCan_dg_json_create failed");
     TASSERT(PDCan_attach_to_region(dg_id, "vx", vx_obj, reg_global) == SUCCEED,
-            "Call to PDCan_attach_to_region succeeded for vx", "Call to PDCan_attach_to_region failed for vx");
+            "Call to PDCan_attach_to_region succeeded for vx",
+            "Call to PDCan_attach_to_region failed for vx");
     TASSERT(PDCan_attach_to_region(dg_id, "vy", vy_obj, reg_global) == SUCCEED,
-            "Call to PDCan_attach_to_region succeeded for vy", "Call to PDCan_attach_to_region failed for vy");
+            "Call to PDCan_attach_to_region succeeded for vy",
+            "Call to PDCan_attach_to_region failed for vy");
     TASSERT(PDCan_attach_to_region(dg_id, "vz", vz_obj, reg_global) == SUCCEED,
-            "Call to PDCan_attach_to_region succeeded for vz", "Call to PDCan_attach_to_region failed for vz");
+            "Call to PDCan_attach_to_region succeeded for vz",
+            "Call to PDCan_attach_to_region failed for vz");
     TASSERT(PDCan_attach_to_region(dg_id, "magnitude", mag_obj, reg_global) == SUCCEED,
             "Call to PDCan_attach_to_region succeeded for magnitude",
             "Call to PDCan_attach_to_region failed for magnitude");
@@ -170,9 +173,8 @@ main(int argc, char **argv)
             "Call to PDCregion_transfer_close failed");
 
     for (i = 0; i < BUF_LEN; ++i) {
-        double expected =
-            sqrt((double)vx_data[i] * vx_data[i] + (double)vy_data[i] * vy_data[i] +
-                 (double)vz_data[i] * vz_data[i]);
+        double expected = sqrt((double)vx_data[i] * vx_data[i] + (double)vy_data[i] * vy_data[i] +
+                               (double)vz_data[i] * vz_data[i]);
         if (fabs(mag_data[i] - expected) > EPSILON)
             TGOTO_ERROR(TFAIL, "First read: magnitude[%d] = %f, expected %f", i, mag_data[i], expected);
     }
@@ -191,9 +193,8 @@ main(int argc, char **argv)
             "Call to PDCregion_transfer_close failed");
 
     for (i = 0; i < BUF_LEN; ++i) {
-        double expected =
-            sqrt((double)vx_data[i] * vx_data[i] + (double)vy_data[i] * vy_data[i] +
-                 (double)vz_data[i] * vz_data[i]);
+        double expected = sqrt((double)vx_data[i] * vx_data[i] + (double)vy_data[i] * vy_data[i] +
+                               (double)vz_data[i] * vz_data[i]);
         if (fabs(mag_data[i] - expected) > EPSILON)
             TGOTO_ERROR(TFAIL, "Second read: magnitude[%d] = %f, expected %f", i, mag_data[i], expected);
     }
@@ -208,7 +209,8 @@ main(int argc, char **argv)
     TASSERT(PDCobj_close(vz_obj) >= 0, "Call to PDCobj_close succeeded", "Call to PDCobj_close failed");
     TASSERT(PDCobj_close(mag_obj) >= 0, "Call to PDCobj_close succeeded", "Call to PDCobj_close failed");
     TASSERT(PDCcont_close(cont) >= 0, "Call to PDCcont_close succeeded", "Call to PDCcont_close failed");
-    TASSERT(PDCprop_close(obj_prop_in) >= 0, "Call to PDCprop_close succeeded", "Call to PDCprop_close failed");
+    TASSERT(PDCprop_close(obj_prop_in) >= 0, "Call to PDCprop_close succeeded",
+            "Call to PDCprop_close failed");
     TASSERT(PDCprop_close(obj_prop_out) >= 0, "Call to PDCprop_close succeeded",
             "Call to PDCprop_close failed");
     TASSERT(PDCprop_close(cont_prop) >= 0, "Call to PDCprop_close succeeded", "Call to PDCprop_close failed");
