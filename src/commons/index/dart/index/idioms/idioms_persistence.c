@@ -15,6 +15,7 @@
 #include <stdint.h>
 #include <fcntl.h>
 #include <unistd.h>
+#include <dirent.h>
 #include "bulki_serde.h"
 
 /****************************/
@@ -533,6 +534,7 @@ idioms_metadata_index_recover(IDIOMS_t *idioms, char *dir_path, int num_server, 
     FUNC_ENTER(NULL);
 
     perr_t ret_value = SUCCEED;
+    (void)num_server;
 
     stopwatch_t timer;
     timer_start(&timer);
@@ -542,13 +544,48 @@ idioms_metadata_index_recover(IDIOMS_t *idioms, char *dir_path, int num_server, 
     uint64_t *vid_array = NULL;
     size_t    num_vids  = get_vnode_ids_by_serverID(idioms->dart_info_g, serverID, &vid_array);
 
-    // load the attribute region for each vnode
-    for (size_t vid = 0; vid < num_vids; vid++) {
-        for (size_t sid = 0; sid < num_server; sid++) {
-            read_attr_name_node(idioms, dir_path, "idioms_prefix", sid, vid_array[vid]);
-            read_attr_name_node(idioms, dir_path, "idioms_suffix", sid, vid_array[vid]);
+    // Build a lookup set of the vnode IDs owned by this server, so the directory
+    // scan below only loads files that are actually relevant to us. Previously
+    // this function blindly attempted to fopen() every (vnode_id, server_id)
+    // combination in the *theoretical* vnode space (which can be in the
+    // hundreds of thousands due to DART_MAX_SERVER_NUM_TO_ADAPT), even though
+    // almost none of those files exist on disk. That is what made restart slow
+    // even with a handful of real objects (see GitHub issue #241).
+    HashTable *owned_vids =
+        hash_table_new(pdc_default_uint64_hash_func_ptr, pdc_default_uint64_equal_func_ptr);
+    for (size_t i = 0; i < num_vids; i++)
+        hash_table_insert(owned_vids, &vid_array[i], &vid_array[i]);
+
+    // Only look at the files that actually exist in the checkpoint directory,
+    // instead of enumerating the full vnode x server space.
+    DIR *dir = opendir(dir_path);
+    if (dir != NULL) {
+        struct dirent *entry;
+        while ((entry = readdir(dir)) != NULL) {
+            uint32_t sid;
+            uint64_t vid;
+            int      n_read = 0;
+            int      is_prefix =
+                (sscanf(entry->d_name, "idioms_prefix_%u_%" SCNu64 ".bin%n", &sid, &vid, &n_read) == 2 &&
+                 (size_t)n_read == strlen(entry->d_name));
+            int is_suffix = !is_prefix && (sscanf(entry->d_name, "idioms_suffix_%u_%" SCNu64 ".bin%n", &sid,
+                                                  &vid, &n_read) == 2 &&
+                                           (size_t)n_read == strlen(entry->d_name));
+            if (!is_prefix && !is_suffix)
+                continue;
+            if (hash_table_lookup(owned_vids, &vid) == NULL)
+                continue;
+            read_attr_name_node(idioms, dir_path, is_prefix ? "idioms_prefix" : "idioms_suffix", sid, vid);
         }
+        closedir(dir);
     }
+    else {
+        LOG_ERROR("Failed to open checkpoint directory for index recovery: %s\n", dir_path);
+    }
+
+    hash_table_free(owned_vids);
+    vid_array = (uint64_t *)PDC_free(vid_array);
+
     timer_pause(&timer);
     LOG_JUST_PRINT("[IDIOMS_Index_Recover_%d] Timer to recover index = %.4f microseconds\n", serverID,
                    timer_delta_us(&timer));
