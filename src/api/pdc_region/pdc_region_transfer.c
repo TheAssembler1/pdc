@@ -595,8 +595,13 @@ static_region_partition(char *buf, int ndim, uint64_t unit, pdc_access_t access_
             }
             // subregion is computed using the output region by aligning the offsets to its begining.
             if (set_output_buf) {
-                // Copy subregion from input region to the new overlapping region.
-                output_buf[0][n_data_servers[0]] = (char *)PDC_calloc(region_size * unit, sizeof(char));
+                // Copy subregion from input region to the new overlapping region. region_size already
+                // has unit folded in (it's seeded with region_size = unit above and multiplied by each
+                // dimension's element count), so multiplying by unit again here inflated the allocation
+                // by another factor of unit -- harmless at small sizes, but it silently returns NULL once
+                // that inflated size crosses PDC_calloc's internal cap, and nothing here checked for NULL
+                // before memcpy_subregion wrote into it.
+                output_buf[0][n_data_servers[0]] = (char *)PDC_calloc(region_size, sizeof(char));
                 if (access_type == PDC_WRITE) {
                     memcpy_subregion(ndim, unit, PDC_WRITE, buf, size, output_buf[0][n_data_servers[0]],
                                      sub_offsets[0][n_data_servers[0]], output_sizes[0][*n_data_servers]);
