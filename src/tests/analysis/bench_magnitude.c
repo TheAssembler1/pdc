@@ -1,5 +1,5 @@
 /**
- * Scale benchmark comparing two strategies for producing a "magnitude"
+ * Scale benchmark comparing three strategies for producing a "magnitude"
  * object from three vector-component objects (vx, vy, vz):
  *
  *   eager   - components are written through the region-analysis
@@ -8,12 +8,19 @@
  *             server-side eager computation of magnitude in the write
  *             path. A confirmation read of magnitude follows.
  *
- *   posthoc - components are written as plain PDC objects (no graph
- *             attached), then read back to the client, magnitude is
- *             computed client-side, and the result is written back as a
- *             plain PDC object.
+ *   lazy    - components are written as plain PDC objects (no graph
+ *             attached), then read back to the client and magnitude is
+ *             computed client-side -- recomputed from scratch on every
+ *             use, like an ordinary (non-materialized) SQL view. The
+ *             result is never written back to the server.
  *
- * Usage: bench_magnitude <eager|posthoc> <n_elem_per_rank>
+ *   posthoc - the same write/readback/compute as lazy, plus a final
+ *             write of the result back as a plain PDC object -- i.e.
+ *             lazy's recompute-on-demand plus the cost of persisting it,
+ *             like a materialized view built by hand outside the
+ *             framework.
+ *
+ * Usage: bench_magnitude <eager|lazy|posthoc> <n_elem_per_rank>
  *
  * Prints one CSV line from rank 0:
  *   mode,n_client_ranks,n_elem,setup_s,write_s,readback_s,compute_s,writeback_s,confirm_read_s,total_s
@@ -57,7 +64,7 @@ main(int argc, char **argv)
 {
     int    rank, nranks;
     long   n_elem;
-    int    is_eager;
+    int    is_eager, is_lazy, is_posthoc;
     size_t i;
 
     double t_setup0, t_setup1, t_write0, t_write1;
@@ -65,11 +72,17 @@ main(int argc, char **argv)
     double t_writeback0 = 0, t_writeback1 = 0, t_read0 = 0, t_read1 = 0;
 
     if (argc < 3) {
-        fprintf(stderr, "Usage: %s <eager|posthoc> <n_elem_per_rank>\n", argv[0]);
+        fprintf(stderr, "Usage: %s <eager|lazy|posthoc> <n_elem_per_rank>\n", argv[0]);
         return 1;
     }
-    is_eager = (strcmp(argv[1], "eager") == 0);
-    n_elem   = atol(argv[2]);
+    is_eager   = (strcmp(argv[1], "eager") == 0);
+    is_lazy    = (strcmp(argv[1], "lazy") == 0);
+    is_posthoc = (strcmp(argv[1], "posthoc") == 0);
+    if (!is_eager && !is_lazy && !is_posthoc) {
+        fprintf(stderr, "Usage: %s <eager|lazy|posthoc> <n_elem_per_rank>\n", argv[0]);
+        return 1;
+    }
+    n_elem = atol(argv[2]);
 
     MPI_Init(&argc, &argv);
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
@@ -221,11 +234,16 @@ main(int argc, char **argv)
         MPI_Barrier(MPI_COMM_WORLD);
         t_compute1 = MPI_Wtime();
 
-        /* Write the result back as an ordinary PDC object. */
-        t_writeback0 = MPI_Wtime();
-        do_transfer(mag, PDC_WRITE, mag_obj, reg, reg_global, "writeback magnitude");
-        MPI_Barrier(MPI_COMM_WORLD);
-        t_writeback1 = MPI_Wtime();
+        /* lazy stops here -- the result is used but never persisted,
+         * recomputed from scratch on every read like an ordinary SQL
+         * view. posthoc additionally writes it back, like a hand-built
+         * materialized view. */
+        if (is_posthoc) {
+            t_writeback0 = MPI_Wtime();
+            do_transfer(mag, PDC_WRITE, mag_obj, reg, reg_global, "writeback magnitude");
+            MPI_Barrier(MPI_COMM_WORLD);
+            t_writeback1 = MPI_Wtime();
+        }
     }
 
     /* Correctness check (not timed). */
@@ -273,10 +291,10 @@ main(int argc, char **argv)
     MPI_Reduce(&local_read, &max_read, 1, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD);
 
     if (rank == 0) {
-        double total = is_eager ? (max_write + max_read) : (max_write + max_readback + max_compute + max_writeback);
-        printf("%s,%d,%ld,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%d\n", is_eager ? "eager" : "posthoc", nranks,
-               n_elem, max_setup, max_write, max_readback, max_compute, max_writeback, max_read, total,
-               global_bad);
+        double      total = is_eager ? (max_write + max_read) : (max_write + max_readback + max_compute + max_writeback);
+        const char *mode_name = is_eager ? "eager" : (is_lazy ? "lazy" : "posthoc");
+        printf("%s,%d,%ld,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%d\n", mode_name, nranks, n_elem, max_setup,
+               max_write, max_readback, max_compute, max_writeback, max_read, total, global_bad);
         fflush(stdout);
     }
 
