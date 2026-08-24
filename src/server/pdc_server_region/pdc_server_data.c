@@ -4031,6 +4031,41 @@ done:
     FUNC_LEAVE(ret_value);
 }
 
+/* A single pread() is not guaranteed to return the full requested size --
+ * true in general per POSIX, and in practice on Linux a regular-file
+ * read/pread is capped at MAX_RW_COUNT (0x7ffff000, just under 2GiB) per
+ * syscall, so any request at or above that silently short-reads. Chunk it
+ * exactly like PDC_Server_posix_write already does for writes. */
+static perr_t
+PDC_Server_posix_pread(int fd, void *buf, uint64_t read_size, uint64_t offset)
+{
+    FUNC_ENTER(NULL);
+
+    uint64_t read_bytes = 0, max_read_size = 1073741824;
+    perr_t   ret_value = SUCCEED;
+    ssize_t  ret;
+
+    while (read_size > max_read_size) {
+        ret = pread(fd, buf, max_read_size, offset);
+        if (ret < 0 || ret != (ssize_t)max_read_size) {
+            PGOTO_ERROR(FAIL, "In-loop: pread %d failed, ret = %ld, max_read_size = %llu", fd, ret,
+                        max_read_size);
+        }
+        read_bytes += ret;
+        buf += max_read_size;
+        offset += max_read_size;
+        read_size -= max_read_size;
+    }
+
+    ret = pread(fd, buf, read_size, offset);
+    if (ret < 0 || ret != (ssize_t)read_size) {
+        PGOTO_ERROR(FAIL, "pread %d failed, not all data read %llu/%llu", fd, read_bytes, read_size);
+    }
+
+done:
+    FUNC_LEAVE(ret_value);
+}
+
 #ifdef ENABLE_ZFP
 static zfp_field *
 _setup_zfp(struct pdc_region_info *region_info, zfp_stream **zfp)
@@ -4444,9 +4479,8 @@ PDC_Server_data_read_from(uint64_t obj_id, struct pdc_region_info *region_info, 
 #ifdef PDC_TIMING
                 start_posix = MPI_Wtime();
 #endif
-                if (pread(region->fd, buf + (overlap_offset[0] - region_info->offset[0]) * unit,
-                          overlap_size[0] * unit,
-                          overlap_region->offset + pos) != (ssize_t)(overlap_size[0] * unit)) {
+                if (PDC_Server_posix_pread(region->fd, buf + (overlap_offset[0] - region_info->offset[0]) * unit,
+                                           overlap_size[0] * unit, overlap_region->offset + pos) != SUCCEED) {
                     LOG_ERROR("pread failed to read enough bytes\n");
                 }
 #ifdef PDC_TIMING
