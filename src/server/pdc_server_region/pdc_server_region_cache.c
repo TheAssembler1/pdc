@@ -899,6 +899,18 @@ PDC_region_cache_flush(uint64_t obj_id)
 
     pdc_obj_cache *obj_cache = NULL, *obj_cache_iter;
 
+    /* PDC_region_cache_clock_cycle (the background flush thread) takes
+     * pdc_obj_cache_list_mutex around its own call to
+     * PDC_region_cache_flush_by_pointer for this same obj_cache -- this
+     * synchronous path (called from the write-completion RPC handler) was
+     * missing the matching lock, so the two could walk/free the same
+     * region_cache linked list concurrently. At small flush sizes the
+     * window was too narrow to hit in practice; at large sizes a single
+     * flush can take several seconds, making the race easy to trigger
+     * (observed as a segfault dereferencing a freed region_cache_iter
+     * node). */
+    pthread_mutex_lock(&pdc_obj_cache_list_mutex);
+
     obj_cache_iter = obj_cache_list;
     while (obj_cache_iter != NULL) {
         if (obj_cache_iter->obj_id == obj_id) {
@@ -908,10 +920,12 @@ PDC_region_cache_flush(uint64_t obj_id)
         obj_cache_iter = obj_cache_iter->next;
     }
     if (obj_cache == NULL) {
+        pthread_mutex_unlock(&pdc_obj_cache_list_mutex);
         FUNC_LEAVE(1);
     }
 
     PDC_region_cache_flush_by_pointer(obj_id, obj_cache, 0);
+    pthread_mutex_unlock(&pdc_obj_cache_list_mutex);
     FUNC_LEAVE(0);
 }
 
