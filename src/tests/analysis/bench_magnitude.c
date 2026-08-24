@@ -90,12 +90,19 @@ main(int argc, char **argv)
     }
     memset(mag, 0, sizeof(double) * n_elem);
 
-    /* Single shared object per variable, spanning the whole nranks*n_elem
-     * problem domain. Each rank manages a distinct, disjoint subset of
-     * every object: rank i's local region is [i*n_elem, (i+1)*n_elem). The
-     * local buffer region (reg) is always 0-indexed -- it describes the
-     * client's own memory layout -- while the global region (reg_global)
-     * is the rank's slice within the shared object. */
+    /* One shared object per variable (vx, vy, vz, magnitude), spanning the
+     * whole nranks*n_elem problem domain -- every rank takes a distinct,
+     * disjoint subset [i*n_elem, (i+1)*n_elem) to run analysis on. Use
+     * PDC_REGION_STATIC (region-offset-based server routing, splitting the
+     * object across all data servers) rather than PDC_OBJ_STATIC
+     * (creator-rank-based routing): with a shared object, only rank 0
+     * creates it, so OBJ_STATIC would pin every rank's I/O onto rank 0's
+     * one server regardless of how many servers exist. REGION_STATIC lets
+     * each rank's own region route to its own server when server count
+     * matches client count. This works safely with PDCan_attach_to_region's
+     * piggyback design (see PDC_Client_transfer_request): the attach info
+     * rides along on the very same region-routed RPC, so it always lands
+     * wherever that RPC's region actually goes. */
     uint64_t local_offset[1], global_offset[1], region_len[1], dims[1];
     local_offset[0]  = 0;
     global_offset[0] = (uint64_t)rank * (uint64_t)n_elem;
@@ -133,7 +140,7 @@ main(int argc, char **argv)
         PDCprop_set_obj_time_step(obj_prop_in, 0);
         PDCprop_set_obj_app_name(obj_prop_in, "BenchMagnitude");
         PDCprop_set_obj_tags(obj_prop_in, "tag0=1");
-        PDCprop_set_obj_transfer_region_type(obj_prop_in, PDC_OBJ_STATIC);
+        PDCprop_set_obj_transfer_region_type(obj_prop_in, PDC_REGION_STATIC);
 
         obj_prop_out = PDCprop_create(PDC_OBJ_CREATE, pdc);
         PDCprop_set_obj_type(obj_prop_out, PDC_DOUBLE);
@@ -142,7 +149,7 @@ main(int argc, char **argv)
         PDCprop_set_obj_time_step(obj_prop_out, 0);
         PDCprop_set_obj_app_name(obj_prop_out, "BenchMagnitude");
         PDCprop_set_obj_tags(obj_prop_out, "tag0=1");
-        PDCprop_set_obj_transfer_region_type(obj_prop_out, PDC_OBJ_STATIC);
+        PDCprop_set_obj_transfer_region_type(obj_prop_out, PDC_REGION_STATIC);
 
         vx_obj  = PDCobj_create(cont, "vx", obj_prop_in);
         vy_obj  = PDCobj_create(cont, "vy", obj_prop_in);
