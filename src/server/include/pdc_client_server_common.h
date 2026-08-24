@@ -32,6 +32,7 @@
 #include "pdc_query.h"
 #include "pdc_malloc.h"
 #include "pdc_tf_common.h"
+#include "pdc_an_common.h"
 
 #include "pdc_timing.h"
 #include "pdc_server_region_transfer_metadata_query.h"
@@ -728,6 +729,9 @@ typedef struct {
 
     // For region transformations
     pdc_tf_pkg_t pdc_tf_pkg;
+
+    // For region analysis (DataFlyway) -- piggybacked exactly like pdc_tf_pkg
+    pdc_an_pkg_t an_pkg;
 } transfer_request_in_t;
 
 /* Define transfer_request_out_t */
@@ -2448,6 +2452,65 @@ hg_proc_transfer_request_in_t(hg_proc_t proc, void *data)
     ret = hg_proc_hg_string_t(proc, &struct_data->pdc_tf_pkg.store_state);
     if (ret != HG_SUCCESS) {
         FUNC_LEAVE(ret);
+    }
+    ret = hg_proc_hg_string_t(proc, &struct_data->an_pkg.json_filepath);
+    if (ret != HG_SUCCESS) {
+        FUNC_LEAVE(ret);
+    }
+    ret = hg_proc_uint32_t(proc, &struct_data->an_pkg.num_entries);
+    if (ret != HG_SUCCESS) {
+        FUNC_LEAVE(ret);
+    }
+    for (int an_i = 0; an_i < PDC_AN_PKG_MAX_STATES; an_i++) {
+        pdc_an_pkg_entry_t *an_e = &struct_data->an_pkg.entries[an_i];
+        ret                      = hg_proc_uint32_t(proc, &an_e->pdc_var_type);
+        if (ret != HG_SUCCESS) {
+            FUNC_LEAVE(ret);
+        }
+        ret = hg_proc_hg_string_t(proc, &an_e->state_name);
+        if (ret != HG_SUCCESS) {
+            FUNC_LEAVE(ret);
+        }
+        ret = hg_proc_uint8_t(proc, &an_e->ndim);
+        if (ret != HG_SUCCESS) {
+            FUNC_LEAVE(ret);
+        }
+        for (int d = 0; d < DIM_MAX; d++) {
+            ret = hg_proc_uint64_t(proc, &an_e->offset[d]);
+            if (ret != HG_SUCCESS) {
+                FUNC_LEAVE(ret);
+            }
+            ret = hg_proc_uint64_t(proc, &an_e->size[d]);
+            if (ret != HG_SUCCESS) {
+                FUNC_LEAVE(ret);
+            }
+        }
+        ret = hg_proc_uint64_t(proc, &an_e->obj_id);
+        if (ret != HG_SUCCESS) {
+            FUNC_LEAVE(ret);
+        }
+        ret = hg_proc_int32_t(proc, &an_e->obj_ndim);
+        if (ret != HG_SUCCESS) {
+            FUNC_LEAVE(ret);
+        }
+        for (int d = 0; d < DIM_MAX; d++) {
+            ret = hg_proc_uint64_t(proc, &an_e->obj_dims[d]);
+            if (ret != HG_SUCCESS) {
+                FUNC_LEAVE(ret);
+            }
+        }
+        ret = hg_proc_hg_string_t(proc, &an_e->tf_json_filepath);
+        if (ret != HG_SUCCESS) {
+            FUNC_LEAVE(ret);
+        }
+        ret = hg_proc_hg_string_t(proc, &an_e->tf_client_state);
+        if (ret != HG_SUCCESS) {
+            FUNC_LEAVE(ret);
+        }
+        ret = hg_proc_hg_string_t(proc, &an_e->tf_store_state);
+        if (ret != HG_SUCCESS) {
+            FUNC_LEAVE(ret);
+        }
     }
 
     FUNC_LEAVE(ret);

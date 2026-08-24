@@ -148,31 +148,55 @@ PDCan_attach_to_region(pdcid_t dg_id, char *state_name, pdcid_t obj_id, pdcid_t 
         PGOTO_ERROR(FAIL, "Cannot locate region ID");
     struct pdc_region_info *region_info = region_id_info->obj_ptr;
 
-    /* obj_id here is the client-local PDC_id_register() handle
-     * (pdc_obj_info->local_id) -- the server has no notion of it. Region
-     * transfers identify objects by the server-assigned global id,
-     * obj_info_pub->meta_id (see pdc_region_transfer.c:313), so that's what
-     * has to cross the wire for the binding to match at read time. */
+    if (PDCan_dg_get_state(dg, state_name) == NULL)
+        PGOTO_ERROR(FAIL, "State \"%s\" not found in analysis graph", state_name);
+
+    /* Client-local only -- no RPC. Exactly like PDCtf_attach_to_region:
+     * the server never sees this call at all. The actual registration
+     * happens lazily, piggybacked on whichever read or write RPC first
+     * touches a matching region (see the an_pkg block in
+     * PDC_Client_transfer_request) -- that RPC is already correctly
+     * routed to whichever server owns this object's data (via
+     * obj->metadata->data_server_id), so the piggybacked registration
+     * always lands on the right server without this call needing to know
+     * or compute that itself. */
+    if (pdc_obj_info->pdc_an_obj == NULL) {
+        pdc_obj_info->pdc_an_obj                       = PDC_calloc(1, sizeof(pdc_an_obj_t));
+        pdc_obj_info->pdc_an_obj->region_mappings_vector = pdc_vector_create(8, 2.0);
+    }
+
+    pdc_an_region_mapping_t *mapping = PDC_calloc(1, sizeof(pdc_an_region_mapping_t));
+    mapping->region_state.dg_id      = dg_id;
+    mapping->region_state.state_name = strdup(state_name);
+    mapping->ndim                    = (uint8_t)region_info->ndim;
+    memcpy(mapping->offset, region_info->offset, region_info->ndim * sizeof(uint64_t));
+    memcpy(mapping->size, region_info->size, region_info->ndim * sizeof(uint64_t));
+    mapping->obj_id      = (uint64_t)pdc_obj_info->obj_info_pub->meta_id;
+    mapping->obj_ndim    = (int32_t)pdc_obj_info->obj_pt->obj_prop_pub->ndim;
+    mapping->pdc_var_type = pdc_obj_info->obj_pt->obj_prop_pub->type;
+    memcpy(mapping->obj_dims, pdc_obj_info->obj_pt->obj_prop_pub->dims,
+           (size_t)mapping->obj_ndim * sizeof(uint64_t));
 
     /* If this object/region also has a PDC TF graph attached client-side
-     * (PDCtf_attach_to_region/_to_obj), the server needs to be told about
-     * it explicitly here: that registration is normally a side effect of
-     * a client write RPC's pdc_tf_pkg piggyback, but an analysis
-     * input/output is written and read by PDCan_exec_graph running
-     * server-side, never by a client write RPC, so that piggyback would
-     * otherwise never happen. */
+     * (PDCtf_attach_to_region/_to_obj), record it here too so the
+     * piggyback can register it alongside the analysis binding -- an
+     * analysis input/output is written and read by PDCan_exec_graph
+     * running server-side, never by a client write RPC, so PDC TF's own
+     * piggyback (which rides on client write RPCs) would otherwise never
+     * see it. find_attached_tf_info returns borrowed pointers; copy them
+     * since this mapping outlives this call. */
     char *tf_json_filepath = NULL;
     char *tf_client_state  = NULL;
     char *tf_store_state   = NULL;
-    find_attached_tf_info(pdc_obj_info->pdc_tf_obj, region_info, &tf_json_filepath, &tf_client_state,
-                          &tf_store_state);
+    if (find_attached_tf_info(pdc_obj_info->pdc_tf_obj, region_info, &tf_json_filepath, &tf_client_state,
+                              &tf_store_state)) {
+        mapping->region_state.tf_json_filepath = strdup(tf_json_filepath);
+        mapping->region_state.tf_client_state  = strdup(tf_client_state);
+        mapping->region_state.tf_store_state   = strdup(tf_store_state);
+    }
 
-    if (PDC_Client_an_attach_region(
-            (char *)dg->data, state_name, pdc_obj_info->obj_info_pub->meta_id, (uint8_t)region_info->ndim,
-            region_info->offset, region_info->size, (int32_t)pdc_obj_info->obj_pt->obj_prop_pub->ndim,
-            pdc_obj_info->obj_pt->obj_prop_pub->dims, pdc_obj_info->obj_pt->obj_prop_pub->type,
-            tf_json_filepath, tf_client_state, tf_store_state) != SUCCEED)
-        PGOTO_ERROR(FAIL, "Server failed to attach region to analysis state \"%s\"", state_name);
+    pdc_vector_add(pdc_obj_info->pdc_an_obj->region_mappings_vector, mapping);
+    PDCan_add_client_dg_mapping(dg_id, mapping);
 
 done:
     FUNC_LEAVE(ret_value);

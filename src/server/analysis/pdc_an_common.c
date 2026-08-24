@@ -15,6 +15,88 @@ PDC_VECTOR *pdc_an_builtin_funcs_vector_g = NULL;
 
 char *pdc_an_persistence_strs[] = {"transient", "persistent"};
 
+/* Client-local: vector of {dg_id, PDC_VECTOR *mappings} pairs. See
+ * PDCan_get_client_dg_mappings/PDCan_add_client_dg_mapping in pdc_an_common.h. */
+typedef struct pdc_an_client_dg_entry_t {
+    pdcid_t     dg_id;
+    PDC_VECTOR *mappings; /* vector of pdc_an_region_mapping_t* (borrowed) */
+} pdc_an_client_dg_entry_t;
+
+static PDC_VECTOR *an_client_dg_registry_g = NULL;
+
+PDC_VECTOR *
+PDCan_get_client_dg_mappings(pdcid_t dg_id)
+{
+    if (an_client_dg_registry_g == NULL)
+        return NULL;
+
+    PDC_VECTOR_ITERATOR *iter = pdc_vector_iterator_new(an_client_dg_registry_g);
+    while (pdc_vector_iterator_has_next(iter)) {
+        pdc_an_client_dg_entry_t *e = (pdc_an_client_dg_entry_t *)pdc_vector_iterator_next(iter);
+        if (e != NULL && e->dg_id == dg_id) {
+            pdc_vector_iterator_destroy(iter);
+            return e->mappings;
+        }
+    }
+    pdc_vector_iterator_destroy(iter);
+    return NULL;
+}
+
+perr_t
+PDCan_add_client_dg_mapping(pdcid_t dg_id, pdc_an_region_mapping_t *mapping)
+{
+    if (an_client_dg_registry_g == NULL)
+        an_client_dg_registry_g = pdc_vector_create(4, 2.0);
+
+    PDC_VECTOR *mappings = PDCan_get_client_dg_mappings(dg_id);
+    if (mappings == NULL) {
+        mappings                          = pdc_vector_create(8, 2.0);
+        pdc_an_client_dg_entry_t *entry   = PDC_malloc(sizeof(pdc_an_client_dg_entry_t));
+        entry->dg_id                      = dg_id;
+        entry->mappings                   = mappings;
+        pdc_vector_add(an_client_dg_registry_g, entry);
+    }
+
+    pdc_vector_add(mappings, mapping);
+    return SUCCEED;
+}
+
+bool
+PDCan_region_has_attached_graph(pdc_an_obj_t *obj_an, uint8_t ndim, const uint64_t *offset,
+                                const uint64_t *size, pdc_an_region_mapping_t **region_mapping)
+{
+    FUNC_ENTER(NULL);
+
+    bool                 ret_value            = false;
+    PDC_VECTOR_ITERATOR *region_mappings_iter = NULL;
+
+    if (obj_an == NULL || obj_an->region_mappings_vector == NULL)
+        PGOTO_DONE(false);
+
+    region_mappings_iter = pdc_vector_iterator_new(obj_an->region_mappings_vector);
+    while (pdc_vector_iterator_has_next(region_mappings_iter)) {
+        *region_mapping = (pdc_an_region_mapping_t *)pdc_vector_iterator_next(region_mappings_iter);
+
+        if ((*region_mapping)->ndim != ndim)
+            continue;
+
+        bool match = true;
+        for (int i = 0; i < ndim; i++) {
+            if ((*region_mapping)->offset[i] != offset[i] || (*region_mapping)->size[i] != size[i]) {
+                match = false;
+                break;
+            }
+        }
+        if (match)
+            PGOTO_DONE(true);
+    }
+
+done:
+    if (region_mappings_iter != NULL)
+        pdc_vector_iterator_destroy(region_mappings_iter);
+    FUNC_LEAVE(ret_value);
+}
+
 static struct array_list *
 get_json_array(struct json_object *json_obj, char *arr_name)
 {

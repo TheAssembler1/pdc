@@ -840,7 +840,7 @@ perr_t PDC_Client_all_server_checkpoint();
 perr_t PDC_Client_an_attach_region(char *json_filepath, char *state_name, pdcid_t obj_id, uint8_t ndim,
                                    uint64_t *offset, uint64_t *size, int32_t obj_ndim, uint64_t *obj_dims,
                                    pdc_var_type_t pdc_var_type, char *tf_json_filepath, char *tf_client_state,
-                                   char *tf_store_state);
+                                   char *tf_store_state, uint32_t data_server_id);
 
 /**
  * Request of PDC client to delete metadata by object name

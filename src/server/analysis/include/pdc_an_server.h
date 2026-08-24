@@ -98,8 +98,18 @@ bool PDCan_region_is_analysis_input(pdcid_t obj_id, uint8_t ndim, uint64_t *offs
  * Every buffer this call allocates (leaf-input reads, transformation
  * outputs) is freed before returning; nothing survives past one call —
  * transient states are never cached across executions, by design.
+ *
+ * ref_ndim/ref_offset/ref_size identify the region of whichever binding
+ * triggered this execution (the write or read the caller is handling).
+ * A graph attached by multiple ranks -- each against its own region of a
+ * shared object, or its own separate object -- accumulates multiple
+ * bindings per state name in the same entry; every binding lookup made
+ * during this call is scoped to the binding matching this reference
+ * region, so one rank's execution can't read or write another rank's
+ * bound region for the same state name.
  */
-perr_t PDCan_exec_graph(pdc_an_dg_entry_t *entry, char **target_state_names, int num_targets);
+perr_t PDCan_exec_graph(pdc_an_dg_entry_t *entry, char **target_state_names, int num_targets,
+                        uint8_t ref_ndim, const uint64_t *ref_offset, const uint64_t *ref_size);
 
 /**
  * Write-path hook: called after any successful write, for every

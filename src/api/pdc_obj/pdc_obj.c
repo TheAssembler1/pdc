@@ -143,6 +143,7 @@ PDC_obj_create(pdcid_t cont_id, const char *obj_name, pdcid_t obj_prop_id, _pdc_
     p->location         = location;
     p->region_list_head = NULL;
     p->pdc_tf_obj       = NULL;
+    p->pdc_an_obj       = NULL;
 
     if (cont_id == 0) {
         meta_id = 0;

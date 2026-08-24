@@ -3,6 +3,7 @@
 
 #include "pdc_timing.h"
 #include "pdc_tf_server.h"
+#include "pdc_an_server.h"
 
 hg_return_t
 transfer_request_all_bulk_transfer_read_cb2(const struct hg_cb_info *info)
@@ -778,6 +779,32 @@ HG_TEST_RPC_CB(transfer_request, handle)
             in.pdc_tf_pkg.store_state   = NULL;
         }
 
+        if (in.an_pkg.json_filepath != NULL && strlen(in.an_pkg.json_filepath) > 0) {
+            LOG_DEBUG("RPC received region transfer with attached analysis graph (%u states)\n",
+                      in.an_pkg.num_entries);
+
+            for (uint32_t an_i = 0; an_i < in.an_pkg.num_entries; an_i++) {
+                pdc_an_pkg_entry_t *an_e = &in.an_pkg.entries[an_i];
+                if (an_e->state_name == NULL || strlen(an_e->state_name) == 0)
+                    continue;
+
+                if (PDCan_store_attach_mapping(in.an_pkg.json_filepath, an_e->state_name,
+                                               (pdcid_t)an_e->obj_id, an_e->offset, an_e->size, an_e->ndim,
+                                               an_e->obj_ndim, an_e->obj_dims,
+                                               (pdc_var_type_t)an_e->pdc_var_type) != SUCCEED) {
+                    PGOTO_ERROR(HG_OTHER_ERROR, "Failed to PDCan_store_attach_mapping\n");
+                }
+                if (an_e->tf_json_filepath != NULL && strlen(an_e->tf_json_filepath) > 0) {
+                    if (PDCtf_store_json_mapping(an_e->obj_id, an_e->tf_json_filepath, an_e->tf_client_state,
+                                                 an_e->tf_client_state, an_e->tf_store_state, an_e->offset,
+                                                 an_e->size, an_e->ndim, an_e->pdc_var_type) != SUCCEED) {
+                        PGOTO_ERROR(HG_OTHER_ERROR,
+                                    "Failed to PDCtf_store_json_mapping (analysis composition)\n");
+                    }
+                }
+            }
+        }
+
         ret_value = HG_Bulk_create(info->hg_class, 1, &(local_bulk_args->data_buf),
                                    (const hg_size_t *)&(local_bulk_args->total_mem_size), HG_BULK_READWRITE,
                                    &(local_bulk_args->bulk_handle));
@@ -804,6 +831,39 @@ HG_TEST_RPC_CB(transfer_request, handle)
                              remote_reg_info->ndim);
         PDC_copy_region_desc((local_bulk_args->in).obj_dims, obj_dims, remote_reg_info->ndim,
                              remote_reg_info->ndim);
+
+        if (in.an_pkg.json_filepath != NULL && strlen(in.an_pkg.json_filepath) > 0) {
+            LOG_DEBUG("RPC received region read with attached analysis graph (%u states)\n",
+                      in.an_pkg.num_entries);
+
+            /* Must register before the read below: this is how an output
+             * state's binding reaches the server at all (an output is
+             * never client-written, only ever read -- see
+             * docs/design/region_analysis.md), and PDC_Server_transfer_request_io's
+             * read-triggered hook (PDC_Server_data_io_region_analysis)
+             * only recognizes this region as a bound analysis output once
+             * the binding below exists. */
+            for (uint32_t an_i = 0; an_i < in.an_pkg.num_entries; an_i++) {
+                pdc_an_pkg_entry_t *an_e = &in.an_pkg.entries[an_i];
+                if (an_e->state_name == NULL || strlen(an_e->state_name) == 0)
+                    continue;
+
+                if (PDCan_store_attach_mapping(in.an_pkg.json_filepath, an_e->state_name,
+                                               (pdcid_t)an_e->obj_id, an_e->offset, an_e->size, an_e->ndim,
+                                               an_e->obj_ndim, an_e->obj_dims,
+                                               (pdc_var_type_t)an_e->pdc_var_type) != SUCCEED) {
+                    PGOTO_ERROR(HG_OTHER_ERROR, "Failed to PDCan_store_attach_mapping\n");
+                }
+                if (an_e->tf_json_filepath != NULL && strlen(an_e->tf_json_filepath) > 0) {
+                    if (PDCtf_store_json_mapping(an_e->obj_id, an_e->tf_json_filepath, an_e->tf_client_state,
+                                                 an_e->tf_client_state, an_e->tf_store_state, an_e->offset,
+                                                 an_e->size, an_e->ndim, an_e->pdc_var_type) != SUCCEED) {
+                        PGOTO_ERROR(HG_OTHER_ERROR,
+                                    "Failed to PDCtf_store_json_mapping (analysis composition)\n");
+                    }
+                }
+            }
+        }
 
 #ifdef PDC_SERVER_CACHE
         if (PDC_transfer_request_data_read_from(in.obj_id, in.obj_ndim, obj_dims, remote_reg_info,

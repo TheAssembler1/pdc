@@ -53,6 +53,8 @@
 #include "dart_core.h"
 #include "pdc_tf.h"
 #include "pdc_tf_common.h"
+#include "pdc_an.h"
+#include "pdc_an_common.h"
 #include "timer_utils.h"
 #include "query_utils.h"
 
@@ -3384,6 +3386,7 @@ PDC_Client_transfer_request(hg_bulk_t *bulk_handle, void *buf, pdcid_t obj_id, u
     struct _pdc_transfer_request_args transfer_args;
     char                              cur_time[64];
     pdc_tf_region_mapping_t *         region_mapping = NULL;
+    pdc_an_region_mapping_t *         an_region_mapping = NULL;
 
     FUNC_ENTER(NULL);
 #ifdef PDC_TIMING
@@ -3458,6 +3461,56 @@ PDC_Client_transfer_request(hg_bulk_t *bulk_handle, void *buf, pdcid_t obj_id, u
         in.pdc_tf_pkg.store_state   = (hg_string_t)NULL;
         in.pdc_tf_pkg.cur_state     = (hg_string_t)NULL;
         in.pdc_tf_pkg.client_state  = (hg_string_t)NULL;
+    }
+
+    /* Checked for a region-analysis (DataFlyway) graph attached to this
+     * region -- unlike PDC TF's piggyback (write-only, since a TF
+     * transform always runs forward on write / inverse on read against
+     * the same object), region analysis needs both directions checked
+     * here: an input state's binding is registered by piggybacking on a
+     * WRITE (see PDCan_notify_input_written), an output state's binding by
+     * piggybacking on a READ (see PDC_Server_data_io_region_analysis) --
+     * that's the RPC that transparently triggers computation the first
+     * time an unmaterialized output is read. This RPC is already routed
+     * to data_server_id, the server that actually owns this object's
+     * data, so the piggybacked registration always lands in the right
+     * place. */
+    memset(&in.an_pkg, 0, sizeof(in.an_pkg));
+    if (obj_pointer != NULL && obj_pointer->pdc_an_obj != NULL &&
+        PDCan_region_has_attached_graph(obj_pointer->pdc_an_obj, (uint8_t)remote_ndim, remote_offset,
+                                        remote_size, &an_region_mapping)) {
+
+        pdcid_t     an_dg_id  = an_region_mapping->region_state.dg_id;
+        pdc_dg_t *  an_dg     = PDCan_get_dg(an_dg_id);
+        PDC_VECTOR *an_maps   = PDCan_get_client_dg_mappings(an_dg_id);
+
+        if (an_dg == NULL)
+            PGOTO_ERROR(FAIL, "analysis dg was NULL");
+
+        in.an_pkg.json_filepath = (hg_string_t)an_dg->data;
+
+        uint32_t              n    = 0;
+        PDC_VECTOR_ITERATOR * an_iter = an_maps != NULL ? pdc_vector_iterator_new(an_maps) : NULL;
+        while (an_iter != NULL && pdc_vector_iterator_has_next(an_iter) && n < PDC_AN_PKG_MAX_STATES) {
+            pdc_an_region_mapping_t *m = (pdc_an_region_mapping_t *)pdc_vector_iterator_next(an_iter);
+            pdc_an_pkg_entry_t *      e = &in.an_pkg.entries[n];
+
+            e->pdc_var_type = (uint32_t)m->pdc_var_type;
+            e->state_name   = (hg_string_t)m->region_state.state_name;
+            e->ndim         = m->ndim;
+            memcpy(e->offset, m->offset, sizeof(uint64_t) * m->ndim);
+            memcpy(e->size, m->size, sizeof(uint64_t) * m->ndim);
+            e->obj_id   = m->obj_id;
+            e->obj_ndim = m->obj_ndim;
+            memcpy(e->obj_dims, m->obj_dims, sizeof(uint64_t) * (size_t)m->obj_ndim);
+            e->tf_json_filepath = (hg_string_t)m->region_state.tf_json_filepath;
+            e->tf_client_state  = (hg_string_t)m->region_state.tf_client_state;
+            e->tf_store_state   = (hg_string_t)m->region_state.tf_store_state;
+            n++;
+        }
+        if (an_iter != NULL)
+            pdc_vector_iterator_destroy(an_iter);
+        in.an_pkg.num_entries = n;
     }
 
     hg_ret = HG_Create(send_context_g, pdc_server_info_g[data_server_id].addr, transfer_request_register_id_g,
@@ -5474,7 +5527,7 @@ perr_t
 PDC_Client_an_attach_region(char *json_filepath, char *state_name, pdcid_t obj_id, uint8_t ndim,
                             uint64_t *offset, uint64_t *size, int32_t obj_ndim, uint64_t *obj_dims,
                             pdc_var_type_t pdc_var_type, char *tf_json_filepath, char *tf_client_state,
-                            char *tf_store_state)
+                            char *tf_store_state, uint32_t data_server_id)
 {
     FUNC_ENTER(NULL);
 
@@ -5485,7 +5538,15 @@ PDC_Client_an_attach_region(char *json_filepath, char *state_name, pdcid_t obj_i
     hg_handle_t                    rpc_handle;
     uint32_t                       server_id;
 
-    server_id = PDC_get_local_server_id(pdc_client_mpi_rank_g, pdc_nclient_per_server_g, pdc_server_num_g);
+    /* Route to whichever server actually owns the target object's data
+     * (its data_server_id, exactly like PDCregion_transfer_create routes),
+     * not the calling rank's own server -- the two only coincide when the
+     * calling rank is also the object's creator. A graph attached by
+     * multiple ranks against a shared object (each rank owning a distinct
+     * region of it) must have every rank's attach land on the one server
+     * that actually stores that object, or the binding is registered
+     * somewhere the write/read path never looks. */
+    server_id = data_server_id;
     debug_server_id_count[server_id]++;
 
     if (PDC_Client_try_lookup_server(server_id, 0) != SUCCEED)

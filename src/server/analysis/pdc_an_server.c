@@ -117,6 +117,53 @@ PDCan_find_binding(pdc_an_dg_entry_t *entry, const char *state_name)
     return NULL;
 }
 
+/* Region-scoped binding lookup: a graph attached by multiple ranks (each
+ * against its own disjoint region of a shared object, or its own separate
+ * object) accumulates multiple bindings per state_name in the same entry
+ * -- one per rank. PDCan_find_binding alone can't tell them apart (it just
+ * returns whichever was attached first), so every lookup made *during one
+ * rank's execution* needs to be scoped to that rank's own region: match on
+ * state_name AND the same (ndim, offset, size) as ref_offset/ref_size,
+ * which is the region of whichever binding actually triggered this
+ * execution (the write or read that called into PDCan_exec_graph). This
+ * mirrors the convention already used throughout the codebase (and its
+ * examples/tests) that one rank attaches every state of a graph using the
+ * same region across all of them. */
+static pdc_an_binding_t *
+PDCan_find_binding_by_region(pdc_an_dg_entry_t *entry, const char *state_name, uint8_t ref_ndim,
+                             const uint64_t *ref_offset, const uint64_t *ref_size)
+{
+    if (entry == NULL || entry->bindings_vector == NULL || state_name == NULL)
+        return NULL;
+
+    pdc_an_binding_t *    fallback = NULL;
+    PDC_VECTOR_ITERATOR *iter     = pdc_vector_iterator_new(entry->bindings_vector);
+    while (pdc_vector_iterator_has_next(iter)) {
+        pdc_an_binding_t *b = (pdc_an_binding_t *)pdc_vector_iterator_next(iter);
+        if (b == NULL || strcmp(b->state_name, state_name))
+            continue;
+
+        if (fallback == NULL)
+            fallback = b; /* preserves old first-match behavior if nothing matches by region */
+
+        if (b->ndim != ref_ndim)
+            continue;
+        bool region_match = true;
+        for (int d = 0; d < ref_ndim; d++) {
+            if (b->offset[d] != ref_offset[d] || b->size[d] != ref_size[d]) {
+                region_match = false;
+                break;
+            }
+        }
+        if (region_match) {
+            pdc_vector_iterator_destroy(iter);
+            return b;
+        }
+    }
+    pdc_vector_iterator_destroy(iter);
+    return fallback;
+}
+
 /* Shared reverse-index scan: finds the (dg_entry, binding) whose region
  * matches (obj_id, ndim, offset, size), optionally filtered to only
  * input-state or only output-state bindings (want_output: 1 = output only,
@@ -214,6 +261,17 @@ PDCan_store_attach_mapping(char *json_filepath, char *state_name, pdcid_t obj_id
     if (entry == NULL)
         PGOTO_ERROR(FAIL, "Failed to load or find analysis graph \"%s\"\n", json_filepath);
 
+    /* Now piggybacked on every read/write RPC touching a bound region
+     * (exactly like PDC TF's pdc_tf_pkg), not sent once by a dedicated
+     * attach RPC -- so this same (obj_id, region) arrives on every single
+     * read/write, and must be a no-op past the first time or every
+     * subsequent I/O would pile up a duplicate binding. */
+    pdc_an_dg_entry_t *existing_entry   = NULL;
+    pdc_an_binding_t * existing_binding = NULL;
+    if (find_binding_index_entry(obj_id, ndim, offset, size, -1, &existing_entry, &existing_binding) &&
+        existing_entry == entry && !strcmp(existing_binding->state_name, state_name))
+        PGOTO_DONE(SUCCEED);
+
     pdc_an_state_t *state = PDCan_dg_get_state(entry->dg, state_name);
     if (state == NULL)
         PGOTO_ERROR(FAIL, "State \"%s\" not found in analysis graph \"%s\"\n", state_name, json_filepath);
@@ -252,9 +310,10 @@ done:
 }
 
 static bool
-state_is_materialized(pdc_an_dg_entry_t *entry, const char *state_name)
+state_is_materialized(pdc_an_dg_entry_t *entry, const char *state_name, uint8_t ref_ndim,
+                      const uint64_t *ref_offset, const uint64_t *ref_size)
 {
-    pdc_an_binding_t *b = PDCan_find_binding(entry, state_name);
+    pdc_an_binding_t *b = PDCan_find_binding_by_region(entry, state_name, ref_ndim, ref_offset, ref_size);
     return b != NULL && b->materialized;
 }
 
@@ -272,7 +331,8 @@ state_is_materialized(pdc_an_dg_entry_t *entry, const char *state_name)
  */
 static perr_t
 collect_needed_funcs(pdc_dg_t *dg, pdc_an_dg_entry_t *entry, char **target_state_names, int num_targets,
-                     PDC_VECTOR *needed_funcs)
+                     PDC_VECTOR *needed_funcs, uint8_t ref_ndim, const uint64_t *ref_offset,
+                     const uint64_t *ref_size)
 {
     FUNC_ENTER(NULL);
 
@@ -283,7 +343,7 @@ collect_needed_funcs(pdc_dg_t *dg, pdc_an_dg_entry_t *entry, char **target_state
         pdc_an_node_t *state_node = PDCan_dg_get_node(dg, target_state_names[i]);
         if (state_node == NULL || state_node->kind != PDC_AN_NODE_STATE)
             PGOTO_ERROR(FAIL, "Unknown target state \"%s\"\n", target_state_names[i]);
-        if (state_is_materialized(entry, target_state_names[i]))
+        if (state_is_materialized(entry, target_state_names[i], ref_ndim, ref_offset, ref_size))
             continue; /* already on disk, nothing to compute for this target */
         if (!vector_contains_ptr(frontier, state_node))
             pdc_vector_add(frontier, state_node);
@@ -314,7 +374,7 @@ collect_needed_funcs(pdc_dg_t *dg, pdc_an_dg_entry_t *entry, char **target_state
                 pdc_an_node_t *in_state = PDCan_dg_get_node(dg, f->input_names[k]);
                 if (in_state == NULL || vector_contains_ptr(frontier, in_state))
                     continue;
-                if (state_is_materialized(entry, f->input_names[k]))
+                if (state_is_materialized(entry, f->input_names[k], ref_ndim, ref_offset, ref_size))
                     continue; /* already on disk, its producer need not run again */
                 pdc_vector_add(frontier, in_state);
             }
@@ -386,7 +446,8 @@ done:
 }
 
 perr_t
-PDCan_exec_graph(pdc_an_dg_entry_t *entry, char **target_state_names, int num_targets)
+PDCan_exec_graph(pdc_an_dg_entry_t *entry, char **target_state_names, int num_targets, uint8_t ref_ndim,
+                const uint64_t *ref_offset, const uint64_t *ref_size)
 {
     FUNC_ENTER(NULL);
 
@@ -405,7 +466,8 @@ PDCan_exec_graph(pdc_an_dg_entry_t *entry, char **target_state_names, int num_ta
     PDC_VECTOR *scratch_bufs    = pdc_vector_create(8, 2.0);
     PDC_VECTOR *scratch_regions = pdc_vector_create(8, 2.0);
 
-    if (collect_needed_funcs(dg, entry, target_state_names, num_targets, needed_funcs) != SUCCEED)
+    if (collect_needed_funcs(dg, entry, target_state_names, num_targets, needed_funcs, ref_ndim, ref_offset,
+                             ref_size) != SUCCEED)
         PGOTO_ERROR(FAIL, "Failed to determine which transformations must run\n");
     if (topo_sort_funcs(needed_funcs, exec_order) != SUCCEED)
         PGOTO_ERROR(FAIL, "Failed to order transformations\n");
@@ -428,7 +490,8 @@ PDCan_exec_graph(pdc_an_dg_entry_t *entry, char **target_state_names, int num_ta
                 continue;
             }
 
-            pdc_an_binding_t *binding = PDCan_find_binding(entry, in_name);
+            pdc_an_binding_t *binding =
+                PDCan_find_binding_by_region(entry, in_name, ref_ndim, ref_offset, ref_size);
             if (binding == NULL)
                 PGOTO_ERROR(FAIL,
                             "State \"%s\" has no bound region and was not produced earlier in this "
@@ -509,7 +572,8 @@ PDCan_exec_graph(pdc_an_dg_entry_t *entry, char **target_state_names, int num_ta
             pdc_an_state_t *out_state = PDCan_dg_get_state(dg, out_name);
 
             if (out_state->persistence == PDC_AN_PERSISTENT) {
-                pdc_an_binding_t *binding = PDCan_find_binding(entry, out_name);
+                pdc_an_binding_t *binding =
+                    PDCan_find_binding_by_region(entry, out_name, ref_ndim, ref_offset, ref_size);
                 if (binding == NULL)
                     PGOTO_ERROR(FAIL, "Persistent output \"%s\" was never attached to an object/region\n",
                                 out_name);
@@ -618,7 +682,8 @@ PDCan_notify_input_written(pdcid_t obj_id, uint8_t ndim, uint64_t *offset, uint6
 
             bool already_done = false;
             for (int o = 0; o < f->num_outputs; o++) {
-                pdc_an_binding_t *ob = PDCan_find_binding(entry, f->output_names[o]);
+                pdc_an_binding_t *ob = PDCan_find_binding_by_region(entry, f->output_names[o], binding->ndim,
+                                                                    binding->offset, binding->size);
                 if (ob != NULL && ob->materialized) {
                     already_done = true;
                     break;
@@ -634,7 +699,8 @@ PDCan_notify_input_written(pdcid_t obj_id, uint8_t ndim, uint64_t *offset, uint6
                     all_ready = false;
                     break;
                 }
-                pdc_an_binding_t *ib = PDCan_find_binding(entry, f->input_names[k]);
+                pdc_an_binding_t *ib = PDCan_find_binding_by_region(entry, f->input_names[k], binding->ndim,
+                                                                    binding->offset, binding->size);
                 if (ib == NULL || !ib->materialized) {
                     all_ready = false;
                     break;
@@ -643,7 +709,8 @@ PDCan_notify_input_written(pdcid_t obj_id, uint8_t ndim, uint64_t *offset, uint6
             if (!all_ready)
                 continue;
 
-            if (PDCan_exec_graph(entry, f->output_names, f->num_outputs) != SUCCEED) {
+            if (PDCan_exec_graph(entry, f->output_names, f->num_outputs, binding->ndim, binding->offset,
+                                 binding->size) != SUCCEED) {
                 LOG_ERROR("Eager write-triggered analysis failed for transformation \"%s\"\n", f->name);
                 continue;
             }
@@ -690,7 +757,7 @@ PDC_Server_data_io_region_analysis(uint64_t obj_id, int obj_ndim, const uint64_t
     if (!binding->materialized) {
         char *targets[1];
         targets[0] = binding->state_name;
-        if (PDCan_exec_graph(entry, targets, 1) != SUCCEED)
+        if (PDCan_exec_graph(entry, targets, 1, binding->ndim, binding->offset, binding->size) != SUCCEED)
             PGOTO_ERROR(FAIL, "Failed to compute analysis output \"%s\"\n", binding->state_name);
     }
 
