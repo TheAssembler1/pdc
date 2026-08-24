@@ -1210,9 +1210,10 @@ PDC_insert_metadata_to_hash_table(gen_obj_id_in_t *in, gen_obj_id_out_t *out)
             found_identical = find_identical_metadata(lookup_value, metadata);
             if (found_identical != NULL) {
                 out->obj_id = 0;
-                metadata    = (pdc_metadata_t *)PDC_free(metadata);
-                PGOTO_ERROR(FAIL, "Found identical metadata with name %s", pdc_server_rank_g,
-                            metadata->obj_name);
+                LOG_ERROR("Found identical metadata with name %s", metadata->obj_name);
+                LOG_JUST_PRINT("\n");
+                metadata = (pdc_metadata_t *)PDC_free(metadata);
+                PGOTO_DONE(FAIL);
             }
             else {
                 PDC_Server_hash_table_list_insert(lookup_value, metadata);
