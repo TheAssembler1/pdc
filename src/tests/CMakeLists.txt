@@ -117,6 +117,7 @@ set(PROGRAMS
   analysis/vector_magnitude_test
   analysis/vector_magnitude_2d_test
   analysis/vector_magnitude_compressed_test
+  analysis/bench_magnitude
 )
 
 # Use C compiler for C files
