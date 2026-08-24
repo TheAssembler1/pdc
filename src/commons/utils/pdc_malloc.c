@@ -90,7 +90,13 @@ PDC_calloc(size_t count, size_t size)
     assert(count);
     assert(size);
 
-    if (count == 0 || size == 0 || count > (size_t)1 << 32 || size > (size_t)1 << 40)
+    /* 1TB sanity cap on each argument, matching PDC_malloc's cap -- count
+     * used to cap at 1<<32 (4GB), which calls like
+     * PDC_calloc(region_size_in_bytes, sizeof(char)) legitimately exceed
+     * for any single-region write/read at or above 4GB (e.g. an 8GB
+     * region landing on a single data server), silently returning NULL
+     * for a perfectly valid request. */
+    if (count == 0 || size == 0 || count > (size_t)1 << 40 || size > (size_t)1 << 40)
         FUNC_LEAVE(NULL);
 
     ret_value = calloc(count, size);
