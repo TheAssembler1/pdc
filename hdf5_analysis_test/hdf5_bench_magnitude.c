@@ -98,20 +98,20 @@ main(int argc, char **argv)
         fprintf(stderr, "Usage: %s <n_elem_per_rank> [out_file]\n", argv[0]);
         return 1;
     }
-    n_elem = atol(argv[1]);
+    n_elem               = atol(argv[1]);
     const char *out_file = (argc >= 3) ? argv[2] : "hdf5_bench_magnitude.h5";
 
     MPI_Init(&argc, &argv);
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
     MPI_Comm_size(MPI_COMM_WORLD, &nranks);
 
-    float * vx      = (float *)malloc(sizeof(float) * n_elem);
-    float * vy      = (float *)malloc(sizeof(float) * n_elem);
-    float * vz      = (float *)malloc(sizeof(float) * n_elem);
-    float * vx_rb   = (float *)malloc(sizeof(float) * n_elem);
-    float * vy_rb   = (float *)malloc(sizeof(float) * n_elem);
-    float * vz_rb   = (float *)malloc(sizeof(float) * n_elem);
-    double *mag     = (double *)malloc(sizeof(double) * n_elem);
+    float * vx    = (float *)malloc(sizeof(float) * n_elem);
+    float * vy    = (float *)malloc(sizeof(float) * n_elem);
+    float * vz    = (float *)malloc(sizeof(float) * n_elem);
+    float * vx_rb = (float *)malloc(sizeof(float) * n_elem);
+    float * vy_rb = (float *)malloc(sizeof(float) * n_elem);
+    float * vz_rb = (float *)malloc(sizeof(float) * n_elem);
+    double *mag   = (double *)malloc(sizeof(double) * n_elem);
 
     for (i = 0; i < (size_t)n_elem; ++i) {
         vx[i] = (float)((i % 1000) + 1);
@@ -173,7 +173,7 @@ main(int argc, char **argv)
     /* Correctness check (not timed). */
     int local_bad = 0;
     for (i = 0; i < (size_t)n_elem; ++i) {
-        double x        = (double)vx[i], y = (double)vy[i], z = (double)vz[i];
+        double x = (double)vx[i], y = (double)vy[i], z = (double)vz[i];
         double expected = sqrt(x * x + y * y + z * z);
         if (fabs(mag[i] - expected) > EPSILON) {
             local_bad++;

@@ -161,7 +161,7 @@ PDCan_attach_to_region(pdcid_t dg_id, char *state_name, pdcid_t obj_id, pdcid_t 
      * always lands on the right server without this call needing to know
      * or compute that itself. */
     if (pdc_obj_info->pdc_an_obj == NULL) {
-        pdc_obj_info->pdc_an_obj                       = PDC_calloc(1, sizeof(pdc_an_obj_t));
+        pdc_obj_info->pdc_an_obj                         = PDC_calloc(1, sizeof(pdc_an_obj_t));
         pdc_obj_info->pdc_an_obj->region_mappings_vector = pdc_vector_create(8, 2.0);
     }
 
@@ -171,8 +171,8 @@ PDCan_attach_to_region(pdcid_t dg_id, char *state_name, pdcid_t obj_id, pdcid_t 
     mapping->ndim                    = (uint8_t)region_info->ndim;
     memcpy(mapping->offset, region_info->offset, region_info->ndim * sizeof(uint64_t));
     memcpy(mapping->size, region_info->size, region_info->ndim * sizeof(uint64_t));
-    mapping->obj_id      = (uint64_t)pdc_obj_info->obj_info_pub->meta_id;
-    mapping->obj_ndim    = (int32_t)pdc_obj_info->obj_pt->obj_prop_pub->ndim;
+    mapping->obj_id       = (uint64_t)pdc_obj_info->obj_info_pub->meta_id;
+    mapping->obj_ndim     = (int32_t)pdc_obj_info->obj_pt->obj_prop_pub->ndim;
     mapping->pdc_var_type = pdc_obj_info->obj_pt->obj_prop_pub->type;
     memcpy(mapping->obj_dims, pdc_obj_info->obj_pt->obj_prop_pub->dims,
            (size_t)mapping->obj_ndim * sizeof(uint64_t));

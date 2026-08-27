@@ -136,7 +136,7 @@ PDCan_find_binding_by_region(pdc_an_dg_entry_t *entry, const char *state_name, u
     if (entry == NULL || entry->bindings_vector == NULL || state_name == NULL)
         return NULL;
 
-    pdc_an_binding_t *    fallback = NULL;
+    pdc_an_binding_t *   fallback = NULL;
     PDC_VECTOR_ITERATOR *iter     = pdc_vector_iterator_new(entry->bindings_vector);
     while (pdc_vector_iterator_has_next(iter)) {
         pdc_an_binding_t *b = (pdc_an_binding_t *)pdc_vector_iterator_next(iter);
@@ -447,7 +447,7 @@ done:
 
 perr_t
 PDCan_exec_graph(pdc_an_dg_entry_t *entry, char **target_state_names, int num_targets, uint8_t ref_ndim,
-                const uint64_t *ref_offset, const uint64_t *ref_size)
+                 const uint64_t *ref_offset, const uint64_t *ref_size)
 {
     FUNC_ENTER(NULL);
 

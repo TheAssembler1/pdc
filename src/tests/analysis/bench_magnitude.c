@@ -88,13 +88,13 @@ main(int argc, char **argv)
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
     MPI_Comm_size(MPI_COMM_WORLD, &nranks);
 
-    float * vx      = (float *)malloc(sizeof(float) * n_elem);
-    float * vy      = (float *)malloc(sizeof(float) * n_elem);
-    float * vz      = (float *)malloc(sizeof(float) * n_elem);
-    float * vx_rb   = (float *)malloc(sizeof(float) * n_elem);
-    float * vy_rb   = (float *)malloc(sizeof(float) * n_elem);
-    float * vz_rb   = (float *)malloc(sizeof(float) * n_elem);
-    double *mag     = (double *)malloc(sizeof(double) * n_elem);
+    float * vx    = (float *)malloc(sizeof(float) * n_elem);
+    float * vy    = (float *)malloc(sizeof(float) * n_elem);
+    float * vz    = (float *)malloc(sizeof(float) * n_elem);
+    float * vx_rb = (float *)malloc(sizeof(float) * n_elem);
+    float * vy_rb = (float *)malloc(sizeof(float) * n_elem);
+    float * vz_rb = (float *)malloc(sizeof(float) * n_elem);
+    double *mag   = (double *)malloc(sizeof(double) * n_elem);
 
     for (i = 0; i < (size_t)n_elem; ++i) {
         vx[i] = (float)((i % 1000) + 1);
@@ -181,7 +181,7 @@ main(int argc, char **argv)
     }
 
     pdcid_t reg        = PDCregion_create(1, local_offset, region_len);
-    pdcid_t reg_global  = PDCregion_create(1, global_offset, region_len);
+    pdcid_t reg_global = PDCregion_create(1, global_offset, region_len);
 
     pdcid_t dg_id = 0;
     if (is_eager) {
@@ -249,7 +249,7 @@ main(int argc, char **argv)
     /* Correctness check (not timed). */
     int local_bad = 0;
     for (i = 0; i < (size_t)n_elem; ++i) {
-        double x        = (double)vx[i], y = (double)vy[i], z = (double)vz[i];
+        double x = (double)vx[i], y = (double)vy[i], z = (double)vz[i];
         double expected = sqrt(x * x + y * y + z * z);
         if (fabs(mag[i] - expected) > EPSILON) {
             local_bad++;
@@ -275,12 +275,12 @@ main(int argc, char **argv)
     }
     PDCclose(pdc);
 
-    double local_setup    = t_setup1 - t_setup0;
-    double local_write    = t_write1 - t_write0;
-    double local_readback = t_readback1 - t_readback0;
-    double local_compute  = t_compute1 - t_compute0;
+    double local_setup     = t_setup1 - t_setup0;
+    double local_write     = t_write1 - t_write0;
+    double local_readback  = t_readback1 - t_readback0;
+    double local_compute   = t_compute1 - t_compute0;
     double local_writeback = t_writeback1 - t_writeback0;
-    double local_read     = t_read1 - t_read0;
+    double local_read      = t_read1 - t_read0;
 
     double max_setup, max_write, max_readback, max_compute, max_writeback, max_read;
     MPI_Reduce(&local_setup, &max_setup, 1, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD);
@@ -291,7 +291,8 @@ main(int argc, char **argv)
     MPI_Reduce(&local_read, &max_read, 1, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD);
 
     if (rank == 0) {
-        double      total = is_eager ? (max_write + max_read) : (max_write + max_readback + max_compute + max_writeback);
+        double total =
+            is_eager ? (max_write + max_read) : (max_write + max_readback + max_compute + max_writeback);
         const char *mode_name = is_eager ? "eager" : (is_lazy ? "lazy" : "posthoc");
         printf("%s,%d,%ld,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%d\n", mode_name, nranks, n_elem, max_setup,
                max_write, max_readback, max_compute, max_writeback, max_read, total, global_bad);

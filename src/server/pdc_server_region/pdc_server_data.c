@@ -4479,7 +4479,8 @@ PDC_Server_data_read_from(uint64_t obj_id, struct pdc_region_info *region_info, 
 #ifdef PDC_TIMING
                 start_posix = MPI_Wtime();
 #endif
-                if (PDC_Server_posix_pread(region->fd, buf + (overlap_offset[0] - region_info->offset[0]) * unit,
+                if (PDC_Server_posix_pread(region->fd,
+                                           buf + (overlap_offset[0] - region_info->offset[0]) * unit,
                                            overlap_size[0] * unit, overlap_region->offset + pos) != SUCCEED) {
                     LOG_ERROR("pread failed to read enough bytes\n");
                 }

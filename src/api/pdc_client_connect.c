@@ -3385,7 +3385,7 @@ PDC_Client_transfer_request(hg_bulk_t *bulk_handle, void *buf, pdcid_t obj_id, u
     hg_handle_t                       client_send_transfer_request_handle;
     struct _pdc_transfer_request_args transfer_args;
     char                              cur_time[64];
-    pdc_tf_region_mapping_t *         region_mapping = NULL;
+    pdc_tf_region_mapping_t *         region_mapping    = NULL;
     pdc_an_region_mapping_t *         an_region_mapping = NULL;
 
     FUNC_ENTER(NULL);
@@ -3480,20 +3480,20 @@ PDC_Client_transfer_request(hg_bulk_t *bulk_handle, void *buf, pdcid_t obj_id, u
         PDCan_region_has_attached_graph(obj_pointer->pdc_an_obj, (uint8_t)remote_ndim, remote_offset,
                                         remote_size, &an_region_mapping)) {
 
-        pdcid_t     an_dg_id  = an_region_mapping->region_state.dg_id;
-        pdc_dg_t *  an_dg     = PDCan_get_dg(an_dg_id);
-        PDC_VECTOR *an_maps   = PDCan_get_client_dg_mappings(an_dg_id);
+        pdcid_t     an_dg_id = an_region_mapping->region_state.dg_id;
+        pdc_dg_t *  an_dg    = PDCan_get_dg(an_dg_id);
+        PDC_VECTOR *an_maps  = PDCan_get_client_dg_mappings(an_dg_id);
 
         if (an_dg == NULL)
             PGOTO_ERROR(FAIL, "analysis dg was NULL");
 
         in.an_pkg.json_filepath = (hg_string_t)an_dg->data;
 
-        uint32_t              n    = 0;
-        PDC_VECTOR_ITERATOR * an_iter = an_maps != NULL ? pdc_vector_iterator_new(an_maps) : NULL;
+        uint32_t             n       = 0;
+        PDC_VECTOR_ITERATOR *an_iter = an_maps != NULL ? pdc_vector_iterator_new(an_maps) : NULL;
         while (an_iter != NULL && pdc_vector_iterator_has_next(an_iter) && n < PDC_AN_PKG_MAX_STATES) {
             pdc_an_region_mapping_t *m = (pdc_an_region_mapping_t *)pdc_vector_iterator_next(an_iter);
-            pdc_an_pkg_entry_t *      e = &in.an_pkg.entries[n];
+            pdc_an_pkg_entry_t *     e = &in.an_pkg.entries[n];
 
             e->pdc_var_type = (uint32_t)m->pdc_var_type;
             e->state_name   = (hg_string_t)m->region_state.state_name;

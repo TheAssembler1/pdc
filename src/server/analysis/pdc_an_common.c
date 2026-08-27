@@ -50,10 +50,10 @@ PDCan_add_client_dg_mapping(pdcid_t dg_id, pdc_an_region_mapping_t *mapping)
 
     PDC_VECTOR *mappings = PDCan_get_client_dg_mappings(dg_id);
     if (mappings == NULL) {
-        mappings                          = pdc_vector_create(8, 2.0);
-        pdc_an_client_dg_entry_t *entry   = PDC_malloc(sizeof(pdc_an_client_dg_entry_t));
-        entry->dg_id                      = dg_id;
-        entry->mappings                   = mappings;
+        mappings                        = pdc_vector_create(8, 2.0);
+        pdc_an_client_dg_entry_t *entry = PDC_malloc(sizeof(pdc_an_client_dg_entry_t));
+        entry->dg_id                    = dg_id;
+        entry->mappings                 = mappings;
         pdc_vector_add(an_client_dg_registry_g, entry);
     }
 

@@ -29,18 +29,18 @@ typedef struct pdc_an_region_state_t {
 
 typedef struct pdc_an_region_mapping_t {
     pdc_an_region_state_t region_state;
-    uint8_t                ndim;
-    uint64_t               offset[DIM_MAX];
-    uint64_t               size[DIM_MAX];
+    uint8_t               ndim;
+    uint64_t              offset[DIM_MAX];
+    uint64_t              size[DIM_MAX];
 
     /* The object this state is bound to -- captured at attach time since
      * a graph's states each live on a different object, and every entry
      * piggybacked together (see pdc_an_pkg_t) needs its own identity, not
      * just whichever object happens to own the RPC this rides on. */
-    uint64_t         obj_id; /* server-assigned meta_id */
-    int32_t          obj_ndim;
-    uint64_t         obj_dims[DIM_MAX];
-    pdc_var_type_t   pdc_var_type;
+    uint64_t       obj_id; /* server-assigned meta_id */
+    int32_t        obj_ndim;
+    uint64_t       obj_dims[DIM_MAX];
+    pdc_var_type_t pdc_var_type;
 } pdc_an_region_mapping_t;
 
 /**
@@ -94,7 +94,7 @@ typedef struct pdc_an_pkg_entry_t {
  */
 typedef struct pdc_an_pkg_t {
     hg_string_t        json_filepath; /* NULL/empty = no analysis graph attached to this RPC's region */
-    uint32_t            num_entries;
+    uint32_t           num_entries;
     pdc_an_pkg_entry_t entries[PDC_AN_PKG_MAX_STATES];
 } pdc_an_pkg_t;
 
