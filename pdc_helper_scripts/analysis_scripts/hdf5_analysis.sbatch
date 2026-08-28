@@ -8,9 +8,11 @@
 # Override N_ELEM at submit time, e.g.:
 #   N_ELEM=536870912 sbatch --nodes=4 hdf5_analysis.sbatch
 #
-# Needs a parallel-HDF5 module loaded before hdf5_analysis_test/ is built,
-# e.g. `module load cray-hdf5-parallel` on Perlmutter (see
-# hdf5_analysis_test/README.md).
+# Needs the same parallel-HDF5 module that built hdf5_analysis_test/ (see
+# hdf5_analysis_test/README.md) loaded here too -- the compute-node
+# environment doesn't inherit whatever was loaded in the login shell at
+# build time, so the module load below is required even though the
+# binary was already built.
 
 #SBATCH --job-name=hdf5-magnitude
 #SBATCH --nodes=8
@@ -24,6 +26,8 @@
 
 set -u
 cd "$SLURM_SUBMIT_DIR"
+
+module load cray-hdf5-parallel
 
 export NUM_NODES=$SLURM_JOB_NUM_NODES
 export CLIENTS_PER_NODE=32
