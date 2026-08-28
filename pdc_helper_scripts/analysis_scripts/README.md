@@ -3,24 +3,31 @@
 Slurm jobs and supporting bash scripts for the magnitude-analysis scale
 study (eager DataFlyway vs. posthoc vs. plain parallel HDF5), modeled after
 `pdc_helper_scripts/vpicio_scripts/` (background server srun step, foreground
-client srun step, graceful `close_server` shutdown).
+client srun step, graceful `close_server` shutdown, per-node-count job
+chaining via `vpicio_scale_run.sh`).
 
 ## Layout
 
 | File | Role |
 |---|---|
-| `srun_server.sh` | Starts `pdc_server` in the background for one sweep step |
+| `srun_server.sh` | Starts `pdc_server` in the background for one node-count step |
 | `srun_close_server.sh` | Gracefully shuts the server down via `close_server` |
 | `srun_client_dataflyway.sh` | Runs `bench_magnitude eager`, appends a CSV row |
 | `srun_client_posthoc.sh` | Runs `bench_magnitude posthoc`, appends a CSV row |
 | `srun_hdf5.sh` | Runs `hdf5_bench_magnitude` (no PDC server), appends a CSV row |
-| `dataflyway_analysis.sbatch` | Sweep job: PDC DataFlyway (eager) |
-| `posthoc_analysis.sbatch` | Sweep job: PDC post-hoc |
-| `hdf5_analysis.sbatch` | Sweep job: plain parallel HDF5 baseline |
+| `dataflyway_analysis.sbatch` | Single-node-count job: PDC DataFlyway (eager) |
+| `posthoc_analysis.sbatch` | Single-node-count job: PDC post-hoc |
+| `hdf5_analysis.sbatch` | Single-node-count job: plain parallel HDF5 baseline |
+| `dataflyway_analysis_run.sh` | Submits 4 chained `dataflyway_analysis.sbatch` jobs, one per node count |
+| `posthoc_analysis_run.sh` | Submits 4 chained `posthoc_analysis.sbatch` jobs, one per node count |
+| `hdf5_analysis_run.sh` | Submits 4 chained `hdf5_analysis.sbatch` jobs, one per node count |
 
-Each `.sbatch` job sweeps client/server rank counts 1, 2, 4, 8 (override with
-`RANK_LIST`) inside a single allocation, and writes one CSV row per step to
-`results_<mode>_<jobid>.csv` in this directory.
+Each `.sbatch` job runs **one** node count with 8 data servers/node and 32
+client ranks/node (see "Server count vs. client count" below), and writes
+one CSV row to `results_<mode>_<jobid>.csv` in this directory. The
+`_run.sh` wrapper for each mode submits 4 such jobs, one per node count in
+`1 2 4 8`, chained with `--dependency=afterok` so they run one after
+another rather than all competing for the account's allocation at once.
 
 ## Usage on Perlmutter
 
@@ -33,24 +40,31 @@ module load cray-hdf5-parallel
 cd hdf5_analysis_test && make && cd ..
 
 cd pdc_helper_scripts/analysis_scripts
-sbatch dataflyway_analysis.sbatch
-sbatch posthoc_analysis.sbatch
-sbatch hdf5_analysis.sbatch
+./dataflyway_analysis_run.sh   # submits 4 jobs: 1, 2, 4, 8 nodes
+./posthoc_analysis_run.sh      # submits 4 jobs: 1, 2, 4, 8 nodes
+./hdf5_analysis_run.sh         # submits 4 jobs: 1, 2, 4, 8 nodes
 ```
 
-Each job defaults to `--account=m2621`; edit the `#SBATCH` header or pass
-`--account=<yours>` on the `sbatch` command line if that allocation isn't
-yours. `BIN_DIR`, `N_ELEM`, and `RANK_LIST` are all overridable via the
-environment at submit time, e.g.:
+Each job defaults to `--account=m2621`; edit the `#SBATCH` header, or export
+`SBATCH_ACCOUNT=<yours>`, if that allocation isn't yours. `BIN_DIR` and
+`N_ELEM` are overridable via the environment at submit time, e.g.:
 
 ```
-RANK_LIST="1 2 4 8 16 32" N_ELEM=536870912 sbatch dataflyway_analysis.sbatch
+N_ELEM=536870912 ./dataflyway_analysis_run.sh
 ```
 
-## Why server count == client count
+To run a single node count directly instead of the full sweep:
+
+```
+N_ELEM=536870912 sbatch --nodes=4 dataflyway_analysis.sbatch
+```
+
+## Server count vs. client count
 
 The magnitude benchmark (`src/tests/analysis/bench_magnitude.c`) uses
-`PDC_REGION_STATIC` so each rank's disjoint region routes to the
-matching server automatically -- this only lines up 1:1 when the client
-and server rank counts match, which is why every sweep step here launches
-identically-sized server and client srun steps.
+`PDC_REGION_STATIC`, which splits each object's region across however many
+data servers are running (`static_region_partition`), independent of how
+many client ranks exist. Server count and client count don't need to
+match for correctness -- 8 data servers/node and 32 client ranks/node is
+just the deployment shape used here, same asymmetry as
+`vpicio_scripts` (`DATA_SERVERS_PER_NODE=1`, `CLIENTS_PER_NODE=32`).
