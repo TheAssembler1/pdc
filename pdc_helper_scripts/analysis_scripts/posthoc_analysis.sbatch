@@ -20,7 +20,7 @@
 #SBATCH --output=%x_%j.log
 
 set -u
-cd "$(dirname "$0")"
+cd "$SLURM_SUBMIT_DIR"
 
 export NUM_NODES=$SLURM_JOB_NUM_NODES
 export SERVERS_PER_NODE=8
