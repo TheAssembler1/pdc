@@ -33,15 +33,23 @@ check(hid_t id, const char *what)
 }
 
 /* Collective write of a rank-local buffer into its disjoint slice of a
- * dataset spanning the whole nranks*n_elem domain. */
+ * dataset spanning the whole nranks*n_elem domain. Chunked with one chunk
+ * exactly matching count[] (one rank's write), so each rank's collective
+ * write lands on its own whole chunk instead of multiple ranks
+ * contending over shared chunks. */
 static void
 write_dataset(hid_t file, const char *name, hid_t mem_type, hid_t file_type, void *buf, hsize_t dims[1],
               hsize_t offset[1], hsize_t count[1])
 {
     hid_t filespace = H5Screate_simple(1, dims, NULL);
     check(filespace, "H5Screate_simple (file)");
-    hid_t dset = H5Dcreate2(file, name, file_type, filespace, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+
+    hid_t dcpl = H5Pcreate(H5P_DATASET_CREATE);
+    check(H5Pset_chunk(dcpl, 1, count), "H5Pset_chunk");
+
+    hid_t dset = H5Dcreate2(file, name, file_type, filespace, H5P_DEFAULT, dcpl, H5P_DEFAULT);
     check(dset, "H5Dcreate2");
+    H5Pclose(dcpl);
     H5Sclose(filespace);
 
     hid_t memspace = H5Screate_simple(1, count, NULL);
@@ -123,6 +131,14 @@ main(int argc, char **argv)
     hsize_t dims[1]   = {(hsize_t)nranks * (hsize_t)n_elem};
     hsize_t offset[1] = {(hsize_t)rank * (hsize_t)n_elem};
     hsize_t count[1]  = {(hsize_t)n_elem};
+
+    if (rank == 0) {
+        printf("hdf5_bench_magnitude: nranks=%d n_elem=%ld chunk=%ld elements "
+               "(%.3f MiB/rank as float32, %.3f MiB/rank as float64)\n",
+               nranks, n_elem, n_elem, (double)n_elem * sizeof(float) / (1024.0 * 1024.0),
+               (double)n_elem * sizeof(double) / (1024.0 * 1024.0));
+        fflush(stdout);
+    }
 
     MPI_Barrier(MPI_COMM_WORLD);
     t_setup0 = MPI_Wtime();

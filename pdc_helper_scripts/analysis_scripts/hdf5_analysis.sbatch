@@ -37,22 +37,31 @@ export BIN_DIR=${BIN_DIR:-$PWD/../../hdf5_analysis_test}
 export OUT_DIR=${OUT_DIR:-$SCRATCH/hdf5_analysis_bench}
 mkdir -p "$OUT_DIR"
 
-# Without this, new files under OUT_DIR default to a single OST, so the
-# one shared HDF5 file's collective I/O funnels through one disk target
-# regardless of rank count -- PDC's servers each explicitly stripe their
-# own data directory onto a dedicated OST (see
-# src/server/pdc_server_region/pdc_server_data.c), so this keeps the
-# comparison fair by spreading the HDF5 file across many OSTs too.
-lfs setstripe -c -1 -S 16m "$OUT_DIR" || true
-
-# Lustre striping is fixed at file-creation time, so a stale .h5 from a
-# run before the setstripe above would keep its old (bad) layout even
-# though H5Fcreate truncates it -- remove it so it's created fresh.
-rm -f "$OUT_DIR"/hdf5_bench_magnitude_*.h5
-
 export N_ELEM=${N_ELEM:-268435456}   # 1 GiB/rank of float32
 export LOG_TAG=hdf5
 export RESULTS=$PWD/results_hdf5_${SLURM_JOB_ID}.csv
+export OUT_FILE=${OUT_DIR}/hdf5_bench_magnitude_${NUM_NODES}.h5
+
+# Lustre stripe size == exactly what one rank writes per collective write
+# (N_ELEM float32 elements), rounded up to the required 64 KiB stripe
+# granularity, striped across all 128 OSTs on this filesystem. Without
+# this, new files default to a single OST, so the one shared HDF5 file's
+# collective I/O funnels through one disk target regardless of rank
+# count. PDC's servers similarly stripe their own data directory onto
+# dedicated OSTs (see src/server/pdc_server_region/pdc_server_data.c),
+# so this keeps the HDF5 baseline comparable instead of artificially
+# bottlenecked.
+STRIPE_COUNT=128
+STRIPE_SIZE_BYTES=$((N_ELEM * 4))
+STRIPE_SIZE_BYTES=$(( ((STRIPE_SIZE_BYTES + 65535) / 65536) * 65536 ))
+echo "Lustre striping: count=${STRIPE_COUNT} size=${STRIPE_SIZE_BYTES} bytes ($((STRIPE_SIZE_BYTES / 1048576)) MiB/rank), target=${OUT_FILE}"
+
+# Lustre striping can only be set at file-creation time, so any stale
+# file at this path has to be removed first -- lfs setstripe then
+# creates the target itself as an empty file with the requested layout,
+# and H5Fcreate's later H5F_ACC_TRUNC preserves that layout.
+rm -f "$OUT_FILE"
+lfs setstripe -c "$STRIPE_COUNT" -S "$STRIPE_SIZE_BYTES" "$OUT_FILE" || echo "WARNING: lfs setstripe failed, falling back to filesystem default layout"
 
 echo "mode,n_ranks,n_elem,setup_s,write_s,readback_s,compute_s,writeback_s,total_s,bad" > "$RESULTS"
 
