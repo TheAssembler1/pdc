@@ -37,6 +37,19 @@ export BIN_DIR=${BIN_DIR:-$PWD/../../hdf5_analysis_test}
 export OUT_DIR=${OUT_DIR:-$SCRATCH/hdf5_analysis_bench}
 mkdir -p "$OUT_DIR"
 
+# Without this, new files under OUT_DIR default to a single OST, so the
+# one shared HDF5 file's collective I/O funnels through one disk target
+# regardless of rank count -- PDC's servers each explicitly stripe their
+# own data directory onto a dedicated OST (see
+# src/server/pdc_server_region/pdc_server_data.c), so this keeps the
+# comparison fair by spreading the HDF5 file across many OSTs too.
+lfs setstripe -c -1 -S 16m "$OUT_DIR" || true
+
+# Lustre striping is fixed at file-creation time, so a stale .h5 from a
+# run before the setstripe above would keep its old (bad) layout even
+# though H5Fcreate truncates it -- remove it so it's created fresh.
+rm -f "$OUT_DIR"/hdf5_bench_magnitude_*.h5
+
 export N_ELEM=${N_ELEM:-268435456}   # 1 GiB/rank of float32
 export LOG_TAG=hdf5
 export RESULTS=$PWD/results_hdf5_${SLURM_JOB_ID}.csv
