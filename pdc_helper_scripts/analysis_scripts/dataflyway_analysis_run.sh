@@ -1,13 +1,13 @@
 #!/bin/bash
-# Submits one dataflyway_analysis.sbatch job per node count (1, 2, 4, 8 --
-# 32 ranks/node, so 32/64/128/256 ranks total), chained with
+# Submits one dataflyway_analysis.sbatch job per node count (1, 2, 4, 8, 16,
+# 32 -- 32 ranks/node, so up to 1024 ranks total), chained with
 # --dependency=afterok so they run one at a time and each gets its own
 # results_dataflyway_<jobid>.csv. Mirrors vpicio_scripts/vpicio_scale_run.sh.
 
 cd "$(dirname "$0")"
 
 prev_jid=""
-for nodes in 1 2 4 8; do
+for nodes in 1 2 4 8 16 32; do
     if [ -z "$prev_jid" ]; then
         jid=$(sbatch --nodes=$nodes dataflyway_analysis.sbatch | awk '{print $4}')
     else
