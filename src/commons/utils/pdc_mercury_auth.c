@@ -57,12 +57,12 @@ PDC_discover_perlmutter_cxi_auth(unsigned int *svc_id, unsigned int *vni)
     char   line[256];
     char   uid_pattern[64];
 
-    unsigned int current_svc_id  = 0;
-    unsigned int current_vni     = 0;
-    pbool_t      enabled         = FALSE;
-    pbool_t      system_service  = FALSE;
-    pbool_t      restricted_mem  = TRUE;
-    pbool_t      member_match    = FALSE;
+    unsigned int current_svc_id = 0;
+    unsigned int current_vni    = 0;
+    pbool_t      enabled        = FALSE;
+    pbool_t      system_service = FALSE;
+    pbool_t      restricted_mem = TRUE;
+    pbool_t      member_match   = FALSE;
 
     if (svc_id == NULL || vni == NULL)
         PGOTO_ERROR(FAIL, "Invalid output pointers for CXI auth discovery\n");
