@@ -6,7 +6,7 @@
 # Submit one of these per node count via hdf5_analysis_run.sh, or
 # directly, e.g.: sbatch --nodes=4 hdf5_analysis.sbatch
 # Override N_ELEM at submit time, e.g.:
-#   N_ELEM=536870912 sbatch --nodes=4 hdf5_analysis.sbatch
+#   N_ELEM=33554432 sbatch --nodes=4 hdf5_analysis.sbatch
 #
 # Needs the same parallel-HDF5 module that built hdf5_analysis_test/ (see
 # hdf5_analysis_test/README.md) loaded here too -- the compute-node
@@ -37,7 +37,12 @@ export BIN_DIR=${BIN_DIR:-$PWD/../../hdf5_analysis_test}
 export OUT_DIR=${OUT_DIR:-$SCRATCH/hdf5_analysis_bench}
 mkdir -p "$OUT_DIR"
 
-export N_ELEM=${N_ELEM:-268435456}   # 1 GiB/rank of float32
+export N_ELEM=${N_ELEM:-16777216}   # 64 MiB/rank of float32 -- at the max
+                                     # scale point (128 nodes * 32 ranks/node
+                                     # = 4096 ranks), this writes 320 MiB/rank
+                                     # (192 MiB input + 128 MiB magnitude out),
+                                     # ~1.25 TiB aggregate, comfortably under
+                                     # the 2 TB budget.
 export LOG_TAG=hdf5
 export RESULTS=$PWD/results_hdf5_${SLURM_JOB_ID}.csv
 export OUT_FILE=${OUT_DIR}/hdf5_bench_magnitude_${NUM_NODES}.h5

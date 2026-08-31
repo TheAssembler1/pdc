@@ -7,7 +7,7 @@
 # Submit one of these per node count via dataflyway_analysis_run.sh, or
 # directly, e.g.: sbatch --nodes=4 dataflyway_analysis.sbatch
 # Override N_ELEM at submit time, e.g.:
-#   N_ELEM=536870912 sbatch --nodes=4 dataflyway_analysis.sbatch
+#   N_ELEM=33554432 sbatch --nodes=4 dataflyway_analysis.sbatch
 
 #SBATCH --job-name=pdc-dataflyway-magnitude
 #SBATCH --nodes=8
@@ -33,7 +33,12 @@ export PDC_DATA_LOC=${PDC_DATA_LOC:-$SCRATCH/pdc_analysis_bench}
 export PDC_TMPDIR=${PDC_TMPDIR:-$PDC_DATA_LOC}
 mkdir -p "$PDC_DATA_LOC"
 
-export N_ELEM=${N_ELEM:-268435456}   # 1 GiB/rank of float32
+export N_ELEM=${N_ELEM:-16777216}   # 64 MiB/rank of float32 -- at the max
+                                     # scale point (128 nodes * 32 ranks/node
+                                     # = 4096 ranks), this writes 320 MiB/rank
+                                     # (192 MiB input + 128 MiB magnitude out),
+                                     # ~1.25 TiB aggregate, comfortably under
+                                     # the 2 TB budget.
 export LOG_TAG=dataflyway
 export RESULTS=$PWD/results_dataflyway_${SLURM_JOB_ID}.csv
 

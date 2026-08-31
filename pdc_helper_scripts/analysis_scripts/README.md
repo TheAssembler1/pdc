@@ -50,14 +50,21 @@ Each job defaults to `--account=m2621`; edit the `#SBATCH` header, or export
 `N_ELEM` are overridable via the environment at submit time, e.g.:
 
 ```
-N_ELEM=536870912 ./dataflyway_analysis_run.sh
+N_ELEM=33554432 ./dataflyway_analysis_run.sh
 ```
 
 To run a single node count directly instead of the full sweep:
 
 ```
-N_ELEM=536870912 sbatch --nodes=4 dataflyway_analysis.sbatch
+N_ELEM=33554432 sbatch --nodes=4 dataflyway_analysis.sbatch
 ```
+
+The default `N_ELEM=16777216` (64 MiB/rank of float32) is sized so that at
+128 nodes * 32 ranks/node (4096 ranks) -- the largest scale point these
+benchmarks are meant to reach -- total data written stays under 2 TB
+(~1.25 TiB aggregate: 192 MiB/rank input + 128 MiB/rank magnitude output).
+Scale `N_ELEM` up with care; it applies per rank, so aggregate write grows
+with both `N_ELEM` and node count.
 
 ## Server count vs. client count
 
