@@ -57,11 +57,12 @@ PDC_discover_perlmutter_cxi_auth(unsigned int *svc_id, unsigned int *vni)
     char   line[256];
     char   uid_pattern[64];
 
-    unsigned int current_svc_id = 0;
-    unsigned int current_vni    = 0;
-    pbool_t      enabled        = FALSE;
-    pbool_t      system_service = FALSE;
-    pbool_t      member_match   = FALSE;
+    unsigned int current_svc_id  = 0;
+    unsigned int current_vni     = 0;
+    pbool_t      enabled         = FALSE;
+    pbool_t      system_service  = FALSE;
+    pbool_t      restricted_mem  = TRUE;
+    pbool_t      member_match    = FALSE;
 
     if (svc_id == NULL || vni == NULL)
         PGOTO_ERROR(FAIL, "Invalid output pointers for CXI auth discovery\n");
@@ -80,6 +81,7 @@ PDC_discover_perlmutter_cxi_auth(unsigned int *svc_id, unsigned int *vni)
             current_vni    = 0;
             enabled        = FALSE;
             system_service = FALSE;
+            restricted_mem = TRUE;
             member_match   = FALSE;
             continue;
         }
@@ -94,8 +96,17 @@ PDC_discover_perlmutter_cxi_auth(unsigned int *svc_id, unsigned int *vni)
             continue;
         }
 
+        /* Must be checked before "Valid Members" -- "Restricted Members : No"
+         * means the service has no member restriction at all, so its "Valid
+         * Members" line reads "All uids/gids" instead of an explicit uid
+         * list and never contains uid_pattern. */
+        if (strstr(line, "Restricted Members") != NULL) {
+            restricted_mem = (strstr(line, "Yes") != NULL) ? TRUE : FALSE;
+            continue;
+        }
+
         if (strstr(line, "Valid Members") != NULL) {
-            member_match = (strstr(line, uid_pattern) != NULL) ? TRUE : FALSE;
+            member_match = (restricted_mem == FALSE || strstr(line, uid_pattern) != NULL) ? TRUE : FALSE;
             continue;
         }
 
