@@ -22,6 +22,7 @@ set(LOCAL_INCLUDE_DIR
   ${PDC_SOURCE_DIR}/src/api/pdc_tf/include
   ${PDC_SOURCE_DIR}/src/api/pdc_an/include
   ${PDC_SOURCE_DIR}/src/utils/include
+  ${PDC_SOURCE_DIR}/src/tests/analysis
 )
 
 include_directories(
@@ -96,6 +97,7 @@ set(PDC_SRCS
   ${PDC_SOURCE_DIR}/src/server/analysis/pdc_an_common.c
   ${PDC_SOURCE_DIR}/src/server/analysis/pdc_an_server.c
   ${PDC_SOURCE_DIR}/src/server/analysis/pdc_an_builtin_magnitude_cpu.c
+  ${PDC_SOURCE_DIR}/src/server/analysis/pdc_an_builtin_curl_cpu.c
   ${PDC_SOURCE_DIR}/src/server/pdc_server_region/pdc_server_region_transfer.c
   ${PDC_SOURCE_DIR}/src/server/pdc_server_region/pdc_server_region_cache.c
   ${PDC_SOURCE_DIR}/src/server/pdc_server_region/pdc_server_region_transfer_metadata_query.c

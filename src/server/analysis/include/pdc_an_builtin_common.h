@@ -14,4 +14,17 @@ bool pdc_an_builtin_vector_magnitude(pdc_tf_internal_param *internal_param, char
                                      void **input_bufs, pdc_tf_region_t *input_regions, int num_inputs,
                                      void **output_bufs, pdc_tf_region_t *output_regions, int num_outputs);
 
+/**
+ * @brief Curl of a 3D vector field: exactly 3 float32 inputs (u, v, w --
+ * a local (nx,ny,nz) block, x fastest-varying) producing exactly 3
+ * float64 outputs (curl_x, curl_y, curl_z), via the shared kernel in
+ * src/tests/analysis/curl_math.h. Central differences in the block
+ * interior, one-sided at the block's own edges (no cross-rank halo
+ * exchange) and unit grid spacing -- a benchmark stand-in for curl's cost
+ * and data shape, not a scientifically exact discretization.
+ */
+bool pdc_an_builtin_curl(pdc_tf_internal_param *internal_param, char *params_str, void **input_bufs,
+                         pdc_tf_region_t *input_regions, int num_inputs, void **output_bufs,
+                         pdc_tf_region_t *output_regions, int num_outputs);
+
 #endif /* PDC_AN_BUILTIN_COMMON_H */

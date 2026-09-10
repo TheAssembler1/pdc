@@ -120,6 +120,10 @@ set(PROGRAMS
   analysis/bench_magnitude
   analysis/bench_write_components
   analysis/bench_posthoc_analyze
+  analysis/bench_curl_eager
+  analysis/bench_curl_write
+  analysis/bench_curl_compute
+  analysis/bench_curl_analyze
 )
 
 # Use C compiler for C files

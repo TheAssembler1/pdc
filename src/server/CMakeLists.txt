@@ -48,6 +48,7 @@ include_directories(
   ${PDC_SOURCE_DIR}/src/api/profiling/include
   ${PDC_SOURCE_DIR}/src/api/pdc_hist/include
   ${PDC_SOURCE_DIR}/src/utils/include
+  ${PDC_SOURCE_DIR}/src/tests/analysis
   ${MERCURY_INCLUDE_DIR}
   ${FASTBIT_INCLUDE_DIR}
   ${ROCKSDB_INCLUDE_DIR}
@@ -80,6 +81,7 @@ add_library(pdc_server_lib
                analysis/pdc_an_common.c
                analysis/pdc_an_server.c
                analysis/pdc_an_builtin_magnitude_cpu.c
+               analysis/pdc_an_builtin_curl_cpu.c
                dablooms/pdc_dablooms.c
                dablooms/pdc_murmur.c
                ${PDC_SOURCE_DIR}/src/server/pdc_server_region/pdc_server_data.c

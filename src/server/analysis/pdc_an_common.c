@@ -211,6 +211,9 @@ PDCan_init_builtin_funcs(void)
         SUCCEED)
         PGOTO_ERROR(FAIL, "Failed to add builtin analysis func vector_magnitude CPU");
 
+    if (PDCan_add_builtin_func("curl", pdc_an_builtin_curl, PDC_TF_CPU_DEVICE) != SUCCEED)
+        PGOTO_ERROR(FAIL, "Failed to add builtin analysis func curl CPU");
+
 done:
     FUNC_LEAVE(ret_value);
 }
