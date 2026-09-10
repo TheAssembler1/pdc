@@ -7,7 +7,7 @@
 cd "$(dirname "$0")"
 
 prev_jid=""
-for nodes in 1 2 4 8 16 32; do
+for nodes in 1 2 4 8; do
     if [ -z "$prev_jid" ]; then
         jid=$(sbatch --nodes=$nodes dataflyway_analysis.sbatch | awk '{print $4}')
     else

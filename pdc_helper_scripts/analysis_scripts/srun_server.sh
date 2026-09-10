@@ -23,7 +23,7 @@ srun \
   --ntasks-per-node="$SERVERS_PER_NODE" \
   --error="server_${LOG_TAG}_${NUM_NODES}.err" \
   --output="server_${LOG_TAG}_${NUM_NODES}.log" \
-  ./pdc_server &
+  bash -c 'export HG_HOST=cxi0:$SLURM_LOCALID; exec ./pdc_server' &
 popd
 
 # Give the servers time to stand up and publish their address info before

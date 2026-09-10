@@ -15,7 +15,7 @@ srun \
   --ntasks-per-node="$SERVERS_PER_NODE" \
   --error="close_server_${LOG_TAG}_${NUM_NODES}.err" \
   --output="close_server_${LOG_TAG}_${NUM_NODES}.log" \
-  ./close_server
+  bash -c 'export HG_HOST=cxi0:$((SLURM_LOCALID + 8)); exec ./close_server'
 popd
 
 # Let the backgrounded server step fully exit before the job script moves

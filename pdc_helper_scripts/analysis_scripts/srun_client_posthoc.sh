@@ -17,7 +17,7 @@ srun \
   --ntasks-per-node="$CLIENTS_PER_NODE" \
   --output="client_${LOG_TAG}_${NUM_NODES}.log" \
   --error="client_${LOG_TAG}_${NUM_NODES}.err" \
-  ./bench_magnitude posthoc "$N_ELEM"
+  bash -c 'export HG_HOST=cxi0:$((SLURM_LOCALID + 8)); exec ./bench_magnitude posthoc "$N_ELEM"'
 popd
 
 line=$(grep "^posthoc," "$BIN_DIR/client_${LOG_TAG}_${NUM_NODES}.log" | tail -1)
