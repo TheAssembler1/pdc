@@ -114,7 +114,7 @@ main(int argc, char **argv)
     double *curl_x_rb = (double *)malloc(sizeof(double) * n_elem);
     double *curl_y_rb = (double *)malloc(sizeof(double) * n_elem);
     double *curl_z_rb = (double *)malloc(sizeof(double) * n_elem);
-    double *mag        = (double *)malloc(sizeof(double) * n_elem);
+    double *mag       = (double *)malloc(sizeof(double) * n_elem);
 
     hsize_t dims[3]   = {(hsize_t)nx, (hsize_t)ny, (hsize_t)nranks * (hsize_t)nz_per_rank};
     hsize_t offset[3] = {0, 0, (hsize_t)rank * (hsize_t)nz_per_rank};
@@ -178,7 +178,7 @@ main(int argc, char **argv)
     for (i = 0; i < n_elem; ++i) {
         double expected =
             sqrt(curl_x_expected[i] * curl_x_expected[i] + curl_y_expected[i] * curl_y_expected[i] +
-                curl_z_expected[i] * curl_z_expected[i]);
+                 curl_z_expected[i] * curl_z_expected[i]);
         if (fabs(mag[i] - expected) > EPSILON) {
             local_bad++;
             break;

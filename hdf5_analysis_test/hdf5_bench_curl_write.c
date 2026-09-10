@@ -82,10 +82,10 @@ main(int argc, char **argv)
         fprintf(stderr, "Usage: %s <nx> <ny> <nz_per_rank> [out_file]\n", argv[0]);
         return 1;
     }
-    nx                    = atol(argv[1]);
-    ny                    = atol(argv[2]);
-    nz_per_rank           = atol(argv[3]);
-    const char *out_file  = (argc >= 5) ? argv[4] : "hdf5_bench_curl.h5";
+    nx                   = atol(argv[1]);
+    ny                   = atol(argv[2]);
+    nz_per_rank          = atol(argv[3]);
+    const char *out_file = (argc >= 5) ? argv[4] : "hdf5_bench_curl.h5";
 
     MPI_Init(&argc, &argv);
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
@@ -140,7 +140,7 @@ main(int argc, char **argv)
     H5Fclose(file);
 
     double local_setup = t_setup1 - t_setup0;
-    double local_write  = t_write1 - t_write0;
+    double local_write = t_write1 - t_write0;
 
     double max_setup, max_write;
     MPI_Reduce(&local_setup, &max_setup, 1, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD);

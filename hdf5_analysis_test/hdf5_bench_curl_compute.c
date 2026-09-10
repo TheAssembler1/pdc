@@ -89,8 +89,8 @@ read_dataset(hid_t file, const char *name, hid_t mem_type, void *buf, hsize_t of
 int
 main(int argc, char **argv)
 {
-    int    rank, nranks;
-    long   nx, ny, nz_per_rank;
+    int  rank, nranks;
+    long nx, ny, nz_per_rank;
 
     double t_setup0, t_setup1, t_readback0, t_readback1, t_compute0, t_compute1, t_writeback0, t_writeback1;
 
