@@ -2,10 +2,11 @@
 
 Slurm jobs and supporting bash scripts for an E3SM-shaped curl +
 vorticity-magnitude analysis benchmark, comparing PDC eager
-(DataFlyway) against a genuinely two-restart posthoc workflow -- modeled
-after the tropical-cyclone-track use case in the paper this compares
-against (curl of wind velocity / magnitude of curl, used to detect
-atmospheric rotation in E3SM output on Frontier).
+(DataFlyway), a genuinely two-restart PDC posthoc workflow, and a plain
+parallel-HDF5 baseline -- modeled after the tropical-cyclone-track use
+case in the paper this compares against (curl of wind velocity /
+magnitude of curl, used to detect atmospheric rotation in E3SM output on
+Frontier).
 
 ## The pipeline
 
@@ -66,6 +67,15 @@ the same `PDC_REGION_STATIC` region-offset routing pattern as
   `analysis_scripts/README.md`'s "Result CSV schema" section for why
   this relaunch cost matters -- same reasoning here, just with two
   relaunches instead of one.
+- **HDF5 baseline** (`hdf5_bench_curl_write` / `hdf5_bench_curl_compute`
+  / `hdf5_bench_curl_analyze` in `hdf5_analysis_test/`,
+  `curl_hdf5_analysis.sbatch`): the same three-phase shape as PDC
+  posthoc (write u,v,w; compute curl; compute magnitude), each phase a
+  separate srun step against a plain HDF5 file -- no PDC server, so no
+  restart cycle, just the file being reopened fresh each phase. Uses the
+  identical `curl_math.h` kernel as the PDC side (see
+  `hdf5_analysis_test/Makefile`'s `-I../src/tests/analysis`), so results
+  are directly comparable.
 
 ### Compression (optional)
 
@@ -121,10 +131,15 @@ NZ_PER_RANK=128 sbatch --nodes=4 curl_eager_analysis.sbatch
 | `srun_client_curl_write.sh` | Posthoc phase 1: runs `bench_curl_write` |
 | `srun_client_curl_compute.sh` | Posthoc phase 2: runs `bench_curl_compute` |
 | `srun_client_curl_analyze.sh` | Posthoc phase 3: runs `bench_curl_analyze` |
+| `srun_hdf5_curl_write.sh` | HDF5 baseline phase 1: runs `hdf5_bench_curl_write` |
+| `srun_hdf5_curl_compute.sh` | HDF5 baseline phase 2: runs `hdf5_bench_curl_compute` |
+| `srun_hdf5_curl_analyze.sh` | HDF5 baseline phase 3: runs `hdf5_bench_curl_analyze` |
 | `curl_eager_analysis.sbatch` | Single-node-count job: eager curl+magnitude |
 | `curl_posthoc_analysis.sbatch` | Single-node-count job: 3-phase posthoc curl+magnitude |
+| `curl_hdf5_analysis.sbatch` | Single-node-count job: 3-phase HDF5 baseline curl+magnitude |
 | `curl_eager_analysis_run.sh` | Submits chained `curl_eager_analysis.sbatch` jobs, one per node count |
 | `curl_posthoc_analysis_run.sh` | Submits chained `curl_posthoc_analysis.sbatch` jobs, one per node count |
+| `curl_hdf5_analysis_run.sh` | Submits chained `curl_hdf5_analysis.sbatch` jobs, one per node count |
 
 ## Result CSV schemas
 
@@ -143,15 +158,33 @@ mode,n_ranks,nx,ny,nz_per_rank,compress,write_setup_s,write_s,relaunch1_s,comput
 close+restart cycle (`srun_close_server.sh` + `srun_server_restart.sh`).
 `total_s` sums every phase's cost including both relaunches.
 
+HDF5 baseline (`results_curl_hdf5_<jobid>.csv`), combining all three
+phases' CSV lines into one row -- no relaunch columns, since there's no
+server to close/restart, just the file reopened fresh each phase:
+```
+mode,n_ranks,nx,ny,nz_per_rank,write_setup_s,write_s,compute_setup_s,readback1_s,curl_compute_s,writeback1_s,analyze_setup_s,readback2_s,magnitude_compute_s,writeback2_s,total_s,bad
+```
+
 ## Usage on Perlmutter
+
+Build the binaries first (see `hdf5_analysis_test/README.md` for the
+HDF5 side -- needs `module load cray-hdf5-parallel` before `make`):
+
+```
+cd build && make bench_curl_eager bench_curl_write bench_curl_compute bench_curl_analyze
+cd ../hdf5_analysis_test && module load cray-hdf5-parallel && make
+```
+
+Then submit:
 
 ```
 cd pdc_helper_scripts/curl_analysis_scripts
 ./curl_eager_analysis_run.sh     # submits chained jobs, one per node count
-./curl_posthoc_analysis_run.sh   # same, for the 3-phase posthoc variant
+./curl_posthoc_analysis_run.sh   # same, for the 3-phase PDC posthoc variant
+./curl_hdf5_analysis_run.sh      # same, for the 3-phase HDF5 baseline
 
 COMPRESS=1 ./curl_eager_analysis_run.sh    # GPU-compressed vorticity_magnitude variant
-COMPRESS=1 ./curl_posthoc_analysis_run.sh
+COMPRESS=1 ./curl_posthoc_analysis_run.sh  # (no HDF5 equivalent -- compression is a PDC-only option)
 ```
 
 Each job defaults to `--account=m2621`; edit the `#SBATCH` header, or
