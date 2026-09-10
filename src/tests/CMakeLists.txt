@@ -118,6 +118,8 @@ set(PROGRAMS
   analysis/vector_magnitude_2d_test
   analysis/vector_magnitude_compressed_test
   analysis/bench_magnitude
+  analysis/bench_write_components
+  analysis/bench_posthoc_analyze
 )
 
 # Use C compiler for C files

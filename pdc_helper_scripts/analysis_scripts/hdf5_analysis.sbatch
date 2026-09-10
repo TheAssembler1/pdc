@@ -3,6 +3,13 @@
 # PDC server involved; see hdf5_analysis_test/. 32 client ranks/node,
 # writing one CSV row to results_hdf5_<jobid>.csv.
 #
+# Mirrors the PDC posthoc benchmark's two-phase shape: write vx/vy/vz in
+# one srun step, let every rank fully exit, then a separate srun step
+# reopens the file, reads back, computes magnitude, and writes it back --
+# instead of one continuous process doing all of it, so the real cost of
+# relaunching between the write and the analysis is measured rather than
+# hidden.
+#
 # Submit one of these per node count via hdf5_analysis_run.sh, or
 # directly, e.g.: sbatch --nodes=4 hdf5_analysis.sbatch
 # Override N_ELEM at submit time, e.g.:
@@ -46,6 +53,8 @@ export N_ELEM=${N_ELEM:-16777216}   # 64 MiB/rank of float32 -- at the max
 export LOG_TAG=hdf5
 export RESULTS=$PWD/results_hdf5_${SLURM_JOB_ID}.csv
 export OUT_FILE=${OUT_DIR}/hdf5_bench_magnitude_${NUM_NODES}.h5
+export WRITE_LOG=$PWD/write_${LOG_TAG}_${SLURM_JOB_ID}.csv
+export ANALYZE_LOG=$PWD/analyze_${LOG_TAG}_${SLURM_JOB_ID}.csv
 
 # Lustre stripe size == exactly what one rank writes per collective write
 # (N_ELEM float32 elements), rounded up to the required 64 KiB stripe
@@ -68,8 +77,28 @@ echo "Lustre striping: count=${STRIPE_COUNT} size=${STRIPE_SIZE_BYTES} bytes ($(
 rm -f "$OUT_FILE"
 lfs setstripe -c "$STRIPE_COUNT" -S "$STRIPE_SIZE_BYTES" "$OUT_FILE" || echo "WARNING: lfs setstripe failed, falling back to filesystem default layout"
 
-echo "mode,n_ranks,n_elem,setup_s,write_s,readback_s,compute_s,writeback_s,total_s,bad" > "$RESULTS"
+echo "mode,n_ranks,n_elem,write_setup_s,write_s,relaunch_s,analyze_setup_s,readback_s,compute_s,writeback_s,total_s,bad" > "$RESULTS"
 
-./srun_hdf5.sh
+./srun_hdf5_write.sh
+
+# Unlike the PDC posthoc benchmark, there's no server to close and
+# restart here -- HDF5 talks straight to the file, which is already
+# durable once srun_hdf5_write.sh's H5Fclose returns. The only relaunch
+# cost between the two phases is plain Slurm srun-launch overhead, not
+# something this script explicitly does, so there's nothing to time here
+# (kept as an explicit 0 column so the two benchmarks' CSVs line up).
+relaunch_s=0
+
+./srun_hdf5_posthoc_analyze.sh
+
+IFS=, read -r w_mode w_nranks w_nelem w_setup w_write < "$WRITE_LOG"
+IFS=, read -r a_mode a_nranks a_nelem a_setup a_readback a_compute a_writeback a_total a_bad < "$ANALYZE_LOG"
+
+if [ "$w_setup" = "FAILED" ] || [ "$a_setup" = "FAILED" ]; then
+  echo "hdf5,${CLIENT_TOTAL_TASKS},${N_ELEM},FAILED" >> "$RESULTS"
+else
+  total=$(awk "BEGIN{print $w_setup + $w_write + $relaunch_s + $a_setup + $a_readback + $a_compute + $a_writeback}")
+  echo "hdf5,${CLIENT_TOTAL_TASKS},${N_ELEM},${w_setup},${w_write},${relaunch_s},${a_setup},${a_readback},${a_compute},${a_writeback},${total},${a_bad}" >> "$RESULTS"
+fi
 
 echo "Done. Results in $RESULTS"

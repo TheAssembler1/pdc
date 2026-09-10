@@ -1,26 +1,37 @@
-# Standalone build for hdf5_bench_magnitude -- no dependency on the rest of
-# the PDC build tree, so `git clone` + `make` is enough on Perlmutter after
-# `module load cray-hdf5-parallel` (or any parallel-HDF5-enabled environment
-# providing h5pcc).
+# Standalone build for the HDF5 posthoc benchmark pair -- no dependency on
+# the rest of the PDC build tree, so `git clone` + `make` is enough on
+# Perlmutter after `module load cray-hdf5-parallel` (or any parallel-HDF5-
+# enabled environment providing h5pcc).
+#
+# Two separate binaries, run as two separate job steps (see
+# ../pdc_helper_scripts/analysis_scripts/hdf5_analysis.sbatch), so posthoc's
+# real-world relaunch cost is measured instead of hidden inside one
+# continuous process:
+#   hdf5_bench_write            - write vx/vy/vz, exit
+#   hdf5_bench_posthoc_analyze  - reopen the file, read back, compute
+#                                  magnitude, write it back
 
 H5PCC := $(shell command -v h5pcc 2>/dev/null)
 CC    ?= mpicc
 CFLAGS ?= -O2 -Wall
 
-TARGET := hdf5_bench_magnitude
-SRC    := hdf5_bench_magnitude.c
+TARGETS := hdf5_bench_write hdf5_bench_posthoc_analyze
 
 .PHONY: all clean
 
-all: $(TARGET)
+all: $(TARGETS)
 
 ifdef H5PCC
-$(TARGET): $(SRC)
+hdf5_bench_write: hdf5_bench_write.c
+	h5pcc $(CFLAGS) -o $@ $< -lm
+hdf5_bench_posthoc_analyze: hdf5_bench_posthoc_analyze.c
 	h5pcc $(CFLAGS) -o $@ $< -lm
 else
-$(TARGET): $(SRC)
+hdf5_bench_write: hdf5_bench_write.c
+	$(CC) $(CFLAGS) -o $@ $< $(HDF5_CFLAGS) -lhdf5 -lm $(HDF5_LDFLAGS)
+hdf5_bench_posthoc_analyze: hdf5_bench_posthoc_analyze.c
 	$(CC) $(CFLAGS) -o $@ $< $(HDF5_CFLAGS) -lhdf5 -lm $(HDF5_LDFLAGS)
 endif
 
 clean:
-	rm -f $(TARGET) *.h5
+	rm -f $(TARGETS) *.h5

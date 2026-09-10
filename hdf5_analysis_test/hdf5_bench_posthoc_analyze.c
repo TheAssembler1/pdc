@@ -1,16 +1,16 @@
 /**
- * Parallel HDF5 counterpart to src/tests/analysis/bench_magnitude.c's
- * "posthoc" mode: there is no in-flight transform framework in plain HDF5,
- * so this is the only strategy that applies -- write three vector-component
- * datasets (vx, vy, vz), read them back, compute magnitude client-side, and
- * write the result back as a fourth dataset. Same problem size, same
- * per-rank disjoint hyperslab decomposition, same timed phases as the PDC
- * benchmark, so the two are directly comparable.
+ * Parallel HDF5 posthoc benchmark, phase 2 of 2: opens the file a prior,
+ * already-exited hdf5_bench_write run created, reads the vx/vy/vz
+ * datasets back, computes magnitude client-side, and writes the result
+ * back as a fourth dataset. Run as a separate srun step from
+ * hdf5_bench_write (see hdf5_analysis.sbatch), so the file-open cost of a
+ * genuinely new process is included rather than reusing an
+ * already-open handle.
  *
- * Usage: hdf5_bench_magnitude <n_elem_per_rank> [out_file]
+ * Usage: hdf5_bench_posthoc_analyze <n_elem_per_rank> [out_file]
  *
  * Prints one CSV line from rank 0:
- *   mode,n_client_ranks,n_elem,setup_s,write_s,readback_s,compute_s,writeback_s,total_s,bad
+ *   mode,n_client_ranks,n_elem,setup_s,readback_s,compute_s,writeback_s,total_s,bad
  */
 
 #include <stdio.h>
@@ -32,11 +32,6 @@ check(hid_t id, const char *what)
     }
 }
 
-/* Collective write of a rank-local buffer into its disjoint slice of a
- * dataset spanning the whole nranks*n_elem domain. Chunked with one chunk
- * exactly matching count[] (one rank's write), so each rank's collective
- * write lands on its own whole chunk instead of multiple ranks
- * contending over shared chunks. */
 static void
 write_dataset(hid_t file, const char *name, hid_t mem_type, hid_t file_type, void *buf, hsize_t dims[1],
               hsize_t offset[1], hsize_t count[1])
@@ -99,8 +94,8 @@ main(int argc, char **argv)
     long   n_elem;
     size_t i;
 
-    double t_setup0, t_setup1, t_write0, t_write1;
-    double t_readback0, t_readback1, t_compute0, t_compute1, t_writeback0, t_writeback1;
+    double t_setup0, t_setup1, t_readback0, t_readback1;
+    double t_compute0, t_compute1, t_writeback0, t_writeback1;
 
     if (argc < 2) {
         fprintf(stderr, "Usage: %s <n_elem_per_rank> [out_file]\n", argv[0]);
@@ -113,32 +108,15 @@ main(int argc, char **argv)
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
     MPI_Comm_size(MPI_COMM_WORLD, &nranks);
 
-    float * vx    = (float *)malloc(sizeof(float) * n_elem);
-    float * vy    = (float *)malloc(sizeof(float) * n_elem);
-    float * vz    = (float *)malloc(sizeof(float) * n_elem);
     float * vx_rb = (float *)malloc(sizeof(float) * n_elem);
     float * vy_rb = (float *)malloc(sizeof(float) * n_elem);
     float * vz_rb = (float *)malloc(sizeof(float) * n_elem);
     double *mag   = (double *)malloc(sizeof(double) * n_elem);
-
-    for (i = 0; i < (size_t)n_elem; ++i) {
-        vx[i] = (float)((i % 1000) + 1);
-        vy[i] = (float)(((i + 137) % 1000) + 1);
-        vz[i] = (float)(((i + 613) % 1000) + 1);
-    }
     memset(mag, 0, sizeof(double) * n_elem);
 
     hsize_t dims[1]   = {(hsize_t)nranks * (hsize_t)n_elem};
     hsize_t offset[1] = {(hsize_t)rank * (hsize_t)n_elem};
     hsize_t count[1]  = {(hsize_t)n_elem};
-
-    if (rank == 0) {
-        printf("hdf5_bench_magnitude: nranks=%d n_elem=%ld chunk=%ld elements "
-               "(%.3f MiB/rank as float32, %.3f MiB/rank as float64)\n",
-               nranks, n_elem, n_elem, (double)n_elem * sizeof(float) / (1024.0 * 1024.0),
-               (double)n_elem * sizeof(double) / (1024.0 * 1024.0));
-        fflush(stdout);
-    }
 
     MPI_Barrier(MPI_COMM_WORLD);
     t_setup0 = MPI_Wtime();
@@ -146,22 +124,13 @@ main(int argc, char **argv)
     hid_t fapl = H5Pcreate(H5P_FILE_ACCESS);
     check(H5Pset_fapl_mpio(fapl, MPI_COMM_WORLD, MPI_INFO_NULL), "H5Pset_fapl_mpio");
 
-    hid_t file = H5Fcreate(out_file, H5F_ACC_TRUNC, H5P_DEFAULT, fapl);
-    check(file, "H5Fcreate");
+    hid_t file = H5Fopen(out_file, H5F_ACC_RDWR, fapl);
+    check(file, "H5Fopen");
     H5Pclose(fapl);
 
     MPI_Barrier(MPI_COMM_WORLD);
     t_setup1 = MPI_Wtime();
 
-    /* Write vector components. */
-    t_write0 = MPI_Wtime();
-    write_dataset(file, "vx", H5T_NATIVE_FLOAT, H5T_IEEE_F32LE, vx, dims, offset, count);
-    write_dataset(file, "vy", H5T_NATIVE_FLOAT, H5T_IEEE_F32LE, vy, dims, offset, count);
-    write_dataset(file, "vz", H5T_NATIVE_FLOAT, H5T_IEEE_F32LE, vz, dims, offset, count);
-    MPI_Barrier(MPI_COMM_WORLD);
-    t_write1 = MPI_Wtime();
-
-    /* Read the components back to the client. */
     t_readback0 = MPI_Wtime();
     read_dataset(file, "vx", H5T_NATIVE_FLOAT, vx_rb, offset, count);
     read_dataset(file, "vy", H5T_NATIVE_FLOAT, vy_rb, offset, count);
@@ -169,7 +138,6 @@ main(int argc, char **argv)
     MPI_Barrier(MPI_COMM_WORLD);
     t_readback1 = MPI_Wtime();
 
-    /* Compute magnitude client-side. */
     t_compute0 = MPI_Wtime();
     for (i = 0; i < (size_t)n_elem; ++i) {
         double x = (double)vx_rb[i], y = (double)vy_rb[i], z = (double)vz_rb[i];
@@ -178,7 +146,6 @@ main(int argc, char **argv)
     MPI_Barrier(MPI_COMM_WORLD);
     t_compute1 = MPI_Wtime();
 
-    /* Write the result back, like a hand-built materialized view. */
     t_writeback0 = MPI_Wtime();
     write_dataset(file, "magnitude", H5T_NATIVE_DOUBLE, H5T_IEEE_F64LE, mag, dims, offset, count);
     MPI_Barrier(MPI_COMM_WORLD);
@@ -186,11 +153,15 @@ main(int argc, char **argv)
 
     H5Fclose(file);
 
-    /* Correctness check (not timed). */
+    /* Correctness check (not timed): vx/vy/vz were generated with the
+     * same deterministic pattern by hdf5_bench_write, so it's
+     * regenerated locally here rather than read back a second time. */
     int local_bad = 0;
     for (i = 0; i < (size_t)n_elem; ++i) {
-        double x = (double)vx[i], y = (double)vy[i], z = (double)vz[i];
-        double expected = sqrt(x * x + y * y + z * z);
+        float  ex = (float)((i % 1000) + 1);
+        float  ey = (float)(((i + 137) % 1000) + 1);
+        float  ez = (float)(((i + 613) % 1000) + 1);
+        double expected = sqrt((double)ex * ex + (double)ey * ey + (double)ez * ez);
         if (fabs(mag[i] - expected) > EPSILON) {
             local_bad++;
             break;
@@ -200,28 +171,23 @@ main(int argc, char **argv)
     MPI_Reduce(&local_bad, &global_bad, 1, MPI_INT, MPI_SUM, 0, MPI_COMM_WORLD);
 
     double local_setup     = t_setup1 - t_setup0;
-    double local_write     = t_write1 - t_write0;
     double local_readback  = t_readback1 - t_readback0;
     double local_compute   = t_compute1 - t_compute0;
     double local_writeback = t_writeback1 - t_writeback0;
 
-    double max_setup, max_write, max_readback, max_compute, max_writeback;
+    double max_setup, max_readback, max_compute, max_writeback;
     MPI_Reduce(&local_setup, &max_setup, 1, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD);
-    MPI_Reduce(&local_write, &max_write, 1, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD);
     MPI_Reduce(&local_readback, &max_readback, 1, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD);
     MPI_Reduce(&local_compute, &max_compute, 1, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD);
     MPI_Reduce(&local_writeback, &max_writeback, 1, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD);
 
     if (rank == 0) {
-        double total = max_setup + max_write + max_readback + max_compute + max_writeback;
-        printf("hdf5,%d,%ld,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%d\n", nranks, n_elem, max_setup, max_write,
+        double total = max_setup + max_readback + max_compute + max_writeback;
+        printf("posthoc_analyze,%d,%ld,%.6f,%.6f,%.6f,%.6f,%.6f,%d\n", nranks, n_elem, max_setup,
                max_readback, max_compute, max_writeback, total, global_bad);
         fflush(stdout);
     }
 
-    free(vx);
-    free(vy);
-    free(vz);
     free(vx_rb);
     free(vy_rb);
     free(vz_rb);
