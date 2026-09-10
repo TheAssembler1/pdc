@@ -158,9 +158,9 @@ main(int argc, char **argv)
      * regenerated locally here rather than read back a second time. */
     int local_bad = 0;
     for (i = 0; i < (size_t)n_elem; ++i) {
-        float  ex = (float)((i % 1000) + 1);
-        float  ey = (float)(((i + 137) % 1000) + 1);
-        float  ez = (float)(((i + 613) % 1000) + 1);
+        float  ex       = (float)((i % 1000) + 1);
+        float  ey       = (float)(((i + 137) % 1000) + 1);
+        float  ez       = (float)(((i + 613) % 1000) + 1);
         double expected = sqrt((double)ex * ex + (double)ey * ey + (double)ez * ez);
         if (fabs(mag[i] - expected) > EPSILON) {
             local_bad++;

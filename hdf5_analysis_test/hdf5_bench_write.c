@@ -132,7 +132,7 @@ main(int argc, char **argv)
     H5Fclose(file);
 
     double local_setup = t_setup1 - t_setup0;
-    double local_write  = t_write1 - t_write0;
+    double local_write = t_write1 - t_write0;
 
     double max_setup, max_write;
     MPI_Reduce(&local_setup, &max_setup, 1, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD);
