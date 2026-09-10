@@ -48,8 +48,8 @@ do_transfer(void *buf, pdc_access_t access, pdcid_t obj, pdcid_t reg, pdcid_t re
 int
 main(int argc, char **argv)
 {
-    int    rank, nranks;
-    long   nx, ny, nz_per_rank;
+    int  rank, nranks;
+    long nx, ny, nz_per_rank;
 
     double t_setup0, t_setup1, t_readback0, t_readback1, t_compute0, t_compute1, t_writeback0, t_writeback1;
 
@@ -97,7 +97,7 @@ main(int argc, char **argv)
         MPI_Abort(MPI_COMM_WORLD, 1);
     }
 
-    const char *cont_name = "curl_bench_shared";
+    const char *cont_name   = "curl_bench_shared";
     pdcid_t     prop_double = 0;
     pdcid_t     cont = 0, u_obj = 0, v_obj = 0, w_obj = 0;
     pdcid_t     curl_x_obj = 0, curl_y_obj = 0, curl_z_obj = 0;

@@ -80,7 +80,7 @@ main(int argc, char **argv)
     double *curl_x_rb = (double *)malloc(sizeof(double) * n_elem);
     double *curl_y_rb = (double *)malloc(sizeof(double) * n_elem);
     double *curl_z_rb = (double *)malloc(sizeof(double) * n_elem);
-    double *mag        = (double *)malloc(sizeof(double) * n_elem);
+    double *mag       = (double *)malloc(sizeof(double) * n_elem);
 
     uint64_t local_offset[3], global_offset[3], region_len[3], dims[3];
     local_offset[0]  = 0;
@@ -105,7 +105,7 @@ main(int argc, char **argv)
         MPI_Abort(MPI_COMM_WORLD, 1);
     }
 
-    const char *cont_name = "curl_bench_shared";
+    const char *cont_name   = "curl_bench_shared";
     pdcid_t     prop_double = 0;
     pdcid_t     cont = 0, curl_x_obj = 0, curl_y_obj = 0, curl_z_obj = 0, mag_obj = 0;
 
@@ -194,7 +194,7 @@ main(int argc, char **argv)
     for (i = 0; i < n_elem; ++i) {
         double expected =
             sqrt(curl_x_expected[i] * curl_x_expected[i] + curl_y_expected[i] * curl_y_expected[i] +
-                curl_z_expected[i] * curl_z_expected[i]);
+                 curl_z_expected[i] * curl_z_expected[i]);
         if (fabs(mag[i] - expected) > EPSILON) {
             local_bad++;
             break;
@@ -230,8 +230,7 @@ main(int argc, char **argv)
     if (rank == 0) {
         double total = max_setup + max_readback + max_compute + max_writeback;
         printf("curl_posthoc_analyze,%d,%ld,%ld,%ld,%d,%.6f,%.6f,%.6f,%.6f,%.6f,%d\n", nranks, nx, ny,
-               nz_per_rank, compress, max_setup, max_readback, max_compute, max_writeback, total,
-               global_bad);
+               nz_per_rank, compress, max_setup, max_readback, max_compute, max_writeback, total, global_bad);
         fflush(stdout);
     }
 

@@ -88,9 +88,9 @@ main(int argc, char **argv)
 
     size_t n_elem = (size_t)nx * (size_t)ny * (size_t)nz_per_rank;
 
-    float *u = (float *)malloc(sizeof(float) * n_elem);
-    float *v = (float *)malloc(sizeof(float) * n_elem);
-    float *w = (float *)malloc(sizeof(float) * n_elem);
+    float * u            = (float *)malloc(sizeof(float) * n_elem);
+    float * v            = (float *)malloc(sizeof(float) * n_elem);
+    float * w            = (float *)malloc(sizeof(float) * n_elem);
     double *mag_expected = (double *)malloc(sizeof(double) * n_elem);
     double *mag_read     = (double *)malloc(sizeof(double) * n_elem);
 
@@ -279,8 +279,8 @@ main(int argc, char **argv)
     PDCclose(pdc);
 
     double local_setup = t_setup1 - t_setup0;
-    double local_write  = t_write1 - t_write0;
-    double local_read   = t_read1 - t_read0;
+    double local_write = t_write1 - t_write0;
+    double local_read  = t_read1 - t_read0;
 
     double max_setup, max_write, max_read;
     MPI_Reduce(&local_setup, &max_setup, 1, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD);
