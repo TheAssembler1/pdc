@@ -22,11 +22,19 @@
  * bench_write_components / bench_posthoc_analyze instead. See
  * pdc_helper_scripts/analysis_scripts/posthoc_analysis.sbatch.
  *
+ * Like VPIC-IO and DLIO elsewhere in this evaluation, the workload runs
+ * N_TIMESTEPS repetitions of write(+compute) within one continuous
+ * client/server session, each timestep producing a distinct, uniquely
+ * named set of vx/vy/vz/magnitude objects (see the loop below for why
+ * per-timestep names are required rather than a shared name).
+ *
  * Usage: bench_magnitude <eager|lazy> <n_elem_per_rank>
  *
- * Prints one CSV line from rank 0:
- *   mode,n_client_ranks,n_elem,setup_s,write_s,readback_s,compute_s,writeback_s,confirm_read_s,total_s
+ * Prints one CSV line per timestep from rank 0:
+ *   mode,step,n_client_ranks,n_elem,setup_s,write_s,readback_s,compute_s,writeback_s,confirm_read_s,step_total_s,bad
  */
+
+#define N_TIMESTEPS 3
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -67,6 +75,7 @@ main(int argc, char **argv)
     int    rank, nranks;
     long   n_elem;
     int    is_eager, is_lazy;
+    int    step;
     size_t i;
 
     double t_setup0, t_setup1, t_write0, t_write1;
@@ -151,7 +160,6 @@ main(int argc, char **argv)
         PDCprop_set_obj_type(obj_prop_in, PDC_FLOAT);
         PDCprop_set_obj_dims(obj_prop_in, 1, dims);
         PDCprop_set_obj_user_id(obj_prop_in, getuid());
-        PDCprop_set_obj_time_step(obj_prop_in, 0);
         PDCprop_set_obj_app_name(obj_prop_in, "BenchMagnitude");
         PDCprop_set_obj_tags(obj_prop_in, "tag0=1");
         PDCprop_set_obj_transfer_region_type(obj_prop_in, PDC_REGION_STATIC);
@@ -160,26 +168,15 @@ main(int argc, char **argv)
         PDCprop_set_obj_type(obj_prop_out, PDC_DOUBLE);
         PDCprop_set_obj_dims(obj_prop_out, 1, dims);
         PDCprop_set_obj_user_id(obj_prop_out, getuid());
-        PDCprop_set_obj_time_step(obj_prop_out, 0);
         PDCprop_set_obj_app_name(obj_prop_out, "BenchMagnitude");
         PDCprop_set_obj_tags(obj_prop_out, "tag0=1");
         PDCprop_set_obj_transfer_region_type(obj_prop_out, PDC_REGION_STATIC);
-
-        vx_obj  = PDCobj_create(cont, "vx", obj_prop_in);
-        vy_obj  = PDCobj_create(cont, "vy", obj_prop_in);
-        vz_obj  = PDCobj_create(cont, "vz", obj_prop_in);
-        mag_obj = PDCobj_create(cont, "magnitude", obj_prop_out);
     }
 
     MPI_Barrier(MPI_COMM_WORLD);
 
-    if (rank != 0) {
-        cont    = PDCcont_open(cont_name, pdc);
-        vx_obj  = PDCobj_open("vx", pdc);
-        vy_obj  = PDCobj_open("vy", pdc);
-        vz_obj  = PDCobj_open("vz", pdc);
-        mag_obj = PDCobj_open("magnitude", pdc);
-    }
+    if (rank != 0)
+        cont = PDCcont_open(cont_name, pdc);
 
     pdcid_t reg        = PDCregion_create(1, local_offset, region_len);
     pdcid_t reg_global = PDCregion_create(1, global_offset, region_len);
@@ -191,74 +188,152 @@ main(int argc, char **argv)
             fprintf(stderr, "PDCan_dg_json_create failed\n");
             MPI_Abort(MPI_COMM_WORLD, 1);
         }
-        PDCan_attach_to_region(dg_id, "vx", vx_obj, reg_global);
-        PDCan_attach_to_region(dg_id, "vy", vy_obj, reg_global);
-        PDCan_attach_to_region(dg_id, "vz", vz_obj, reg_global);
-        PDCan_attach_to_region(dg_id, "magnitude", mag_obj, reg_global);
     }
 
     MPI_Barrier(MPI_COMM_WORLD);
     t_setup1 = MPI_Wtime();
 
-    /* Write vector components -- for eager mode, the final component
-     * write transparently triggers server-side computation+persistence
-     * of magnitude before this phase's wait/close return. */
-    t_write0 = MPI_Wtime();
-    do_transfer(vx, PDC_WRITE, vx_obj, reg, reg_global, "write vx");
-    do_transfer(vy, PDC_WRITE, vy_obj, reg, reg_global, "write vy");
-    do_transfer(vz, PDC_WRITE, vz_obj, reg, reg_global, "write vz");
-    MPI_Barrier(MPI_COMM_WORLD);
-    t_write1 = MPI_Wtime();
+    double local_setup = t_setup1 - t_setup0;
+    double max_setup;
+    MPI_Reduce(&local_setup, &max_setup, 1, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD);
+    const char *mode_name = is_eager ? "eager" : "lazy";
 
-    if (is_eager) {
-        /* Confirmation read: magnitude should already be materialized. */
-        t_read0 = MPI_Wtime();
-        do_transfer(mag, PDC_READ, mag_obj, reg, reg_global, "read magnitude");
-        MPI_Barrier(MPI_COMM_WORLD);
-        t_read1 = MPI_Wtime();
-    }
-    else {
-        /* Read the components back to the client. */
-        t_readback0 = MPI_Wtime();
-        do_transfer(vx_rb, PDC_READ, vx_obj, reg, reg_global, "readback vx");
-        do_transfer(vy_rb, PDC_READ, vy_obj, reg, reg_global, "readback vy");
-        do_transfer(vz_rb, PDC_READ, vz_obj, reg, reg_global, "readback vz");
-        MPI_Barrier(MPI_COMM_WORLD);
-        t_readback1 = MPI_Wtime();
+    /* Like VPIC-IO/DLIO, repeat the write(+compute) cycle across
+     * N_TIMESTEPS timesteps within this one session, each producing a
+     * distinct set of vx/vy/vz/magnitude objects, and print one CSV row
+     * per timestep so per-step timing is visible rather than only an
+     * aggregate.
+     *
+     * Objects use per-timestep-unique names ("vx_0", "vx_1", ...) rather
+     * than a shared name with an incrementing time_step property: on the
+     * non-creating ranks, PDCobj_open() resolves purely by name and
+     * internally queries the server with time_step hardcoded to 0 (see
+     * PDCobj_open_common), so a shared name across timesteps would always
+     * reopen timestep 0's object. The time_step property is still set for
+     * descriptive metadata, but the object name is what actually
+     * disambiguates timesteps here. The PDCan_attach_to_region role labels
+     * ("vx", "vy", "vz", "magnitude") are independent of the object's PDC
+     * name -- they identify which state in the JSON graph this object
+     * fulfills -- so they stay fixed across timesteps. */
+    char   name_buf[4][32];
+    int    global_bad = 0;
+    for (step = 0; step < N_TIMESTEPS; ++step) {
+        snprintf(name_buf[0], sizeof(name_buf[0]), "vx_%d", step);
+        snprintf(name_buf[1], sizeof(name_buf[1]), "vy_%d", step);
+        snprintf(name_buf[2], sizeof(name_buf[2]), "vz_%d", step);
+        snprintf(name_buf[3], sizeof(name_buf[3]), "magnitude_%d", step);
 
-        /* Compute magnitude client-side. lazy stops here -- the result is
-         * used but never persisted, recomputed from scratch on every
-         * read like an ordinary SQL view. */
-        t_compute0 = MPI_Wtime();
+        if (rank == 0) {
+            PDCprop_set_obj_time_step(obj_prop_in, step);
+            PDCprop_set_obj_time_step(obj_prop_out, step);
+
+            vx_obj  = PDCobj_create(cont, name_buf[0], obj_prop_in);
+            vy_obj  = PDCobj_create(cont, name_buf[1], obj_prop_in);
+            vz_obj  = PDCobj_create(cont, name_buf[2], obj_prop_in);
+            mag_obj = PDCobj_create(cont, name_buf[3], obj_prop_out);
+        }
+
+        MPI_Barrier(MPI_COMM_WORLD);
+
+        if (rank != 0) {
+            vx_obj  = PDCobj_open(name_buf[0], pdc);
+            vy_obj  = PDCobj_open(name_buf[1], pdc);
+            vz_obj  = PDCobj_open(name_buf[2], pdc);
+            mag_obj = PDCobj_open(name_buf[3], pdc);
+        }
+
+        if (is_eager) {
+            PDCan_attach_to_region(dg_id, "vx", vx_obj, reg_global);
+            PDCan_attach_to_region(dg_id, "vy", vy_obj, reg_global);
+            PDCan_attach_to_region(dg_id, "vz", vz_obj, reg_global);
+            PDCan_attach_to_region(dg_id, "magnitude", mag_obj, reg_global);
+        }
+
+        /* Write vector components -- for eager mode, the final component
+         * write transparently triggers server-side computation+persistence
+         * of magnitude before this phase's wait/close return. */
+        t_write0 = MPI_Wtime();
+        do_transfer(vx, PDC_WRITE, vx_obj, reg, reg_global, "write vx");
+        do_transfer(vy, PDC_WRITE, vy_obj, reg, reg_global, "write vy");
+        do_transfer(vz, PDC_WRITE, vz_obj, reg, reg_global, "write vz");
+        MPI_Barrier(MPI_COMM_WORLD);
+        t_write1 = MPI_Wtime();
+
+        t_readback0 = t_readback1 = t_compute0 = t_compute1 = t_read0 = t_read1 = 0;
+        if (is_eager) {
+            /* Confirmation read: magnitude should already be materialized. */
+            t_read0 = MPI_Wtime();
+            do_transfer(mag, PDC_READ, mag_obj, reg, reg_global, "read magnitude");
+            MPI_Barrier(MPI_COMM_WORLD);
+            t_read1 = MPI_Wtime();
+        }
+        else {
+            /* Read the components back to the client. */
+            t_readback0 = MPI_Wtime();
+            do_transfer(vx_rb, PDC_READ, vx_obj, reg, reg_global, "readback vx");
+            do_transfer(vy_rb, PDC_READ, vy_obj, reg, reg_global, "readback vy");
+            do_transfer(vz_rb, PDC_READ, vz_obj, reg, reg_global, "readback vz");
+            MPI_Barrier(MPI_COMM_WORLD);
+            t_readback1 = MPI_Wtime();
+
+            /* Compute magnitude client-side. lazy stops here -- the result
+             * is used but never persisted, recomputed from scratch on
+             * every read like an ordinary SQL view. */
+            t_compute0 = MPI_Wtime();
+            for (i = 0; i < (size_t)n_elem; ++i) {
+                double x = (double)vx_rb[i], y = (double)vy_rb[i], z = (double)vz_rb[i];
+                mag[i] = sqrt(x * x + y * y + z * z);
+            }
+            MPI_Barrier(MPI_COMM_WORLD);
+            t_compute1 = MPI_Wtime();
+        }
+
+        /* Correctness check (not timed). */
+        int local_bad = 0;
         for (i = 0; i < (size_t)n_elem; ++i) {
-            double x = (double)vx_rb[i], y = (double)vy_rb[i], z = (double)vz_rb[i];
-            mag[i] = sqrt(x * x + y * y + z * z);
+            double x = (double)vx[i], y = (double)vy[i], z = (double)vz[i];
+            double expected = sqrt(x * x + y * y + z * z);
+            if (fabs(mag[i] - expected) > EPSILON) {
+                local_bad++;
+                break;
+            }
         }
-        MPI_Barrier(MPI_COMM_WORLD);
-        t_compute1 = MPI_Wtime();
-    }
 
-    /* Correctness check (not timed). */
-    int local_bad = 0;
-    for (i = 0; i < (size_t)n_elem; ++i) {
-        double x = (double)vx[i], y = (double)vy[i], z = (double)vz[i];
-        double expected = sqrt(x * x + y * y + z * z);
-        if (fabs(mag[i] - expected) > EPSILON) {
-            local_bad++;
-            break;
+        double local_write     = t_write1 - t_write0;
+        double local_readback  = t_readback1 - t_readback0;
+        double local_compute   = t_compute1 - t_compute0;
+        double local_writeback = 0;
+        double local_read      = t_read1 - t_read0;
+
+        double max_write, max_readback, max_compute, max_writeback, max_read;
+        int    step_bad;
+        MPI_Reduce(&local_write, &max_write, 1, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD);
+        MPI_Reduce(&local_readback, &max_readback, 1, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD);
+        MPI_Reduce(&local_compute, &max_compute, 1, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD);
+        MPI_Reduce(&local_writeback, &max_writeback, 1, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD);
+        MPI_Reduce(&local_read, &max_read, 1, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD);
+        MPI_Reduce(&local_bad, &step_bad, 1, MPI_INT, MPI_SUM, 0, MPI_COMM_WORLD);
+        global_bad += step_bad;
+
+        if (rank == 0) {
+            double step_total =
+                is_eager ? (max_write + max_read) : (max_write + max_readback + max_compute + max_writeback);
+            printf("%s,%d,%d,%ld,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%d\n", mode_name, step, nranks, n_elem,
+                   max_setup, max_write, max_readback, max_compute, max_writeback, max_read, step_total,
+                   step_bad);
+            fflush(stdout);
         }
+
+        PDCobj_close(vx_obj);
+        PDCobj_close(vy_obj);
+        PDCobj_close(vz_obj);
+        PDCobj_close(mag_obj);
     }
-    int global_bad = 0;
-    MPI_Reduce(&local_bad, &global_bad, 1, MPI_INT, MPI_SUM, 0, MPI_COMM_WORLD);
 
     if (is_eager)
         PDCan_close_dg(dg_id);
     PDCregion_close(reg);
     PDCregion_close(reg_global);
-    PDCobj_close(vx_obj);
-    PDCobj_close(vy_obj);
-    PDCobj_close(vz_obj);
-    PDCobj_close(mag_obj);
     PDCcont_close(cont);
     if (rank == 0) {
         PDCprop_close(obj_prop_in);
@@ -266,30 +341,6 @@ main(int argc, char **argv)
         PDCprop_close(cont_prop);
     }
     PDCclose(pdc);
-
-    double local_setup     = t_setup1 - t_setup0;
-    double local_write     = t_write1 - t_write0;
-    double local_readback  = t_readback1 - t_readback0;
-    double local_compute   = t_compute1 - t_compute0;
-    double local_writeback = t_writeback1 - t_writeback0;
-    double local_read      = t_read1 - t_read0;
-
-    double max_setup, max_write, max_readback, max_compute, max_writeback, max_read;
-    MPI_Reduce(&local_setup, &max_setup, 1, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD);
-    MPI_Reduce(&local_write, &max_write, 1, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD);
-    MPI_Reduce(&local_readback, &max_readback, 1, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD);
-    MPI_Reduce(&local_compute, &max_compute, 1, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD);
-    MPI_Reduce(&local_writeback, &max_writeback, 1, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD);
-    MPI_Reduce(&local_read, &max_read, 1, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD);
-
-    if (rank == 0) {
-        double total =
-            is_eager ? (max_write + max_read) : (max_write + max_readback + max_compute + max_writeback);
-        const char *mode_name = is_eager ? "eager" : "lazy";
-        printf("%s,%d,%ld,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%d\n", mode_name, nranks, n_elem, max_setup,
-               max_write, max_readback, max_compute, max_writeback, max_read, total, global_bad);
-        fflush(stdout);
-    }
 
     free(vx);
     free(vy);

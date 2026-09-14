@@ -20,9 +20,11 @@ srun \
   bash -c 'export HG_HOST=cxi0:$((SLURM_LOCALID + 8)); exec ./bench_magnitude eager "$N_ELEM"'
 popd
 
-line=$(grep "^eager," "$BIN_DIR/client_${LOG_TAG}_${NUM_NODES}.log" | tail -1)
-if [ -z "$line" ]; then
-  echo "eager,${CLIENT_TOTAL_TASKS},${N_ELEM},FAILED" >> "$RESULTS"
+# bench_magnitude.c now prints one CSV line per timestep (N_TIMESTEPS=3),
+# so capture every matching line, not just the last.
+lines=$(grep "^eager," "$BIN_DIR/client_${LOG_TAG}_${NUM_NODES}.log" || true)
+if [ -z "$lines" ]; then
+  echo "eager,FAILED,${CLIENT_TOTAL_TASKS},${N_ELEM},FAILED" >> "$RESULTS"
 else
-  echo "$line" >> "$RESULTS"
+  echo "$lines" >> "$RESULTS"
 fi

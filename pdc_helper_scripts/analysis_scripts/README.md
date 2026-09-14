@@ -39,30 +39,40 @@ way eager and lazy do.
 
 Each `.sbatch` job runs **one** node count with 8 data servers/node and 32
 client ranks/node (see "Server count vs. client count" below), and writes
-one CSV row to `results_<mode>_<jobid>.csv` in this directory. Each
-`_run.sh` wrapper submits its `.sbatch` once per node count (see the
-`for nodes in ...` line at the top of each `_run.sh`), chained with
-`--dependency=afterok` so they run one after another rather than all
-competing for the account's allocation at once.
+one CSV row **per timestep** to `results_<mode>_<jobid>.csv` in this
+directory: `bench_magnitude.c`, `bench_write_components.c` /
+`bench_posthoc_analyze.c`, and `hdf5_bench_write.c` /
+`hdf5_bench_posthoc_analyze.c` all repeat their write(+compute) cycle for
+`N_TIMESTEPS = 3` timesteps within one session, matching the VPIC-IO/DLIO
+convention elsewhere in this evaluation, and each timestep gets its own
+row rather than only an aggregate. Each `_run.sh` wrapper submits its
+`.sbatch` once per node count (see the `for nodes in ...` line at the top
+of each `_run.sh`), chained with `--dependency=afterok` so they run one
+after another rather than all competing for the account's allocation at
+once.
 
 ### Result CSV schema
 
 `dataflyway_analysis.sbatch` (eager) writes the schema `bench_magnitude.c`
-prints directly:
-`mode,n_ranks,n_elem,setup_s,write_s,readback_s,compute_s,writeback_s,confirm_read_s,total_s,bad`
+prints directly, one row per timestep:
+`mode,step,n_ranks,n_elem,setup_s,write_s,readback_s,compute_s,writeback_s,confirm_read_s,step_total_s,bad`
 (eager leaves `readback_s`/`compute_s`/`writeback_s` at 0 -- that cost is
 folded into `write_s`, since eager materializes magnitude during the
-write itself).
+write itself; `setup_s` is the one-time session setup cost, repeated on
+every row).
 
 `posthoc_analysis.sbatch` and `hdf5_analysis.sbatch` combine their two
-phases' own CSV lines into one row with a different schema that makes the
-relaunch cost visible instead of burying it:
-`mode,n_ranks,n_elem,write_setup_s,write_s,relaunch_s,analyze_setup_s,readback_s,compute_s,writeback_s,total_s,bad`.
+phases' own per-timestep CSV lines into one row per timestep, pairing
+write-phase step *N* with analyze-phase step *N*, with a different schema
+that makes the relaunch cost visible instead of burying it:
+`mode,step,n_ranks,n_elem,write_setup_s,write_s,relaunch_s,analyze_setup_s,readback_s,compute_s,writeback_s,total_s,bad`.
 `relaunch_s` is the wall-clock time between the write phase's client
 srun step returning and the analyze phase's client srun step starting --
 for PDC that spans `srun_close_server.sh` + `srun_server_restart.sh`; for
-HDF5 there's no server to restart, so it's always `0`. `total_s` sums
-every phase's cost including `relaunch_s`.
+HDF5 there's no server to restart, so it's always `0`. Since the relaunch
+happens once per job rather than once per timestep, the same `relaunch_s`
+value is repeated on every timestep's row. `total_s` sums every phase's
+cost including `relaunch_s`.
 
 ## Usage on Perlmutter
 

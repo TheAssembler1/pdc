@@ -47,15 +47,22 @@ mkdir -p "$PDC_DATA_LOC"
 export N_ELEM=${N_ELEM:-16777216}   # 64 MiB/rank of float32 -- at the max
                                      # scale point (128 nodes * 32 ranks/node
                                      # = 4096 ranks), this writes 320 MiB/rank
-                                     # (192 MiB input + 128 MiB magnitude out),
-                                     # ~1.25 TiB aggregate, comfortably under
-                                     # the 2 TB budget.
+                                     # per timestep (192 MiB input + 128 MiB
+                                     # magnitude out), and with N_TIMESTEPS=3
+                                     # in bench_write_components.c /
+                                     # bench_posthoc_analyze.c that's 960
+                                     # MiB/rank, ~3.75 TiB (~4.12 TB)
+                                     # aggregate against a 4 TB budget --
+                                     # just over on paper but within
+                                     # rounding of typical scratch quotas;
+                                     # reduce N_ELEM if that budget is a
+                                     # hard constraint.
 export LOG_TAG=posthoc
 export RESULTS=$PWD/results_posthoc_${SLURM_JOB_ID}.csv
 export WRITE_LOG=$PWD/write_${LOG_TAG}_${SLURM_JOB_ID}.csv
 export ANALYZE_LOG=$PWD/analyze_${LOG_TAG}_${SLURM_JOB_ID}.csv
 
-echo "mode,n_ranks,n_elem,write_setup_s,write_s,relaunch_s,analyze_setup_s,readback_s,compute_s,writeback_s,total_s,bad" > "$RESULTS"
+echo "mode,step,n_ranks,n_elem,write_setup_s,write_s,relaunch_s,analyze_setup_s,readback_s,compute_s,writeback_s,total_s,bad" > "$RESULTS"
 
 # Phase 1: write vx/vy/vz, then let every client rank fully exit.
 ./srun_server.sh
@@ -74,14 +81,22 @@ relaunch_s=$(awk "BEGIN{print $relaunch_t1 - $relaunch_t0}")
 ./srun_client_posthoc_analyze.sh
 ./srun_close_server.sh
 
-IFS=, read -r w_mode w_nranks w_nelem w_setup w_write < "$WRITE_LOG"
-IFS=, read -r a_mode a_nranks a_nelem a_setup a_readback a_compute a_writeback a_total a_bad < "$ANALYZE_LOG"
-
-if [ "$w_setup" = "FAILED" ] || [ "$a_setup" = "FAILED" ]; then
-  echo "posthoc,${CLIENT_TOTAL_TASKS},${N_ELEM},FAILED" >> "$RESULTS"
-else
-  total=$(awk "BEGIN{print $w_setup + $w_write + $relaunch_s + $a_setup + $a_readback + $a_compute + $a_writeback}")
-  echo "posthoc,${CLIENT_TOTAL_TASKS},${N_ELEM},${w_setup},${w_write},${relaunch_s},${a_setup},${a_readback},${a_compute},${a_writeback},${total},${a_bad}" >> "$RESULTS"
-fi
+# Both WRITE_LOG and ANALYZE_LOG now hold one line per timestep
+# (N_TIMESTEPS=3 in bench_write_components.c / bench_posthoc_analyze.c),
+# in matching step order, so pair them up line-by-line via two file
+# descriptors and emit one combined "posthoc" row per timestep.
+exec 3< "$WRITE_LOG"
+exec 4< "$ANALYZE_LOG"
+while IFS=, read -r w_mode w_step w_nranks w_nelem w_setup w_write <&3 && \
+      IFS=, read -r a_mode a_step a_nranks a_nelem a_setup a_readback a_compute a_writeback a_total a_bad <&4; do
+  if [ "$w_setup" = "FAILED" ] || [ "$a_setup" = "FAILED" ]; then
+    echo "posthoc,${w_step},${CLIENT_TOTAL_TASKS},${N_ELEM},FAILED" >> "$RESULTS"
+  else
+    total=$(awk "BEGIN{print $w_setup + $w_write + $relaunch_s + $a_setup + $a_readback + $a_compute + $a_writeback}")
+    echo "posthoc,${w_step},${CLIENT_TOTAL_TASKS},${N_ELEM},${w_setup},${w_write},${relaunch_s},${a_setup},${a_readback},${a_compute},${a_writeback},${total},${a_bad}" >> "$RESULTS"
+  fi
+done
+exec 3<&-
+exec 4<&-
 
 echo "Done. Results in $RESULTS"

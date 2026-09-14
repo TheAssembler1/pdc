@@ -10,11 +10,17 @@
  * argument so it reloads the checkpointed metadata, then run
  * bench_posthoc_analyze against the same container/objects.
  *
+ * Like bench_magnitude.c, writes N_TIMESTEPS distinct sets of vx/vy/vz
+ * (same names, incrementing PDC time_step) so the posthoc comparison
+ * covers the same multi-timestep workload as eager/lazy.
+ *
  * Usage: bench_write_components <n_elem_per_rank>
  *
- * Prints one CSV line from rank 0:
- *   mode,n_client_ranks,n_elem,setup_s,write_s
+ * Prints one CSV line per timestep from rank 0:
+ *   mode,step,n_client_ranks,n_elem,setup_s,write_s
  */
+
+#define N_TIMESTEPS 3
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -51,6 +57,7 @@ main(int argc, char **argv)
 {
     int    rank, nranks;
     long   n_elem;
+    int    step;
     size_t i;
 
     double t_setup0, t_setup1, t_write0, t_write1;
@@ -112,24 +119,15 @@ main(int argc, char **argv)
         PDCprop_set_obj_type(obj_prop_in, PDC_FLOAT);
         PDCprop_set_obj_dims(obj_prop_in, 1, dims);
         PDCprop_set_obj_user_id(obj_prop_in, getuid());
-        PDCprop_set_obj_time_step(obj_prop_in, 0);
         PDCprop_set_obj_app_name(obj_prop_in, "BenchMagnitude");
         PDCprop_set_obj_tags(obj_prop_in, "tag0=1");
         PDCprop_set_obj_transfer_region_type(obj_prop_in, PDC_REGION_STATIC);
-
-        vx_obj = PDCobj_create(cont, "vx", obj_prop_in);
-        vy_obj = PDCobj_create(cont, "vy", obj_prop_in);
-        vz_obj = PDCobj_create(cont, "vz", obj_prop_in);
     }
 
     MPI_Barrier(MPI_COMM_WORLD);
 
-    if (rank != 0) {
-        cont   = PDCcont_open(cont_name, pdc);
-        vx_obj = PDCobj_open("vx", pdc);
-        vy_obj = PDCobj_open("vy", pdc);
-        vz_obj = PDCobj_open("vz", pdc);
-    }
+    if (rank != 0)
+        cont = PDCcont_open(cont_name, pdc);
 
     pdcid_t reg        = PDCregion_create(1, local_offset, region_len);
     pdcid_t reg_global = PDCregion_create(1, global_offset, region_len);
@@ -137,36 +135,69 @@ main(int argc, char **argv)
     MPI_Barrier(MPI_COMM_WORLD);
     t_setup1 = MPI_Wtime();
 
-    t_write0 = MPI_Wtime();
-    do_transfer(vx, PDC_WRITE, vx_obj, reg, reg_global, "write vx");
-    do_transfer(vy, PDC_WRITE, vy_obj, reg, reg_global, "write vy");
-    do_transfer(vz, PDC_WRITE, vz_obj, reg, reg_global, "write vz");
-    MPI_Barrier(MPI_COMM_WORLD);
-    t_write1 = MPI_Wtime();
+    double local_setup = t_setup1 - t_setup0;
+    double max_setup;
+    MPI_Reduce(&local_setup, &max_setup, 1, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD);
+
+    /* Like bench_magnitude.c, write N_TIMESTEPS distinct sets of vx/vy/vz
+     * using per-timestep-unique names ("vx_0", "vx_1", ...) rather than a
+     * shared name with an incrementing time_step property -- PDCobj_open()
+     * resolves purely by name and hardcodes time_step=0 in its server
+     * query (see PDCobj_open_common), so a shared name would always
+     * reopen timestep 0's object on the non-creating ranks. These names
+     * must match what bench_posthoc_analyze.c opens in the later,
+     * separately launched analyze phase. */
+    for (step = 0; step < N_TIMESTEPS; ++step) {
+        char vx_name[32], vy_name[32], vz_name[32];
+        snprintf(vx_name, sizeof(vx_name), "vx_%d", step);
+        snprintf(vy_name, sizeof(vy_name), "vy_%d", step);
+        snprintf(vz_name, sizeof(vz_name), "vz_%d", step);
+
+        if (rank == 0) {
+            PDCprop_set_obj_time_step(obj_prop_in, step);
+
+            vx_obj = PDCobj_create(cont, vx_name, obj_prop_in);
+            vy_obj = PDCobj_create(cont, vy_name, obj_prop_in);
+            vz_obj = PDCobj_create(cont, vz_name, obj_prop_in);
+        }
+
+        MPI_Barrier(MPI_COMM_WORLD);
+
+        if (rank != 0) {
+            vx_obj = PDCobj_open(vx_name, pdc);
+            vy_obj = PDCobj_open(vy_name, pdc);
+            vz_obj = PDCobj_open(vz_name, pdc);
+        }
+
+        t_write0 = MPI_Wtime();
+        do_transfer(vx, PDC_WRITE, vx_obj, reg, reg_global, "write vx");
+        do_transfer(vy, PDC_WRITE, vy_obj, reg, reg_global, "write vy");
+        do_transfer(vz, PDC_WRITE, vz_obj, reg, reg_global, "write vz");
+        MPI_Barrier(MPI_COMM_WORLD);
+        t_write1 = MPI_Wtime();
+
+        double local_write = t_write1 - t_write0;
+        double max_write;
+        MPI_Reduce(&local_write, &max_write, 1, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD);
+
+        if (rank == 0) {
+            printf("posthoc_write,%d,%d,%ld,%.6f,%.6f\n", step, nranks, n_elem, max_setup, max_write);
+            fflush(stdout);
+        }
+
+        PDCobj_close(vx_obj);
+        PDCobj_close(vy_obj);
+        PDCobj_close(vz_obj);
+    }
 
     PDCregion_close(reg);
     PDCregion_close(reg_global);
-    PDCobj_close(vx_obj);
-    PDCobj_close(vy_obj);
-    PDCobj_close(vz_obj);
     PDCcont_close(cont);
     if (rank == 0) {
         PDCprop_close(obj_prop_in);
         PDCprop_close(cont_prop);
     }
     PDCclose(pdc);
-
-    double local_setup = t_setup1 - t_setup0;
-    double local_write = t_write1 - t_write0;
-
-    double max_setup, max_write;
-    MPI_Reduce(&local_setup, &max_setup, 1, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD);
-    MPI_Reduce(&local_write, &max_write, 1, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD);
-
-    if (rank == 0) {
-        printf("posthoc_write,%d,%ld,%.6f,%.6f\n", nranks, n_elem, max_setup, max_write);
-        fflush(stdout);
-    }
 
     free(vx);
     free(vy);

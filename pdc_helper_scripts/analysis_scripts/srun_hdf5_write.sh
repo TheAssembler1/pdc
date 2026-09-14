@@ -21,9 +21,11 @@ srun \
   ./hdf5_bench_write "$N_ELEM" "$OUT_FILE"
 popd
 
-line=$(grep "^posthoc_write," "$BIN_DIR/client_${LOG_TAG}_write_${NUM_NODES}.log" | tail -1)
-if [ -z "$line" ]; then
-  echo "posthoc_write,${CLIENT_TOTAL_TASKS},${N_ELEM},FAILED" > "$WRITE_LOG"
+# hdf5_bench_write.c now prints one CSV line per timestep (N_TIMESTEPS=3),
+# so capture every matching line, not just the last.
+lines=$(grep "^posthoc_write," "$BIN_DIR/client_${LOG_TAG}_write_${NUM_NODES}.log" || true)
+if [ -z "$lines" ]; then
+  echo "posthoc_write,FAILED,${CLIENT_TOTAL_TASKS},${N_ELEM},FAILED" > "$WRITE_LOG"
 else
-  echo "$line" > "$WRITE_LOG"
+  echo "$lines" > "$WRITE_LOG"
 fi

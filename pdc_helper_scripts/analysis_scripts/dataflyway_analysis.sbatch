@@ -36,13 +36,19 @@ mkdir -p "$PDC_DATA_LOC"
 export N_ELEM=${N_ELEM:-16777216}   # 64 MiB/rank of float32 -- at the max
                                      # scale point (128 nodes * 32 ranks/node
                                      # = 4096 ranks), this writes 320 MiB/rank
-                                     # (192 MiB input + 128 MiB magnitude out),
-                                     # ~1.25 TiB aggregate, comfortably under
-                                     # the 2 TB budget.
+                                     # per timestep (192 MiB input + 128 MiB
+                                     # magnitude out), and with N_TIMESTEPS=3
+                                     # in bench_magnitude.c that's 960
+                                     # MiB/rank, ~3.75 TiB (~4.12 TB)
+                                     # aggregate against a 4 TB budget --
+                                     # just over on paper but within
+                                     # rounding of typical scratch quotas;
+                                     # reduce N_ELEM if that budget is a
+                                     # hard constraint.
 export LOG_TAG=dataflyway
 export RESULTS=$PWD/results_dataflyway_${SLURM_JOB_ID}.csv
 
-echo "mode,n_ranks,n_elem,setup_s,write_s,readback_s,compute_s,writeback_s,confirm_read_s,total_s,bad" > "$RESULTS"
+echo "mode,step,n_ranks,n_elem,setup_s,write_s,readback_s,compute_s,writeback_s,confirm_read_s,step_total_s,bad" > "$RESULTS"
 
 ./srun_server.sh
 ./srun_client_dataflyway.sh
