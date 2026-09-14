@@ -306,7 +306,7 @@ main(int argc, char **argv)
         double local_read      = t_read1 - t_read0;
 
         double max_write, max_readback, max_compute, max_writeback, max_read;
-        int    step_bad;
+        int    step_bad = 0;
         MPI_Reduce(&local_write, &max_write, 1, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD);
         MPI_Reduce(&local_readback, &max_readback, 1, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD);
         MPI_Reduce(&local_compute, &max_compute, 1, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD);
