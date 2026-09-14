@@ -215,8 +215,8 @@ main(int argc, char **argv)
      * ("vx", "vy", "vz", "magnitude") are independent of the object's PDC
      * name -- they identify which state in the JSON graph this object
      * fulfills -- so they stay fixed across timesteps. */
-    char   name_buf[4][32];
-    int    global_bad = 0;
+    char name_buf[4][32];
+    int  global_bad = 0;
     for (step = 0; step < N_TIMESTEPS; ++step) {
         snprintf(name_buf[0], sizeof(name_buf[0]), "vx_%d", step);
         snprintf(name_buf[1], sizeof(name_buf[1]), "vy_%d", step);

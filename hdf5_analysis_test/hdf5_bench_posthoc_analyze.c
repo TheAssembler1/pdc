@@ -202,8 +202,8 @@ main(int argc, char **argv)
 
         if (rank == 0) {
             double step_total = max_readback + max_compute + max_writeback;
-            printf("posthoc_analyze,%d,%d,%ld,%.6f,%.6f,%.6f,%.6f,%.6f,%d\n", step, nranks, n_elem,
-                   max_setup, max_readback, max_compute, max_writeback, step_total, step_bad);
+            printf("posthoc_analyze,%d,%d,%ld,%.6f,%.6f,%.6f,%.6f,%.6f,%d\n", step, nranks, n_elem, max_setup,
+                   max_readback, max_compute, max_writeback, step_total, step_bad);
             fflush(stdout);
         }
     }
