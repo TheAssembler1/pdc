@@ -47,6 +47,33 @@
 
 #define EPSILON 1e-3
 
+/* PDCobj_create on the creating rank does not block until the metadata
+ * server has actually committed the object -- MPI_Barrier only guarantees
+ * every rank has issued its call, not that the server finished processing
+ * it. Under load (server busy flushing/checkpointing a prior timestep),
+ * a non-creating rank's PDCobj_open can race ahead of that commit and see
+ * "not found". Retry with a short backoff rather than treating the first
+ * failure as fatal. */
+#define OPEN_RETRY_MAX        200
+#define OPEN_RETRY_SLEEP_USEC 25000 /* 25ms; up to 5s total budget */
+
+static pdcid_t
+pdcobj_open_retry(const char *name, pdcid_t pdc)
+{
+    pdcid_t obj;
+    int     attempt;
+
+    for (attempt = 0; attempt < OPEN_RETRY_MAX; ++attempt) {
+        obj = PDCobj_open(name, pdc);
+        if (obj != 0)
+            return obj;
+        usleep(OPEN_RETRY_SLEEP_USEC);
+    }
+    fprintf(stderr, "PDCobj_open(\"%s\") still failing after %d retries (~%.1fs)\n", name, OPEN_RETRY_MAX,
+            OPEN_RETRY_MAX * OPEN_RETRY_SLEEP_USEC / 1e6);
+    return 0;
+}
+
 static void
 do_transfer(void *buf, pdc_access_t access, pdcid_t obj, pdcid_t reg, pdcid_t reg_global, const char *what)
 {
@@ -236,10 +263,14 @@ main(int argc, char **argv)
         MPI_Barrier(MPI_COMM_WORLD);
 
         if (rank != 0) {
-            vx_obj  = PDCobj_open(name_buf[0], pdc);
-            vy_obj  = PDCobj_open(name_buf[1], pdc);
-            vz_obj  = PDCobj_open(name_buf[2], pdc);
-            mag_obj = PDCobj_open(name_buf[3], pdc);
+            vx_obj  = pdcobj_open_retry(name_buf[0], pdc);
+            vy_obj  = pdcobj_open_retry(name_buf[1], pdc);
+            vz_obj  = pdcobj_open_retry(name_buf[2], pdc);
+            mag_obj = pdcobj_open_retry(name_buf[3], pdc);
+            if (vx_obj == 0 || vy_obj == 0 || vz_obj == 0 || mag_obj == 0) {
+                fprintf(stderr, "Failed to open one or more step-%d objects after retrying\n", step);
+                MPI_Abort(MPI_COMM_WORLD, 1);
+            }
         }
 
         if (is_eager) {
