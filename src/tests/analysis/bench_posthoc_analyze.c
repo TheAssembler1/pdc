@@ -37,35 +37,6 @@
 
 #define EPSILON 1e-3
 
-/* PDCobj_create on the creating rank does not block until the metadata
- * server has actually committed the object -- MPI_Barrier only guarantees
- * every rank has issued its call, not that the server finished processing
- * it. Under load (server busy flushing/checkpointing a prior timestep), a
- * non-creating rank's PDCobj_open can race ahead of that commit and see
- * "not found". Retry with a short backoff rather than treating the first
- * failure as fatal. Only needed for magnitude_N here: vx/vy/vz come from a
- * prior job through a full server close+restart, so their commit is
- * already guaranteed durable by the time this binary even starts. */
-#define OPEN_RETRY_MAX        200
-#define OPEN_RETRY_SLEEP_USEC 25000 /* 25ms; up to 5s total budget */
-
-static pdcid_t
-pdcobj_open_retry(const char *name, pdcid_t pdc)
-{
-    pdcid_t obj;
-    int     attempt;
-
-    for (attempt = 0; attempt < OPEN_RETRY_MAX; ++attempt) {
-        obj = PDCobj_open(name, pdc);
-        if (obj != 0)
-            return obj;
-        usleep(OPEN_RETRY_SLEEP_USEC);
-    }
-    fprintf(stderr, "PDCobj_open(\"%s\") still failing after %d retries (~%.1fs)\n", name, OPEN_RETRY_MAX,
-            OPEN_RETRY_MAX * OPEN_RETRY_SLEEP_USEC / 1e6);
-    return 0;
-}
-
 static void
 do_transfer(void *buf, pdc_access_t access, pdcid_t obj, pdcid_t reg, pdcid_t reg_global, const char *what)
 {
@@ -134,18 +105,23 @@ main(int argc, char **argv)
     pdcid_t     obj_prop_out = 0;
     pdcid_t     cont = 0, vx_obj = 0, vy_obj = 0, vz_obj = 0, mag_obj = 0;
 
-    /* Container already exists from the prior write-phase job. */
+    /* Container already exists from the prior write-phase job. vx/vy/vz
+     * likewise already exist and are safely durable (full server
+     * close+restart happened between the write phase and this binary
+     * starting), so plain PDCobj_open below is fine for those. magnitude_N
+     * is different: it's created fresh by this same process each
+     * iteration, so it uses the collective PDCobj_create_mpi (see
+     * bench_magnitude.c for why plain create+barrier+open is unsafe
+     * there). */
     cont = PDCcont_open(cont_name, pdc);
 
-    if (rank == 0) {
-        obj_prop_out = PDCprop_create(PDC_OBJ_CREATE, pdc);
-        PDCprop_set_obj_type(obj_prop_out, PDC_DOUBLE);
-        PDCprop_set_obj_dims(obj_prop_out, 1, dims);
-        PDCprop_set_obj_user_id(obj_prop_out, getuid());
-        PDCprop_set_obj_app_name(obj_prop_out, "BenchMagnitude");
-        PDCprop_set_obj_tags(obj_prop_out, "tag0=1");
-        PDCprop_set_obj_transfer_region_type(obj_prop_out, PDC_REGION_STATIC);
-    }
+    obj_prop_out = PDCprop_create(PDC_OBJ_CREATE, pdc);
+    PDCprop_set_obj_type(obj_prop_out, PDC_DOUBLE);
+    PDCprop_set_obj_dims(obj_prop_out, 1, dims);
+    PDCprop_set_obj_user_id(obj_prop_out, getuid());
+    PDCprop_set_obj_app_name(obj_prop_out, "BenchMagnitude");
+    PDCprop_set_obj_tags(obj_prop_out, "tag0=1");
+    PDCprop_set_obj_transfer_region_type(obj_prop_out, PDC_REGION_STATIC);
 
     pdcid_t reg        = PDCregion_create(1, local_offset, region_len);
     pdcid_t reg_global = PDCregion_create(1, global_offset, region_len);
@@ -173,19 +149,11 @@ main(int argc, char **argv)
         vy_obj = PDCobj_open(vy_name, pdc);
         vz_obj = PDCobj_open(vz_name, pdc);
 
-        if (rank == 0) {
-            PDCprop_set_obj_time_step(obj_prop_out, step);
-            mag_obj = PDCobj_create(cont, mag_name, obj_prop_out);
-        }
-
-        MPI_Barrier(MPI_COMM_WORLD);
-
-        if (rank != 0) {
-            mag_obj = pdcobj_open_retry(mag_name, pdc);
-            if (mag_obj == 0) {
-                fprintf(stderr, "Failed to open step-%d magnitude object after retrying\n", step);
-                MPI_Abort(MPI_COMM_WORLD, 1);
-            }
+        PDCprop_set_obj_time_step(obj_prop_out, step);
+        mag_obj = PDCobj_create_mpi(cont, mag_name, obj_prop_out, 0, MPI_COMM_WORLD);
+        if (mag_obj == 0) {
+            fprintf(stderr, "Failed to create step-%d magnitude object\n", step);
+            MPI_Abort(MPI_COMM_WORLD, 1);
         }
 
         t_readback0 = MPI_Wtime();
@@ -251,8 +219,7 @@ main(int argc, char **argv)
     PDCregion_close(reg);
     PDCregion_close(reg_global);
     PDCcont_close(cont);
-    if (rank == 0)
-        PDCprop_close(obj_prop_out);
+    PDCprop_close(obj_prop_out);
     PDCclose(pdc);
 
     free(vx_rb);

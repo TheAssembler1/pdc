@@ -47,33 +47,6 @@
 
 #define EPSILON 1e-3
 
-/* PDCobj_create on the creating rank does not block until the metadata
- * server has actually committed the object -- MPI_Barrier only guarantees
- * every rank has issued its call, not that the server finished processing
- * it. Under load (server busy flushing/checkpointing a prior timestep),
- * a non-creating rank's PDCobj_open can race ahead of that commit and see
- * "not found". Retry with a short backoff rather than treating the first
- * failure as fatal. */
-#define OPEN_RETRY_MAX        200
-#define OPEN_RETRY_SLEEP_USEC 25000 /* 25ms; up to 5s total budget */
-
-static pdcid_t
-pdcobj_open_retry(const char *name, pdcid_t pdc)
-{
-    pdcid_t obj;
-    int     attempt;
-
-    for (attempt = 0; attempt < OPEN_RETRY_MAX; ++attempt) {
-        obj = PDCobj_open(name, pdc);
-        if (obj != 0)
-            return obj;
-        usleep(OPEN_RETRY_SLEEP_USEC);
-    }
-    fprintf(stderr, "PDCobj_open(\"%s\") still failing after %d retries (~%.1fs)\n", name, OPEN_RETRY_MAX,
-            OPEN_RETRY_MAX * OPEN_RETRY_SLEEP_USEC / 1e6);
-    return 0;
-}
-
 static void
 do_transfer(void *buf, pdc_access_t access, pdcid_t obj, pdcid_t reg, pdcid_t reg_global, const char *what)
 {
@@ -173,37 +146,40 @@ main(int argc, char **argv)
     pdcid_t     obj_prop_in = 0, obj_prop_out = 0;
     pdcid_t     vx_obj = 0, vy_obj = 0, vz_obj = 0, mag_obj = 0;
 
-    /* Only rank 0 creates the shared container and objects; every other
-     * rank opens them by name after the barrier below. Every rank calling
-     * PDCobj_create for the same name would hit the server's metadata
-     * dedup path (rejected as "identical metadata"), since it keys purely
-     * on (obj_name, time_step) -- this is a create-once-per-object, not a
-     * create-once-per-rank, API. */
-    if (rank == 0) {
-        cont_prop = PDCprop_create(PDC_CONT_CREATE, pdc);
-        cont      = PDCcont_create(cont_name, cont_prop);
+    /* Every rank calls the collective _col/_mpi variants (see
+     * src/tests/misc/vpicio.c for the same pattern): the designated rank
+     * (0) performs the real server-side create, and the call internally
+     * MPI_Bcasts the resulting metadata (object id, server id, etc.) to
+     * every other rank, which builds a local-only handle from that
+     * broadcast data -- no RPC-based query from non-creating ranks at
+     * all. This avoids a real race with plain PDCobj_create +
+     * MPI_Barrier + PDCobj_open: PDCobj_create returning on the creating
+     * rank does not guarantee the object is yet visible to another rank's
+     * PDCobj_open, which queries the server directly and can observe
+     * "not found" if the server is still processing the create (confirmed
+     * on Perlmutter: a non-creating rank's open failed this way while the
+     * server was still flushing the previous timestep). Property values
+     * must still be set identically on every rank, since PDCobj_create_mpi
+     * still reads dims/type/etc. off the local property handle it's given
+     * even on the non-creating ranks. */
+    cont_prop = PDCprop_create(PDC_CONT_CREATE, pdc);
+    cont      = PDCcont_create_col(cont_name, cont_prop);
 
-        obj_prop_in = PDCprop_create(PDC_OBJ_CREATE, pdc);
-        PDCprop_set_obj_type(obj_prop_in, PDC_FLOAT);
-        PDCprop_set_obj_dims(obj_prop_in, 1, dims);
-        PDCprop_set_obj_user_id(obj_prop_in, getuid());
-        PDCprop_set_obj_app_name(obj_prop_in, "BenchMagnitude");
-        PDCprop_set_obj_tags(obj_prop_in, "tag0=1");
-        PDCprop_set_obj_transfer_region_type(obj_prop_in, PDC_REGION_STATIC);
+    obj_prop_in = PDCprop_create(PDC_OBJ_CREATE, pdc);
+    PDCprop_set_obj_type(obj_prop_in, PDC_FLOAT);
+    PDCprop_set_obj_dims(obj_prop_in, 1, dims);
+    PDCprop_set_obj_user_id(obj_prop_in, getuid());
+    PDCprop_set_obj_app_name(obj_prop_in, "BenchMagnitude");
+    PDCprop_set_obj_tags(obj_prop_in, "tag0=1");
+    PDCprop_set_obj_transfer_region_type(obj_prop_in, PDC_REGION_STATIC);
 
-        obj_prop_out = PDCprop_create(PDC_OBJ_CREATE, pdc);
-        PDCprop_set_obj_type(obj_prop_out, PDC_DOUBLE);
-        PDCprop_set_obj_dims(obj_prop_out, 1, dims);
-        PDCprop_set_obj_user_id(obj_prop_out, getuid());
-        PDCprop_set_obj_app_name(obj_prop_out, "BenchMagnitude");
-        PDCprop_set_obj_tags(obj_prop_out, "tag0=1");
-        PDCprop_set_obj_transfer_region_type(obj_prop_out, PDC_REGION_STATIC);
-    }
-
-    MPI_Barrier(MPI_COMM_WORLD);
-
-    if (rank != 0)
-        cont = PDCcont_open(cont_name, pdc);
+    obj_prop_out = PDCprop_create(PDC_OBJ_CREATE, pdc);
+    PDCprop_set_obj_type(obj_prop_out, PDC_DOUBLE);
+    PDCprop_set_obj_dims(obj_prop_out, 1, dims);
+    PDCprop_set_obj_user_id(obj_prop_out, getuid());
+    PDCprop_set_obj_app_name(obj_prop_out, "BenchMagnitude");
+    PDCprop_set_obj_tags(obj_prop_out, "tag0=1");
+    PDCprop_set_obj_transfer_region_type(obj_prop_out, PDC_REGION_STATIC);
 
     pdcid_t reg        = PDCregion_create(1, local_offset, region_len);
     pdcid_t reg_global = PDCregion_create(1, global_offset, region_len);
@@ -250,27 +226,16 @@ main(int argc, char **argv)
         snprintf(name_buf[2], sizeof(name_buf[2]), "vz_%d", step);
         snprintf(name_buf[3], sizeof(name_buf[3]), "magnitude_%d", step);
 
-        if (rank == 0) {
-            PDCprop_set_obj_time_step(obj_prop_in, step);
-            PDCprop_set_obj_time_step(obj_prop_out, step);
+        PDCprop_set_obj_time_step(obj_prop_in, step);
+        PDCprop_set_obj_time_step(obj_prop_out, step);
 
-            vx_obj  = PDCobj_create(cont, name_buf[0], obj_prop_in);
-            vy_obj  = PDCobj_create(cont, name_buf[1], obj_prop_in);
-            vz_obj  = PDCobj_create(cont, name_buf[2], obj_prop_in);
-            mag_obj = PDCobj_create(cont, name_buf[3], obj_prop_out);
-        }
-
-        MPI_Barrier(MPI_COMM_WORLD);
-
-        if (rank != 0) {
-            vx_obj  = pdcobj_open_retry(name_buf[0], pdc);
-            vy_obj  = pdcobj_open_retry(name_buf[1], pdc);
-            vz_obj  = pdcobj_open_retry(name_buf[2], pdc);
-            mag_obj = pdcobj_open_retry(name_buf[3], pdc);
-            if (vx_obj == 0 || vy_obj == 0 || vz_obj == 0 || mag_obj == 0) {
-                fprintf(stderr, "Failed to open one or more step-%d objects after retrying\n", step);
-                MPI_Abort(MPI_COMM_WORLD, 1);
-            }
+        vx_obj  = PDCobj_create_mpi(cont, name_buf[0], obj_prop_in, 0, MPI_COMM_WORLD);
+        vy_obj  = PDCobj_create_mpi(cont, name_buf[1], obj_prop_in, 0, MPI_COMM_WORLD);
+        vz_obj  = PDCobj_create_mpi(cont, name_buf[2], obj_prop_in, 0, MPI_COMM_WORLD);
+        mag_obj = PDCobj_create_mpi(cont, name_buf[3], obj_prop_out, 0, MPI_COMM_WORLD);
+        if (vx_obj == 0 || vy_obj == 0 || vz_obj == 0 || mag_obj == 0) {
+            fprintf(stderr, "Failed to create one or more step-%d objects\n", step);
+            MPI_Abort(MPI_COMM_WORLD, 1);
         }
 
         if (is_eager) {
@@ -366,11 +331,9 @@ main(int argc, char **argv)
     PDCregion_close(reg);
     PDCregion_close(reg_global);
     PDCcont_close(cont);
-    if (rank == 0) {
-        PDCprop_close(obj_prop_in);
-        PDCprop_close(obj_prop_out);
-        PDCprop_close(cont_prop);
-    }
+    PDCprop_close(obj_prop_in);
+    PDCprop_close(obj_prop_out);
+    PDCprop_close(cont_prop);
     PDCclose(pdc);
 
     free(vx);
