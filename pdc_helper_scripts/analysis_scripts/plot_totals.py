@@ -9,16 +9,29 @@ section for why that column matters for an HDF5-comparable total.
 
 Each results CSV has one row per timestep (N_TIMESTEPS=3 in the C
 benchmarks), with two kinds of columns: per-timestep costs that really
-happen three times (write_s, readback_s, compute_s, writeback_s,
-confirm_read_s) and one-time job-level costs that are just repeated on
-every row for CSV convenience (setup_s / write_setup_s / analyze_setup_s,
-relaunch_s, avg_close_s). Reconstructing one job's true wall-clock "total
-workload time" means summing the former across every timestep row and
-taking the latter once, not 3x -- that's what aggregate() below does
-before stacking. Segments that are always zero for a given mode (e.g.
-eager's readback_s/compute_s/writeback_s, folded into write_s instead --
-see README.md) are dropped from that mode's stack instead of drawing an
+happen three times (write_s, readback_s, compute_s, writeback_s) and
+one-time job-level costs that are just repeated on every row for CSV
+convenience (setup_s / write_setup_s / analyze_setup_s, relaunch_s,
+avg_close_s). Reconstructing one job's true wall-clock "total workload
+time" means summing the former across every timestep row and taking the
+latter once, not 3x -- that's what aggregate() below does before
+stacking. Segments that are always zero for a given mode (e.g. eager's
+readback_s/compute_s/writeback_s, folded into write_s instead -- see
+README.md) are dropped from that mode's stack instead of drawing an
 empty slice.
+
+eager's confirm_read_s (the post-write read that confirms DataFlyway
+actually materialized magnitude server-side -- see bench_magnitude.c)
+is deliberately excluded from both the stack and the total: it's a
+correctness check for this benchmark, not part of the workload being
+timed, and folding it into eager's total would inflate it against the
+other modes for a cost they don't pay either.
+
+Bars are colored by cost segment (one color per segment, shared across
+modes) and outlined by workload -- eager/lazy/posthoc/hdf5 each get a
+distinct, solid edge color -- rather than using hatch texture to tell
+modes apart, so segment identity and workload identity are two
+independent visual channels.
 
 Usage:
     python3 plot_totals.py [--results-dir DIR] [--out FILE.png] [--modes eager,lazy,posthoc,hdf5]
@@ -42,7 +55,8 @@ import matplotlib.pyplot as plt
 # eager_pdc.sbatch / lazy_pdc.sbatch / posthoc_pdc.sbatch /
 # posthoc_hdf5.sbatch.
 _EAGER_LAZY_ONE_TIME = ["setup_s"]
-_EAGER_LAZY_PER_STEP = ["write_s", "readback_s", "compute_s", "writeback_s", "confirm_read_s"]
+# confirm_read_s intentionally omitted -- see module docstring.
+_EAGER_LAZY_PER_STEP = ["write_s", "readback_s", "compute_s", "writeback_s"]
 _POSTHOC_ONE_TIME = ["write_setup_s", "relaunch_s", "analyze_setup_s"]
 _POSTHOC_PER_STEP = ["write_s", "readback_s", "compute_s", "writeback_s"]
 
@@ -57,7 +71,7 @@ SCHEMAS = {
 # shared across modes so the same cost always means the same color.
 SEGMENT_ORDER = [
     "setup_s", "write_setup_s", "analyze_setup_s",
-    "write_s", "readback_s", "compute_s", "writeback_s", "confirm_read_s",
+    "write_s", "readback_s", "compute_s", "writeback_s",
     "relaunch_s", "avg_close_s",
 ]
 SEGMENT_COLOR = {
@@ -68,7 +82,6 @@ SEGMENT_COLOR = {
     "readback_s": "#EE6677",
     "compute_s": "#228833",
     "writeback_s": "#CCBB44",
-    "confirm_read_s": "#66CCEE",
     "relaunch_s": "#AA3377",
     "avg_close_s": "#222222",
 }
@@ -80,7 +93,6 @@ SEGMENT_LABEL = {
     "readback_s": "readback",
     "compute_s": "compute",
     "writeback_s": "writeback",
-    "confirm_read_s": "confirm read",
     "relaunch_s": "relaunch",
     "avg_close_s": "server close",
 }
@@ -92,8 +104,14 @@ MODE_LABEL = {
     "posthoc": "PDC (posthoc)",
     "hdf5": "HDF5 (posthoc)",
 }
-# Same-color bars are told apart by hatch, not just legend position.
-MODE_HATCH = {"eager": "", "lazy": "//", "posthoc": "xx", "hdf5": ".."}
+# Bars are told apart by workload via a distinct solid edge color, not
+# fill texture -- fill color is reserved for cost-segment identity.
+MODE_EDGE_COLOR = {
+    "eager": "#111111",
+    "lazy": "#1A5276",
+    "posthoc": "#7D3C98",
+    "hdf5": "#B03A2E",
+}
 
 FLOAT_BYTES = 4
 DOUBLE_BYTES = 8
@@ -233,15 +251,20 @@ def main():
 
     n_groups = len(all_ranks)
     n_bars = len(modes_present)
-    group_width = 0.8
-    bar_width = group_width / max(n_bars, 1)
+    # Narrower cluster (was 0.8) plus a visible gap between adjacent
+    # bars within a group (was a bare 8% margin) -- slot_width is each
+    # bar's own allotment, bar_width shrinks that further so neighbors
+    # don't touch.
+    group_width = 0.62
+    slot_width = group_width / max(n_bars, 1)
+    bar_width = slot_width * 0.78
 
     fig, ax = plt.subplots(figsize=(max(7.0, 1.7 * n_groups), 5.5))
     x = np.arange(n_groups)
 
     legend_segment_handles = {}
     for bi, mode in enumerate(modes_present):
-        offset = (bi - (n_bars - 1) / 2) * bar_width
+        offset = (bi - (n_bars - 1) / 2) * slot_width
         bottoms = np.zeros(n_groups)
         for seg in SEGMENT_ORDER:
             heights = np.array(
@@ -250,9 +273,9 @@ def main():
             if not np.any(heights > 0):
                 continue  # this mode never has a nonzero value for this segment
             bars = ax.bar(
-                x + offset, heights, bar_width * 0.92, bottom=bottoms,
-                color=SEGMENT_COLOR[seg], hatch=MODE_HATCH[mode],
-                edgecolor="white", linewidth=0.4, zorder=3,
+                x + offset, heights, bar_width, bottom=bottoms,
+                color=SEGMENT_COLOR[seg],
+                edgecolor=MODE_EDGE_COLOR[mode], linewidth=1.1, zorder=3,
             )
             bottoms += heights
             legend_segment_handles.setdefault(seg, bars[0])
@@ -271,7 +294,7 @@ def main():
     ax.add_artist(leg1)
 
     mode_handles = [
-        plt.Rectangle((0, 0), 1, 1, facecolor="white", edgecolor="black", hatch=MODE_HATCH[m])
+        plt.Rectangle((0, 0), 1, 1, facecolor="white", edgecolor=MODE_EDGE_COLOR[m], linewidth=2.0)
         for m in modes_present
     ]
     mode_labels = [MODE_LABEL[m] for m in modes_present]
