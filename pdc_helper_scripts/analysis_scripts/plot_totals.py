@@ -96,7 +96,8 @@ MODE_LABEL = {
 MODE_HATCH = {"eager": "", "lazy": "//", "posthoc": "xx", "hdf5": ".."}
 
 FLOAT_BYTES = 4
-N_VARS = 3  # vx, vy, vz
+DOUBLE_BYTES = 8
+N_VARS = 3  # vx, vy, vz (float32 input)
 
 
 def read_results_csv(path):
@@ -147,7 +148,7 @@ def aggregate(mode, rows):
     constant. Per-timestep columns are summed across every timestep row
     actually present, since each one really happened that many times.
 
-    Returns (segments: dict[col] -> seconds, data_gb).
+    Returns (segments: dict[col] -> seconds, data_gb, n_timesteps).
     """
     one_time_cols, per_step_cols = SCHEMAS[mode]
     segments = {}
@@ -163,12 +164,21 @@ def aggregate(mode, rows):
     n_elem = float(rows[0]["n_elem"]) if rows else 0.0
     n_ranks = float(rows[0]["n_ranks"]) if rows else 0.0
     n_timesteps = len(rows)
-    # Aggregate INPUT data size (vx+vy+vz, float32) written across every
-    # timestep present for this job -- the x-axis label (n_ranks /
-    # data_size_GB) describes the whole workload the stacked total above
-    # it represents, not a single timestep.
-    data_gb = n_ranks * n_elem * FLOAT_BYTES * N_VARS * n_timesteps / 1e9
-    return segments, data_gb
+    # Aggregate data size written across every timestep present for this
+    # job: the vx/vy/vz float32 input PLUS the magnitude output, which
+    # every mode also persists once per timestep (eager: in the write
+    # path; lazy: server-side on the first read; posthoc/hdf5: in an
+    # explicit writeback) -- magnitude is `double` (8 bytes/elem), not
+    # float32, in bench_magnitude.c / bench_posthoc_analyze.c /
+    # hdf5_bench_posthoc_analyze.c, so omitting it here would undercount
+    # the real bytes moved by roughly 40% (192 MiB input vs. 128 MiB
+    # magnitude out per rank per timestep at the default N_ELEM -- see
+    # the N_ELEM comment in eager_pdc.sbatch etc.). The x-axis label
+    # (n_ranks / data_size_GB) describes the whole workload the stacked
+    # total above it represents, not a single timestep.
+    bytes_per_elem = FLOAT_BYTES * N_VARS + DOUBLE_BYTES
+    data_gb = n_ranks * n_elem * bytes_per_elem * n_timesteps / 1e9
+    return segments, data_gb, n_timesteps
 
 
 def main():
@@ -185,7 +195,7 @@ def main():
 
     data = load_all(args.results_dir)
 
-    per_job = defaultdict(dict)  # mode -> n_ranks -> (segments, data_gb)
+    per_job = defaultdict(dict)  # mode -> n_ranks -> (segments, data_gb, n_timesteps)
     for mode in modes:
         for n_ranks, rows in data[mode].items():
             per_job[mode][n_ranks] = aggregate(mode, rows)
@@ -203,9 +213,23 @@ def main():
         # wins here is cosmetic.
         for m in modes_present:
             if n_ranks in per_job[m]:
-                _, gb = per_job[m][n_ranks]
+                _, gb, _ = per_job[m][n_ranks]
                 return f"{n_ranks}/{gb:.2f}GB"
         return str(n_ranks)
+
+    # Every bar's stacked total is a sum across however many timestep rows
+    # that job actually logged (N_TIMESTEPS=3 in the C benchmarks, but a
+    # crashed/truncated run could log fewer) -- surface that in a caption
+    # instead of leaving it implicit, since it's what "total workload
+    # time" is a total *of*.
+    n_timesteps_seen = sorted({nt for m in modes_present for (_, _, nt) in per_job[m].values()})
+    if len(n_timesteps_seen) == 1:
+        timestep_caption = f"VPIC workload (vx/vy/vz particle velocity components). Each bar sums {n_timesteps_seen[0]} timesteps"
+    else:
+        timestep_caption = (
+            "VPIC workload (vx/vy/vz particle velocity components). "
+            f"Each bar sums its job's logged timesteps ({', '.join(map(str, n_timesteps_seen))} seen)"
+        )
 
     n_groups = len(all_ranks)
     n_bars = len(modes_present)
@@ -221,7 +245,7 @@ def main():
         bottoms = np.zeros(n_groups)
         for seg in SEGMENT_ORDER:
             heights = np.array(
-                [per_job[mode].get(n_ranks, (dict(), 0.0))[0].get(seg, 0.0) for n_ranks in all_ranks]
+                [per_job[mode].get(n_ranks, (dict(), 0.0, 0))[0].get(seg, 0.0) for n_ranks in all_ranks]
             )
             if not np.any(heights > 0):
                 continue  # this mode never has a nonzero value for this segment
@@ -253,7 +277,8 @@ def main():
     mode_labels = [MODE_LABEL[m] for m in modes_present]
     ax.legend(mode_handles, mode_labels, title="workload", loc="upper right", fontsize=8, title_fontsize=8)
 
-    fig.tight_layout()
+    fig.text(0.5, 0.005, timestep_caption, ha="center", va="bottom", fontsize=8, style="italic")
+    fig.tight_layout(rect=(0, 0.03, 1, 1))
     fig.savefig(args.out, dpi=200)
     print(f"Wrote {args.out}")
 
