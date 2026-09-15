@@ -16,7 +16,7 @@
 #SBATCH --account=m2621
 #SBATCH --time=00:30:00
 #SBATCH --constraint=cpu
-#SBATCH --qos=debug
+#SBATCH --qos=regular
 #SBATCH --output=%x_%j.log
 
 set -u

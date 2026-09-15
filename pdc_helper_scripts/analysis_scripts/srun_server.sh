@@ -16,7 +16,21 @@
 set -xeu
 
 pushd "$BIN_DIR"
-rm -rf "$PDC_DATA_LOC/pdc_data" "$PDC_DATA_LOC/pdc_tmp"
+# pdc_server (launched without the `restart` argument, as below) never
+# consults the checkpoint file or any other on-disk state -- it always
+# starts with an empty in-memory metadata table (see PDC_Server_init in
+# src/server/pdc_server.c: checkpoint loading is gated purely on argv[1]
+# == "restart", with no existence check). But its actual per-rank state
+# (checkpoint files under $PDC_TMPDIR/<rank>/, and the top-level
+# discovery/address config file directly under $PDC_TMPDIR) still lives on
+# disk from any previous run against this same PDC_DATA_LOC, and
+# PDC_TMPDIR is set equal to PDC_DATA_LOC by the caller -- neither of
+# those paths is named "pdc_data" or "pdc_tmp", so a prior rm -rf
+# targeting exactly those two subdirectory names removed nothing real.
+# Clear the whole directory's contents so a fresh, non-restart launch
+# can never observe another run's address file or (if `restart` is ever
+# used here by mistake) checkpoint.
+rm -rf "${PDC_DATA_LOC:?}"/*
 srun \
   -N "$NUM_NODES" \
   -n "$SERVER_TOTAL_TASKS" \
