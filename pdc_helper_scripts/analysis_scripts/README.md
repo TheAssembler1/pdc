@@ -1,7 +1,8 @@
 # analysis_scripts
 
 Slurm jobs and supporting bash scripts for the magnitude-analysis scale
-study (eager DataFlyway vs. posthoc vs. plain parallel HDF5), modeled after
+study (eager DataFlyway vs. lazy vs. posthoc vs. plain parallel HDF5),
+modeled after
 `pdc_helper_scripts/vpicio_scripts/` (background server srun step, foreground
 client srun step, graceful `close_server` shutdown, per-node-count job
 chaining via `vpicio_scale_run.sh`).
@@ -25,17 +26,20 @@ way eager and lazy do.
 | `srun_server.sh` | Starts a fresh `pdc_server` (no prior data) in the background for one node-count step |
 | `srun_server_restart.sh` | Restarts `pdc_server` with the `restart` argument, reloading the metadata checkpoint written on close |
 | `srun_close_server.sh` | Gracefully shuts the server down via `close_server` (checkpoints metadata first) |
-| `srun_client_dataflyway.sh` | Runs `bench_magnitude eager`, appends a CSV row |
+| `srun_client_eager.sh` | Runs `bench_magnitude eager`, appends a CSV row |
+| `srun_client_lazy.sh` | Runs `bench_magnitude lazy`, appends a CSV row |
 | `srun_client_posthoc_write.sh` | Posthoc phase 1: runs `bench_write_components` (writes vx/vy/vz, exits) |
 | `srun_client_posthoc_analyze.sh` | Posthoc phase 2: runs `bench_posthoc_analyze` (reads back, computes, writes back magnitude) |
 | `srun_hdf5_write.sh` | HDF5 posthoc phase 1: runs `hdf5_bench_write` (no PDC server) |
 | `srun_hdf5_posthoc_analyze.sh` | HDF5 posthoc phase 2: runs `hdf5_bench_posthoc_analyze` (no PDC server) |
-| `dataflyway_analysis.sbatch` | Single-node-count job: PDC DataFlyway (eager) |
-| `posthoc_analysis.sbatch` | Single-node-count job: PDC post-hoc (write -> close/restart server -> analyze) |
-| `hdf5_analysis.sbatch` | Single-node-count job: plain parallel HDF5 baseline (write -> analyze) |
-| `dataflyway_analysis_run.sh` | Submits chained `dataflyway_analysis.sbatch` jobs, one per node count |
-| `posthoc_analysis_run.sh` | Submits chained `posthoc_analysis.sbatch` jobs, one per node count |
-| `hdf5_analysis_run.sh` | Submits chained `hdf5_analysis.sbatch` jobs, one per node count |
+| `eager_pdc.sbatch` | Single-node-count job: PDC DataFlyway (eager) |
+| `lazy_pdc.sbatch` | Single-node-count job: PDC lazy (read-triggered, in-session) |
+| `posthoc_pdc.sbatch` | Single-node-count job: PDC post-hoc (write -> close/restart server -> analyze) |
+| `posthoc_hdf5.sbatch` | Single-node-count job: plain parallel HDF5 baseline (write -> analyze) |
+| `eager_pdc_run.sh` | Submits chained `eager_pdc.sbatch` jobs, one per node count |
+| `lazy_pdc_run.sh` | Submits chained `lazy_pdc.sbatch` jobs, one per node count |
+| `posthoc_pdc_run.sh` | Submits chained `posthoc_pdc.sbatch` jobs, one per node count |
+| `posthoc_hdf5_run.sh` | Submits chained `posthoc_hdf5.sbatch` jobs, one per node count |
 
 Each `.sbatch` job runs **one** node count with 8 data servers/node and 32
 client ranks/node (see "Server count vs. client count" below), and writes
@@ -53,15 +57,19 @@ once.
 
 ### Result CSV schema
 
-`dataflyway_analysis.sbatch` (eager) writes the schema `bench_magnitude.c`
-prints directly, one row per timestep:
+`eager_pdc.sbatch` and `lazy_pdc.sbatch` write the schema
+`bench_magnitude.c` prints directly, one row per timestep:
 `mode,step,n_ranks,n_elem,setup_s,write_s,readback_s,compute_s,writeback_s,confirm_read_s,step_total_s,bad`
 (eager leaves `readback_s`/`compute_s`/`writeback_s` at 0 -- that cost is
 folded into `write_s`, since eager materializes magnitude during the
-write itself; `setup_s` is the one-time session setup cost, repeated on
-every row).
+write itself; lazy's `write_s` covers only the plain vx/vy/vz write, with
+`readback_s`/`compute_s` covering the first, computing read of magnitude
+-- `writeback_s` stays 0 for lazy too, since that computed magnitude is
+persisted server-side as part of the read, with no separate client write
+call; `setup_s` is the one-time session setup cost, repeated on every
+row).
 
-`posthoc_analysis.sbatch` and `hdf5_analysis.sbatch` combine their two
+`posthoc_pdc.sbatch` and `posthoc_hdf5.sbatch` combine their two
 phases' own per-timestep CSV lines into one row per timestep, pairing
 write-phase step *N* with analyze-phase step *N*, with a different schema
 that makes the relaunch cost visible instead of burying it:
@@ -86,9 +94,10 @@ module load cray-hdf5-parallel
 cd hdf5_analysis_test && make && cd ..
 
 cd pdc_helper_scripts/analysis_scripts
-./dataflyway_analysis_run.sh   # submits chained jobs, one per node count
-./posthoc_analysis_run.sh      # submits chained jobs, one per node count
-./hdf5_analysis_run.sh         # submits chained jobs, one per node count
+./eager_pdc_run.sh      # submits chained jobs, one per node count
+./lazy_pdc_run.sh       # submits chained jobs, one per node count
+./posthoc_pdc_run.sh    # submits chained jobs, one per node count
+./posthoc_hdf5_run.sh   # submits chained jobs, one per node count
 ```
 
 Each job defaults to `--account=m2621`; edit the `#SBATCH` header, or export
@@ -96,13 +105,13 @@ Each job defaults to `--account=m2621`; edit the `#SBATCH` header, or export
 `N_ELEM` are overridable via the environment at submit time, e.g.:
 
 ```
-N_ELEM=33554432 ./dataflyway_analysis_run.sh
+N_ELEM=33554432 ./eager_pdc_run.sh
 ```
 
 To run a single node count directly instead of the full sweep:
 
 ```
-N_ELEM=33554432 sbatch --nodes=4 dataflyway_analysis.sbatch
+N_ELEM=33554432 sbatch --nodes=4 eager_pdc.sbatch
 ```
 
 The default `N_ELEM=16777216` (64 MiB/rank of float32) is sized so that at

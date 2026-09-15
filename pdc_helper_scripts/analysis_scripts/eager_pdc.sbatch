@@ -1,15 +1,15 @@
 #!/bin/bash
 # PDC DataFlyway (eager, in-flight) magnitude analysis -- single node-count
 # step. 8 data servers/node, 32 client ranks/node (see srun_server.sh /
-# srun_client_dataflyway.sh), writing one CSV row to
-# results_dataflyway_<jobid>.csv.
+# srun_client_eager.sh), writing one CSV row to
+# results_eager_<jobid>.csv.
 #
-# Submit one of these per node count via dataflyway_analysis_run.sh, or
-# directly, e.g.: sbatch --nodes=4 dataflyway_analysis.sbatch
+# Submit one of these per node count via eager_pdc_run.sh, or
+# directly, e.g.: sbatch --nodes=4 eager_pdc.sbatch
 # Override N_ELEM at submit time, e.g.:
-#   N_ELEM=33554432 sbatch --nodes=4 dataflyway_analysis.sbatch
+#   N_ELEM=33554432 sbatch --nodes=4 eager_pdc.sbatch
 
-#SBATCH --job-name=pdc-dataflyway-magnitude
+#SBATCH --job-name=pdc-eager-magnitude
 #SBATCH --nodes=8
 #SBATCH --ntasks-per-node=40
 #SBATCH --cpus-per-task=3
@@ -45,13 +45,13 @@ export N_ELEM=${N_ELEM:-16777216}   # 64 MiB/rank of float32 -- at the max
                                      # rounding of typical scratch quotas;
                                      # reduce N_ELEM if that budget is a
                                      # hard constraint.
-export LOG_TAG=dataflyway
-export RESULTS=$PWD/results_dataflyway_${SLURM_JOB_ID}.csv
+export LOG_TAG=eager
+export RESULTS=$PWD/results_eager_${SLURM_JOB_ID}.csv
 
 echo "mode,step,n_ranks,n_elem,setup_s,write_s,readback_s,compute_s,writeback_s,confirm_read_s,step_total_s,bad" > "$RESULTS"
 
 ./srun_server.sh
-./srun_client_dataflyway.sh
+./srun_client_eager.sh
 ./srun_close_server.sh
 
 echo "Done. Results in $RESULTS"

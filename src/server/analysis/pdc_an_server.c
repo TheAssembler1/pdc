@@ -248,6 +248,40 @@ find_or_create_dg_entry(char *json_filepath)
     return entry;
 }
 
+/* Exact-region lookup with no state_name-only fallback (unlike
+ * PDCan_find_binding_by_region, which deliberately falls back to a
+ * state_name-only match for the multi-rank-same-region case -- see its own
+ * comment). Callers here need to know specifically whether *this* region
+ * already has a binding, not merely whether the state name has ever been
+ * bound anywhere. */
+static pdc_an_binding_t *
+find_exact_region_binding(pdc_an_dg_entry_t *entry, const char *state_name, uint8_t ndim,
+                          const uint64_t *offset, const uint64_t *size)
+{
+    if (entry == NULL || entry->bindings_vector == NULL || state_name == NULL)
+        return NULL;
+
+    PDC_VECTOR_ITERATOR *iter = pdc_vector_iterator_new(entry->bindings_vector);
+    while (pdc_vector_iterator_has_next(iter)) {
+        pdc_an_binding_t *b = (pdc_an_binding_t *)pdc_vector_iterator_next(iter);
+        if (b == NULL || strcmp(b->state_name, state_name) || b->ndim != ndim)
+            continue;
+        bool match = true;
+        for (int d = 0; d < ndim; d++) {
+            if (b->offset[d] != offset[d] || b->size[d] != size[d]) {
+                match = false;
+                break;
+            }
+        }
+        if (match) {
+            pdc_vector_iterator_destroy(iter);
+            return b;
+        }
+    }
+    pdc_vector_iterator_destroy(iter);
+    return NULL;
+}
+
 perr_t
 PDCan_store_attach_mapping(char *json_filepath, char *state_name, pdcid_t obj_id, uint64_t *offset,
                            uint64_t *size, uint8_t ndim, int obj_ndim, uint64_t *obj_dims,
@@ -280,6 +314,31 @@ PDCan_store_attach_mapping(char *json_filepath, char *state_name, pdcid_t obj_id
                     "Cannot attach a region to transient state \"%s\"; transient states have no "
                     "addressable object\n",
                     state_name);
+
+    /* A *different* object attaching to the exact same (state_name,
+     * region) slot -- e.g. a multi-timestep workload re-attaching
+     * "vx_1"/"magnitude_1" to the same per-rank region that "vx_0"/
+     * "magnitude_0" used -- is a new temporal instance, not a duplicate of
+     * the old one. Reuse the existing binding struct in place (rather than
+     * appending a second binding for the same slot) so every lookup keyed
+     * off region alone (state_is_materialized, PDCan_find_binding_by_region)
+     * sees only the current object, and reset materialized so this
+     * instance's outputs actually get (re)computed instead of being
+     * treated as already-done from the previous instance. The reverse
+     * index (an_obj_id_to_binding_vector_g) holds a pointer to this same
+     * struct, so mutating obj_id here is also immediately visible to
+     * find_binding_index_entry(new_obj_id, ...) without any separate
+     * update, and lookups for the superseded obj_id correctly stop
+     * matching. */
+    pdc_an_binding_t *reused = find_exact_region_binding(entry, state_name, ndim, offset, size);
+    if (reused != NULL && reused->obj_id != (uint64_t)obj_id) {
+        reused->obj_id   = obj_id;
+        reused->obj_ndim = obj_ndim;
+        memcpy(reused->obj_dims, obj_dims, (size_t)obj_ndim * sizeof(uint64_t));
+        reused->pdc_var_type = pdc_var_type;
+        reused->materialized = false;
+        PGOTO_DONE(SUCCEED);
+    }
 
     pdc_an_binding_t *binding = PDC_calloc(1, sizeof(pdc_an_binding_t));
     binding->state_name       = strdup(state_name);

@@ -143,14 +143,26 @@ main(int argc, char **argv)
      * query (see PDCobj_open_common), so a shared name would always
      * reopen timestep 0's object on the non-creating ranks. These names
      * must match what bench_posthoc_analyze.c opens in the later,
-     * separately launched analyze phase. */
+     * separately launched analyze phase.
+     *
+     * Unlike bench_magnitude.c, obj_prop_in's time_step property is left
+     * at its default (0) for every step rather than set to match `step`:
+     * bench_magnitude.c never reopens its objects by name (every handle it
+     * needs stays in-process, from the same PDCobj_create_mpi call), so a
+     * nonzero time_step there is inert. Here, though, vx_N/vy_N/vz_N are
+     * reopened by name in a *separate* process (bench_posthoc_analyze.c,
+     * after a full server restart) via plain PDCobj_open, which queries
+     * time_step=0 unconditionally -- and PDC_metadata_cmp (see
+     * pdc_client_server_common.c) compares time_step first and treats any
+     * mismatch as a non-match regardless of whether the name also matches.
+     * Setting time_step=step here would make vx_1/vx_2's stored metadata
+     * permanently unreachable by that later PDCobj_open, even though the
+     * name alone already disambiguates the timestep. */
     for (step = 0; step < N_TIMESTEPS; ++step) {
         char vx_name[32], vy_name[32], vz_name[32];
         snprintf(vx_name, sizeof(vx_name), "vx_%d", step);
         snprintf(vy_name, sizeof(vy_name), "vy_%d", step);
         snprintf(vz_name, sizeof(vz_name), "vz_%d", step);
-
-        PDCprop_set_obj_time_step(obj_prop_in, step);
 
         vx_obj = PDCobj_create_mpi(cont, vx_name, obj_prop_in, 0, MPI_COMM_WORLD);
         vy_obj = PDCobj_create_mpi(cont, vy_name, obj_prop_in, 0, MPI_COMM_WORLD);

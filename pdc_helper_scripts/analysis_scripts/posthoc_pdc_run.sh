@@ -1,5 +1,5 @@
 #!/bin/bash
-# Submits one posthoc_analysis.sbatch job per node count (1, 2, 4, 8 --
+# Submits one posthoc_pdc.sbatch job per node count (1, 2, 4, 8 --
 # 32 ranks/node, so 32/64/128/256 ranks total), chained with
 # --dependency=afterok so they run one at a time and each gets its own
 # results_posthoc_<jobid>.csv. Mirrors vpicio_scripts/vpicio_scale_run.sh.
@@ -9,9 +9,9 @@ cd "$(dirname "$0")"
 prev_jid=""
 for nodes in 1 2 4 8; do
     if [ -z "$prev_jid" ]; then
-        jid=$(sbatch --nodes=$nodes posthoc_analysis.sbatch | awk '{print $4}')
+        jid=$(sbatch --nodes=$nodes posthoc_pdc.sbatch | awk '{print $4}')
     else
-        jid=$(sbatch --nodes=$nodes --dependency=afterok:$prev_jid posthoc_analysis.sbatch | awk '{print $4}')
+        jid=$(sbatch --nodes=$nodes --dependency=afterok:$prev_jid posthoc_pdc.sbatch | awk '{print $4}')
     fi
     echo "Submitted job $jid with $nodes nodes"
     prev_jid=$jid

@@ -211,13 +211,18 @@ main(int argc, char **argv)
      * than a shared name with an incrementing time_step property: on the
      * non-creating ranks, PDCobj_open() resolves purely by name and
      * internally queries the server with time_step hardcoded to 0 (see
-     * PDCobj_open_common), so a shared name across timesteps would always
-     * reopen timestep 0's object. The time_step property is still set for
-     * descriptive metadata, but the object name is what actually
-     * disambiguates timesteps here. The PDCan_attach_to_region role labels
-     * ("vx", "vy", "vz", "magnitude") are independent of the object's PDC
-     * name -- they identify which state in the JSON graph this object
-     * fulfills -- so they stay fixed across timesteps. */
+     * PDCobj_open_common), and PDC_metadata_cmp (pdc_client_server_common.c)
+     * compares time_step first, treating any mismatch as a non-match
+     * regardless of whether the name also matches -- so the time_step
+     * property is never set here at all (left at its default, 0, for every
+     * step): setting it to `step` would make steps 1+ permanently
+     * unreachable by name to any later plain PDCobj_open, exactly as it did
+     * in bench_write_components.c/bench_posthoc_analyze.c before that was
+     * fixed. The object name is the sole thing that disambiguates
+     * timesteps here. The PDCan_attach_to_region role labels ("vx", "vy",
+     * "vz", "magnitude") are independent of the object's PDC name -- they
+     * identify which state in the JSON graph this object fulfills -- so
+     * they stay fixed across timesteps. */
     char name_buf[4][32];
     int  global_bad = 0;
     for (step = 0; step < N_TIMESTEPS; ++step) {
@@ -225,9 +230,6 @@ main(int argc, char **argv)
         snprintf(name_buf[1], sizeof(name_buf[1]), "vy_%d", step);
         snprintf(name_buf[2], sizeof(name_buf[2]), "vz_%d", step);
         snprintf(name_buf[3], sizeof(name_buf[3]), "magnitude_%d", step);
-
-        PDCprop_set_obj_time_step(obj_prop_in, step);
-        PDCprop_set_obj_time_step(obj_prop_out, step);
 
         vx_obj  = PDCobj_create_mpi(cont, name_buf[0], obj_prop_in, 0, MPI_COMM_WORLD);
         vy_obj  = PDCobj_create_mpi(cont, name_buf[1], obj_prop_in, 0, MPI_COMM_WORLD);

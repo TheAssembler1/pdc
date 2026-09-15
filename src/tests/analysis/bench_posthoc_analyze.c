@@ -149,7 +149,6 @@ main(int argc, char **argv)
         vy_obj = PDCobj_open(vy_name, pdc);
         vz_obj = PDCobj_open(vz_name, pdc);
 
-        PDCprop_set_obj_time_step(obj_prop_out, step);
         mag_obj = PDCobj_create_mpi(cont, mag_name, obj_prop_out, 0, MPI_COMM_WORLD);
         if (mag_obj == 0) {
             fprintf(stderr, "Failed to create step-%d magnitude object\n", step);

@@ -42,6 +42,40 @@ PDCan_get_client_dg_mappings(pdcid_t dg_id)
     return NULL;
 }
 
+/* Deep-copies src's fields into dst, freeing dst's previously-owned strings
+ * first. Used to supersede a stale per-dg_id mapping in place (see below)
+ * without touching src or its own owner (the target object's own
+ * pdc_an_obj->region_mappings_vector, set up by the same
+ * PDCan_attach_to_region call and independently long-lived) -- pdc_vector
+ * has no by-index replace/remove, so mutating the existing struct's content
+ * is the only way to "replace" an entry, and each vector needs its own
+ * copy of the owned string fields to avoid a double free. */
+static void
+an_region_mapping_copy_into(pdc_an_region_mapping_t *dst, const pdc_an_region_mapping_t *src)
+{
+    PDC_free(dst->region_state.state_name);
+    PDC_free(dst->region_state.tf_json_filepath);
+    PDC_free(dst->region_state.tf_client_state);
+    PDC_free(dst->region_state.tf_store_state);
+
+    dst->region_state.dg_id      = src->region_state.dg_id;
+    dst->region_state.state_name = strdup(src->region_state.state_name);
+    dst->region_state.tf_json_filepath =
+        src->region_state.tf_json_filepath ? strdup(src->region_state.tf_json_filepath) : NULL;
+    dst->region_state.tf_client_state =
+        src->region_state.tf_client_state ? strdup(src->region_state.tf_client_state) : NULL;
+    dst->region_state.tf_store_state =
+        src->region_state.tf_store_state ? strdup(src->region_state.tf_store_state) : NULL;
+
+    dst->ndim = src->ndim;
+    memcpy(dst->offset, src->offset, sizeof(dst->offset));
+    memcpy(dst->size, src->size, sizeof(dst->size));
+    dst->obj_id   = src->obj_id;
+    dst->obj_ndim = src->obj_ndim;
+    memcpy(dst->obj_dims, src->obj_dims, sizeof(dst->obj_dims));
+    dst->pdc_var_type = src->pdc_var_type;
+}
+
 perr_t
 PDCan_add_client_dg_mapping(pdcid_t dg_id, pdc_an_region_mapping_t *mapping)
 {
@@ -55,6 +89,26 @@ PDCan_add_client_dg_mapping(pdcid_t dg_id, pdc_an_region_mapping_t *mapping)
         entry->dg_id                    = dg_id;
         entry->mappings                 = mappings;
         pdc_vector_add(an_client_dg_registry_g, entry);
+    }
+
+    /* A later attach for a state_name already recorded under this dg_id
+     * supersedes the earlier one (e.g. a multi-timestep workload
+     * re-attaching "vx" to a fresh per-timestep object under the same,
+     * reused dg_id) -- each timestep's object is its own distinct object,
+     * so only its current attachment should ever be piggybacked to the
+     * server; nothing should keep resending a previous timestep's now-stale
+     * (state_name -> obj_id/region) mapping alongside it every subsequent
+     * I/O. Since dg_id is typically created once and reused across every
+     * timestep of a run, without this the per-dg_id list here would grow
+     * without bound and the piggyback below would carry every past
+     * timestep's bindings forever. */
+    size_t n = pdc_vector_size(mappings);
+    for (size_t i = 0; i < n; i++) {
+        pdc_an_region_mapping_t *existing = (pdc_an_region_mapping_t *)pdc_vector_get(mappings, i);
+        if (existing == NULL || strcmp(existing->region_state.state_name, mapping->region_state.state_name))
+            continue;
+        an_region_mapping_copy_into(existing, mapping);
+        return SUCCEED;
     }
 
     pdc_vector_add(mappings, mapping);

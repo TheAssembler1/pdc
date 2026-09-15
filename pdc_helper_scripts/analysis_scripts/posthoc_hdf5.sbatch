@@ -10,10 +10,10 @@
 # relaunching between the write and the analysis is measured rather than
 # hidden.
 #
-# Submit one of these per node count via hdf5_analysis_run.sh, or
-# directly, e.g.: sbatch --nodes=4 hdf5_analysis.sbatch
+# Submit one of these per node count via posthoc_hdf5_run.sh, or
+# directly, e.g.: sbatch --nodes=4 posthoc_hdf5.sbatch
 # Override N_ELEM at submit time, e.g.:
-#   N_ELEM=33554432 sbatch --nodes=4 hdf5_analysis.sbatch
+#   N_ELEM=33554432 sbatch --nodes=4 posthoc_hdf5.sbatch
 #
 # Needs the same parallel-HDF5 module that built hdf5_analysis_test/ (see
 # hdf5_analysis_test/README.md) loaded here too -- the compute-node

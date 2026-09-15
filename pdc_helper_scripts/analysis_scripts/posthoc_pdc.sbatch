@@ -15,10 +15,10 @@
 # why posthoc should come out slower than eager, not an artifact to
 # optimize away.
 #
-# Submit one of these per node count via posthoc_analysis_run.sh, or
-# directly, e.g.: sbatch --nodes=4 posthoc_analysis.sbatch
+# Submit one of these per node count via posthoc_pdc_run.sh, or
+# directly, e.g.: sbatch --nodes=4 posthoc_pdc.sbatch
 # Override N_ELEM at submit time, e.g.:
-#   N_ELEM=33554432 sbatch --nodes=4 posthoc_analysis.sbatch
+#   N_ELEM=33554432 sbatch --nodes=4 posthoc_pdc.sbatch
 
 #SBATCH --job-name=pdc-posthoc-magnitude
 #SBATCH --nodes=8
