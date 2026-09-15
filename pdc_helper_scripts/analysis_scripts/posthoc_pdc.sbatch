@@ -99,4 +99,21 @@ done
 exec 3<&-
 exec 4<&-
 
+# The mid-job checkpoint (relaunch_s, above) already folds in one
+# close_server call, but the final ./srun_close_server.sh right before
+# this point checkpoints again and isn't captured in total_s at all --
+# average its per-server-rank "total close time" lines the same way
+# eager/lazy do, so results_posthoc_*.csv's close-inclusive total lines
+# up with theirs and with results_hdf5_*.csv (which has no server to
+# close, so its own close column is always 0).
+CLOSE_LOG="$BIN_DIR/close_server_${LOG_TAG}_${NUM_NODES}.log"
+avg_close_s=$(grep 'total close time' "$CLOSE_LOG" 2>/dev/null | \
+  sed -n 's/.*total close time = \([0-9.]*\).*/\1/p' | \
+  awk '{sum+=$1; n++} END{if(n>0) printf "%.6f", sum/n; else print "0"}')
+awk -F, -v OFS=, -v avgclose="$avg_close_s" '
+  NR==1 { print $0, "avg_close_s", "total_with_close_s"; next }
+  NF==13 { print $0, avgclose, ($12 + avgclose); next }
+  { print }
+' "$RESULTS" > "${RESULTS}.tmp" && mv "${RESULTS}.tmp" "$RESULTS"
+
 echo "Done. Results in $RESULTS"

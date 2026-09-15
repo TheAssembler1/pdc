@@ -116,4 +116,17 @@ done
 exec 3<&-
 exec 4<&-
 
+# No PDC server here to checkpoint on close, so there's no per-rank
+# "close" cost to average -- avg_close_s is always 0. Still append the
+# same two trailing columns eager_pdc.sbatch / lazy_pdc.sbatch /
+# posthoc_pdc.sbatch add (avg_close_s, total_with_close_s) so all four
+# results_*.csv files share one schema and total_with_close_s is directly
+# comparable across modes without special-casing HDF5.
+avg_close_s=0
+awk -F, -v OFS=, -v avgclose="$avg_close_s" '
+  NR==1 { print $0, "avg_close_s", "total_with_close_s"; next }
+  NF==13 { print $0, avgclose, ($12 + avgclose); next }
+  { print }
+' "$RESULTS" > "${RESULTS}.tmp" && mv "${RESULTS}.tmp" "$RESULTS"
+
 echo "Done. Results in $RESULTS"

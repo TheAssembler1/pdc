@@ -82,6 +82,31 @@ happens once per job rather than once per timestep, the same `relaunch_s`
 value is repeated on every timestep's row. `total_s` sums every phase's
 cost including `relaunch_s`.
 
+All four `.sbatch` scripts append two more columns after their own schema
+above: `avg_close_s,total_with_close_s`. `close_server` (the
+`PDC_Client_close_all_server` RPC each script's final
+`srun_close_server.sh` call runs) checkpoints every server's in-memory
+metadata to disk before exiting, and each server rank prints its own
+"total close time = ..." line to that step's
+`$BIN_DIR/close_server_<LOG_TAG>_<NUM_NODES>.log`. That checkpoint is a
+real, PDC-specific durability cost with no equivalent in the HDF5
+baseline (`H5Fclose` in `hdf5_bench_write.c` /
+`hdf5_bench_posthoc_analyze.c` isn't even separately timed -- it comes
+after the last per-timestep line is already logged, since closing a file
+backed by already-durable collective MPI-IO writes is comparatively
+free), and until this was added it was invisible in every results CSV --
+so `step_total_s` / `total_s` alone made eager/lazy/posthoc look
+artificially cheaper than the HDF5 baseline rather than genuinely
+faster. Each script greps its own close_server log, averages the
+per-server-rank close time, and appends it as `avg_close_s` plus
+`total_with_close_s` (`step_total_s`/`total_s` + `avg_close_s`) on every
+well-formed row -- `results_hdf5_*.csv` always has `avg_close_s = 0`
+(no server to close) so `total_with_close_s` there equals `total_s`,
+and all four CSVs end up directly comparable on that last column. Rows
+using the `FAILED` sentinel format (5 fields for eager/lazy, `mode,step,
+n_ranks,n_elem,FAILED` for posthoc/hdf5) are left untouched -- there's no
+`step_total_s`/`total_s` to add to.
+
 ## Usage on Perlmutter
 
 ```

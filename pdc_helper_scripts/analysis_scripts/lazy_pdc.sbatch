@@ -54,4 +54,25 @@ echo "mode,step,n_ranks,n_elem,setup_s,write_s,readback_s,compute_s,writeback_s,
 ./srun_client_lazy.sh
 ./srun_close_server.sh
 
+# srun_close_server.sh's log holds one "total close time = X" line per
+# server rank (printed by close_server.c, the PDC_Client_close_all_server
+# RPC that checkpoints every server's in-memory metadata to disk before
+# exiting). That's a real, PDC-specific durability cost with no HDF5
+# equivalent -- H5Fclose in hdf5_bench_write.c isn't even separately
+# timed, since closing a file backed by already-durable collective writes
+# is comparatively free. Without folding this in, step_total_s makes
+# eager/lazy look cheaper than they really are next to the HDF5 baseline,
+# so average it across server ranks and append it as its own column plus
+# a close-inclusive total, rather than leaving it buried in a log file
+# nothing else reads.
+CLOSE_LOG="$BIN_DIR/close_server_${LOG_TAG}_${NUM_NODES}.log"
+avg_close_s=$(grep 'total close time' "$CLOSE_LOG" 2>/dev/null | \
+  sed -n 's/.*total close time = \([0-9.]*\).*/\1/p' | \
+  awk '{sum+=$1; n++} END{if(n>0) printf "%.6f", sum/n; else print "0"}')
+awk -F, -v OFS=, -v avgclose="$avg_close_s" '
+  NR==1 { print $0, "avg_close_s", "total_with_close_s"; next }
+  NF==12 { print $0, avgclose, ($11 + avgclose); next }
+  { print }
+' "$RESULTS" > "${RESULTS}.tmp" && mv "${RESULTS}.tmp" "$RESULTS"
+
 echo "Done. Results in $RESULTS"
