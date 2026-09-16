@@ -26,14 +26,57 @@ typedef struct pdc_an_binding_t {
 } pdc_an_binding_t;
 
 /**
+ * One entry in the json_filepath <-> graph_id mapping (see
+ * an_graph_path_registry_g below). graph_id is assigned once, the first
+ * time this data server ever loads a given filepath (in
+ * PDCan_get_or_assign_graph_id), and never reused or renumbered for the
+ * lifetime of the server process -- checkpoint/restart round-trips it
+ * as-is (see PDCan_checkpoint/PDCan_restart_init), it does not
+ * reassign IDs on restart.
+ */
+typedef struct pdc_an_graph_path_entry_t {
+    uint32_t graph_id;
+    char *   json_filepath;
+} pdc_an_graph_path_entry_t;
+
+/**
+ * Every json_filepath this data server has ever loaded a graph from, each
+ * assigned a small stable graph_id. Metadata that needs to reference
+ * "which graph" -- currently just PDCan_checkpoint's per-entry record --
+ * stores the graph_id instead of repeating the (potentially long)
+ * filepath string; PDCan_get_graph_path resolves it back when the actual
+ * path is needed (e.g. to re-parse the JSON on restart). This registry
+ * itself still checkpoints the filepath strings, but exactly once each,
+ * rather than once per thing that references a graph.
+ */
+extern PDC_VECTOR *an_graph_path_registry_g;
+
+/**
+ * Returns the existing graph_id for json_filepath if this data server has
+ * already loaded it, otherwise assigns and registers a new one. Never
+ * fails (aside from allocation failure, which aborts like the rest of
+ * this codebase's PDC_malloc/PDC_calloc).
+ */
+uint32_t PDCan_get_or_assign_graph_id(const char *json_filepath);
+
+/**
+ * Resolves a graph_id back to the json_filepath it was assigned for.
+ * Returns NULL if graph_id is unknown (e.g. a corrupt checkpoint).
+ */
+const char *PDCan_get_graph_path(uint32_t graph_id);
+
+/**
  * One loaded analysis graph plus every binding attached to it so far on
  * this data server. Keyed by json_filepath (not by the client's dg_id —
  * the server resolves graphs independently by file path, exactly like PDC
  * TF's PDCtf_store_json_mapping does), since a graph is not owned by a
- * single object the way a PDC TF graph attachment is.
+ * single object the way a PDC TF graph attachment is. graph_id is this
+ * same filepath's entry in an_graph_path_registry_g, cached here so
+ * PDCan_checkpoint doesn't need to look it up separately per entry.
  */
 typedef struct pdc_an_dg_entry_t {
     char *      json_filepath;
+    uint32_t    graph_id;
     pdc_dg_t *  dg;
     PDC_VECTOR *bindings_vector; /* vector of pdc_an_binding_t* */
 } pdc_an_dg_entry_t;
@@ -156,11 +199,14 @@ perr_t PDC_Server_data_io_region_analysis(uint64_t obj_id, int obj_ndim, const u
                                           int is_write, bool *ran_analysis);
 
 /**
- * Serializes an_dg_registry_g to file: for every loaded graph, its
- * json_filepath and every binding (state name, obj_id/ndim/offset/size,
- * owning object's ndim/dims, var type, materialized flag). Called from
- * PDC_Server_checkpoint() in pdc_server.c, mirroring where PDC TF's
- * transform-state checkpoint block lives.
+ * Serializes an_graph_path_registry_g (the full json_filepath <-> graph_id
+ * mapping, written exactly once each) followed by an_dg_registry_g: for
+ * every loaded graph, its graph_id (not the filepath itself -- resolved
+ * via the mapping just written) and every binding (state name,
+ * obj_id/ndim/offset/size, owning object's ndim/dims, var type,
+ * materialized flag). Called from PDC_Server_checkpoint() in
+ * pdc_server.c, mirroring where PDC TF's transform-state checkpoint
+ * block lives.
  *
  * Like PDC TF's checkpoint, this stores graph *topology* only as a
  * filepath reference, not a serialized graph -- PDCan_restart_init
@@ -170,10 +216,11 @@ perr_t PDC_Server_data_io_region_analysis(uint64_t obj_id, int obj_ndim, const u
 perr_t PDCan_checkpoint(FILE *file);
 
 /**
- * Reads what PDCan_checkpoint wrote and rebuilds an_dg_registry_g and
- * an_obj_id_to_binding_vector_g (including each binding's materialized
- * flag, so already-computed persistent outputs are not recomputed after a
- * restart). Call PDCan_init_builtin_funcs() before this, exactly like
+ * Reads what PDCan_checkpoint wrote and rebuilds an_graph_path_registry_g,
+ * an_dg_registry_g, and an_obj_id_to_binding_vector_g (including each
+ * binding's materialized flag, so already-computed persistent outputs are
+ * not recomputed after a restart). Call PDCan_init_builtin_funcs() before
+ * this, exactly like
  * PDC_Server_restart() calls PDCtf_init_builtin_funcs() before restoring
  * transform state -- graphs loaded here may reference builtin analysis
  * functions that need to already be registered.

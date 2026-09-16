@@ -11,6 +11,57 @@
 
 PDC_VECTOR *an_dg_registry_g              = NULL;
 PDC_VECTOR *an_obj_id_to_binding_vector_g = NULL;
+PDC_VECTOR *an_graph_path_registry_g      = NULL;
+
+/* Next graph_id to hand out -- monotonically increasing for the lifetime
+ * of this server process (or since the last restart, which restores it
+ * from the checkpointed registry's own max + 1; see PDCan_restart_init).
+ * 0 is a valid id (the first graph ever loaded gets it), so there is no
+ * sentinel "unassigned" value here -- callers check registry membership,
+ * not the id's value, to know whether a filepath has been seen before. */
+static uint32_t an_next_graph_id_g = 0;
+
+uint32_t
+PDCan_get_or_assign_graph_id(const char *json_filepath)
+{
+    if (an_graph_path_registry_g == NULL)
+        an_graph_path_registry_g = pdc_vector_create(4, 2.0);
+
+    PDC_VECTOR_ITERATOR *iter = pdc_vector_iterator_new(an_graph_path_registry_g);
+    while (pdc_vector_iterator_has_next(iter)) {
+        pdc_an_graph_path_entry_t *e = (pdc_an_graph_path_entry_t *)pdc_vector_iterator_next(iter);
+        if (e != NULL && !strcmp(e->json_filepath, json_filepath)) {
+            pdc_vector_iterator_destroy(iter);
+            return e->graph_id;
+        }
+    }
+    pdc_vector_iterator_destroy(iter);
+
+    pdc_an_graph_path_entry_t *entry = PDC_malloc(sizeof(pdc_an_graph_path_entry_t));
+    entry->graph_id                  = an_next_graph_id_g++;
+    entry->json_filepath             = strdup(json_filepath);
+    pdc_vector_add(an_graph_path_registry_g, entry);
+
+    return entry->graph_id;
+}
+
+const char *
+PDCan_get_graph_path(uint32_t graph_id)
+{
+    if (an_graph_path_registry_g == NULL)
+        return NULL;
+
+    PDC_VECTOR_ITERATOR *iter = pdc_vector_iterator_new(an_graph_path_registry_g);
+    while (pdc_vector_iterator_has_next(iter)) {
+        pdc_an_graph_path_entry_t *e = (pdc_an_graph_path_entry_t *)pdc_vector_iterator_next(iter);
+        if (e != NULL && e->graph_id == graph_id) {
+            pdc_vector_iterator_destroy(iter);
+            return e->json_filepath;
+        }
+    }
+    pdc_vector_iterator_destroy(iter);
+    return NULL;
+}
 
 /* Set for the duration of a write-triggered eager PDCan_exec_graph call
  * (see PDCan_notify_input_written). The server is single-threaded, so this
@@ -241,6 +292,7 @@ find_or_create_dg_entry(char *json_filepath)
 
     entry                  = PDC_calloc(1, sizeof(pdc_an_dg_entry_t));
     entry->json_filepath   = strdup(json_filepath);
+    entry->graph_id        = PDCan_get_or_assign_graph_id(json_filepath);
     entry->dg              = dg;
     entry->bindings_vector = pdc_vector_create(8, 2.0);
     pdc_vector_add(an_dg_registry_g, entry);
@@ -888,15 +940,33 @@ PDCan_checkpoint(FILE *file)
 
     perr_t ret_value = SUCCEED;
 
+    /* json_filepath <-> graph_id mapping first, written exactly once per
+     * unique path this server has ever loaded (not once per thing that
+     * references a graph) -- see an_graph_path_registry_g's own comment.
+     * PDCan_restart_init must rebuild this before it can resolve any
+     * graph_id read below back to a filepath. */
+    size_t num_paths = (an_graph_path_registry_g != NULL) ? pdc_vector_size(an_graph_path_registry_g) : 0;
+    fwrite(&num_paths, sizeof(size_t), 1, file);
+
+    for (size_t p = 0; p < num_paths; p++) {
+        pdc_an_graph_path_entry_t *path_entry =
+            (pdc_an_graph_path_entry_t *)pdc_vector_get(an_graph_path_registry_g, p);
+
+        fwrite(&path_entry->graph_id, sizeof(uint32_t), 1, file);
+        size_t path_len = strlen(path_entry->json_filepath) + 1;
+        fwrite(&path_len, sizeof(size_t), 1, file);
+        fwrite(path_entry->json_filepath, sizeof(char), path_len, file);
+    }
+
     size_t num_graphs = (an_dg_registry_g != NULL) ? pdc_vector_size(an_dg_registry_g) : 0;
     fwrite(&num_graphs, sizeof(size_t), 1, file);
 
     for (size_t g = 0; g < num_graphs; g++) {
         pdc_an_dg_entry_t *entry = (pdc_an_dg_entry_t *)pdc_vector_get(an_dg_registry_g, g);
 
-        size_t path_len = strlen(entry->json_filepath) + 1;
-        fwrite(&path_len, sizeof(size_t), 1, file);
-        fwrite(entry->json_filepath, sizeof(char), path_len, file);
+        /* graph_id, not the filepath itself -- resolved against the
+         * mapping just written above. */
+        fwrite(&entry->graph_id, sizeof(uint32_t), 1, file);
 
         size_t num_bindings = pdc_vector_size(entry->bindings_vector);
         fwrite(&num_bindings, sizeof(size_t), 1, file);
@@ -928,9 +998,44 @@ PDCan_restart_init(FILE *file)
 {
     FUNC_ENTER(NULL);
 
-    perr_t ret_value  = SUCCEED;
-    size_t num_graphs = 0;
+    perr_t   ret_value = SUCCEED;
+    size_t   num_paths = 0;
+    uint32_t max_graph_id_seen = 0;
+    bool     any_path          = false;
 
+    /* Rebuild the json_filepath <-> graph_id mapping first -- every
+     * graph_id read below (from an_dg_registry_g's own entries) is only
+     * resolvable once this exists. */
+    if (fread(&num_paths, sizeof(size_t), 1, file) != 1)
+        PGOTO_ERROR(FAIL, "Failed to read analysis checkpoint path-registry count\n");
+
+    if (num_paths > 0)
+        an_graph_path_registry_g = pdc_vector_create(PDC_MAX(num_paths, 8), 2.0);
+
+    for (size_t p = 0; p < num_paths; p++) {
+        pdc_an_graph_path_entry_t *path_entry = PDC_malloc(sizeof(pdc_an_graph_path_entry_t));
+
+        if (fread(&path_entry->graph_id, sizeof(uint32_t), 1, file) != 1)
+            PGOTO_ERROR(FAIL, "Failed to read analysis checkpoint graph_id\n");
+
+        size_t path_len = 0;
+        if (fread(&path_len, sizeof(size_t), 1, file) != 1 || path_len == 0)
+            PGOTO_ERROR(FAIL, "Failed to read analysis checkpoint json_filepath length\n");
+        path_entry->json_filepath = PDC_calloc(1, path_len);
+        if (fread(path_entry->json_filepath, sizeof(char), path_len, file) != path_len)
+            PGOTO_ERROR(FAIL, "Failed to read analysis checkpoint json_filepath\n");
+
+        pdc_vector_add(an_graph_path_registry_g, path_entry);
+        if (!any_path || path_entry->graph_id > max_graph_id_seen)
+            max_graph_id_seen = path_entry->graph_id;
+        any_path = true;
+    }
+    /* Any graph loaded fresh after this restart (a newly attached graph
+     * this checkpoint never saw) must get a graph_id that can't collide
+     * with one already in the mapping just rebuilt above. */
+    an_next_graph_id_g = any_path ? max_graph_id_seen + 1 : 0;
+
+    size_t num_graphs = 0;
     if (fread(&num_graphs, sizeof(size_t), 1, file) != 1)
         PGOTO_ERROR(FAIL, "Failed to read analysis checkpoint graph count\n");
 
@@ -941,14 +1046,18 @@ PDCan_restart_init(FILE *file)
         an_dg_registry_g = pdc_vector_create(PDC_MAX(num_graphs, 8), 2.0);
 
     for (size_t g = 0; g < num_graphs; g++) {
-        size_t path_len = 0;
-        if (fread(&path_len, sizeof(size_t), 1, file) != 1 || path_len == 0)
-            PGOTO_ERROR(FAIL, "Failed to read analysis checkpoint json_filepath length\n");
-        char *json_filepath = PDC_calloc(1, path_len);
-        if (fread(json_filepath, sizeof(char), path_len, file) != path_len)
-            PGOTO_ERROR(FAIL, "Failed to read analysis checkpoint json_filepath\n");
+        uint32_t graph_id = 0;
+        if (fread(&graph_id, sizeof(uint32_t), 1, file) != 1)
+            PGOTO_ERROR(FAIL, "Failed to read analysis checkpoint graph_id\n");
 
-        pdc_dg_t *dg = PDCan_dg_json_create_common(json_filepath);
+        const char *json_filepath = PDCan_get_graph_path(graph_id);
+        if (json_filepath == NULL)
+            PGOTO_ERROR(FAIL,
+                        "Analysis checkpoint references graph_id %u with no matching entry in its own "
+                        "path registry (corrupt checkpoint)\n",
+                        graph_id);
+
+        pdc_dg_t *dg = PDCan_dg_json_create_common((char *)json_filepath);
         if (dg == NULL)
             PGOTO_ERROR(FAIL,
                         "Failed to reload analysis graph \"%s\" on restart; the JSON graph definition "
@@ -956,7 +1065,8 @@ PDCan_restart_init(FILE *file)
                         json_filepath);
 
         pdc_an_dg_entry_t *entry = PDC_calloc(1, sizeof(pdc_an_dg_entry_t));
-        entry->json_filepath     = json_filepath;
+        entry->json_filepath     = strdup(json_filepath);
+        entry->graph_id          = graph_id;
         entry->dg                = dg;
 
         size_t num_bindings = 0;
