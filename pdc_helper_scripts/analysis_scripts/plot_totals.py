@@ -42,6 +42,7 @@ import argparse
 import csv
 import glob
 import os
+import textwrap
 from collections import defaultdict
 
 import numpy as np
@@ -103,6 +104,18 @@ MODE_LABEL = {
     "lazy": "DataFlyway (lazy)",
     "posthoc": "PDC (posthoc)",
     "hdf5": "HDF5 (posthoc)",
+}
+# One-sentence mechanism per workload, for the figure caption -- not just
+# a name, but what actually produces magnitude and when.
+MODE_DESCRIPTION = {
+    "eager": "DataFlyway graph attached at write time; the last vx/vy/vz write "
+    "triggers the server to compute and persist magnitude synchronously",
+    "lazy": "no server-side framework; vx/vy/vz read back and magnitude "
+    "recomputed client-side on every access, never persisted",
+    "posthoc": "vx/vy/vz written, server closed and restarted, then a separate "
+    "process reads them back and computes magnitude client-side by hand",
+    "hdf5": "same write/close/reopen/compute shape as PDC posthoc, but against "
+    "a plain parallel-HDF5 file with no PDC server involved",
 }
 # Bars are told apart by workload via a distinct solid edge color, not
 # fill texture -- fill color is reserved for cost-segment identity.
@@ -242,12 +255,25 @@ def main():
     # time" is a total *of*.
     n_timesteps_seen = sorted({nt for m in modes_present for (_, _, nt) in per_job[m].values()})
     if len(n_timesteps_seen) == 1:
-        timestep_caption = f"VPIC workload (vx/vy/vz particle velocity components). Each bar sums {n_timesteps_seen[0]} timesteps"
+        timestep_caption = f"VPIC workload (vx/vy/vz particle velocity components). Each bar sums {n_timesteps_seen[0]} timesteps."
     else:
         timestep_caption = (
             "VPIC workload (vx/vy/vz particle velocity components). "
-            f"Each bar sums its job's logged timesteps ({', '.join(map(str, n_timesteps_seen))} seen)"
+            f"Each bar sums its job's logged timesteps ({', '.join(map(str, n_timesteps_seen))} seen)."
         )
+
+    # One wrapped line per workload actually plotted, explaining what it
+    # does (not just its legend name) -- e.g. that eager and lazy differ
+    # in *when* magnitude gets computed and *whether* it's persisted, or
+    # that HDF5 mirrors posthoc's write/close/reopen shape without a PDC
+    # server at all.
+    mode_desc_lines = [
+        "\n".join(
+            textwrap.wrap(f"{MODE_LABEL[m]}: {MODE_DESCRIPTION[m]}.", width=100, subsequent_indent="    ")
+        )
+        for m in modes_present
+    ]
+    caption = timestep_caption + "\n" + "\n".join(mode_desc_lines)
 
     n_groups = len(all_ranks)
     n_bars = len(modes_present)
@@ -323,7 +349,7 @@ def main():
     # than a separate fig.text -- fig.text sits outside what
     # constrained_layout reserves space for, so it would otherwise overlap
     # this label instead of sitting cleanly below it.
-    ax2.set_xlabel(f"ranks / data size (GB)\n{timestep_caption}", fontsize=9)
+    ax2.set_xlabel(f"ranks / data size (GB)\n\n{caption}", fontsize=8, linespacing=1.6)
     ax2.set_ylabel("total workload time (s)")
     ax2.yaxis.grid(True, linestyle="--", alpha=0.4, zorder=0)
     ax2.set_axisbelow(True)
