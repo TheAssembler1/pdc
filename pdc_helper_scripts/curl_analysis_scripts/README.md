@@ -54,28 +54,30 @@ the same `PDC_REGION_STATIC` region-offset routing pattern as
   attached transparently triggers server-side `curl` then
   `vector_magnitude` in the write path; a confirmation read of
   `vorticity_magnitude` follows.
-- **Posthoc** (`bench_curl_write` / `bench_curl_compute` /
-  `bench_curl_analyze`, `curl_posthoc_analysis.sbatch`): three
-  genuinely separate client processes, exactly matching the real
-  posthoc workflow this is supposed to model -- read data, compute
-  curl, write curl out; then read curl back, compute magnitude, write
-  magnitude out. The PDC server is fully closed (which checkpoints its
-  metadata) and restarted (`./pdc_server restart`, which reloads that
-  checkpoint) **between every phase**, so each later phase is really
-  talking to a server that had to reload persisted data, not one that
-  kept it in memory the whole time. See
+- **Posthoc** (`bench_curl_write` / `bench_curl_analyze`,
+  `curl_posthoc_analysis.sbatch`): two genuinely separate client
+  processes, matching the real posthoc workflow this is supposed to
+  model -- a write phase that persists `u`, `v`, `w` and exits, and a
+  later analyze phase that reopens them, computes `curl` then
+  `vorticity_magnitude`, and writes both out, all in that one analyze
+  process (deriving curl and then magnitude from it doesn't need its
+  own separately relaunched job any more than eager needs one -- both
+  are just downstream computation once the analyze phase already has
+  the inputs in hand). The PDC server is fully closed (which
+  checkpoints its metadata) and restarted (`./pdc_server restart`,
+  which reloads that checkpoint) **between the two phases**, so the
+  analyze phase is really talking to a server that had to reload
+  persisted data, not one that kept it in memory the whole time. See
   `analysis_scripts/README.md`'s "Result CSV schema" section for why
-  this relaunch cost matters -- same reasoning here, just with two
-  relaunches instead of one.
-- **HDF5 baseline** (`hdf5_bench_curl_write` / `hdf5_bench_curl_compute`
-  / `hdf5_bench_curl_analyze` in `hdf5_analysis_test/`,
-  `curl_hdf5_analysis.sbatch`): the same three-phase shape as PDC
-  posthoc (write u,v,w; compute curl; compute magnitude), each phase a
-  separate srun step against a plain HDF5 file -- no PDC server, so no
-  restart cycle, just the file being reopened fresh each phase. Uses the
-  identical `curl_math.h` kernel as the PDC side (see
-  `hdf5_analysis_test/Makefile`'s `-I../src/tests/analysis`), so results
-  are directly comparable.
+  this relaunch cost matters.
+- **HDF5 baseline** (`hdf5_bench_curl_write` / `hdf5_bench_curl_analyze`
+  in `hdf5_analysis_test/`, `curl_hdf5_analysis.sbatch`): the same
+  two-phase shape as PDC posthoc (write u,v,w; then read them back and
+  compute curl then magnitude), each phase a separate srun step against
+  a plain HDF5 file -- no PDC server, so no restart cycle, just the file
+  being reopened fresh for the analyze phase. Uses the identical
+  `curl_math.h` kernel as the PDC side (see `hdf5_analysis_test/Makefile`'s
+  `-I../src/tests/analysis`), so results are directly comparable.
 
 ### Compression (optional)
 
@@ -129,14 +131,12 @@ NZ_PER_RANK=128 sbatch --nodes=4 curl_eager_analysis.sbatch
 | `srun_close_server.sh` | Gracefully shuts the server down via `close_server` (checkpoints first) |
 | `srun_client_curl_eager.sh` | Runs `bench_curl_eager`, appends a CSV row |
 | `srun_client_curl_write.sh` | Posthoc phase 1: runs `bench_curl_write` |
-| `srun_client_curl_compute.sh` | Posthoc phase 2: runs `bench_curl_compute` |
-| `srun_client_curl_analyze.sh` | Posthoc phase 3: runs `bench_curl_analyze` |
+| `srun_client_curl_analyze.sh` | Posthoc phase 2: runs `bench_curl_analyze` (reads u/v/w, computes curl then magnitude, writes both) |
 | `srun_hdf5_curl_write.sh` | HDF5 baseline phase 1: runs `hdf5_bench_curl_write` |
-| `srun_hdf5_curl_compute.sh` | HDF5 baseline phase 2: runs `hdf5_bench_curl_compute` |
-| `srun_hdf5_curl_analyze.sh` | HDF5 baseline phase 3: runs `hdf5_bench_curl_analyze` |
+| `srun_hdf5_curl_analyze.sh` | HDF5 baseline phase 2: runs `hdf5_bench_curl_analyze` (reads u/v/w, computes curl then magnitude, writes both) |
 | `curl_eager_analysis.sbatch` | Single-node-count job: eager curl+magnitude |
-| `curl_posthoc_analysis.sbatch` | Single-node-count job: 3-phase posthoc curl+magnitude |
-| `curl_hdf5_analysis.sbatch` | Single-node-count job: 3-phase HDF5 baseline curl+magnitude |
+| `curl_posthoc_analysis.sbatch` | Single-node-count job: 2-phase posthoc curl+magnitude |
+| `curl_hdf5_analysis.sbatch` | Single-node-count job: 2-phase HDF5 baseline curl+magnitude |
 | `curl_eager_analysis_run.sh` | Submits chained `curl_eager_analysis.sbatch` jobs, one per node count |
 | `curl_posthoc_analysis_run.sh` | Submits chained `curl_posthoc_analysis.sbatch` jobs, one per node count |
 | `curl_hdf5_analysis_run.sh` | Submits chained `curl_hdf5_analysis.sbatch` jobs, one per node count |
@@ -149,20 +149,25 @@ Eager (`results_curl_eager_<jobid>.csv`), straight from
 mode,n_ranks,nx,ny,nz_per_rank,compress,setup_s,write_s,confirm_read_s,total_s,bad
 ```
 
-Posthoc (`results_curl_posthoc_<jobid>.csv`), combining all three
-phases' CSV lines plus both measured relaunch costs into one row:
+Posthoc (`results_curl_posthoc_<jobid>.csv`), combining both phases'
+CSV lines plus the measured relaunch cost into one row:
 ```
-mode,n_ranks,nx,ny,nz_per_rank,compress,write_setup_s,write_s,relaunch1_s,compute_setup_s,readback1_s,curl_compute_s,writeback1_s,relaunch2_s,analyze_setup_s,readback2_s,magnitude_compute_s,writeback2_s,total_s,bad
+mode,n_ranks,nx,ny,nz_per_rank,compress,write_setup_s,write_s,relaunch_s,analyze_setup_s,readback_s,curl_compute_s,curl_writeback_s,magnitude_compute_s,magnitude_writeback_s,total_s,bad
 ```
-`relaunch1_s`/`relaunch2_s` are wall-clock time across each
-close+restart cycle (`srun_close_server.sh` + `srun_server_restart.sh`).
-`total_s` sums every phase's cost including both relaunches.
+`relaunch_s` is wall-clock time across the close+restart cycle
+(`srun_close_server.sh` + `srun_server_restart.sh`) between the write
+and analyze phases. `total_s` sums every phase's cost including the
+relaunch. `curl_compute_s`/`curl_writeback_s` and
+`magnitude_compute_s`/`magnitude_writeback_s` are both measured within
+the single analyze phase (see `bench_curl_analyze.c`) -- there's no
+separate relaunch between computing curl and computing magnitude from
+it, since both happen in the same already-running process.
 
-HDF5 baseline (`results_curl_hdf5_<jobid>.csv`), combining all three
-phases' CSV lines into one row -- no relaunch columns, since there's no
-server to close/restart, just the file reopened fresh each phase:
+HDF5 baseline (`results_curl_hdf5_<jobid>.csv`), combining both phases'
+CSV lines into one row -- no relaunch column, since there's no server to
+close/restart, just the file reopened fresh for the analyze phase:
 ```
-mode,n_ranks,nx,ny,nz_per_rank,write_setup_s,write_s,compute_setup_s,readback1_s,curl_compute_s,writeback1_s,analyze_setup_s,readback2_s,magnitude_compute_s,writeback2_s,total_s,bad
+mode,n_ranks,nx,ny,nz_per_rank,write_setup_s,write_s,analyze_setup_s,readback_s,curl_compute_s,curl_writeback_s,magnitude_compute_s,magnitude_writeback_s,total_s,bad
 ```
 
 ## Usage on Perlmutter
@@ -171,7 +176,7 @@ Build the binaries first (see `hdf5_analysis_test/README.md` for the
 HDF5 side -- needs `module load cray-hdf5-parallel` before `make`):
 
 ```
-cd build && make bench_curl_eager bench_curl_write bench_curl_compute bench_curl_analyze
+cd build && make bench_curl_eager bench_curl_write bench_curl_analyze
 cd ../hdf5_analysis_test && module load cray-hdf5-parallel && make
 ```
 

@@ -1,9 +1,8 @@
 #!/bin/bash
 # Posthoc phase 1: run bench_curl_write, which writes u,v,w as plain PDC
-# objects (no graph attached) and exits. See srun_client_curl_compute.sh
-# (phase 2) and srun_client_curl_analyze.sh (phase 3), run as separate
-# srun steps once every rank here has exited -- see
-# curl_posthoc_analysis.sbatch.
+# objects (no graph attached) and exits. See srun_client_curl_analyze.sh
+# (phase 2), run as a separate srun step once every rank here has
+# exited -- see curl_posthoc_analysis.sbatch.
 #
 # Required env: BIN_DIR, NUM_NODES, CLIENTS_PER_NODE, CLIENT_TOTAL_TASKS,
 #   NX, NY, NZ_PER_RANK, LOG_TAG, WRITE_LOG

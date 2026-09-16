@@ -1,9 +1,9 @@
 #!/bin/bash
-# HDF5 curl benchmark, posthoc phase 3: run hdf5_bench_curl_analyze, a
+# HDF5 curl benchmark, posthoc phase 2: run hdf5_bench_curl_analyze, a
 # freshly launched client that reopens the file a prior, already-exited
-# compute-phase job wrote curl_x/y/z into, reads them back, computes
-# vorticity magnitude client-side, and writes it back as a fourth
-# dataset (vorticity_magnitude).
+# write-phase job created, reads u/v/w back, computes curl then
+# vorticity magnitude client-side, and writes curl_x/y/z and
+# vorticity_magnitude back as four datasets.
 #
 # Required env: BIN_DIR (hdf5_analysis_test/ directory, holding the built
 #   hdf5_bench_curl_analyze binary), NUM_NODES, CLIENTS_PER_NODE,

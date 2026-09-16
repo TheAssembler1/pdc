@@ -1,12 +1,13 @@
 #!/bin/bash
-# Posthoc phase 3: run bench_curl_analyze, a freshly launched client that
-# opens the curl_x/y/z objects a prior, already-exited compute-phase job
-# created, reads them back, computes vorticity magnitude client-side, and
-# writes it back as a plain PDC object (optionally GPU-ZFP-compressed
+# Posthoc phase 2: run bench_curl_analyze, a freshly launched client that
+# opens the u/v/w objects a prior, already-exited write-phase job
+# created, reads them back, computes curl then vorticity magnitude
+# client-side, and writes both curl_x/y/z and vorticity_magnitude back as
+# plain PDC objects (optionally GPU-ZFP-compressing vorticity_magnitude
 # with COMPRESS=1, via the existing transformation framework -- see
 # src/tests/analysis/bench_curl_analyze.c). Must run after
 # srun_server_restart.sh so the server it's talking to actually reloaded
-# that data from its checkpoint rather than just keeping it in memory.
+# u/v/w from its checkpoint rather than just keeping them in memory.
 #
 # Required env: BIN_DIR, NUM_NODES, CLIENTS_PER_NODE, CLIENT_TOTAL_TASKS,
 #   NX, NY, NZ_PER_RANK, COMPRESS, LOG_TAG, ANALYZE_LOG

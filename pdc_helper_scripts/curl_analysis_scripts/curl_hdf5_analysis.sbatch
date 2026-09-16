@@ -1,10 +1,10 @@
 #!/bin/bash
 # Parallel-HDF5 curl + vorticity-magnitude analysis baseline -- single
-# node-count step. No PDC server involved; see hdf5_analysis_test/. Three
-# genuinely separate srun steps (write u,v,w; compute curl; compute
-# magnitude), mirroring the PDC posthoc benchmark's phase structure --
-# see hdf5_bench_curl_write.c / _compute.c / _analyze.c. Writes one CSV
-# row to results_curl_hdf5_<jobid>.csv.
+# node-count step. No PDC server involved; see hdf5_analysis_test/. Two
+# genuinely separate srun steps (write u,v,w; then read them back and
+# compute curl then magnitude in one pass), mirroring the PDC posthoc
+# benchmark's phase structure -- see hdf5_bench_curl_write.c / _analyze.c.
+# Writes one CSV row to results_curl_hdf5_<jobid>.csv.
 #
 # Submit one of these per node count via curl_hdf5_analysis_run.sh, or
 # directly, e.g.: sbatch --nodes=4 curl_hdf5_analysis.sbatch
@@ -50,7 +50,6 @@ export LOG_TAG=curl_hdf5
 export RESULTS=$PWD/results_curl_hdf5_${SLURM_JOB_ID}.csv
 export OUT_FILE=${OUT_DIR}/hdf5_bench_curl_${NUM_NODES}.h5
 export WRITE_LOG=$PWD/write_${LOG_TAG}_${SLURM_JOB_ID}.csv
-export COMPUTE_LOG=$PWD/compute_${LOG_TAG}_${SLURM_JOB_ID}.csv
 export ANALYZE_LOG=$PWD/analyze_${LOG_TAG}_${SLURM_JOB_ID}.csv
 
 # Lustre stripe size == exactly what one rank writes per collective write
@@ -65,21 +64,19 @@ echo "Lustre striping: count=${STRIPE_COUNT} size=${STRIPE_SIZE_BYTES} bytes ($(
 rm -f "$OUT_FILE"
 lfs setstripe -c "$STRIPE_COUNT" -S "$STRIPE_SIZE_BYTES" "$OUT_FILE" || echo "WARNING: lfs setstripe failed, falling back to filesystem default layout"
 
-echo "mode,n_ranks,nx,ny,nz_per_rank,write_setup_s,write_s,compute_setup_s,readback1_s,curl_compute_s,writeback1_s,analyze_setup_s,readback2_s,magnitude_compute_s,writeback2_s,total_s,bad" > "$RESULTS"
+echo "mode,n_ranks,nx,ny,nz_per_rank,write_setup_s,write_s,analyze_setup_s,readback_s,curl_compute_s,curl_writeback_s,magnitude_compute_s,magnitude_writeback_s,total_s,bad" > "$RESULTS"
 
 ./srun_hdf5_curl_write.sh
-./srun_hdf5_curl_compute.sh
 ./srun_hdf5_curl_analyze.sh
 
 IFS=, read -r w_mode w_nranks w_nx w_ny w_nz w_setup w_write < "$WRITE_LOG"
-IFS=, read -r c_mode c_nranks c_nx c_ny c_nz c_setup c_readback c_compute c_writeback c_total < "$COMPUTE_LOG"
-IFS=, read -r a_mode a_nranks a_nx a_ny a_nz a_setup a_readback a_compute a_writeback a_total a_bad < "$ANALYZE_LOG"
+IFS=, read -r a_mode a_nranks a_nx a_ny a_nz a_setup a_readback a_curl_compute a_curl_writeback a_mag_compute a_mag_writeback a_total a_bad < "$ANALYZE_LOG"
 
-if [ "$w_setup" = "FAILED" ] || [ "$c_setup" = "FAILED" ] || [ "$a_setup" = "FAILED" ]; then
+if [ "$w_setup" = "FAILED" ] || [ "$a_setup" = "FAILED" ]; then
   echo "curl_hdf5,${CLIENT_TOTAL_TASKS},${NX},${NY},${NZ_PER_RANK},FAILED" >> "$RESULTS"
 else
-  total=$(awk "BEGIN{print $w_setup + $w_write + $c_setup + $c_readback + $c_compute + $c_writeback + $a_setup + $a_readback + $a_compute + $a_writeback}")
-  echo "curl_hdf5,${CLIENT_TOTAL_TASKS},${NX},${NY},${NZ_PER_RANK},${w_setup},${w_write},${c_setup},${c_readback},${c_compute},${c_writeback},${a_setup},${a_readback},${a_compute},${a_writeback},${total},${a_bad}" >> "$RESULTS"
+  total=$(awk "BEGIN{print $w_setup + $w_write + $a_setup + $a_readback + $a_curl_compute + $a_curl_writeback + $a_mag_compute + $a_mag_writeback}")
+  echo "curl_hdf5,${CLIENT_TOTAL_TASKS},${NX},${NY},${NZ_PER_RANK},${w_setup},${w_write},${a_setup},${a_readback},${a_curl_compute},${a_curl_writeback},${a_mag_compute},${a_mag_writeback},${total},${a_bad}" >> "$RESULTS"
 fi
 
 echo "Done. Results in $RESULTS"

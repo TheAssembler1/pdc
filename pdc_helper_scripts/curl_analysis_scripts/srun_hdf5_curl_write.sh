@@ -1,8 +1,8 @@
 #!/bin/bash
 # HDF5 curl benchmark, posthoc phase 1: run hdf5_bench_curl_write, which
-# writes u/v/w into a fresh file and exits. See srun_hdf5_curl_compute.sh
-# (phase 2) and srun_hdf5_curl_analyze.sh (phase 3), run as separate srun
-# steps once every rank here has exited -- see curl_hdf5_analysis.sbatch.
+# writes u/v/w into a fresh file and exits. See srun_hdf5_curl_analyze.sh
+# (phase 2), run as a separate srun step once every rank here has
+# exited -- see curl_hdf5_analysis.sbatch.
 #
 # Required env: BIN_DIR (hdf5_analysis_test/ directory, holding the built
 #   hdf5_bench_curl_write binary), NUM_NODES, CLIENTS_PER_NODE,

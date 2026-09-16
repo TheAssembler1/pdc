@@ -1,7 +1,7 @@
 /**
  * Shared curl-of-a-vector-field kernel, used both by the server-side
  * external AN function (an_client/curl_kernel.c, eager mode) and the
- * client-side posthoc compute phase (bench_curl_compute.c), so the two
+ * client-side posthoc analyze phase (bench_curl_analyze.c), so the two
  * benchmark modes compute the identical result and stay comparable.
  *
  * Domain layout: a local (nx, ny, nz) block, x fastest-varying

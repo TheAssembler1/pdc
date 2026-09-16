@@ -1,10 +1,26 @@
 /**
- * E3SM-shaped curl/vorticity-magnitude benchmark, posthoc phase 3 of 3:
- * opens the curl_x/y/z objects a prior, already-exited bench_curl_compute
- * run created (against a PDC server that's since been closed and
- * restarted again to reload that data from its checkpoint), reads them
- * back, computes vorticity magnitude client-side, and writes the result
- * out as a plain PDC object (vorticity_magnitude).
+ * E3SM-shaped curl/vorticity-magnitude benchmark, posthoc phase 2 of 2:
+ * opens the u/v/w objects a prior, already-exited bench_curl_write run
+ * created (against a PDC server that's since been closed and restarted
+ * with the `restart` argument to reload that data from its checkpoint),
+ * reads them back, computes curl and then vorticity magnitude
+ * client-side -- both via the shared kernel in curl_math.h / a plain
+ * sqrt(x^2+y^2+z^2) reduction -- and writes both curl_x/y/z and
+ * vorticity_magnitude out as plain PDC objects, all in this one process.
+ *
+ * This intentionally matches the two-binary (write, then analyze) shape
+ * of analysis_scripts/'s magnitude benchmark (bench_write_components.c /
+ * bench_posthoc_analyze.c) rather than splitting "compute curl" and
+ * "compute magnitude" into their own separately relaunched phases: a
+ * real posthoc analysis workload reads the data someone else wrote once
+ * and derives whatever downstream quantities it needs in that same pass,
+ * it doesn't artificially reopen the server between two computations it
+ * could just as well do back to back. curl is still written out here
+ * (not just magnitude) so the data volume this mode persists stays
+ * comparable to eager's "Store" strategy (see README.md) -- it's simply
+ * computed and written in the same pass as magnitude instead of forcing
+ * its own intervening server close/restart the way a genuinely separate
+ * "compute curl" job would.
  *
  * With --compress, vorticity_magnitude is created with the existing GPU
  * ZFP compression transform (tf_client/graphs/zfp_gpu.json) composed onto
@@ -15,7 +31,7 @@
  * Usage: bench_curl_analyze <nx> <ny> <nz_per_rank> <compress:0|1>
  *
  * Prints one CSV line from rank 0:
- *   mode,n_client_ranks,nx,ny,nz_per_rank,compress,setup_s,readback_s,compute_s,writeback_s,total_s,bad
+ *   mode,n_client_ranks,nx,ny,nz_per_rank,compress,setup_s,readback_s,curl_compute_s,curl_writeback_s,magnitude_compute_s,magnitude_writeback_s,total_s,bad
  */
 
 #include <stdio.h>
@@ -60,7 +76,9 @@ main(int argc, char **argv)
     int    compress;
     size_t i;
 
-    double t_setup0, t_setup1, t_readback0, t_readback1, t_compute0, t_compute1, t_writeback0, t_writeback1;
+    double t_setup0, t_setup1, t_readback0, t_readback1;
+    double t_curl_compute0, t_curl_compute1, t_curl_wb0, t_curl_wb1;
+    double t_mag_compute0, t_mag_compute1, t_mag_wb0, t_mag_wb1;
 
     if (argc < 5) {
         fprintf(stderr, "Usage: %s <nx> <ny> <nz_per_rank> <compress:0|1>\n", argv[0]);
@@ -77,10 +95,13 @@ main(int argc, char **argv)
 
     size_t n_elem = (size_t)nx * (size_t)ny * (size_t)nz_per_rank;
 
-    double *curl_x_rb = (double *)malloc(sizeof(double) * n_elem);
-    double *curl_y_rb = (double *)malloc(sizeof(double) * n_elem);
-    double *curl_z_rb = (double *)malloc(sizeof(double) * n_elem);
-    double *mag       = (double *)malloc(sizeof(double) * n_elem);
+    float * u_rb   = (float *)malloc(sizeof(float) * n_elem);
+    float * v_rb   = (float *)malloc(sizeof(float) * n_elem);
+    float * w_rb   = (float *)malloc(sizeof(float) * n_elem);
+    double *curl_x = (double *)malloc(sizeof(double) * n_elem);
+    double *curl_y = (double *)malloc(sizeof(double) * n_elem);
+    double *curl_z = (double *)malloc(sizeof(double) * n_elem);
+    double *mag    = (double *)malloc(sizeof(double) * n_elem);
 
     uint64_t local_offset[3], global_offset[3], region_len[3], dims[3];
     local_offset[0]  = 0;
@@ -107,15 +128,17 @@ main(int argc, char **argv)
 
     const char *cont_name   = "curl_bench_shared";
     pdcid_t     prop_double = 0;
-    pdcid_t     cont = 0, curl_x_obj = 0, curl_y_obj = 0, curl_z_obj = 0, mag_obj = 0;
+    pdcid_t     cont = 0, u_obj = 0, v_obj = 0, w_obj = 0;
+    pdcid_t     curl_x_obj = 0, curl_y_obj = 0, curl_z_obj = 0, mag_obj = 0;
 
-    /* curl_x/y/z/container already exist from the prior compute-phase
-     * job. vorticity_magnitude doesn't exist yet, so rank 0 creates it
-     * here. */
-    cont       = PDCcont_open(cont_name, pdc);
-    curl_x_obj = PDCobj_open("curl_x", pdc);
-    curl_y_obj = PDCobj_open("curl_y", pdc);
-    curl_z_obj = PDCobj_open("curl_z", pdc);
+    /* u/v/w/container already exist from the prior write-phase job.
+     * curl_x/y/z and vorticity_magnitude don't exist yet, so rank 0
+     * creates them here, same create-once-per-object pattern as
+     * bench_curl_write.c. */
+    cont  = PDCcont_open(cont_name, pdc);
+    u_obj = PDCobj_open("u", pdc);
+    v_obj = PDCobj_open("v", pdc);
+    w_obj = PDCobj_open("w", pdc);
 
     if (rank == 0) {
         prop_double = PDCprop_create(PDC_OBJ_CREATE, pdc);
@@ -127,13 +150,20 @@ main(int argc, char **argv)
         PDCprop_set_obj_tags(prop_double, "tag0=1");
         PDCprop_set_obj_transfer_region_type(prop_double, PDC_REGION_STATIC);
 
-        mag_obj = PDCobj_create(cont, "vorticity_magnitude", prop_double);
+        curl_x_obj = PDCobj_create(cont, "curl_x", prop_double);
+        curl_y_obj = PDCobj_create(cont, "curl_y", prop_double);
+        curl_z_obj = PDCobj_create(cont, "curl_z", prop_double);
+        mag_obj    = PDCobj_create(cont, "vorticity_magnitude", prop_double);
     }
 
     MPI_Barrier(MPI_COMM_WORLD);
 
-    if (rank != 0)
-        mag_obj = PDCobj_open("vorticity_magnitude", pdc);
+    if (rank != 0) {
+        curl_x_obj = PDCobj_open("curl_x", pdc);
+        curl_y_obj = PDCobj_open("curl_y", pdc);
+        curl_z_obj = PDCobj_open("curl_z", pdc);
+        mag_obj    = PDCobj_open("vorticity_magnitude", pdc);
+    }
 
     pdcid_t reg        = PDCregion_create(3, local_offset, region_len);
     pdcid_t reg_global = PDCregion_create(3, global_offset, region_len);
@@ -152,30 +182,46 @@ main(int argc, char **argv)
     t_setup1 = MPI_Wtime();
 
     t_readback0 = MPI_Wtime();
-    do_transfer(curl_x_rb, PDC_READ, curl_x_obj, reg, reg_global, "readback curl_x");
-    do_transfer(curl_y_rb, PDC_READ, curl_y_obj, reg, reg_global, "readback curl_y");
-    do_transfer(curl_z_rb, PDC_READ, curl_z_obj, reg, reg_global, "readback curl_z");
+    do_transfer(u_rb, PDC_READ, u_obj, reg, reg_global, "readback u");
+    do_transfer(v_rb, PDC_READ, v_obj, reg, reg_global, "readback v");
+    do_transfer(w_rb, PDC_READ, w_obj, reg, reg_global, "readback w");
     MPI_Barrier(MPI_COMM_WORLD);
     t_readback1 = MPI_Wtime();
 
-    t_compute0 = MPI_Wtime();
+    t_curl_compute0 = MPI_Wtime();
+    curl_math_compute(u_rb, v_rb, w_rb, (size_t)nx, (size_t)ny, (size_t)nz_per_rank, curl_x, curl_y, curl_z);
+    MPI_Barrier(MPI_COMM_WORLD);
+    t_curl_compute1 = MPI_Wtime();
+
+    t_curl_wb0 = MPI_Wtime();
+    do_transfer(curl_x, PDC_WRITE, curl_x_obj, reg, reg_global, "writeback curl_x");
+    do_transfer(curl_y, PDC_WRITE, curl_y_obj, reg, reg_global, "writeback curl_y");
+    do_transfer(curl_z, PDC_WRITE, curl_z_obj, reg, reg_global, "writeback curl_z");
+    MPI_Barrier(MPI_COMM_WORLD);
+    t_curl_wb1 = MPI_Wtime();
+
+    /* magnitude is derived from curl_x/y/z already sitting in memory from
+     * the compute step above -- no need to read curl back from PDC (that
+     * would only be necessary if this were a genuinely separate later
+     * process, which is exactly the split this benchmark deliberately
+     * avoids -- see file header comment). */
+    t_mag_compute0 = MPI_Wtime();
     for (i = 0; i < n_elem; ++i) {
-        double cx = curl_x_rb[i], cy = curl_y_rb[i], cz = curl_z_rb[i];
+        double cx = curl_x[i], cy = curl_y[i], cz = curl_z[i];
         mag[i] = sqrt(cx * cx + cy * cy + cz * cz);
     }
     MPI_Barrier(MPI_COMM_WORLD);
-    t_compute1 = MPI_Wtime();
+    t_mag_compute1 = MPI_Wtime();
 
-    t_writeback0 = MPI_Wtime();
+    t_mag_wb0 = MPI_Wtime();
     do_transfer(mag, PDC_WRITE, mag_obj, reg, reg_global, "writeback vorticity_magnitude");
     MPI_Barrier(MPI_COMM_WORLD);
-    t_writeback1 = MPI_Wtime();
+    t_mag_wb1 = MPI_Wtime();
 
     /* Correctness check (not timed): u/v/w were generated with the same
-     * deterministic pattern by bench_curl_write, and curl from them by
-     * bench_curl_compute using the identical shared kernel -- recompute
-     * both locally here rather than reading everything back a second
-     * time. */
+     * deterministic pattern by bench_curl_write -- regenerate them
+     * locally and recompute the expected curl/magnitude rather than
+     * reading anything back a second time. */
     float *u = (float *)malloc(sizeof(float) * n_elem);
     float *v = (float *)malloc(sizeof(float) * n_elem);
     float *w = (float *)malloc(sizeof(float) * n_elem);
@@ -207,6 +253,9 @@ main(int argc, char **argv)
         PDCtf_close_dg(tf_dg_id);
     PDCregion_close(reg);
     PDCregion_close(reg_global);
+    PDCobj_close(u_obj);
+    PDCobj_close(v_obj);
+    PDCobj_close(w_obj);
     PDCobj_close(curl_x_obj);
     PDCobj_close(curl_y_obj);
     PDCobj_close(curl_z_obj);
@@ -216,27 +265,35 @@ main(int argc, char **argv)
         PDCprop_close(prop_double);
     PDCclose(pdc);
 
-    double local_setup     = t_setup1 - t_setup0;
-    double local_readback  = t_readback1 - t_readback0;
-    double local_compute   = t_compute1 - t_compute0;
-    double local_writeback = t_writeback1 - t_writeback0;
+    double local_setup       = t_setup1 - t_setup0;
+    double local_readback    = t_readback1 - t_readback0;
+    double local_curl_comp   = t_curl_compute1 - t_curl_compute0;
+    double local_curl_wb     = t_curl_wb1 - t_curl_wb0;
+    double local_mag_comp    = t_mag_compute1 - t_mag_compute0;
+    double local_mag_wb      = t_mag_wb1 - t_mag_wb0;
 
-    double max_setup, max_readback, max_compute, max_writeback;
+    double max_setup, max_readback, max_curl_comp, max_curl_wb, max_mag_comp, max_mag_wb;
     MPI_Reduce(&local_setup, &max_setup, 1, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD);
     MPI_Reduce(&local_readback, &max_readback, 1, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD);
-    MPI_Reduce(&local_compute, &max_compute, 1, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD);
-    MPI_Reduce(&local_writeback, &max_writeback, 1, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD);
+    MPI_Reduce(&local_curl_comp, &max_curl_comp, 1, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD);
+    MPI_Reduce(&local_curl_wb, &max_curl_wb, 1, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD);
+    MPI_Reduce(&local_mag_comp, &max_mag_comp, 1, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD);
+    MPI_Reduce(&local_mag_wb, &max_mag_wb, 1, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD);
 
     if (rank == 0) {
-        double total = max_setup + max_readback + max_compute + max_writeback;
-        printf("curl_posthoc_analyze,%d,%ld,%ld,%ld,%d,%.6f,%.6f,%.6f,%.6f,%.6f,%d\n", nranks, nx, ny,
-               nz_per_rank, compress, max_setup, max_readback, max_compute, max_writeback, total, global_bad);
+        double total = max_setup + max_readback + max_curl_comp + max_curl_wb + max_mag_comp + max_mag_wb;
+        printf("curl_posthoc_analyze,%d,%ld,%ld,%ld,%d,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%d\n", nranks, nx, ny,
+               nz_per_rank, compress, max_setup, max_readback, max_curl_comp, max_curl_wb, max_mag_comp,
+               max_mag_wb, total, global_bad);
         fflush(stdout);
     }
 
-    free(curl_x_rb);
-    free(curl_y_rb);
-    free(curl_z_rb);
+    free(u_rb);
+    free(v_rb);
+    free(w_rb);
+    free(curl_x);
+    free(curl_y);
+    free(curl_z);
     free(mag);
     free(u);
     free(v);

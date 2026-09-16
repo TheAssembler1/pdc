@@ -1,12 +1,11 @@
 /**
- * Parallel HDF5 curl/vorticity-magnitude benchmark, posthoc phase 1 of 3:
+ * Parallel HDF5 curl/vorticity-magnitude benchmark, posthoc phase 1 of 2:
  * write a local (nx, ny, nz_per_rank) block of a synthetic wind-velocity
  * field (u, v, w) per rank into a fresh file and exit. See
- * hdf5_bench_curl_compute.c (phase 2: read u,v,w back, compute curl,
- * write it out) and hdf5_bench_curl_analyze.c (phase 3: read curl back,
- * compute magnitude, write it out) -- three genuinely separate
+ * hdf5_bench_curl_analyze.c (phase 2: read u,v,w back, compute curl then
+ * vorticity magnitude, write both out) -- two genuinely separate
  * processes, run as separate srun steps, matching the PDC side's
- * bench_curl_write / bench_curl_compute / bench_curl_analyze split.
+ * bench_curl_write / bench_curl_analyze split.
  *
  * Usage: hdf5_bench_curl_write <nx> <ny> <nz_per_rank> [out_file]
  *
@@ -97,9 +96,9 @@ main(int argc, char **argv)
     float *v = (float *)malloc(sizeof(float) * n_elem);
     float *w = (float *)malloc(sizeof(float) * n_elem);
 
-    /* Same deterministic pattern hdf5_bench_curl_compute.c and
-     * hdf5_bench_curl_analyze.c use to independently regenerate expected
-     * values for their correctness checks. */
+    /* Same deterministic pattern hdf5_bench_curl_analyze.c uses to
+     * independently regenerate expected values for its correctness
+     * check. */
     for (i = 0; i < n_elem; ++i) {
         u[i] = (float)((i % 1000) + 1);
         v[i] = (float)(((i + 137) % 1000) + 1);

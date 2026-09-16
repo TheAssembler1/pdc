@@ -1,12 +1,12 @@
 /**
- * E3SM-shaped curl/vorticity-magnitude benchmark, posthoc phase 1 of 3:
+ * E3SM-shaped curl/vorticity-magnitude benchmark, posthoc phase 1 of 2:
  * write a local (nx, ny, nz_per_rank) block of a synthetic wind-velocity
  * field (u, v, w) per rank as plain PDC objects (no graph attached) and
- * exit. See bench_curl_compute.c (phase 2: read u,v,w back, compute
- * curl, write it out) and bench_curl_analyze.c (phase 3: read curl back,
- * compute magnitude, write it out) -- three genuinely separate processes,
- * with the PDC server closed (checkpointing) and restarted (reloading
- * that checkpoint) between each, matching a real posthoc workflow.
+ * exit. See bench_curl_analyze.c (phase 2: read u,v,w back, compute curl
+ * then vorticity magnitude, write both out) -- two genuinely separate
+ * processes, with the PDC server closed (checkpointing) and restarted
+ * (reloading that checkpoint) between them, matching a real posthoc
+ * workflow.
  *
  * Usage: bench_curl_write <nx> <ny> <nz_per_rank>
  *
@@ -71,7 +71,7 @@ main(int argc, char **argv)
     float *v = (float *)malloc(sizeof(float) * n_elem);
     float *w = (float *)malloc(sizeof(float) * n_elem);
 
-    /* Same deterministic pattern bench_curl_compute.c uses to
+    /* Same deterministic pattern bench_curl_analyze.c uses to
      * independently regenerate expected values for its correctness
      * check. */
     for (i = 0; i < n_elem; ++i) {

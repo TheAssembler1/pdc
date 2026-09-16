@@ -123,7 +123,6 @@ set(PROGRAMS
   analysis/bench_posthoc_analyze_eager
   analysis/bench_curl_eager
   analysis/bench_curl_write
-  analysis/bench_curl_compute
   analysis/bench_curl_analyze
 )
 
