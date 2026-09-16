@@ -69,12 +69,28 @@ typedef bool (*a_func_t)(pdc_tf_internal_param *internal_param, char *params_str
                          pdc_tf_region_t *input_regions, int num_inputs, void **output_bufs,
                          pdc_tf_region_t *output_regions, int num_outputs);
 
-typedef struct pdc_an_func_t {
-    char *            name; /* unprefixed transformation name, e.g. "merge_fields" */
+/**
+ * One device-specific implementation of a transformation, with its own
+ * rolling-average execution-time history (mirrors pdc_tf_func_t's
+ * exec_avg_time, pdc_tf_user.h:71) so the dynamic scheduler in
+ * PDCan_exec_graph can pick among several variants of the same named
+ * transformation the same way PDCtf_exec_graph's select_best_edge picks
+ * among parallel edges.
+ */
+typedef struct pdc_an_func_variant_t {
     pdc_tf_dev_t      dev;
     pdc_tf_location_t location;
     a_func_t          a_func;
     char *            params_str;
+    uint32_t          cur_exec_avg_time_index;
+    double            exec_avg_time[NUM_TF_FUNC_TIMES];
+} pdc_an_func_variant_t;
+
+typedef struct pdc_an_func_t {
+    char *name; /* unprefixed transformation name, e.g. "merge_fields" */
+
+    pdc_an_func_variant_t *variants;
+    int                    num_variants;
 
     char **input_names;
     int    num_inputs;

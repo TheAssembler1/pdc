@@ -174,7 +174,8 @@ perr_t PDCan_add_builtin_func(char *func_name, a_func_t a_func, pdc_tf_dev_t dev
  * @brief Resolves a named builtin analysis function and binds it to a
  * pdc_an_func_t's `a_func` field.
  */
-perr_t PDCan_link_builtin_func(char *func_name, pdc_tf_dev_t dev, pdc_an_func_t *f);
+perr_t PDCan_link_builtin_func(char *func_name, pdc_tf_dev_t dev, pdc_tf_location_t location,
+                               const char *params_str, pdc_an_func_t *f);
 
 /**
  * @brief Looks up a node (state or transformation) in the graph by name.

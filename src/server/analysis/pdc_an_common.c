@@ -13,6 +13,15 @@
 
 PDC_VECTOR *pdc_an_builtin_funcs_vector_g = NULL;
 
+/* One registered (name, device) builtin implementation. Distinct from
+ * pdc_an_func_t (the graph vertex payload, pdc_an_user.h), which holds an
+ * array of variants gathered from possibly-several of these entries by
+ * PDCan_link_builtin_func. */
+typedef struct pdc_an_builtin_entry_t {
+    char *                 name;
+    pdc_an_func_variant_t variant;
+} pdc_an_builtin_entry_t;
+
 char *pdc_an_persistence_strs[] = {"transient", "persistent"};
 char *pdc_an_trigger_strs[]     = {"eager", "lazy"};
 
@@ -235,9 +244,11 @@ an_vertex_free(void *data)
         for (int i = 0; i < f->num_outputs; i++)
             f->output_names[i] = PDC_free(f->output_names[i]);
         f->output_names = PDC_free(f->output_names);
-        if (f->params_str != NULL)
-            f->params_str = PDC_free(f->params_str);
-        f->name = PDC_free(f->name);
+        for (int i = 0; i < f->num_variants; i++)
+            if (f->variants[i].params_str != NULL)
+                f->variants[i].params_str = PDC_free(f->variants[i].params_str);
+        f->variants = PDC_free(f->variants);
+        f->name     = PDC_free(f->name);
     }
     /* For state vertices, u.state.name aliases node->name (a single
      * allocation); for function vertices node->name is the separately
@@ -265,6 +276,11 @@ PDCan_init_builtin_funcs(void)
     if (PDCan_add_builtin_func("vector_magnitude", pdc_an_builtin_vector_magnitude, PDC_TF_CPU_DEVICE) !=
         SUCCEED)
         PGOTO_ERROR(FAIL, "Failed to add builtin analysis func vector_magnitude CPU");
+#ifdef CUDA_ENABLED
+    if (PDCan_add_builtin_func("vector_magnitude", pdc_an_builtin_vector_magnitude_gpu, PDC_TF_GPU_DEVICE) !=
+        SUCCEED)
+        PGOTO_ERROR(FAIL, "Failed to add builtin analysis func vector_magnitude GPU");
+#endif
 
     if (PDCan_add_builtin_func("curl", pdc_an_builtin_curl, PDC_TF_CPU_DEVICE) != SUCCEED)
         PGOTO_ERROR(FAIL, "Failed to add builtin analysis func curl CPU");
@@ -285,10 +301,10 @@ PDCan_add_builtin_func(char *func_name, a_func_t a_func, pdc_tf_dev_t dev)
     if (a_func == NULL)
         PGOTO_ERROR(FAIL, "a_func was NULL");
 
-    pdc_an_func_t *builtin_func = PDC_calloc(1, sizeof(pdc_an_func_t));
-    builtin_func->name          = strdup(func_name);
-    builtin_func->a_func        = a_func;
-    builtin_func->dev           = dev;
+    pdc_an_builtin_entry_t *builtin_func = PDC_calloc(1, sizeof(pdc_an_builtin_entry_t));
+    builtin_func->name                  = strdup(func_name);
+    builtin_func->variant.a_func        = a_func;
+    builtin_func->variant.dev           = dev;
 
     pdc_vector_add(pdc_an_builtin_funcs_vector_g, builtin_func);
 
@@ -296,34 +312,66 @@ done:
     FUNC_LEAVE(ret_value);
 }
 
+/**
+ * Populates f->variants/num_variants from the builtin registry.
+ *
+ * dev == PDC_TF_NUM_DEVICES means "any device": every registry entry whose
+ * name matches contributes one variant, regardless of device -- this is how
+ * a transformation JSON entry that omits "device" ends up with a variant
+ * per device the name is registered under, letting PDCan_exec_graph choose
+ * dynamically the same way PDCtf_exec_graph's select_best_edge does.
+ * Otherwise, exactly the one (name, dev) match is used, matching this
+ * function's original single-device behavior.
+ *
+ * location/params_str come from the transformation's JSON entry (declared
+ * once per transformation, not per device) and are duplicated into every
+ * resulting variant so an_vertex_free can free each independently.
+ */
 perr_t
-PDCan_link_builtin_func(char *func_name, pdc_tf_dev_t dev, pdc_an_func_t *f)
+PDCan_link_builtin_func(char *func_name, pdc_tf_dev_t dev, pdc_tf_location_t location,
+                        const char *params_str, pdc_an_func_t *f)
 {
     FUNC_ENTER(NULL);
 
-    perr_t ret_value = SUCCEED;
-    bool   found     = false;
+    perr_t ret_value  = SUCCEED;
+    int    num_matches = 0;
 
     if (func_name == NULL)
         PGOTO_ERROR(FAIL, "func_name was NULL");
     if (f == NULL)
         PGOTO_ERROR(FAIL, "f was NULL");
 
-    PDC_VECTOR_ITERATOR *iter = pdc_vector_iterator_new(pdc_an_builtin_funcs_vector_g);
-    while (pdc_vector_iterator_has_next(iter)) {
-        pdc_an_func_t *builtin_func = pdc_vector_iterator_next(iter);
-        if (builtin_func == NULL)
-            PGOTO_ERROR(FAIL, "builtin_func was NULL");
-        if (strcmp(builtin_func->name, func_name) == 0 && builtin_func->dev == dev) {
-            found     = true;
-            f->a_func = builtin_func->a_func;
-        }
+    size_t registry_size = pdc_vector_size(pdc_an_builtin_funcs_vector_g);
+    for (size_t i = 0; i < registry_size; i++) {
+        pdc_an_builtin_entry_t *entry = pdc_vector_get(pdc_an_builtin_funcs_vector_g, i);
+        if (entry == NULL)
+            PGOTO_ERROR(FAIL, "builtin registry entry was NULL");
+        if (strcmp(entry->name, func_name) == 0 &&
+            (dev == PDC_TF_NUM_DEVICES || entry->variant.dev == dev))
+            num_matches++;
     }
-    pdc_vector_iterator_destroy(iter);
 
-    if (!found)
+    if (num_matches == 0)
         PGOTO_ERROR(FAIL, "Builtin analysis function \"%s\" not found for device %s", func_name,
-                    pdc_tf_dev_strs[dev]);
+                    dev == PDC_TF_NUM_DEVICES ? "ANY" : pdc_tf_dev_strs[dev]);
+
+    f->variants     = PDC_calloc((size_t)num_matches, sizeof(pdc_an_func_variant_t));
+    f->num_variants = num_matches;
+
+    int v = 0;
+    for (size_t i = 0; i < registry_size; i++) {
+        pdc_an_builtin_entry_t *entry = pdc_vector_get(pdc_an_builtin_funcs_vector_g, i);
+        if (strcmp(entry->name, func_name) != 0)
+            continue;
+        if (dev != PDC_TF_NUM_DEVICES && entry->variant.dev != dev)
+            continue;
+
+        f->variants[v].dev        = entry->variant.dev;
+        f->variants[v].location   = location;
+        f->variants[v].a_func     = entry->variant.a_func;
+        f->variants[v].params_str = (params_str != NULL) ? strdup(params_str) : NULL;
+        v++;
+    }
 
 done:
     FUNC_LEAVE(ret_value);
@@ -475,14 +523,16 @@ PDCan_dg_json_create_common(char *filepath)
             PGOTO_DONE(NULL);
         char *t_name = strdup(t_name_str);
 
-        const char *t_device   = get_json_string(t, "device", true);
+        /* Optional: a transformation that omits "device" gets one variant
+         * per device its name is registered under (see PDCan_link_builtin_func),
+         * letting PDCan_exec_graph pick dynamically at execution time
+         * instead of statically at parse time. */
+        const char *t_device   = get_json_string(t, "device", false);
         const char *t_location = get_json_string(t, "location", true);
-        if (t_device == NULL || t_location == NULL)
+        if (t_location == NULL)
             PGOTO_DONE(NULL);
 
-        char *t_params_str = NULL;
-        if (get_json_string(t, "params", false) != NULL)
-            t_params_str = strdup(get_json_string(t, "params", false));
+        const char *t_params_str = get_json_string(t, "params", false);
 
         struct array_list *t_inputs  = get_json_array(t, "inputs");
         struct array_list *t_outputs = get_json_array(t, "outputs");
@@ -495,17 +545,21 @@ PDCan_dg_json_create_common(char *filepath)
         if (t_num_inputs == 0 || t_num_outputs == 0)
             PGOTO_ERROR(NULL, "Transformation \"%s\" must have at least one input and one output\n", t_name);
 
-        pdc_tf_dev_t dev          = PDC_TF_CPU_DEVICE;
-        bool         found_device = false;
-        for (int j = 0; j < PDC_TF_NUM_DEVICES; j++) {
-            if (!strcmp(t_device, pdc_tf_dev_strs[j])) {
-                found_device = true;
-                dev          = (pdc_tf_dev_t)j;
-                break;
+        /* PDC_TF_NUM_DEVICES doubles as the "any device" sentinel when
+         * "device" was omitted from the JSON -- see PDCan_link_builtin_func. */
+        pdc_tf_dev_t dev = PDC_TF_NUM_DEVICES;
+        if (t_device != NULL) {
+            bool found_device = false;
+            for (int j = 0; j < PDC_TF_NUM_DEVICES; j++) {
+                if (!strcmp(t_device, pdc_tf_dev_strs[j])) {
+                    found_device = true;
+                    dev          = (pdc_tf_dev_t)j;
+                    break;
+                }
             }
+            if (!found_device)
+                PGOTO_ERROR(NULL, "Invalid device \"%s\" for transformation \"%s\"\n", t_device, t_name);
         }
-        if (!found_device)
-            PGOTO_ERROR(NULL, "Invalid device \"%s\" for transformation \"%s\"\n", t_device, t_name);
 
         pdc_tf_location_t location       = PDC_TF_BUILTIN;
         bool              found_location = false;
@@ -520,6 +574,12 @@ PDCan_dg_json_create_common(char *filepath)
             PGOTO_ERROR(NULL, "Invalid location \"%s\" for transformation \"%s\"\n", t_location, t_name);
 
         if (location == PDC_TF_EXTERNAL) {
+            if (t_device == NULL)
+                PGOTO_ERROR(NULL,
+                            "Transformation \"%s\" is external but omits \"device\"; an external symbol "
+                            "resolves to exactly one function pointer for exactly one device, so "
+                            "\"device\" must be specified\n",
+                            t_name);
             if (lib_path == NULL)
                 PGOTO_ERROR(NULL, "Transformation \"%s\" is external but no \"lib_path\" was provided\n",
                             t_name);
@@ -541,12 +601,9 @@ PDCan_dg_json_create_common(char *filepath)
 
         pdc_an_func_t func_data;
         memset(&func_data, 0, sizeof(func_data));
-        func_data.name       = t_name;
-        func_data.dev        = dev;
-        func_data.location   = location;
-        func_data.params_str = t_params_str;
+        func_data.name = t_name;
 
-        if (PDCan_link_builtin_func(t_name, dev, &func_data) != SUCCEED)
+        if (PDCan_link_builtin_func(t_name, dev, location, t_params_str, &func_data) != SUCCEED)
             PGOTO_ERROR(NULL, "Failed to link transformation \"%s\" to a builtin function\n", t_name);
 
         func_data.num_inputs   = t_num_inputs;
@@ -569,6 +626,17 @@ PDCan_dg_json_create_common(char *filepath)
 
         char *fn_node_name = PDC_malloc(strlen(PDC_AN_FUNC_NODE_PREFIX) + strlen(t_name) + 1);
         sprintf(fn_node_name, "%s%s", PDC_AN_FUNC_NODE_PREFIX, t_name);
+
+        /* PDCdg_add_vertex does not dedup by name -- a second transformation
+         * entry sharing this name would otherwise silently attach all of
+         * its edges to whichever vertex PDCan_dg_get_node finds first
+         * (first-match linear scan), leaving this one permanently
+         * unreachable with no error. Catch it here instead. */
+        if (PDCan_dg_get_node(ret_value, fn_node_name) != NULL)
+            PGOTO_ERROR(NULL,
+                        "Transformation \"%s\" is declared more than once; to give it multiple device "
+                        "variants, omit \"device\" from a single entry instead\n",
+                        t_name);
 
         pdc_an_node_t *fn_node = PDC_calloc(1, sizeof(pdc_an_node_t));
         fn_node->kind          = PDC_AN_NODE_FUNC;

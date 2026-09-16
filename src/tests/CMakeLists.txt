@@ -117,6 +117,7 @@ set(PROGRAMS
   analysis/vector_magnitude_test
   analysis/vector_magnitude_2d_test
   analysis/vector_magnitude_compressed_test
+  analysis/vector_magnitude_gpu_test
   analysis/bench_magnitude
   analysis/bench_write_components
   analysis/bench_posthoc_analyze
@@ -179,6 +180,14 @@ foreach(program ${PROGRAMS})
         message(WARNING "Source file ${SOURCE_FILE} not found, skipping ${program_name}.")
     endif()
 endforeach()
+
+if(CUDA_ENABLED)
+  # Standalone CUDA compilation/execution smoke test -- see the file's own
+  # header comment. Not part of PROGRAMS above since that loop assumes a
+  # plain .c source and a C-only linker.
+  add_executable(cuda_smoke_test ${CMAKE_CURRENT_SOURCE_DIR}/analysis/cuda_smoke_test.cu)
+  set_target_properties(cuda_smoke_test PROPERTIES CUDA_ARCHITECTURES "${CMAKE_CUDA_ARCHITECTURES}")
+endif()
 
 if(BUILD_MPI_TESTING)
   set(MPI_PROGRAMS
@@ -348,6 +357,14 @@ add_test(NAME all_compression_transform WORKING_DIRECTORY ${CMAKE_RUNTIME_OUTPUT
 add_test(NAME vector_magnitude_test WORKING_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY} COMMAND run_test.sh ./vector_magnitude_test)
 add_test(NAME vector_magnitude_2d_test WORKING_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY} COMMAND run_test.sh ./vector_magnitude_2d_test)
 add_test(NAME vector_magnitude_compressed_test WORKING_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY} COMMAND run_test.sh ./vector_magnitude_compressed_test)
+if(CUDA_ENABLED)
+  # No PDC server involved -- a pure CUDA runtime check, so run directly
+  # rather than through run_test.sh.
+  add_test(NAME cuda_smoke_test WORKING_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY} COMMAND ./cuda_smoke_test)
+  # Exercises the real (unforced) dynamic CPU/GPU scheduler in PDCan_exec_graph
+  # against a graph whose "vector_magnitude" transformation has two variants.
+  add_test(NAME vector_magnitude_gpu_test WORKING_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY} COMMAND run_test.sh ./vector_magnitude_gpu_test)
+endif()
 
 add_test(NAME region_transfer_all    WORKING_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY} COMMAND run_test.sh ./region_transfer_all )
 add_test(NAME region_transfer_all_2D    WORKING_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY} COMMAND run_test.sh ./region_transfer_all_2D )
@@ -479,6 +496,10 @@ set_tests_properties(all_compression_transform     PROPERTIES LABELS transform)
 set_tests_properties(vector_magnitude_test     PROPERTIES LABELS analysis)
 set_tests_properties(vector_magnitude_2d_test  PROPERTIES LABELS analysis)
 set_tests_properties(vector_magnitude_compressed_test  PROPERTIES LABELS analysis)
+if(CUDA_ENABLED)
+  set_tests_properties(cuda_smoke_test PROPERTIES LABELS analysis)
+  set_tests_properties(vector_magnitude_gpu_test PROPERTIES LABELS analysis)
+endif()
 
 if(BUILD_MPI_TESTING)
     add_test(NAME read_obj_shared_int WORKING_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY} COMMAND mpi_test.sh ./read_obj_shared ${MPI_RUN_CMD} 4 6 o 1 int)

@@ -121,6 +121,17 @@ message(STATUS "PDC_BUILD_INCLUDE_DEPENDENCIES: ${PDC_BUILD_INCLUDE_DEPENDENCIES
 
 add_library(pdc ${PDC_SRCS})
 
+if(CUDA_ENABLED)
+  # pdc_an_common.c (in PDC_SRCS above) calls pdc_an_builtin_vector_magnitude_gpu
+  # from PDCan_init_builtin_funcs under #ifdef CUDA_ENABLED, so this symbol
+  # must resolve wherever that file is compiled -- including here, even
+  # though nothing in the client actually reaches that call path at
+  # runtime. Needs target_sources (not an unconditional PDC_SRCS entry like
+  # the sibling *_gpu.c builtins) because a .cu source can't be compiled at
+  # all unless enable_language(CUDA) has run, unlike a plain .c file.
+  target_sources(pdc PRIVATE ${PDC_SOURCE_DIR}/src/server/analysis/pdc_an_builtin_magnitude_gpu.cu)
+endif()
+
 target_include_directories(pdc
   PUBLIC  "$<BUILD_INTERFACE:${PDC_BUILD_INCLUDE_DEPENDENCIES}>"
           $<INSTALL_INTERFACE:${PDC_INSTALL_INCLUDE_INTERFACE}>

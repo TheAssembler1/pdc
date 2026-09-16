@@ -1,4 +1,7 @@
 #include <string.h>
+#include <stdlib.h>
+#include <math.h>
+#include <cuda_runtime.h>
 
 #include "pdc_an_server.h"
 #include "pdc_malloc.h"
@@ -7,7 +10,9 @@
 #include "pdc_server_region_cache.h"
 #include "pdc_server_region_transfer.h"
 #include "pdc_tf_common.h"
+#include "pdc_tf_profiler.h"
 #include "pdc_timing.h"
+#include "pdc_logger.h"
 
 PDC_VECTOR *an_dg_registry_g              = NULL;
 PDC_VECTOR *an_obj_id_to_binding_vector_g = NULL;
@@ -556,6 +561,90 @@ done:
     FUNC_LEAVE(ret_value);
 }
 
+static double
+an_rolling_avg(double *history)
+{
+    double avg = 0.0;
+    for (int i = 0; i < NUM_TF_FUNC_TIMES; i++)
+        avg += history[i];
+    return avg / NUM_TF_FUNC_TIMES;
+}
+
+static double
+an_expected_exec_time(pdc_an_func_variant_t *v, double avg_cpu_utilization, double avg_gpu_utilization)
+{
+    double last_avg = an_rolling_avg(v->exec_avg_time);
+    if (last_avg < 0.001)
+        /* cold-start guess: no principled basis to bias the very first
+         * decision toward either device, so both CPU and GPU variants
+         * read the same guess here (mirrors select_best_edge's own
+         * "< 0.001 -> 0.750" fallback, pdc_tf_server.c). */
+        return 0.750;
+    return (v->dev == PDC_TF_CPU_DEVICE) ? last_avg / fmax(0.1, 1.0 - avg_cpu_utilization)
+                                         : last_avg / fmax(0.1, 1.0 - avg_gpu_utilization);
+}
+
+/**
+ * Mirrors pdc_tf_server.c's select_best_edge, but chooses among the
+ * device-variant candidates of ONE function vertex instead of parallel
+ * edges between two state vertices: AN's bipartite graph gives every
+ * transformation its own vertex (required for multi-input/output
+ * functions), so there is no edge multiplicity to scan the way TF's
+ * single-input/output edge-payload graph does -- the same dynamic decision
+ * instead lives on pdc_an_func_t's variants array (see PDCan_link_builtin_func).
+ * Deliberately does NOT consult TF's polynomial cost model
+ * (pdc_tf_poly_sched.c) -- that model is fitted specifically on ZFP-GPU
+ * compression data and would mispredict for magnitude/curl; only the
+ * generic rolling-average/utilization fallback path is mirrored here.
+ */
+static pdc_an_func_variant_t *
+an_select_variant(pdc_an_func_t *f, double avg_cpu_utilization, double avg_gpu_utilization)
+{
+    if (f->num_variants == 1)
+        return &f->variants[0];
+
+    /* Test-only override, mirroring select_best_edge's always_use_gpu
+     * force-override -- lets a correctness/scheduling test pin a device
+     * without depending on real utilization timing. */
+    const char *force = getenv("PDC_AN_FORCE_DEVICE");
+    if (force != NULL) {
+        pdc_tf_dev_t forced = (!strcmp(force, "GPU")) ? PDC_TF_GPU_DEVICE : PDC_TF_CPU_DEVICE;
+        for (int i = 0; i < f->num_variants; i++)
+            if (f->variants[i].dev == forced) {
+                LOG_WARNING("SCHED: PDC_AN_FORCE_DEVICE=%s forcing func=%s to variant %d\n", force, f->name,
+                            i);
+                return &f->variants[i];
+            }
+    }
+
+    int    best_idx  = 0;
+    double best_time = 1e9;
+    for (int i = 0; i < f->num_variants; i++) {
+        double exp_time = an_expected_exec_time(&f->variants[i], avg_cpu_utilization, avg_gpu_utilization);
+        LOG_WARNING("SCHED: func=%s variant=%d dev=%s last_avg_time=%.4f expected_time=%.4f "
+                    "best_so_far=%.4f\n",
+                    f->name, i, f->variants[i].dev == PDC_TF_CPU_DEVICE ? "CPU" : "GPU",
+                    an_rolling_avg(f->variants[i].exec_avg_time), exp_time, best_time);
+        if (exp_time < best_time) {
+            best_time = exp_time;
+            best_idx  = i;
+        }
+    }
+    LOG_WARNING("SCHED: chose func=%s variant=%d dev=%s expected_time=%.4f\n", f->name, best_idx,
+                f->variants[best_idx].dev == PDC_TF_CPU_DEVICE ? "CPU" : "GPU", best_time);
+    return &f->variants[best_idx];
+}
+
+static void
+an_update_exec_time(pdc_an_func_variant_t *v, double projected_time, const char *func_name)
+{
+    v->exec_avg_time[v->cur_exec_avg_time_index] = projected_time;
+    LOG_WARNING("SCHED: updated %s exec_times[%d]=%.4f new_avg=%.4f func=%s\n",
+                v->dev == PDC_TF_CPU_DEVICE ? "CPU" : "GPU", v->cur_exec_avg_time_index, projected_time,
+                an_rolling_avg(v->exec_avg_time), func_name);
+    v->cur_exec_avg_time_index = (v->cur_exec_avg_time_index + 1) % NUM_TF_FUNC_TIMES;
+}
+
 perr_t
 PDCan_exec_graph(pdc_an_dg_entry_t *entry, char **target_state_names, int num_targets, uint8_t ref_ndim,
                  const uint64_t *ref_offset, const uint64_t *ref_size)
@@ -669,17 +758,45 @@ PDCan_exec_graph(pdc_an_dg_entry_t *entry, char **target_state_names, int num_ta
         pdc_tf_internal_param internal_params = {0};
         internal_params.dg                    = dg;
 
+        /* Fast path (the common case today: every builtin graph currently
+         * declares exactly one device per transformation) skips profiling
+         * entirely. Only a transformation whose JSON omitted "device" ever
+         * has num_variants > 1. */
+        double avg_cpu_utilization = 0.0, avg_gpu_utilization = 0.0;
+        if (f->num_variants > 1) {
+            avg_cpu_utilization = pdc_tf_avg_cpu_utilization();
+            pdc_tf_nvml_profiler_update();
+            avg_gpu_utilization = pdc_tf_avg_gpu_utilization(0); /* first cut: GPU device 0 only */
+        }
+        pdc_an_func_variant_t *chosen = an_select_variant(f, avg_cpu_utilization, avg_gpu_utilization);
+
+        if (chosen->dev == PDC_TF_GPU_DEVICE) {
+            cudaError_t cerr = cudaSetDevice(0);
+            if (cerr != cudaSuccess)
+                PGOTO_ERROR(FAIL, "Failed to set CUDA device 0 for transformation \"%s\"\n", f->name);
+        }
+
         struct timespec an_func_t0, an_func_t1;
         clock_gettime(CLOCK_MONOTONIC, &an_func_t0);
-        bool an_func_ok = f->a_func(&internal_params, f->params_str, input_bufs, input_regions, f->num_inputs,
-                                    output_bufs, output_regions, f->num_outputs);
+        bool an_func_ok = chosen->a_func(&internal_params, chosen->params_str, input_bufs, input_regions,
+                                         f->num_inputs, output_bufs, output_regions, f->num_outputs);
         clock_gettime(CLOCK_MONOTONIC, &an_func_t1);
+        double an_exec_time = (an_func_t1.tv_sec - an_func_t0.tv_sec) +
+                              (an_func_t1.tv_nsec - an_func_t0.tv_nsec) / 1e9;
+
         /* Only "magnitude" is one of the three tracked computation
          * metrics (see PDC_stat_metric_t) -- "curl" and anything else
-         * registered here isn't recorded. */
+         * registered here isn't recorded. This is a separate, session-long
+         * close-time summary metric -- independent of the per-variant
+         * rolling-average scheduling bookkeeping below. */
         if (strstr(f->name, "magnitude") != NULL)
-            PDC_stats_record(PDC_STAT_MAGNITUDE, (an_func_t1.tv_sec - an_func_t0.tv_sec) +
-                                                     (an_func_t1.tv_nsec - an_func_t0.tv_nsec) / 1e9);
+            PDC_stats_record(PDC_STAT_MAGNITUDE, an_exec_time);
+
+        if (f->num_variants > 1) {
+            double utilization    = (chosen->dev == PDC_TF_CPU_DEVICE) ? avg_cpu_utilization : avg_gpu_utilization;
+            double projected_time = an_exec_time * (1.0 - fmax(utilization, 0.1));
+            an_update_exec_time(chosen, projected_time, f->name);
+        }
 
         if (!an_func_ok) {
             PDC_free(input_bufs);

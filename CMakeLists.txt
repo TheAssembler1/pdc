@@ -175,6 +175,27 @@ endif()
 # Project Name : PDC, Programming Language : C
 project(PDC C)
 
+# Existing GPU builtins (pdc_tf_builtin_zfp_gpu.c etc.) are plain .c files
+# that only call the CUDA runtime API plus a third-party library's own
+# precompiled CUDA implementation, so they never needed the CUDA language
+# enabled. A hand-written __global__ kernel (the AN magnitude GPU builtin)
+# does, hence this addition -- see src/tests/analysis/cuda_smoke_test.cu for
+# a minimal target that isolates "does CUDA compilation work in this CMake
+# project" before any real kernel logic depends on it.
+if(CUDA_ENABLED)
+  if(DEFINED ENV{CUDA_ROOT_DIR} AND NOT "$ENV{CUDA_ROOT_DIR}" STREQUAL "")
+    set(CMAKE_CUDA_COMPILER "$ENV{CUDA_ROOT_DIR}/bin/nvcc")
+  endif()
+  if(NOT DEFINED CMAKE_CUDA_ARCHITECTURES OR "${CMAKE_CUDA_ARCHITECTURES}" STREQUAL "")
+    # 75/80/86 covers common dev workstation GPUs plus Perlmutter's A100 (80).
+    # Older architectures (e.g. 70/Volta) are dropped here because newer CUDA
+    # toolkits (13.x) no longer ship device code generation support for them
+    # -- confirmed via `nvcc --list-gpu-arch` in this build's own toolkit.
+    set(CMAKE_CUDA_ARCHITECTURES 75 80 86)
+  endif()
+  enable_language(CUDA)
+endif()
+
 # include CheckSymbolExists module
 include(CheckSymbolExists)
 

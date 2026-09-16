@@ -91,6 +91,17 @@ add_library(pdc_server_lib
                ${PDC_SOURCE_DIR}/src/utils/pdc_region_utils.c
                ${PDC_SOURCE_DIR}/src/api/pdc_hist/pdc_hist_pkg.c
 )
+if(CUDA_ENABLED)
+  # A hand-written __global__ kernel (unlike the sibling *_gpu.c builtins
+  # above, which only call a third-party library's own precompiled CUDA
+  # implementation) -- needs the CUDA language actually enabled to compile
+  # at all, so this can't be listed unconditionally in add_library() like
+  # they are. Also compiled into the client `pdc` library (see
+  # src/api/CMakeLists.txt) -- not because the client ever calls it, but
+  # because pdc_an_common.c's PDCan_init_builtin_funcs references it and
+  # that file is itself compiled into both targets.
+  target_sources(pdc_server_lib PRIVATE analysis/pdc_an_builtin_magnitude_gpu.cu)
+endif()
 if(PDC_ENABLE_FASTBIT)
     message(STATUS "Enabled fastbit")
     target_link_libraries(pdc_server_lib ${MERCURY_LIBRARY} ${PDC_COMMONS_LIBRARIES} -lm -ldl ${PDC_EXT_LIB_DEPENDENCIES} ${FASTBIT_LIBRARY}/libfastbit.so)
