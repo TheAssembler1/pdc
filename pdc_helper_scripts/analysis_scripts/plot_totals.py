@@ -259,7 +259,10 @@ def main():
     slot_width = group_width / max(n_bars, 1)
     bar_width = slot_width * 0.78
 
-    fig, ax = plt.subplots(figsize=(max(7.0, 1.7 * n_groups), 5.5))
+    fig, (ax, ax2) = plt.subplots(
+        2, 1, figsize=(max(7.0, 1.7 * n_groups), 9.5), sharex=True, sharey=True,
+        gridspec_kw={"height_ratios": [3, 2]}, constrained_layout=True,
+    )
     x = np.arange(n_groups)
 
     legend_segment_handles = {}
@@ -281,8 +284,7 @@ def main():
             legend_segment_handles.setdefault(seg, bars[0])
 
     ax.set_xticks(x)
-    ax.set_xticklabels([label_for(n) for n in all_ranks], rotation=0)
-    ax.set_xlabel("ranks / data size (GB)")
+    ax.tick_params(labelbottom=False)  # shared x-axis; labels live on ax2 below
     ax.set_ylabel("total workload time (s)")
     ax.set_title("HDF5 vs. DataFlyway (PDC) total workload time")
     ax.yaxis.grid(True, linestyle="--", alpha=0.4, zorder=0)
@@ -300,8 +302,42 @@ def main():
     mode_labels = [MODE_LABEL[m] for m in modes_present]
     ax.legend(mode_handles, mode_labels, title="workload", loc="upper right", fontsize=8, title_fontsize=8)
 
-    fig.text(0.5, 0.005, timestep_caption, ha="center", va="bottom", fontsize=8, style="italic")
-    fig.tight_layout(rect=(0, 0.03, 1, 1))
+    # Second panel: just the total per workload (the same numbers the
+    # stacked bars above sum to, with the segment breakdown dropped) as a
+    # line per mode across the same rank/GB scale points, sharing color
+    # identity with the outline colors used above.
+    for mode in modes_present:
+        totals = np.array(
+            [
+                sum(per_job[mode][n_ranks][0].values()) if n_ranks in per_job[mode] else np.nan
+                for n_ranks in all_ranks
+            ]
+        )
+        ax2.plot(
+            x, totals, marker="o", markersize=5, linewidth=1.8,
+            color=MODE_EDGE_COLOR[mode], label=MODE_LABEL[mode],
+        )
+    ax2.set_xticks(x)
+    ax2.set_xticklabels([label_for(n) for n in all_ranks], rotation=0)
+    # Caption folded into the shared x-axis label (as its own line) rather
+    # than a separate fig.text -- fig.text sits outside what
+    # constrained_layout reserves space for, so it would otherwise overlap
+    # this label instead of sitting cleanly below it.
+    ax2.set_xlabel(f"ranks / data size (GB)\n{timestep_caption}", fontsize=9)
+    ax2.set_ylabel("total workload time (s)")
+    ax2.yaxis.grid(True, linestyle="--", alpha=0.4, zorder=0)
+    ax2.set_axisbelow(True)
+    ax2.legend(title="workload", loc="upper left", fontsize=8, title_fontsize=8)
+
+    # A little headroom above the tallest bar/line so the top-right
+    # "workload" legend doesn't sit on top of data (sharey=True, so this
+    # sets both panels at once).
+    y_max = max(
+        (sum(segs.values()) for m in modes_present for segs, _, _ in per_job[m].values()),
+        default=1.0,
+    )
+    ax.set_ylim(0, y_max * 1.18)
+
     fig.savefig(args.out, dpi=200)
     print(f"Wrote {args.out}")
 
