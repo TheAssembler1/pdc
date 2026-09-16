@@ -831,10 +831,9 @@ PDC_Server_data_io_region_analysis(uint64_t obj_id, int obj_ndim, const uint64_t
         char *targets[1];
         targets[0] = binding->state_name;
 
-        bool was_in_progress = an_eager_exec_in_progress_g;
+        bool was_in_progress        = an_eager_exec_in_progress_g;
         an_eager_exec_in_progress_g = true;
-        perr_t exec_ret =
-            PDCan_exec_graph(entry, targets, 1, binding->ndim, binding->offset, binding->size);
+        perr_t exec_ret = PDCan_exec_graph(entry, targets, 1, binding->ndim, binding->offset, binding->size);
         an_eager_exec_in_progress_g = was_in_progress;
 
         if (exec_ret != SUCCEED)
