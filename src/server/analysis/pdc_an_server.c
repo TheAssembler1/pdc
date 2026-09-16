@@ -768,6 +768,23 @@ PDCan_notify_input_written(pdcid_t obj_id, uint8_t ndim, uint64_t *offset, uint6
             if (!all_ready)
                 continue;
 
+            /* A transformation is only eagerly triggered here if every one
+             * of its declared outputs opts into eager (the default) --
+             * any output declared "lazy" in the graph JSON defers this
+             * whole transformation to the read-triggered path in
+             * PDC_Server_data_io_region_analysis instead, regardless of
+             * how/when the client attached it (see pdc_an_trigger_t). */
+            bool outputs_eager = true;
+            for (int o = 0; o < f->num_outputs; o++) {
+                pdc_an_state_t *out_state = PDCan_dg_get_state(entry->dg, f->output_names[o]);
+                if (out_state != NULL && out_state->trigger == PDC_AN_TRIGGER_LAZY) {
+                    outputs_eager = false;
+                    break;
+                }
+            }
+            if (!outputs_eager)
+                continue;
+
             if (PDCan_exec_graph(entry, f->output_names, f->num_outputs, binding->ndim, binding->offset,
                                  binding->size) != SUCCEED) {
                 LOG_ERROR("Eager write-triggered analysis failed for transformation \"%s\"\n", f->name);

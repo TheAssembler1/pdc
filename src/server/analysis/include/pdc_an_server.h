@@ -116,12 +116,15 @@ perr_t PDCan_exec_graph(pdc_an_dg_entry_t *entry, char **target_state_names, int
  * (obj_id, region), from PDC_Server_transfer_request_io. A no-op unless
  * the region matches a bound analysis INPUT, in which case it's marked
  * materialized and every transformation consuming it is checked -- any
- * whose inputs are now all materialized is eagerly computed and persisted
- * (a fixed-point pass, so a chain of persistent intermediate states
- * cascades in one call). A transformation with a transient input can never
- * become "ready" this way -- transient states have no binding to check --
- * so such a transformation is only ever reached via the lazy read-triggered
- * path in PDC_Server_data_io_region_analysis.
+ * whose inputs are now all materialized AND whose outputs are all
+ * declared "eager" (pdc_an_trigger_t; the default) is eagerly computed
+ * and persisted (a fixed-point pass, so a chain of persistent
+ * intermediate states cascades in one call). A transformation with a
+ * transient input can never become "ready" this way -- transient states
+ * have no binding to check -- and a transformation with any "lazy"
+ * output is deliberately skipped here regardless of readiness; both
+ * cases are only ever reached via the lazy read-triggered path in
+ * PDC_Server_data_io_region_analysis.
  */
 perr_t PDCan_notify_input_written(pdcid_t obj_id, uint8_t ndim, uint64_t *offset, uint64_t *size);
 

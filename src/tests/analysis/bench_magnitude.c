@@ -1,18 +1,38 @@
 /**
  * Scale benchmark comparing two strategies for producing a "magnitude"
- * object from three vector-component objects (vx, vy, vz):
+ * object from three vector-component objects (vx, vy, vz) -- both fully
+ * server-side via the region-analysis framework (DataFlyway); neither
+ * mode ever computes magnitude client-side, since DataFlyway's whole
+ * point is that in-flight processing happens on the server, not in the
+ * client process. Both modes attach their graph to vx/vy/vz/magnitude
+ * identically, before writing -- the *graph itself* now declares
+ * whether its output is eager or lazy (the "trigger" field on the
+ * "magnitude" state -- see pdc_an_trigger_t in
+ * src/server/analysis/include/pdc_an_user.h), so client attach order no
+ * longer has to encode that decision:
  *
- *   eager   - components are written through the region-analysis
- *             framework (DataFlyway) with the vector_magnitude graph
- *             attached; the last component write transparently triggers
- *             server-side eager computation of magnitude in the write
- *             path. A confirmation read of magnitude follows.
+ *   eager   - an_client/graphs/vector_magnitude.json, whose "magnitude"
+ *             state declares "trigger": "eager" (the default). The last
+ *             component write transparently triggers server-side eager
+ *             computation of magnitude in the write path
+ *             (PDCan_notify_input_written's write-triggered hook). A
+ *             confirmation read of magnitude follows.
  *
- *   lazy    - components are written as plain PDC objects (no graph
- *             attached), then read back to the client and magnitude is
- *             computed client-side -- recomputed from scratch on every
- *             use, like an ordinary (non-materialized) SQL view. The
- *             result is never written back to the server.
+ *   lazy    - an_client/graphs/vector_magnitude_lazy.json, identical
+ *             graph shape but "magnitude" declares "trigger": "lazy" --
+ *             PDCan_notify_input_written deliberately skips eagerly
+ *             computing it even once vx/vy/vz are all written. The read
+ *             of magnitude that follows is what triggers server-side
+ *             computation: PDC_Server_data_io_region_analysis (see
+ *             src/server/analysis/pdc_an_server.c) transparently
+ *             materializes an unmaterialized bound output the first time
+ *             it's read. This is genuine lazy evaluation -- computed
+ *             once, on first need, and persisted -- not "recomputed from
+ *             scratch on every access": the framework has no notion of a
+ *             non-materializing view, and reintroducing one client-side
+ *             would just be eager's write-triggered case with the
+ *             trigger moved to a hand-rolled client read, still
+ *             in-flight processing on the client either way.
  *
  * The third strategy, posthoc (write, then in a separate later job read
  * back, compute, and write the result), needs a real client-close +
@@ -98,13 +118,10 @@ main(int argc, char **argv)
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
     MPI_Comm_size(MPI_COMM_WORLD, &nranks);
 
-    float * vx    = (float *)malloc(sizeof(float) * n_elem);
-    float * vy    = (float *)malloc(sizeof(float) * n_elem);
-    float * vz    = (float *)malloc(sizeof(float) * n_elem);
-    float * vx_rb = (float *)malloc(sizeof(float) * n_elem);
-    float * vy_rb = (float *)malloc(sizeof(float) * n_elem);
-    float * vz_rb = (float *)malloc(sizeof(float) * n_elem);
-    double *mag   = (double *)malloc(sizeof(double) * n_elem);
+    float * vx  = (float *)malloc(sizeof(float) * n_elem);
+    float * vy  = (float *)malloc(sizeof(float) * n_elem);
+    float * vz  = (float *)malloc(sizeof(float) * n_elem);
+    double *mag = (double *)malloc(sizeof(double) * n_elem);
 
     for (i = 0; i < (size_t)n_elem; ++i) {
         vx[i] = (float)((i % 1000) + 1);
@@ -184,13 +201,17 @@ main(int argc, char **argv)
     pdcid_t reg        = PDCregion_create(1, local_offset, region_len);
     pdcid_t reg_global = PDCregion_create(1, global_offset, region_len);
 
-    pdcid_t dg_id = 0;
-    if (is_eager) {
-        dg_id = PDCan_dg_json_create(AN_GRAPHS_DIR "vector_magnitude.json");
-        if (dg_id == 0) {
-            fprintf(stderr, "PDCan_dg_json_create failed\n");
-            MPI_Abort(MPI_COMM_WORLD, 1);
-        }
+    /* Only the graph file differs between modes now -- vector_magnitude.json's
+     * "magnitude" state declares "trigger": "eager", vector_magnitude_lazy.json's
+     * declares "lazy" (see file header comment); both modes attach and
+     * write identically below. */
+    char graph_path[256];
+    snprintf(graph_path, sizeof(graph_path), "%s%s", AN_GRAPHS_DIR,
+             is_eager ? "vector_magnitude.json" : "vector_magnitude_lazy.json");
+    pdcid_t dg_id = PDCan_dg_json_create(graph_path);
+    if (dg_id == 0) {
+        fprintf(stderr, "PDCan_dg_json_create failed\n");
+        MPI_Abort(MPI_COMM_WORLD, 1);
     }
 
     MPI_Barrier(MPI_COMM_WORLD);
@@ -240,16 +261,21 @@ main(int argc, char **argv)
             MPI_Abort(MPI_COMM_WORLD, 1);
         }
 
-        if (is_eager) {
-            PDCan_attach_to_region(dg_id, "vx", vx_obj, reg_global);
-            PDCan_attach_to_region(dg_id, "vy", vy_obj, reg_global);
-            PDCan_attach_to_region(dg_id, "vz", vz_obj, reg_global);
-            PDCan_attach_to_region(dg_id, "magnitude", mag_obj, reg_global);
-        }
+        /* Same attach call for both modes now -- whether this write ends
+         * up eagerly triggering computation or not is entirely up to the
+         * loaded graph's own "trigger" declaration on "magnitude" (see
+         * file header comment), not client attach order. */
+        PDCan_attach_to_region(dg_id, "vx", vx_obj, reg_global);
+        PDCan_attach_to_region(dg_id, "vy", vy_obj, reg_global);
+        PDCan_attach_to_region(dg_id, "vz", vz_obj, reg_global);
+        PDCan_attach_to_region(dg_id, "magnitude", mag_obj, reg_global);
 
         /* Write vector components -- for eager mode, the final component
          * write transparently triggers server-side computation+persistence
-         * of magnitude before this phase's wait/close return. */
+         * of magnitude before this phase's wait/close return
+         * (PDCan_notify_input_written). For lazy, that same hook sees
+         * "magnitude" declared lazy and deliberately skips it -- this
+         * write completes without any computation happening yet. */
         t_write0 = MPI_Wtime();
         do_transfer(vx, PDC_WRITE, vx_obj, reg, reg_global, "write vx");
         do_transfer(vy, PDC_WRITE, vy_obj, reg, reg_global, "write vy");
@@ -257,34 +283,16 @@ main(int argc, char **argv)
         MPI_Barrier(MPI_COMM_WORLD);
         t_write1 = MPI_Wtime();
 
-        t_readback0 = t_readback1 = t_compute0 = t_compute1 = t_read0 = t_read1 = 0;
-        if (is_eager) {
-            /* Confirmation read: magnitude should already be materialized. */
-            t_read0 = MPI_Wtime();
-            do_transfer(mag, PDC_READ, mag_obj, reg, reg_global, "read magnitude");
-            MPI_Barrier(MPI_COMM_WORLD);
-            t_read1 = MPI_Wtime();
-        }
-        else {
-            /* Read the components back to the client. */
-            t_readback0 = MPI_Wtime();
-            do_transfer(vx_rb, PDC_READ, vx_obj, reg, reg_global, "readback vx");
-            do_transfer(vy_rb, PDC_READ, vy_obj, reg, reg_global, "readback vy");
-            do_transfer(vz_rb, PDC_READ, vz_obj, reg, reg_global, "readback vz");
-            MPI_Barrier(MPI_COMM_WORLD);
-            t_readback1 = MPI_Wtime();
-
-            /* Compute magnitude client-side. lazy stops here -- the result
-             * is used but never persisted, recomputed from scratch on
-             * every read like an ordinary SQL view. */
-            t_compute0 = MPI_Wtime();
-            for (i = 0; i < (size_t)n_elem; ++i) {
-                double x = (double)vx_rb[i], y = (double)vy_rb[i], z = (double)vz_rb[i];
-                mag[i] = sqrt(x * x + y * y + z * z);
-            }
-            MPI_Barrier(MPI_COMM_WORLD);
-            t_compute1 = MPI_Wtime();
-        }
+        /* Read magnitude -- for eager this just confirms the write-time
+         * computation already happened; for lazy, this read is what
+         * transparently triggers the server to compute and persist
+         * magnitude for the first time (PDC_Server_data_io_region_analysis's
+         * read-triggered hook -- see file header comment). Either way,
+         * the result comes back from the server, never computed here. */
+        t_read0 = MPI_Wtime();
+        do_transfer(mag, PDC_READ, mag_obj, reg, reg_global, "read magnitude");
+        MPI_Barrier(MPI_COMM_WORLD);
+        t_read1 = MPI_Wtime();
 
         /* Correctness check (not timed). */
         int local_bad = 0;
@@ -314,8 +322,13 @@ main(int argc, char **argv)
         global_bad += step_bad;
 
         if (rank == 0) {
-            double step_total =
-                is_eager ? (max_write + max_read) : (max_write + max_readback + max_compute + max_writeback);
+            /* Same formula for both modes now: readback_s/compute_s/
+             * writeback_s are always 0 (neither mode ever reads
+             * components back or computes client-side -- see file header
+             * comment), so the total is just write + the read that
+             * confirms (eager) or triggers (lazy) server-side
+             * materialization. */
+            double step_total = max_write + max_read;
             printf("%s,%d,%d,%ld,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%d\n", mode_name, step, nranks, n_elem,
                    max_setup, max_write, max_readback, max_compute, max_writeback, max_read, step_total,
                    step_bad);
@@ -328,8 +341,7 @@ main(int argc, char **argv)
         PDCobj_close(mag_obj);
     }
 
-    if (is_eager)
-        PDCan_close_dg(dg_id);
+    PDCan_close_dg(dg_id);
     PDCregion_close(reg);
     PDCregion_close(reg_global);
     PDCcont_close(cont);
@@ -341,9 +353,6 @@ main(int argc, char **argv)
     free(vx);
     free(vy);
     free(vz);
-    free(vx_rb);
-    free(vy_rb);
-    free(vz_rb);
     free(mag);
 
     MPI_Finalize();

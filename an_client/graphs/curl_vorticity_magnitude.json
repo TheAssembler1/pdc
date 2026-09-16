@@ -4,10 +4,10 @@
     { "name": "u", "persistence": "persistent" },
     { "name": "v", "persistence": "persistent" },
     { "name": "w", "persistence": "persistent" },
-    { "name": "curl_x", "persistence": "persistent" },
-    { "name": "curl_y", "persistence": "persistent" },
-    { "name": "curl_z", "persistence": "persistent" },
-    { "name": "vorticity_magnitude", "persistence": "persistent" }
+    { "name": "curl_x", "persistence": "persistent", "trigger": "eager" },
+    { "name": "curl_y", "persistence": "persistent", "trigger": "eager" },
+    { "name": "curl_z", "persistence": "persistent", "trigger": "eager" },
+    { "name": "vorticity_magnitude", "persistence": "persistent", "trigger": "eager" }
   ],
   "transformations": [
     {

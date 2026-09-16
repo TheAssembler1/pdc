@@ -14,6 +14,7 @@
 PDC_VECTOR *pdc_an_builtin_funcs_vector_g = NULL;
 
 char *pdc_an_persistence_strs[] = {"transient", "persistent"};
+char *pdc_an_trigger_strs[]     = {"eager", "lazy"};
 
 /* Client-local: vector of {dg_id, PDC_VECTOR *mappings} pairs. See
  * PDCan_get_client_dg_mappings/PDCan_add_client_dg_mapping in pdc_an_common.h. */
@@ -429,11 +430,32 @@ PDCan_dg_json_create_common(char *filepath)
         if (!found_persistence)
             PGOTO_ERROR(NULL, "Invalid persistence \"%s\" for state \"%s\"\n", s_persistence_str, s_name);
 
+        /* Optional -- only meaningful for states that turn out to be an
+         * output (checked in pass 2 below, since is_output isn't known
+         * yet here); defaults to eager, preserving this framework's
+         * original attach-order-determined behavior for any graph JSON
+         * that doesn't declare it. */
+        const char *     s_trigger_str = get_json_string(s, "trigger", false);
+        pdc_an_trigger_t trigger       = PDC_AN_TRIGGER_EAGER;
+        if (s_trigger_str != NULL) {
+            bool found_trigger = false;
+            for (int j = 0; j < PDC_AN_NUM_TRIGGER; j++) {
+                if (!strcmp(s_trigger_str, pdc_an_trigger_strs[j])) {
+                    found_trigger = true;
+                    trigger       = (pdc_an_trigger_t)j;
+                    break;
+                }
+            }
+            if (!found_trigger)
+                PGOTO_ERROR(NULL, "Invalid trigger \"%s\" for state \"%s\"\n", s_trigger_str, s_name);
+        }
+
         pdc_an_node_t *node       = PDC_calloc(1, sizeof(pdc_an_node_t));
         node->kind                = PDC_AN_NODE_STATE;
         node->name                = s_name;
         node->u.state.name        = s_name;
         node->u.state.persistence = persistence;
+        node->u.state.trigger     = trigger;
         node->u.state.is_output   = false;
 
         if (PDCdg_add_vertex(ret_value, node) == PDC_DG_INVALID_VERTEX)

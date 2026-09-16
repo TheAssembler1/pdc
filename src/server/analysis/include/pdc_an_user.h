@@ -25,9 +25,35 @@ typedef enum pdc_an_persistence_t {
 } pdc_an_persistence_t;
 extern char *pdc_an_persistence_strs[];
 
+/**
+ * Whether an output state's producing transformation runs as soon as its
+ * inputs are all written (eager -- PDCan_notify_input_written's
+ * write-triggered pass) or is deferred until the state is first read
+ * (lazy -- PDC_Server_data_io_region_analysis's read-triggered path,
+ * which remains the universal fallback for ANY unmaterialized bound
+ * output regardless of this setting, eager included). This is a property
+ * of the graph itself, declared per output state in its JSON, not of
+ * when/how a client happens to call PDCan_attach_to_region -- a lazy
+ * output stays lazy even if attached before its inputs are written,
+ * and an eager output attached only after its inputs are already
+ * durable (e.g. in a fresh process against already-checkpointed data)
+ * still just falls through to the same read-triggered path, since the
+ * write it would have eagerly triggered on already happened without it.
+ * Meaningless on a non-output state (never produced by any
+ * transformation); defaults to eager if omitted from the JSON, matching
+ * this framework's original (attach-order-determined) behavior.
+ */
+typedef enum pdc_an_trigger_t {
+    PDC_AN_TRIGGER_EAGER,
+    PDC_AN_TRIGGER_LAZY,
+    PDC_AN_NUM_TRIGGER
+} pdc_an_trigger_t;
+extern char *pdc_an_trigger_strs[];
+
 typedef struct pdc_an_state_t {
     char *               name;
     pdc_an_persistence_t persistence;
+    pdc_an_trigger_t     trigger;   /* only meaningful once is_output is true */
     bool                 is_output; /* true once some transformation lists this state as an output */
 } pdc_an_state_t;
 

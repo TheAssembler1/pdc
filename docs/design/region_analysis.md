@@ -35,19 +35,41 @@ replace one another.
   - `persistent`: the buffer is written to storage under an object/region
     the client explicitly attaches, and a `materialized` flag lets later
     reads skip recomputing it.
+- **Trigger** (`eager` | `lazy`, default `eager`), a property of an
+  *output* state (meaningless on a leaf/input state): whether the
+  transformation producing this state runs as soon as every one of its
+  inputs is written (`eager`) or is deferred until the state is first
+  read (`lazy`). This is a property of the graph, declared once in its
+  JSON — not something a client encodes by choosing when to call
+  `PDCan_attach_to_region` relative to writing the inputs. See §4a.
 - **Transformation**: a node with N named input states and M named output
   states, a `device` (`CPU`|`GPU`), and a `location` (`builtin`|`external`).
   This is the multi-in/multi-out generalization of a PDC TF edge.
 - **Graph**: the full set of states + transformations, loaded from JSON,
   identified client-side by a `dg_id`.
 
-A write to an *input* object never triggers computation. Reading an
-*output* state does — always transparently, exactly like PDC TF's inverse
-transform on read, with no separate "run the analysis" call — and only
-computes the minimal set of transformations needed to produce the
-requested output. Upstream states that are already materialized
-(persistent, on disk from an earlier read) are reused rather than
-recomputed.
+Reading an *output* state always transparently computes it if it isn't
+already materialized — exactly like PDC TF's inverse transform on read,
+with no separate "run the analysis" call — and only computes the minimal
+set of transformations needed to produce the requested output. Upstream
+states that are already materialized (persistent, on disk from an
+earlier execution) are reused rather than recomputed. This read-triggered
+path is the universal fallback for *any* unmaterialized bound output,
+`eager`-declared ones included — it's what actually produces a `lazy`
+output the first time it's read, and it's also what a client sees if it
+attaches an `eager` output only after its inputs are already durable
+(the write that would have eagerly triggered it already happened without
+that attachment in place, e.g. a fresh process reading data a previous,
+unrelated process wrote and checkpointed).
+
+In addition, writing the *last* required input of an `eager`-declared
+output transformation transparently triggers that computation immediately
+in the write path, before the write's own RPC returns — a chain of
+`persistent` intermediate `eager` outputs cascades in one pass. A
+transformation with any `transient` input can never be write-triggered
+this way (transient states have no binding to check readiness against),
+so it's only ever reached via the read-triggered path regardless of its
+own trigger declaration.
 
 ## 3. JSON graph format
 
@@ -59,8 +81,8 @@ recomputed.
     { "name": "temp_in",     "persistence": "transient" },
     { "name": "pressure_in", "persistence": "transient" },
     { "name": "merged",      "persistence": "transient" },
-    { "name": "stats_mean",  "persistence": "persistent" },
-    { "name": "stats_debug", "persistence": "persistent" }
+    { "name": "stats_mean",  "persistence": "persistent", "trigger": "lazy" },
+    { "name": "stats_debug", "persistence": "persistent", "trigger": "lazy" }
   ],
   "transformations": [
     {
@@ -90,6 +112,14 @@ Notes:
   the graph only describes shape and dataflow, not placement.
 - `lib_path` + `location: "external"` reuse the existing PDC TF
   dlopen/dlsym mechanism unchanged.
+- `trigger` is optional per state (default `eager`) and only meaningful
+  on an output. All of one transformation's outputs are produced
+  together in a single execution, so they're only ever write-triggered
+  together too: the write-triggered pass requires *every* declared
+  output of a transformation to be `eager` before running it early;
+  if any one of them is `lazy`, the whole transformation is left to the
+  read-triggered path (§4a) — there's no such thing as write-triggering
+  half of one execution's outputs.
 
 ## 4. Client API, in the order you use it
 
@@ -117,6 +147,36 @@ PDC object, transformed or not. Whether that read is a plain storage read
 or triggers computation first is decided server-side, purely by
 materialization state, invisibly to this call.
 
+## 4a. `PDCan_attach_to_region` call order does not matter
+
+Earlier versions of the eager-vs-lazy distinction were made entirely by
+*when* the client called `PDCan_attach_to_region` relative to writing the
+inputs — attach before writing to get write-triggered computation, attach
+only afterward to fall through to the read-triggered path. That's no
+longer how it works: eager-vs-lazy is a property of the *graph JSON*
+(§2's `trigger` field), checked server-side inside
+`PDCan_notify_input_written` before it write-triggers a transformation.
+A client can attach every state — inputs and outputs alike — before
+writing anything, for both an `eager` and a `lazy` graph, and get the
+declared behavior either way:
+
+- `eager` output, attached before the writes: the last input write
+  write-triggers it, exactly as before.
+- `lazy` output, attached before the writes: the write-triggered pass
+  sees it declared `lazy` and skips it; the first read still transparently
+  triggers it, via the same read-triggered path a `lazy` output has
+  always used.
+
+The one case that's still governed by physical timing rather than the
+`trigger` field: attaching an `eager` output *after* its inputs are
+already durable (a later process, or a restart, discovering data someone
+else already wrote). The write that would have eagerly triggered it
+already happened without that attachment in place, so there's nothing
+left to write-trigger — it falls through to the read-triggered path
+regardless of its `eager` declaration. This is expected, not a bug: the
+declaration governs what happens when a write *could* trigger it, not a
+promise to retroactively compute something the moment it's attached.
+
 ## 5. Worked example (single rank shown; every rank does the same calls
    against its own regions)
 
@@ -140,7 +200,13 @@ PDCan_attach_to_region(dg, "pressure_in", pres_obj,  reg);
 PDCan_attach_to_region(dg, "stats_mean",  mean_obj,  reg);
 PDCan_attach_to_region(dg, "stats_debug", debug_obj, reg);
 
-/* Ordinary writes — nothing analysis-related triggers here. */
+/* Ordinary writes -- nothing analysis-related triggers here, because
+ * both of this graph's outputs (stats_mean, stats_debug) declare
+ * "trigger": "lazy" (§3). Change either to "eager" and the same write
+ * of pressure_in (the last of merge_fields' two inputs) would instead
+ * transparently compute+persist reduce_stats' outputs right here, in
+ * this write's own RPC -- see §4a for why that's independent of the
+ * attach order shown above. */
 write_region(temp_obj, reg, temp_data);
 write_region(pres_obj, reg, pressure_data);
 
@@ -170,7 +236,7 @@ Both directions use the same call, but the server does different bookkeeping:
 |---|---|---|
 | Registers | `(dg_id, state) -> (obj_id, region)` as a data **source** | Same, as a data **sink**, *and* `(obj_id, region) -> (dg_id, state)` in a reverse index |
 | Effect on reads of that object/region | None — reads are ordinary object reads, analysis is not involved | Reads are recognized as analysis-output reads; transparently trigger computation if not yet materialized |
-| Effect on writes of that object/region | None — writes are ordinary object writes, nothing downstream is triggered | N/A (outputs are never client-written; the executor is the only writer) |
+| Effect on writes of that object/region | Marks this input materialized; if that makes some transformation's inputs all-materialized *and* all its declared outputs are `eager`, write-triggers it immediately (§2, §4a) — otherwise a no-op | N/A (outputs are never client-written; the executor is the only writer) |
 
 The reverse index is the piece that matters most operationally: without it,
 a read against `mean_obj`/`reg` would just be a normal read of whatever

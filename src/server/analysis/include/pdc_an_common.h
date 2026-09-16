@@ -133,7 +133,10 @@ perr_t PDCan_add_client_dg_mapping(pdcid_t dg_id, pdc_an_region_mapping_t *mappi
  *   "name": "...",
  *   "lib_path": "..."  (optional, required if any transformation is "external")
  *   "states": [
- *     { "name": "...", "persistence": "transient"|"persistent" }
+ *     { "name": "...", "persistence": "transient"|"persistent",
+ *       "trigger": "eager"|"lazy" (optional, default "eager"; only
+ *       meaningful for a state produced by some transformation below --
+ *       see pdc_an_trigger_t in pdc_an_user.h) }
  *   ],
  *   "transformations": [
  *     { "name": "...", "device": "CPU"|"GPU", "location": "builtin"|"external",

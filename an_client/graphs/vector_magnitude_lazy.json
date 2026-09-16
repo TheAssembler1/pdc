@@ -1,10 +1,10 @@
 {
-  "name": "vector_magnitude",
+  "name": "vector_magnitude_lazy",
   "states": [
     { "name": "vx", "persistence": "persistent" },
     { "name": "vy", "persistence": "persistent" },
     { "name": "vz", "persistence": "persistent" },
-    { "name": "magnitude", "persistence": "persistent", "trigger": "eager" }
+    { "name": "magnitude", "persistence": "persistent", "trigger": "lazy" }
   ],
   "transformations": [
     {
