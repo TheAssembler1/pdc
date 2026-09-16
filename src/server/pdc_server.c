@@ -1378,6 +1378,17 @@ PDC_Server_checkpoint()
         PGOTO_ERROR(FAIL, "Checkpoint file open error");
     }
 
+    // Checkpoint this rank's next-object-id counter. PDC_Server_gen_obj_id
+    // (pdc_server_metadata.c) is a bare in-memory pdc_id_seq_g++, with no
+    // checkpoint/restore of its own -- without this, PDC_Server_restart
+    // reinitializes it back to this rank's startup base (see "set server
+    // id start" in PDC_Server_init), and the very first object any client
+    // creates after the restart gets handed an ID already in use by an
+    // object this same checkpoint just reloaded (e.g. a posthoc analyze
+    // phase's freshly created magnitude_N colliding with the write
+    // phase's vx_0), silently aliasing two unrelated objects together.
+    fwrite(&pdc_id_seq_g, sizeof(uint64_t), 1, file);
+
     // Checkpoint containers
     n_entry = hash_table_num_entries(container_hash_table_g);
     fwrite(&n_entry, sizeof(int), 1, file);
@@ -1817,6 +1828,17 @@ PDC_Server_restart(char *filename)
     FILE *file = fopen(filename, "r");
     if (file == NULL)
         PGOTO_ERROR(FAIL, "Error with fopen, filename: [%s]", filename);
+
+    // Restore this rank's next-object-id counter, checkpointed as the
+    // very first field by PDC_Server_checkpoint -- must happen before any
+    // new object gets created on this rank, or it silently reissues an ID
+    // already used by an object this same checkpoint reloaded (see the
+    // comment on the matching fwrite in PDC_Server_checkpoint).
+    uint64_t checkpointed_id_seq = 0;
+    if (fread(&checkpointed_id_seq, sizeof(uint64_t), 1, file) != 1)
+        LOG_ERROR("Read failed for pdc_id_seq_g\n");
+    else
+        pdc_id_seq_g = checkpointed_id_seq;
 
     if (fread(&n_cont, sizeof(int), 1, file) != 1) {
         LOG_ERROR("Read failed for n_count\n");

@@ -812,11 +812,32 @@ PDC_Server_data_io_region_analysis(uint64_t obj_id, int obj_ndim, const uint64_t
     /* Transparent, exactly like PDC TF's read-side inverse transform: a
      * read of an unmaterialized output always triggers the minimal
      * computation needed to produce it, with no separate "run" step the
-     * client must call first. */
+     * client must call first.
+     *
+     * Guard an_eager_exec_in_progress_g here exactly like
+     * PDCan_notify_input_written's write-triggered pass does, for the same
+     * reason: PDCan_exec_graph below reads each leaf input via
+     * PDC_Server_transfer_request_io, which re-enters this very function
+     * (PDC_Server_data_io_region_analysis is called from inside
+     * PDC_Server_transfer_request_io -- see that function). Left
+     * unguarded, PDCan_exec_graph's per-leaf-input PDC_region_cache_flush
+     * call would re-enter PDC_region_cache_flush_by_pointer for an object
+     * whose cache entry can still be mid-unwind higher up this exact call
+     * stack (the outer read that got us here in the first place) -- see
+     * the comment on an_eager_exec_in_progress_g's declaration for why
+     * that specific reentrancy corrupts a linked list rather than just
+     * recursing. */
     if (!binding->materialized) {
         char *targets[1];
         targets[0] = binding->state_name;
-        if (PDCan_exec_graph(entry, targets, 1, binding->ndim, binding->offset, binding->size) != SUCCEED)
+
+        bool was_in_progress = an_eager_exec_in_progress_g;
+        an_eager_exec_in_progress_g = true;
+        perr_t exec_ret =
+            PDCan_exec_graph(entry, targets, 1, binding->ndim, binding->offset, binding->size);
+        an_eager_exec_in_progress_g = was_in_progress;
+
+        if (exec_ret != SUCCEED)
             PGOTO_ERROR(FAIL, "Failed to compute analysis output \"%s\"\n", binding->state_name);
     }
 
