@@ -443,7 +443,7 @@ PDC_Server_register_obj_region_by_pointer(data_server_region_t **new_obj_reg_ptr
         }
         if (new_obj_reg->fd < 0) {
             new_obj_reg->close_flag = close_flag;
-            new_obj_reg->fd         = pdc_stat_posix_open(new_obj_reg->storage_location, O_RDWR | O_CREAT, 0600);
+            new_obj_reg->fd = pdc_stat_posix_open(new_obj_reg->storage_location, O_RDWR | O_CREAT, 0600);
             if (new_obj_reg->fd < 0)
                 PGOTO_DONE(ret_value);
         }
@@ -4064,7 +4064,7 @@ PDC_Server_posix_write(int fd, void *buf, uint64_t write_size)
 done:
     clock_gettime(CLOCK_MONOTONIC, &pdc_stat_t1);
     PDC_stats_record(PDC_STAT_POSIX_WRITE, (pdc_stat_t1.tv_sec - pdc_stat_t0.tv_sec) +
-                                                (pdc_stat_t1.tv_nsec - pdc_stat_t0.tv_nsec) / 1e9);
+                                               (pdc_stat_t1.tv_nsec - pdc_stat_t0.tv_nsec) / 1e9);
     FUNC_LEAVE(ret_value);
 }
 
@@ -4105,7 +4105,7 @@ PDC_Server_posix_pread(int fd, void *buf, uint64_t read_size, uint64_t offset)
 done:
     clock_gettime(CLOCK_MONOTONIC, &pdc_stat_t1);
     PDC_stats_record(PDC_STAT_POSIX_READ, (pdc_stat_t1.tv_sec - pdc_stat_t0.tv_sec) +
-                                               (pdc_stat_t1.tv_nsec - pdc_stat_t0.tv_nsec) / 1e9);
+                                              (pdc_stat_t1.tv_nsec - pdc_stat_t0.tv_nsec) / 1e9);
     FUNC_LEAVE(ret_value);
 }
 

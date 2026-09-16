@@ -671,16 +671,15 @@ PDCan_exec_graph(pdc_an_dg_entry_t *entry, char **target_state_names, int num_ta
 
         struct timespec an_func_t0, an_func_t1;
         clock_gettime(CLOCK_MONOTONIC, &an_func_t0);
-        bool an_func_ok =
-            f->a_func(&internal_params, f->params_str, input_bufs, input_regions, f->num_inputs, output_bufs,
-                     output_regions, f->num_outputs);
+        bool an_func_ok = f->a_func(&internal_params, f->params_str, input_bufs, input_regions, f->num_inputs,
+                                    output_bufs, output_regions, f->num_outputs);
         clock_gettime(CLOCK_MONOTONIC, &an_func_t1);
         /* Only "magnitude" is one of the three tracked computation
          * metrics (see PDC_stat_metric_t) -- "curl" and anything else
          * registered here isn't recorded. */
         if (strstr(f->name, "magnitude") != NULL)
             PDC_stats_record(PDC_STAT_MAGNITUDE, (an_func_t1.tv_sec - an_func_t0.tv_sec) +
-                                                      (an_func_t1.tv_nsec - an_func_t0.tv_nsec) / 1e9);
+                                                     (an_func_t1.tv_nsec - an_func_t0.tv_nsec) / 1e9);
 
         if (!an_func_ok) {
             PDC_free(input_bufs);
