@@ -998,8 +998,8 @@ PDCan_restart_init(FILE *file)
 {
     FUNC_ENTER(NULL);
 
-    perr_t   ret_value = SUCCEED;
-    size_t   num_paths = 0;
+    perr_t   ret_value         = SUCCEED;
+    size_t   num_paths         = 0;
     uint32_t max_graph_id_seen = 0;
     bool     any_path          = false;
 
