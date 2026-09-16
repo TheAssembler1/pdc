@@ -65,6 +65,10 @@ SCHEMAS = {
     "eager": (_EAGER_LAZY_ONE_TIME, _EAGER_LAZY_PER_STEP),
     "lazy": (_EAGER_LAZY_ONE_TIME, _EAGER_LAZY_PER_STEP),
     "posthoc": (_POSTHOC_ONE_TIME, _POSTHOC_PER_STEP),
+    # Same two-phase write/relaunch/analyze shape and CSV schema as
+    # posthoc -- compute_s/writeback_s are always 0 (the server does both
+    # inseparably inside the timed read) -- see bench_posthoc_analyze_eager.c.
+    "eager_posthoc": (_POSTHOC_ONE_TIME, _POSTHOC_PER_STEP),
     "hdf5": (_POSTHOC_ONE_TIME, _POSTHOC_PER_STEP),
 }
 
@@ -98,11 +102,12 @@ SEGMENT_LABEL = {
     "avg_close_s": "server close",
 }
 
-MODE_ORDER = ["eager", "lazy", "posthoc", "hdf5"]
+MODE_ORDER = ["eager", "lazy", "posthoc", "eager_posthoc", "hdf5"]
 MODE_LABEL = {
     "eager": "DataFlyway (eager)",
     "lazy": "DataFlyway (lazy)",
     "posthoc": "PDC (posthoc)",
+    "eager_posthoc": "DataFlyway (eager posthoc)",
     "hdf5": "HDF5 (posthoc)",
 }
 # One-sentence mechanism per workload, for the figure caption -- not just
@@ -114,6 +119,9 @@ MODE_DESCRIPTION = {
     "recomputed client-side on every access, never persisted",
     "posthoc": "vx/vy/vz written, server closed and restarted, then a separate "
     "process reads them back and computes magnitude client-side by hand",
+    "eager_posthoc": "vx/vy/vz written, server closed and restarted, then a "
+    "separate process attaches the DataFlyway graph fresh and reads magnitude, "
+    "which triggers the server to compute and persist it",
     "hdf5": "same write/close/reopen/compute shape as PDC posthoc, but against "
     "a plain parallel-HDF5 file with no PDC server involved",
 }
@@ -123,6 +131,7 @@ MODE_EDGE_COLOR = {
     "eager": "#111111",
     "lazy": "#1A5276",
     "posthoc": "#7D3C98",
+    "eager_posthoc": "#117864",
     "hdf5": "#B03A2E",
 }
 
@@ -357,12 +366,14 @@ def main():
 
     # A little headroom above the tallest bar/line so the top-right
     # "workload" legend doesn't sit on top of data (sharey=True, so this
-    # sets both panels at once).
+    # sets both panels at once). More modes -> a taller legend box, so scale
+    # headroom with how many rows it has instead of a fixed fraction.
     y_max = max(
         (sum(segs.values()) for m in modes_present for segs, _, _ in per_job[m].values()),
         default=1.0,
     )
-    ax.set_ylim(0, y_max * 1.18)
+    headroom = 1.12 + 0.05 * len(modes_present)
+    ax.set_ylim(0, y_max * headroom)
 
     fig.savefig(args.out, dpi=200)
     print(f"Wrote {args.out}")
