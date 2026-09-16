@@ -216,6 +216,47 @@ reopened fresh for the analyze phase:
 mode,step,n_ranks,nx,ny,nz_per_rank,write_setup_s,write_s,analyze_setup_s,readback_s,curl_compute_s,curl_writeback_s,magnitude_compute_s,magnitude_writeback_s,total_s,bad
 ```
 
+All four `.sbatch` scripts append two more columns after their own
+schema above: `avg_close_s,total_with_close_s`, the same convention
+`analysis_scripts/`'s magnitude benchmark uses (see that README's
+"Result CSV schema" section for the full rationale). `close_server`
+checkpoints every server's in-memory metadata to disk before exiting,
+which is also what actually flushes PDC's server-side region cache (up
+to 64GB by default -- see `src/server/pdc_server_region/pdc_server_region_cache.c`)
+to the storage backend: a write can return once its bytes land in that
+cache, well before they're durably persisted, so `total_s` alone can
+make eager/posthoc look artificially cheap for any run whose data
+fits in cache. Each PDC-backed script greps its own
+`close_server_<tag>_<N>.log` for "total close time", averages across
+server ranks, and appends it as `avg_close_s` plus `total_with_close_s`
+(`total_s` + `avg_close_s`). `results_curl_hdf5_*.csv` always has
+`avg_close_s = 0` (no server to close, and HDF5's `H5Dwrite` here goes
+straight through MPI-IO with no comparable cache to hide behind), so
+`total_with_close_s` there equals `total_s` -- and all curl CSVs end up
+directly comparable on that last column.
+
+### Data size validation
+
+Each `.sbatch` script also sanity-checks the data volume that actually
+reached storage against what `N_TIMESTEPS x NX x NY x NZ_PER_RANK x`
+(client ranks) should produce -- u/v/w (float32) plus curl_x/y/z and
+vorticity_magnitude (float64), all persisted once per timestep, the
+same formula `plot_curl_totals.py`'s `aggregate()` uses for the x-axis
+data-size label. For the PDC-backed scripts this measures
+`$PDC_DATA_LOC/pdc_data` (where object data actually lives on disk --
+see `pdc_server_data.c`'s `storage_location`) with `du -sb`, taken
+*after* the job's last `close_server` call so the region cache has
+actually flushed; for the HDF5 baseline it reads the output file's size
+directly. This exists because `bad=0` alone only checks values read
+back *through* PDC/HDF5 -- it can't catch a truncated write, a stale
+data directory left over from a previous run, or a region that was
+never flushed at all. Uncompressed runs get a hard `[0.95, 1.05]`
+tolerance check (`[0.95, 1.15]` for HDF5, to allow for its own
+per-dataset/chunk metadata overhead) printed as `OK`/`WARNING` in the
+job log; `COMPRESS=1` runs just report the expected-vs-actual numbers
+without a tolerance check, since a smaller actual size is the whole
+point of compression.
+
 ## Usage on Perlmutter
 
 Build the binaries first (see `hdf5_analysis_test/README.md` for the

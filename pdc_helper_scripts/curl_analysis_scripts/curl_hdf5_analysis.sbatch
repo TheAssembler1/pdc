@@ -69,6 +69,30 @@ echo "mode,step,n_ranks,nx,ny,nz_per_rank,write_setup_s,write_s,analyze_setup_s,
 ./srun_hdf5_curl_write.sh
 ./srun_hdf5_curl_analyze.sh
 
+# Sanity-check the data volume that actually landed in the HDF5 file
+# against what N_TIMESTEPS x NX x NY x NZ_PER_RANK x CLIENT_TOTAL_TASKS
+# should produce: u/v/w (float32, from the write phase) plus curl_x/y/z
+# and vorticity_magnitude (float64, from the analyze phase), all
+# persisted once per timestep -- same formula as
+# plot_curl_totals.py's aggregate(). Unlike the PDC-backed sbatch
+# scripts, this reads the actual file size directly (no server-side
+# cache to worry about -- H5Dwrite here goes straight through MPI-IO),
+# with a slightly wider upper tolerance for HDF5's own per-chunk/dataset
+# metadata overhead.
+N_TIMESTEPS=3   # must track hdf5_bench_curl_write.c / hdf5_bench_curl_analyze.c's #define N_TIMESTEPS
+BYTES_PER_ELEM=$((4 * 3 + 8 * 4))   # u,v,w float32 + curl_x/y/z,vorticity_magnitude float64
+EXPECTED_BYTES=$((CLIENT_TOTAL_TASKS * NX * NY * NZ_PER_RANK * BYTES_PER_ELEM * N_TIMESTEPS))
+ACTUAL_BYTES=$(stat -c%s "$OUT_FILE" 2>/dev/null || echo 0)
+echo "Data size check: expected=${EXPECTED_BYTES} bytes, actual=${ACTUAL_BYTES} bytes (${OUT_FILE})"
+awk -v e="$EXPECTED_BYTES" -v a="$ACTUAL_BYTES" 'BEGIN {
+  if (e == 0) { print "WARNING: expected byte count is 0, skipping ratio check"; exit }
+  ratio = a / e
+  if (ratio < 0.95 || ratio > 1.15)
+    printf "WARNING: actual/expected data size ratio %.3f is outside [0.95, 1.15] -- possible incomplete write or stale file\n", ratio
+  else
+    printf "OK: actual/expected data size ratio %.3f within tolerance\n", ratio
+}'
+
 # Both WRITE_LOG and ANALYZE_LOG now hold one line per timestep
 # (N_TIMESTEPS=3 in hdf5_bench_curl_write.c / hdf5_bench_curl_analyze.c),
 # in matching step order, so pair them up line-by-line via two file
@@ -86,5 +110,16 @@ while IFS=, read -r w_mode w_step w_nranks w_nx w_ny w_nz w_setup w_write <&3 &&
 done
 exec 3<&-
 exec 4<&-
+
+# No PDC server here, so no checkpoint/flush cost to measure -- avg_close_s
+# is always 0, keeping this schema directly comparable to
+# results_curl_eager_*.csv / results_curl_posthoc_*.csv's own
+# avg_close_s/total_with_close_s columns (total_with_close_s == total_s
+# here since avg_close_s is 0).
+awk -F, -v OFS=, '
+  NR==1 { print $0, "avg_close_s", "total_with_close_s"; next }
+  NF==16 { print $0, "0", $15; next }
+  { print }
+' "$RESULTS" > "${RESULTS}.tmp" && mv "${RESULTS}.tmp" "$RESULTS"
 
 echo "Done. Results in $RESULTS"
