@@ -237,8 +237,8 @@ main(int argc, char **argv)
     if (rank == 0) {
         double total = max_setup + max_readback + max_curl_comp + max_curl_wb + max_mag_comp + max_mag_wb;
         printf("curl_posthoc_analyze,%d,%ld,%ld,%ld,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%d\n", nranks, nx, ny,
-               nz_per_rank, max_setup, max_readback, max_curl_comp, max_curl_wb, max_mag_comp, max_mag_wb, total,
-               global_bad);
+               nz_per_rank, max_setup, max_readback, max_curl_comp, max_curl_wb, max_mag_comp, max_mag_wb,
+               total, global_bad);
         fflush(stdout);
     }
 

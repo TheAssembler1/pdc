@@ -265,12 +265,12 @@ main(int argc, char **argv)
         PDCprop_close(prop_double);
     PDCclose(pdc);
 
-    double local_setup       = t_setup1 - t_setup0;
-    double local_readback    = t_readback1 - t_readback0;
-    double local_curl_comp   = t_curl_compute1 - t_curl_compute0;
-    double local_curl_wb     = t_curl_wb1 - t_curl_wb0;
-    double local_mag_comp    = t_mag_compute1 - t_mag_compute0;
-    double local_mag_wb      = t_mag_wb1 - t_mag_wb0;
+    double local_setup     = t_setup1 - t_setup0;
+    double local_readback  = t_readback1 - t_readback0;
+    double local_curl_comp = t_curl_compute1 - t_curl_compute0;
+    double local_curl_wb   = t_curl_wb1 - t_curl_wb0;
+    double local_mag_comp  = t_mag_compute1 - t_mag_compute0;
+    double local_mag_wb    = t_mag_wb1 - t_mag_wb0;
 
     double max_setup, max_readback, max_curl_comp, max_curl_wb, max_mag_comp, max_mag_wb;
     MPI_Reduce(&local_setup, &max_setup, 1, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD);
@@ -282,8 +282,8 @@ main(int argc, char **argv)
 
     if (rank == 0) {
         double total = max_setup + max_readback + max_curl_comp + max_curl_wb + max_mag_comp + max_mag_wb;
-        printf("curl_posthoc_analyze,%d,%ld,%ld,%ld,%d,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%d\n", nranks, nx, ny,
-               nz_per_rank, compress, max_setup, max_readback, max_curl_comp, max_curl_wb, max_mag_comp,
+        printf("curl_posthoc_analyze,%d,%ld,%ld,%ld,%d,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%d\n", nranks, nx,
+               ny, nz_per_rank, compress, max_setup, max_readback, max_curl_comp, max_curl_wb, max_mag_comp,
                max_mag_wb, total, global_bad);
         fflush(stdout);
     }
