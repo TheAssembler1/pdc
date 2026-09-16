@@ -1,4 +1,5 @@
 #include <assert.h>
+#include <string.h>
 #include <time.h>
 #include <cuda_runtime.h>
 
@@ -405,6 +406,15 @@ PDCtf_exec_graph(pdc_dg_t *dg, uint64_t flat_conceptual_offset, char *cur_state,
             double transform_time =
                 (end_time.tv_sec - start_time.tv_sec) + (end_time.tv_nsec - start_time.tv_nsec) / 1e9;
             double transform_time_ms = transform_time * 1000.0;
+
+            /* "decompress" contains "compress" as a substring -- check it
+             * first. Anything that's neither (encryption, turbo, ...)
+             * isn't one of the three tracked computation metrics and is
+             * left unrecorded. */
+            if (strstr(f->name, "decompress") != NULL)
+                PDC_stats_record(PDC_STAT_DECOMPRESS, transform_time);
+            else if (strstr(f->name, "compress") != NULL)
+                PDC_stats_record(PDC_STAT_COMPRESS, transform_time);
 
             /* ── post-execution: only for multi-edge paths ────────────── */
             if (cur_edges_between_vertices > 1) {

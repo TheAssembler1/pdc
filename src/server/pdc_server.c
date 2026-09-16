@@ -786,6 +786,11 @@ PDC_Server_set_close(void)
         pdc_server_timings->PDCserver_checkpoint += MPI_Wtime() - start;
 #endif
 #endif
+        /* Collective (MPI_Gather inside) -- every rank must reach this,
+         * which they do, since every rank runs its own close_server RPC
+         * handler and lands in this same loop iteration together. */
+        PDC_stats_print_csv(pdc_server_rank_g, pdc_server_size_g);
+
         /* Barrier is needed here to make sure all servers have checkpointed data. */
         close_out.ret = 88;
         HG_Respond(close_all_server_handle_g, NULL, NULL, &close_out);

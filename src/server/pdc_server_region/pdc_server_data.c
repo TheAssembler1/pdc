@@ -137,6 +137,37 @@ fill_storage_path(char *storage_location, pdcid_t obj_id)
     FUNC_LEAVE(0);
 }
 
+/* Thin timed wrappers around the region-storage-file open()/close()
+ * calls scattered across this file (region creation, unmap/eviction) --
+ * drop-in replacements for the raw syscall, recording PDC_STAT_POSIX_OPEN
+ * / PDC_STAT_POSIX_CLOSE regardless of success/failure (a failed open
+ * still took time to fail). Deliberately scoped to just the region data
+ * files this server actually serves reads/writes from -- not every
+ * incidental fopen/fclose elsewhere in this codebase (checkpoint files,
+ * config files, bloom-filter persistence), which aren't part of the
+ * per-object I/O path these benchmarks care about. */
+static int
+pdc_stat_posix_open(const char *path, int flags, mode_t mode)
+{
+    struct timespec t0, t1;
+    clock_gettime(CLOCK_MONOTONIC, &t0);
+    int fd = open(path, flags, mode);
+    clock_gettime(CLOCK_MONOTONIC, &t1);
+    PDC_stats_record(PDC_STAT_POSIX_OPEN, (t1.tv_sec - t0.tv_sec) + (t1.tv_nsec - t0.tv_nsec) / 1e9);
+    return fd;
+}
+
+static int
+pdc_stat_posix_close(int fd)
+{
+    struct timespec t0, t1;
+    clock_gettime(CLOCK_MONOTONIC, &t0);
+    int ret = close(fd);
+    clock_gettime(CLOCK_MONOTONIC, &t1);
+    PDC_stats_record(PDC_STAT_POSIX_CLOSE, (t1.tv_sec - t0.tv_sec) + (t1.tv_nsec - t0.tv_nsec) / 1e9);
+    return ret;
+}
+
 static int
 server_open_storage(char *storage_location, pdcid_t obj_id)
 {
@@ -144,7 +175,7 @@ server_open_storage(char *storage_location, pdcid_t obj_id)
 
     fill_storage_path(storage_location, obj_id);
 
-    FUNC_LEAVE(open(storage_location, O_RDWR | O_CREAT, 0600));
+    FUNC_LEAVE(pdc_stat_posix_open(storage_location, O_RDWR | O_CREAT, 0600));
 }
 
 /*
@@ -412,7 +443,7 @@ PDC_Server_register_obj_region_by_pointer(data_server_region_t **new_obj_reg_ptr
         }
         if (new_obj_reg->fd < 0) {
             new_obj_reg->close_flag = close_flag;
-            new_obj_reg->fd         = open(new_obj_reg->storage_location, O_RDWR | O_CREAT, 0600);
+            new_obj_reg->fd         = pdc_stat_posix_open(new_obj_reg->storage_location, O_RDWR | O_CREAT, 0600);
             if (new_obj_reg->fd < 0)
                 PGOTO_DONE(ret_value);
         }
@@ -821,7 +852,7 @@ PDC_Data_Server_buf_unmap(const struct hg_info *info, buf_unmap_in_t *in)
     }
 
     if (target_obj->region_buf_map_head == NULL && pdc_server_rank_g == 0) {
-        close(target_obj->fd);
+        pdc_stat_posix_close(target_obj->fd);
         target_obj->fd = -1;
     }
 #ifdef ENABLE_MULTITHREAD
@@ -886,7 +917,7 @@ PDC_Data_Server_check_unmap()
             }
         }
         if (target_obj->region_buf_map_head == NULL && pdc_server_rank_g == 0) {
-            close(target_obj->fd);
+            pdc_stat_posix_close(target_obj->fd);
             target_obj->fd = -1;
         }
         hg_thread_mutex_unlock(&data_buf_map_mutex_g);
@@ -1183,7 +1214,7 @@ PDC_Data_Server_buf_map(const struct hg_info *info, buf_map_in_t *in, region_lis
             LOG_INFO("Storage_location is %s\n", storage_location);
         }
 #endif
-        new_obj_reg->fd = open(storage_location, O_RDWR | O_CREAT, 0600);
+        new_obj_reg->fd = pdc_stat_posix_open(storage_location, O_RDWR | O_CREAT, 0600);
         if (new_obj_reg->fd == -1)
             PGOTO_ERROR(NULL, "open %s failed\n", storage_location);
         new_obj_reg->storage_location = strdup(storage_location);
@@ -4011,6 +4042,9 @@ PDC_Server_posix_write(int fd, void *buf, uint64_t write_size)
     perr_t   ret_value = SUCCEED;
     ssize_t  ret;
 
+    struct timespec pdc_stat_t0, pdc_stat_t1;
+    clock_gettime(CLOCK_MONOTONIC, &pdc_stat_t0);
+
     while (write_size > max_write_size) {
         ret = write(fd, buf, max_write_size);
         if (ret < 0 || ret != (ssize_t)max_write_size) {
@@ -4028,6 +4062,9 @@ PDC_Server_posix_write(int fd, void *buf, uint64_t write_size)
     }
 
 done:
+    clock_gettime(CLOCK_MONOTONIC, &pdc_stat_t1);
+    PDC_stats_record(PDC_STAT_POSIX_WRITE, (pdc_stat_t1.tv_sec - pdc_stat_t0.tv_sec) +
+                                                (pdc_stat_t1.tv_nsec - pdc_stat_t0.tv_nsec) / 1e9);
     FUNC_LEAVE(ret_value);
 }
 
@@ -4044,6 +4081,9 @@ PDC_Server_posix_pread(int fd, void *buf, uint64_t read_size, uint64_t offset)
     uint64_t read_bytes = 0, max_read_size = 1073741824;
     perr_t   ret_value = SUCCEED;
     ssize_t  ret;
+
+    struct timespec pdc_stat_t0, pdc_stat_t1;
+    clock_gettime(CLOCK_MONOTONIC, &pdc_stat_t0);
 
     while (read_size > max_read_size) {
         ret = pread(fd, buf, max_read_size, offset);
@@ -4063,6 +4103,9 @@ PDC_Server_posix_pread(int fd, void *buf, uint64_t read_size, uint64_t offset)
     }
 
 done:
+    clock_gettime(CLOCK_MONOTONIC, &pdc_stat_t1);
+    PDC_stats_record(PDC_STAT_POSIX_READ, (pdc_stat_t1.tv_sec - pdc_stat_t0.tv_sec) +
+                                               (pdc_stat_t1.tv_nsec - pdc_stat_t0.tv_nsec) / 1e9);
     FUNC_LEAVE(ret_value);
 }
 

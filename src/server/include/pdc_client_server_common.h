@@ -91,6 +91,59 @@ extern int               pdc_server_rank_g;
 extern hg_atomic_int32_t close_server_g;
 hg_handle_t              close_all_server_handle_g;
 
+/**
+ * Lightweight, always-on per-rank execution/IO counters -- not gated
+ * behind PDC_TIMING/ENABLE_PROFILING (see pdc_timing.h for that heavier,
+ * RPC-level system). Each metric tracks a call count and a running total
+ * of elapsed seconds; avg = total / count. Updated from whichever file
+ * actually performs that operation (pdc_tf_server.c for
+ * compress/decompress, pdc_an_server.c for magnitude,
+ * pdc_server_region/pdc_server_data.c for the POSIX ops). Defined in
+ * pdc_client_server_common.c (not pdc_server.c, where the sole caller of
+ * PDC_stats_print_csv actually lives) specifically because that file is
+ * compiled into both pdc_server_lib and the client-side pdc library --
+ * see its own comment beside the definition for why that placement
+ * matters.
+ */
+typedef enum pdc_stat_metric_t {
+    PDC_STAT_COMPRESS,
+    PDC_STAT_DECOMPRESS,
+    PDC_STAT_MAGNITUDE,
+    PDC_STAT_POSIX_OPEN,
+    PDC_STAT_POSIX_CLOSE,
+    PDC_STAT_POSIX_WRITE,
+    PDC_STAT_POSIX_READ,
+    PDC_STAT_NUM_METRICS
+} pdc_stat_metric_t;
+
+/** Records one execution of `metric`, taking `elapsed_sec` seconds. Not
+ * thread-safe -- fine as-is since the PDC server is single-threaded per
+ * rank (same assumption an_eager_exec_in_progress_g already relies on). */
+void PDC_stats_record(pdc_stat_metric_t metric, double elapsed_sec);
+
+/**
+ * Collective: every server rank must call this (it MPI_Gathers each
+ * metric to rank 0), typically once, from PDC_Server_set_close() right
+ * after checkpointing. Rank 0 prints one CSV row per metric via
+ * LOG_WARNING -- row label is the metric name, one column per rank,
+ * each cell "avg_seconds/count" -- plus a "metric,rank0,rank1,..." header
+ * row first.
+ *
+ * Takes this rank's id and the total server count as parameters (the
+ * caller's own pdc_server_rank_g/pdc_server_size_g) rather than reading
+ * those globals directly: this function lives in
+ * pdc_client_server_common.c, compiled into both pdc_server_lib and the
+ * client-side pdc library, but pdc_server_rank_g/pdc_server_size_g are
+ * only ever *defined* in pdc_server.c (server-only) -- referencing them
+ * directly here would leave any client executable linking pdc.so
+ * without also linking pdc_server_lib (e.g. close_server) with an
+ * unresolved symbol at link time, confirmed by hand while developing
+ * this (see PDC_stats_record's own placement comment for the identical
+ * issue that motivated moving these functions out of pdc_server.c in
+ * the first place).
+ */
+void PDC_stats_print_csv(int my_rank, int nranks);
+
 #define PDC_LOCK_OP_OBTAIN  0
 #define PDC_LOCK_OP_RELEASE 1
 

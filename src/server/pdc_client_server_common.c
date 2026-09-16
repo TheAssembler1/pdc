@@ -67,6 +67,90 @@ uint64_t pdc_id_seq_g = PDC_SERVER_ID_INTERVEL;
 
 struct timeval last_cache_activity_timeval_g;
 
+/* Defined here (rather than pdc_server.c, where PDC_Server_set_close --
+ * this feature's only caller -- actually lives) because this file is
+ * compiled into both pdc_server_lib and the client-side pdc library
+ * (see both CMakeLists.txt), and PDC_stats_record is called from
+ * pdc_tf_server.c/pdc_an_server.c, which are *also* compiled into both.
+ * A definition living only in pdc_server.c resolves fine for pdc.so
+ * itself (shared libraries tolerate undefined symbols at link time),
+ * but any executable that links pdc.so without also linking
+ * pdc_server_lib (e.g. close_server) then fails to link with an
+ * undefined reference to PDC_stats_record -- confirmed by hand while
+ * developing this. Anywhere this file's callers run applies -- the
+ * counters just stay all-zero in a pure client process, since nothing
+ * there calls PDC_stats_record. */
+static const char *pdc_stat_metric_names_g[PDC_STAT_NUM_METRICS] = {
+    "compress", "decompress", "magnitude", "posix_open", "posix_close", "posix_write", "posix_read",
+};
+
+typedef struct pdc_stat_counter_t {
+    uint64_t count;
+    double   total_time; /* seconds */
+} pdc_stat_counter_t;
+
+/* Not an array of atomics -- see PDC_stats_record's own doc comment
+ * (pdc_client_server_common.h) on why that's fine. */
+static pdc_stat_counter_t pdc_stats_g[PDC_STAT_NUM_METRICS];
+
+void
+PDC_stats_record(pdc_stat_metric_t metric, double elapsed_sec)
+{
+    if (metric < 0 || metric >= PDC_STAT_NUM_METRICS)
+        return;
+    pdc_stats_g[metric].count++;
+    pdc_stats_g[metric].total_time += elapsed_sec;
+}
+
+void
+PDC_stats_print_csv(int my_rank, int nranks)
+{
+    double *  all_avg_time = NULL;
+    uint64_t *all_count    = NULL;
+
+    if (my_rank == 0) {
+        all_avg_time = (double *)malloc(sizeof(double) * (size_t)nranks);
+        all_count    = (uint64_t *)malloc(sizeof(uint64_t) * (size_t)nranks);
+
+        char header[4096];
+        int  off = snprintf(header, sizeof(header), "metric");
+        for (int r = 0; r < nranks; r++)
+            off += snprintf(header + off, sizeof(header) - (size_t)off, ",rank%d_avg_s/n", r);
+        LOG_WARNING("%s\n", header);
+    }
+
+    for (int m = 0; m < PDC_STAT_NUM_METRICS; m++) {
+        double avg_time = pdc_stats_g[m].count > 0 ? pdc_stats_g[m].total_time / (double)pdc_stats_g[m].count
+                                                    : 0.0;
+        unsigned long long count = (unsigned long long)pdc_stats_g[m].count;
+
+#ifdef ENABLE_MPI
+        MPI_Gather(&avg_time, 1, MPI_DOUBLE, all_avg_time, 1, MPI_DOUBLE, 0, MPI_COMM_WORLD);
+        MPI_Gather(&count, 1, MPI_UNSIGNED_LONG_LONG, all_count, 1, MPI_UNSIGNED_LONG_LONG, 0,
+                   MPI_COMM_WORLD);
+#else
+        if (all_avg_time != NULL)
+            all_avg_time[0] = avg_time;
+        if (all_count != NULL)
+            all_count[0] = count;
+#endif
+
+        if (my_rank == 0) {
+            char line[4096];
+            int  off = snprintf(line, sizeof(line), "%s", pdc_stat_metric_names_g[m]);
+            for (int r = 0; r < nranks; r++)
+                off += snprintf(line + off, sizeof(line) - (size_t)off, ",%.6f/%llu", all_avg_time[r],
+                                (unsigned long long)all_count[r]);
+            LOG_WARNING("%s\n", line);
+        }
+    }
+
+    if (my_rank == 0) {
+        free(all_avg_time);
+        free(all_count);
+    }
+}
+
 #include "pdc_server_region_request_handler.h"
 
 hg_return_t
