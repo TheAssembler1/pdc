@@ -44,7 +44,7 @@ export COMPRESS=${COMPRESS:-0}
 export LOG_TAG=curl_eager
 export RESULTS=$PWD/results_curl_eager_${SLURM_JOB_ID}.csv
 
-echo "mode,n_ranks,nx,ny,nz_per_rank,compress,setup_s,write_s,confirm_read_s,total_s,bad" > "$RESULTS"
+echo "mode,step,n_ranks,nx,ny,nz_per_rank,compress,setup_s,write_s,confirm_read_s,total_s,bad" > "$RESULTS"
 
 ./srun_server.sh
 ./srun_client_curl_eager.sh

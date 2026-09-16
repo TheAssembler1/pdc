@@ -24,9 +24,11 @@ srun \
   bash -c 'export HG_HOST=cxi0:$((SLURM_LOCALID + 8)); exec ./bench_curl_analyze "$NX" "$NY" "$NZ_PER_RANK" "$COMPRESS"'
 popd
 
-line=$(grep "^curl_posthoc_analyze," "$BIN_DIR/client_${LOG_TAG}_${NUM_NODES}.log" | tail -1)
-if [ -z "$line" ]; then
-  echo "curl_posthoc_analyze,${CLIENT_TOTAL_TASKS},${NX},${NY},${NZ_PER_RANK},${COMPRESS},FAILED" > "$ANALYZE_LOG"
+# bench_curl_analyze.c now prints one CSV line per timestep
+# (N_TIMESTEPS=3), so capture every matching line, not just the last.
+lines=$(grep "^curl_posthoc_analyze," "$BIN_DIR/client_${LOG_TAG}_${NUM_NODES}.log" || true)
+if [ -z "$lines" ]; then
+  echo "curl_posthoc_analyze,FAILED,${CLIENT_TOTAL_TASKS},${NX},${NY},${NZ_PER_RANK},${COMPRESS},FAILED" > "$ANALYZE_LOG"
 else
-  echo "$line" > "$ANALYZE_LOG"
+  echo "$lines" > "$ANALYZE_LOG"
 fi

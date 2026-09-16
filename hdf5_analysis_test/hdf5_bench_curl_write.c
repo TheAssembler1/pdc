@@ -7,11 +7,18 @@
  * processes, run as separate srun steps, matching the PDC side's
  * bench_curl_write / bench_curl_analyze split.
  *
+ * Like hdf5_bench_write.c, runs N_TIMESTEPS repetitions within this one
+ * session, each producing a distinct, uniquely named set of u/v/w
+ * datasets ("u_0", "u_1", ...), matching the PDC curl benchmark's
+ * multi-timestep workload shape.
+ *
  * Usage: hdf5_bench_curl_write <nx> <ny> <nz_per_rank> [out_file]
  *
- * Prints one CSV line from rank 0:
- *   mode,n_client_ranks,nx,ny,nz_per_rank,setup_s,write_s
+ * Prints one CSV line per timestep from rank 0:
+ *   mode,step,n_client_ranks,nx,ny,nz_per_rank,setup_s,write_s
  */
+
+#define N_TIMESTEPS 3
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -73,6 +80,7 @@ main(int argc, char **argv)
 {
     int    rank, nranks;
     long   nx, ny, nz_per_rank;
+    int    step;
     size_t i;
 
     double t_setup0, t_setup1, t_write0, t_write1;
@@ -129,27 +137,37 @@ main(int argc, char **argv)
     MPI_Barrier(MPI_COMM_WORLD);
     t_setup1 = MPI_Wtime();
 
-    t_write0 = MPI_Wtime();
-    write_dataset(file, "u", H5T_NATIVE_FLOAT, H5T_IEEE_F32LE, u, dims, offset, count);
-    write_dataset(file, "v", H5T_NATIVE_FLOAT, H5T_IEEE_F32LE, v, dims, offset, count);
-    write_dataset(file, "w", H5T_NATIVE_FLOAT, H5T_IEEE_F32LE, w, dims, offset, count);
-    MPI_Barrier(MPI_COMM_WORLD);
-    t_write1 = MPI_Wtime();
+    double local_setup = t_setup1 - t_setup0;
+    double max_setup;
+    MPI_Reduce(&local_setup, &max_setup, 1, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD);
+
+    /* Per-timestep-unique dataset names ("u_0", "u_1", ...), matching the
+     * PDC side's bench_curl_write.c. */
+    for (step = 0; step < N_TIMESTEPS; ++step) {
+        char u_name[32], v_name[32], w_name[32];
+        snprintf(u_name, sizeof(u_name), "u_%d", step);
+        snprintf(v_name, sizeof(v_name), "v_%d", step);
+        snprintf(w_name, sizeof(w_name), "w_%d", step);
+
+        t_write0 = MPI_Wtime();
+        write_dataset(file, u_name, H5T_NATIVE_FLOAT, H5T_IEEE_F32LE, u, dims, offset, count);
+        write_dataset(file, v_name, H5T_NATIVE_FLOAT, H5T_IEEE_F32LE, v, dims, offset, count);
+        write_dataset(file, w_name, H5T_NATIVE_FLOAT, H5T_IEEE_F32LE, w, dims, offset, count);
+        MPI_Barrier(MPI_COMM_WORLD);
+        t_write1 = MPI_Wtime();
+
+        double local_write = t_write1 - t_write0;
+        double max_write;
+        MPI_Reduce(&local_write, &max_write, 1, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD);
+
+        if (rank == 0) {
+            printf("curl_posthoc_write,%d,%d,%ld,%ld,%ld,%.6f,%.6f\n", step, nranks, nx, ny, nz_per_rank,
+                   max_setup, max_write);
+            fflush(stdout);
+        }
+    }
 
     H5Fclose(file);
-
-    double local_setup = t_setup1 - t_setup0;
-    double local_write = t_write1 - t_write0;
-
-    double max_setup, max_write;
-    MPI_Reduce(&local_setup, &max_setup, 1, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD);
-    MPI_Reduce(&local_write, &max_write, 1, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD);
-
-    if (rank == 0) {
-        printf("curl_posthoc_write,%d,%ld,%ld,%ld,%.6f,%.6f\n", nranks, nx, ny, nz_per_rank, max_setup,
-               max_write);
-        fflush(stdout);
-    }
 
     free(u);
     free(v);

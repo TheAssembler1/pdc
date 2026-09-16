@@ -6,10 +6,13 @@ ZFP compression, PDC posthoc, HDF5 posthoc), reconstructed from this
 directory's results_curl_<mode>_*.csv files. See README.md's "Result
 CSV schemas" section for exactly what each mode's CSV contains.
 
-Unlike analysis_scripts/'s magnitude benchmark, this one has no
-timestep loop -- each results_curl_<mode>_<jobid>.csv holds exactly one
-data row per job (one node count), so aggregate() below is just a
-straight read of that row's segment columns, not a per-timestep sum.
+Like analysis_scripts/'s magnitude benchmark, each results_curl_<mode>_
+<jobid>.csv holds one row per timestep (N_TIMESTEPS=3 in the C
+benchmarks), with per-timestep costs that really happen three times
+(write_s, readback_s, curl_compute_s, ...) and one-time job-level costs
+repeated on every row for CSV convenience (setup_s / write_setup_s /
+analyze_setup_s, relaunch_s). aggregate() below sums the former across
+every timestep row and takes the latter once, not 3x.
 
 eager's confirm_read_s (the post-write read that confirms DataFlyway
 actually materialized vorticity_magnitude server-side -- see
@@ -44,27 +47,27 @@ import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
-# mode -> ordered list of segment columns to sum into that mode's total.
-# Must track README.md's "Result CSV schemas" section.
-# confirm_read_s intentionally omitted from eager/eager_compress -- see
-# module docstring.
-_EAGER_SEGMENTS = ["setup_s", "write_s"]
-_POSTHOC_SEGMENTS = [
-    "write_setup_s", "write_s", "relaunch_s",
-    "analyze_setup_s", "readback_s", "curl_compute_s", "curl_writeback_s",
+# mode -> (one_time_cols, per_timestep_cols). Must track README.md's
+# "Result CSV schemas" section. confirm_read_s intentionally omitted
+# from eager/eager_compress -- see module docstring.
+_EAGER_ONE_TIME = ["setup_s"]
+_EAGER_PER_STEP = ["write_s"]
+_POSTHOC_ONE_TIME = ["write_setup_s", "relaunch_s", "analyze_setup_s"]
+_POSTHOC_PER_STEP = [
+    "write_s", "readback_s", "curl_compute_s", "curl_writeback_s",
     "magnitude_compute_s", "magnitude_writeback_s",
 ]
-_HDF5_SEGMENTS = [
-    "write_setup_s", "write_s",
-    "analyze_setup_s", "readback_s", "curl_compute_s", "curl_writeback_s",
+_HDF5_ONE_TIME = ["write_setup_s", "analyze_setup_s"]
+_HDF5_PER_STEP = [
+    "write_s", "readback_s", "curl_compute_s", "curl_writeback_s",
     "magnitude_compute_s", "magnitude_writeback_s",
 ]
 
 SCHEMAS = {
-    "eager": _EAGER_SEGMENTS,
-    "eager_compress": _EAGER_SEGMENTS,
-    "posthoc": _POSTHOC_SEGMENTS,
-    "hdf5": _HDF5_SEGMENTS,
+    "eager": (_EAGER_ONE_TIME, _EAGER_PER_STEP),
+    "eager_compress": (_EAGER_ONE_TIME, _EAGER_PER_STEP),
+    "posthoc": (_POSTHOC_ONE_TIME, _POSTHOC_PER_STEP),
+    "hdf5": (_HDF5_ONE_TIME, _HDF5_PER_STEP),
 }
 
 # Fixed stacking order (bottom to top) and one color per cost segment,
@@ -153,10 +156,11 @@ def read_results_csv(path):
 
 
 def load_all(results_dir):
-    """mode -> n_ranks -> row (one job's single data row). When more than
+    """mode -> n_ranks -> rows (one job's timestep rows). When more than
     one results_curl_<mode>_<jobid>.csv exists for the same n_ranks (a
-    rerun), keep only the most-recently-modified file's row."""
-    best = {}  # (mode, n_ranks) -> (mtime, row)
+    rerun), keep only the most-recently-modified file's rows rather than
+    mixing two different jobs' timesteps together."""
+    best = {}  # (mode, n_ranks) -> (mtime, rows)
     for mode in MODE_ORDER:
         # results_curl_{mode}_*.csv would also glob-match a longer mode's
         # files that happen to share this mode as a prefix (e.g. "eager"
@@ -167,45 +171,61 @@ def load_all(results_dir):
             if not name_re.match(os.path.basename(path)):
                 continue
             mtime = os.path.getmtime(path)
+            rows_by_ranks = defaultdict(list)
             for row in read_results_csv(path):
                 try:
                     n_ranks = int(row["n_ranks"])
                 except (KeyError, ValueError):
                     continue
+                rows_by_ranks[n_ranks].append(row)
+            for n_ranks, rows in rows_by_ranks.items():
                 key = (mode, n_ranks)
                 if key not in best or mtime > best[key][0]:
-                    best[key] = (mtime, row)
+                    best[key] = (mtime, rows)
     data = defaultdict(dict)
-    for (mode, n_ranks), (_, row) in best.items():
-        data[mode][n_ranks] = row
+    for (mode, n_ranks), (_, rows) in best.items():
+        data[mode][n_ranks] = rows
     return data
 
 
-def aggregate(mode, row):
-    """Pull one job's segment costs and data size out of its single CSV
-    row. Returns (segments: dict[col] -> seconds, data_gb)."""
-    segments = {}
-    for col in SCHEMAS[mode]:
-        val = row.get(col, "")
-        segments[col] = float(val) if val not in ("", "FAILED") else 0.0
+def aggregate(mode, rows):
+    """Reconstruct one job's true total workload time, stacked by segment.
 
-    nx = float(row.get("nx", 0.0))
-    ny = float(row.get("ny", 0.0))
-    nz_per_rank = float(row.get("nz_per_rank", 0.0))
-    n_ranks = float(row.get("n_ranks", 0.0))
+    One-time columns (write_setup_s, relaunch_s, ...) are constant across
+    a job's timestep rows -- take the mean, which equals that constant.
+    Per-timestep columns are summed across every timestep row actually
+    present, since each one really happened that many times.
+
+    Returns (segments: dict[col] -> seconds, data_gb, n_timesteps).
+    """
+    one_time_cols, per_step_cols = SCHEMAS[mode]
+    segments = {}
+    for col in one_time_cols:
+        vals = [float(r[col]) for r in rows if r.get(col, "") not in ("", "FAILED")]
+        segments[col] = float(np.mean(vals)) if vals else 0.0
+    for col in per_step_cols:
+        vals = [float(r[col]) for r in rows if r.get(col, "") not in ("", "FAILED")]
+        segments[col] = float(np.sum(vals))
+
+    nx = float(rows[0]["nx"]) if rows else 0.0
+    ny = float(rows[0]["ny"]) if rows else 0.0
+    nz_per_rank = float(rows[0]["nz_per_rank"]) if rows else 0.0
+    n_ranks = float(rows[0]["n_ranks"]) if rows else 0.0
+    n_timesteps = len(rows)
     n_elem_per_rank = nx * ny * nz_per_rank
-    # Aggregate data size across every rank: u/v/w (float32) plus
-    # curl_x/y/z and vorticity_magnitude (float64), all persisted once --
-    # eager and posthoc both write every one of these (posthoc via
-    # bench_curl_analyze.c's curl writeback plus magnitude writeback, not
-    # just the final magnitude, to stay comparable to eager's "Store"
-    # strategy -- see README.md). Compression (eager_compress) shrinks
-    # what actually lands on disk/in server memory, but this describes
-    # the workload's logical data volume, not its post-compression
-    # footprint, so it's computed identically for every mode.
+    # Aggregate data size across every rank and every timestep present:
+    # u/v/w (float32) plus curl_x/y/z and vorticity_magnitude (float64),
+    # all persisted once per timestep -- eager and posthoc both write
+    # every one of these (posthoc via bench_curl_analyze.c's curl
+    # writeback plus magnitude writeback, not just the final magnitude,
+    # to stay comparable to eager's "Store" strategy -- see README.md).
+    # Compression (eager_compress) shrinks what actually lands on
+    # disk/in server memory, but this describes the workload's logical
+    # data volume, not its post-compression footprint, so it's computed
+    # identically for every mode.
     bytes_per_elem = FLOAT_BYTES * N_INPUT_VARS + DOUBLE_BYTES * (N_CURL_VARS + N_MAG_VARS)
-    data_gb = n_ranks * n_elem_per_rank * bytes_per_elem / 1e9
-    return segments, data_gb
+    data_gb = n_ranks * n_elem_per_rank * bytes_per_elem * n_timesteps / 1e9
+    return segments, data_gb, n_timesteps
 
 
 def main():
@@ -222,10 +242,10 @@ def main():
 
     data = load_all(args.results_dir)
 
-    per_job = defaultdict(dict)  # mode -> n_ranks -> (segments, data_gb)
+    per_job = defaultdict(dict)  # mode -> n_ranks -> (segments, data_gb, n_timesteps)
     for mode in modes:
-        for n_ranks, row in data[mode].items():
-            per_job[mode][n_ranks] = aggregate(mode, row)
+        for n_ranks, rows in data[mode].items():
+            per_job[mode][n_ranks] = aggregate(mode, rows)
 
     modes_present = [m for m in modes if per_job[m]]
     if not modes_present:
@@ -240,18 +260,32 @@ def main():
         # so which one wins here is cosmetic.
         for m in modes_present:
             if n_ranks in per_job[m]:
-                _, gb = per_job[m][n_ranks]
+                _, gb, _ = per_job[m][n_ranks]
                 return f"{n_ranks}/{gb:.2f}GB"
         return str(n_ranks)
+
+    # Every bar's stacked total is a sum across however many timestep rows
+    # that job actually logged (N_TIMESTEPS=3 in the C benchmarks, but a
+    # crashed/truncated run could log fewer) -- surface that in the
+    # caption instead of leaving it implicit, same as
+    # analysis_scripts/plot_totals.py.
+    n_timesteps_seen = sorted({nt for m in modes_present for (_, _, nt) in per_job[m].values()})
+    if len(n_timesteps_seen) == 1:
+        timestep_caption = (
+            "Curl + vorticity-magnitude workload (u/v/w wind-velocity components). "
+            f"Each bar sums {n_timesteps_seen[0]} timesteps."
+        )
+    else:
+        timestep_caption = (
+            "Curl + vorticity-magnitude workload (u/v/w wind-velocity components). "
+            f"Each bar sums its job's logged timesteps ({', '.join(map(str, n_timesteps_seen))} seen)."
+        )
 
     mode_desc_lines = [
         "\n".join(textwrap.wrap(f"{MODE_LABEL[m]}: {MODE_DESCRIPTION[m]}.", width=100, subsequent_indent="    "))
         for m in modes_present
     ]
-    caption = (
-        "Curl + vorticity-magnitude workload (u/v/w wind-velocity components). "
-        "Each bar is one job (no timestep loop).\n" + "\n".join(mode_desc_lines)
-    )
+    caption = timestep_caption + "\n" + "\n".join(mode_desc_lines)
 
     n_groups = len(all_ranks)
     n_bars = len(modes_present)
@@ -274,7 +308,7 @@ def main():
         bottoms = np.zeros(n_groups)
         for seg in SEGMENT_ORDER:
             heights = np.array(
-                [per_job[mode].get(n_ranks, (dict(), 0.0))[0].get(seg, 0.0) for n_ranks in all_ranks]
+                [per_job[mode].get(n_ranks, (dict(), 0.0, 0))[0].get(seg, 0.0) for n_ranks in all_ranks]
             )
             if not np.any(heights > 0):
                 continue  # this mode never has a nonzero value for this segment
@@ -338,7 +372,7 @@ def main():
     # scale headroom with how many rows it has instead of a fixed
     # fraction.
     y_max = max(
-        (sum(segs.values()) for m in modes_present for segs, _ in per_job[m].values()),
+        (sum(segs.values()) for m in modes_present for segs, _, _ in per_job[m].values()),
         default=1.0,
     )
     headroom = 1.12 + 0.05 * len(modes_present)

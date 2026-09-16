@@ -20,9 +20,11 @@ srun \
   ./hdf5_bench_curl_write "$NX" "$NY" "$NZ_PER_RANK" "$OUT_FILE"
 popd
 
-line=$(grep "^curl_posthoc_write," "$BIN_DIR/client_${LOG_TAG}_write_${NUM_NODES}.log" | tail -1)
-if [ -z "$line" ]; then
-  echo "curl_posthoc_write,${CLIENT_TOTAL_TASKS},${NX},${NY},${NZ_PER_RANK},FAILED" > "$WRITE_LOG"
+# hdf5_bench_curl_write.c now prints one CSV line per timestep
+# (N_TIMESTEPS=3), so capture every matching line, not just the last.
+lines=$(grep "^curl_posthoc_write," "$BIN_DIR/client_${LOG_TAG}_write_${NUM_NODES}.log" || true)
+if [ -z "$lines" ]; then
+  echo "curl_posthoc_write,FAILED,${CLIENT_TOTAL_TASKS},${NX},${NY},${NZ_PER_RANK},FAILED" > "$WRITE_LOG"
 else
-  echo "$line" > "$WRITE_LOG"
+  echo "$lines" > "$WRITE_LOG"
 fi

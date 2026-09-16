@@ -16,11 +16,18 @@
  * keep the data volume this baseline persists comparable to the PDC
  * side's eager "Store" strategy (see curl_analysis_scripts/README.md).
  *
+ * Like hdf5_bench_curl_write.c, runs N_TIMESTEPS repetitions within this
+ * one session, reading back N_TIMESTEPS distinct sets of u/v/w
+ * ("u_0", "u_1", ...) and producing N_TIMESTEPS distinct sets of
+ * curl_x/y/z/vorticity_magnitude datasets.
+ *
  * Usage: hdf5_bench_curl_analyze <nx> <ny> <nz_per_rank> [out_file]
  *
- * Prints one CSV line from rank 0:
- *   mode,n_client_ranks,nx,ny,nz_per_rank,setup_s,readback_s,curl_compute_s,curl_writeback_s,magnitude_compute_s,magnitude_writeback_s,total_s,bad
+ * Prints one CSV line per timestep from rank 0:
+ *   mode,step,n_client_ranks,nx,ny,nz_per_rank,setup_s,readback_s,curl_compute_s,curl_writeback_s,magnitude_compute_s,magnitude_writeback_s,step_total_s,bad
  */
+
+#define N_TIMESTEPS 3
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -103,6 +110,7 @@ main(int argc, char **argv)
 {
     int    rank, nranks;
     long   nx, ny, nz_per_rank;
+    int    step;
     size_t i;
 
     double t_setup0, t_setup1, t_readback0, t_readback1;
@@ -149,98 +157,127 @@ main(int argc, char **argv)
     MPI_Barrier(MPI_COMM_WORLD);
     t_setup1 = MPI_Wtime();
 
-    t_readback0 = MPI_Wtime();
-    read_dataset(file, "u", H5T_NATIVE_FLOAT, u_rb, offset, count);
-    read_dataset(file, "v", H5T_NATIVE_FLOAT, v_rb, offset, count);
-    read_dataset(file, "w", H5T_NATIVE_FLOAT, w_rb, offset, count);
-    MPI_Barrier(MPI_COMM_WORLD);
-    t_readback1 = MPI_Wtime();
+    double local_setup = t_setup1 - t_setup0;
+    double max_setup;
+    MPI_Reduce(&local_setup, &max_setup, 1, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD);
 
-    t_curl_compute0 = MPI_Wtime();
-    curl_math_compute(u_rb, v_rb, w_rb, (size_t)nx, (size_t)ny, (size_t)nz_per_rank, curl_x, curl_y, curl_z);
-    MPI_Barrier(MPI_COMM_WORLD);
-    t_curl_compute1 = MPI_Wtime();
+    /* Per-timestep-unique dataset names ("u_0", "u_1", ...), matching the
+     * PDC side's bench_curl_analyze.c. */
+    int global_bad = 0;
+    for (step = 0; step < N_TIMESTEPS; ++step) {
+        char u_name[32], v_name[32], w_name[32];
+        char curl_x_name[32], curl_y_name[32], curl_z_name[32], mag_name[32];
+        snprintf(u_name, sizeof(u_name), "u_%d", step);
+        snprintf(v_name, sizeof(v_name), "v_%d", step);
+        snprintf(w_name, sizeof(w_name), "w_%d", step);
+        snprintf(curl_x_name, sizeof(curl_x_name), "curl_x_%d", step);
+        snprintf(curl_y_name, sizeof(curl_y_name), "curl_y_%d", step);
+        snprintf(curl_z_name, sizeof(curl_z_name), "curl_z_%d", step);
+        snprintf(mag_name, sizeof(mag_name), "vorticity_magnitude_%d", step);
 
-    t_curl_wb0 = MPI_Wtime();
-    write_dataset(file, "curl_x", H5T_NATIVE_DOUBLE, H5T_IEEE_F64LE, curl_x, dims, offset, count);
-    write_dataset(file, "curl_y", H5T_NATIVE_DOUBLE, H5T_IEEE_F64LE, curl_y, dims, offset, count);
-    write_dataset(file, "curl_z", H5T_NATIVE_DOUBLE, H5T_IEEE_F64LE, curl_z, dims, offset, count);
-    MPI_Barrier(MPI_COMM_WORLD);
-    t_curl_wb1 = MPI_Wtime();
+        t_readback0 = MPI_Wtime();
+        read_dataset(file, u_name, H5T_NATIVE_FLOAT, u_rb, offset, count);
+        read_dataset(file, v_name, H5T_NATIVE_FLOAT, v_rb, offset, count);
+        read_dataset(file, w_name, H5T_NATIVE_FLOAT, w_rb, offset, count);
+        MPI_Barrier(MPI_COMM_WORLD);
+        t_readback1 = MPI_Wtime();
 
-    /* magnitude is derived from curl_x/y/z already sitting in memory from
-     * the compute step above -- no need to read curl back from the file
-     * (that would only be necessary if this were a genuinely separate
-     * later process, which is exactly the split this benchmark
-     * deliberately avoids -- see file header comment). */
-    t_mag_compute0 = MPI_Wtime();
-    for (i = 0; i < n_elem; ++i) {
-        double cx = curl_x[i], cy = curl_y[i], cz = curl_z[i];
-        mag[i] = sqrt(cx * cx + cy * cy + cz * cz);
-    }
-    MPI_Barrier(MPI_COMM_WORLD);
-    t_mag_compute1 = MPI_Wtime();
+        t_curl_compute0 = MPI_Wtime();
+        curl_math_compute(u_rb, v_rb, w_rb, (size_t)nx, (size_t)ny, (size_t)nz_per_rank, curl_x, curl_y,
+                          curl_z);
+        MPI_Barrier(MPI_COMM_WORLD);
+        t_curl_compute1 = MPI_Wtime();
 
-    t_mag_wb0 = MPI_Wtime();
-    write_dataset(file, "vorticity_magnitude", H5T_NATIVE_DOUBLE, H5T_IEEE_F64LE, mag, dims, offset, count);
-    MPI_Barrier(MPI_COMM_WORLD);
-    t_mag_wb1 = MPI_Wtime();
+        t_curl_wb0 = MPI_Wtime();
+        write_dataset(file, curl_x_name, H5T_NATIVE_DOUBLE, H5T_IEEE_F64LE, curl_x, dims, offset, count);
+        write_dataset(file, curl_y_name, H5T_NATIVE_DOUBLE, H5T_IEEE_F64LE, curl_y, dims, offset, count);
+        write_dataset(file, curl_z_name, H5T_NATIVE_DOUBLE, H5T_IEEE_F64LE, curl_z, dims, offset, count);
+        MPI_Barrier(MPI_COMM_WORLD);
+        t_curl_wb1 = MPI_Wtime();
 
-    H5Fclose(file);
+        /* magnitude is derived from curl_x/y/z already sitting in memory
+         * from the compute step above -- no need to read curl back from
+         * the file (that would only be necessary if this were a
+         * genuinely separate later process, which is exactly the split
+         * this benchmark deliberately avoids -- see file header
+         * comment). */
+        t_mag_compute0 = MPI_Wtime();
+        for (i = 0; i < n_elem; ++i) {
+            double cx = curl_x[i], cy = curl_y[i], cz = curl_z[i];
+            mag[i] = sqrt(cx * cx + cy * cy + cz * cz);
+        }
+        MPI_Barrier(MPI_COMM_WORLD);
+        t_mag_compute1 = MPI_Wtime();
 
-    /* Correctness check (not timed): u/v/w were generated with the same
-     * deterministic pattern by hdf5_bench_curl_write -- regenerate them
-     * locally and recompute the expected curl/magnitude rather than
-     * reading anything back a second time. */
-    float *u = (float *)malloc(sizeof(float) * n_elem);
-    float *v = (float *)malloc(sizeof(float) * n_elem);
-    float *w = (float *)malloc(sizeof(float) * n_elem);
-    for (i = 0; i < n_elem; ++i) {
-        u[i] = (float)((i % 1000) + 1);
-        v[i] = (float)(((i + 137) % 1000) + 1);
-        w[i] = (float)(((i + 613) % 1000) + 1);
-    }
-    double *curl_x_expected = (double *)malloc(sizeof(double) * n_elem);
-    double *curl_y_expected = (double *)malloc(sizeof(double) * n_elem);
-    double *curl_z_expected = (double *)malloc(sizeof(double) * n_elem);
-    curl_math_compute(u, v, w, (size_t)nx, (size_t)ny, (size_t)nz_per_rank, curl_x_expected, curl_y_expected,
-                      curl_z_expected);
+        t_mag_wb0 = MPI_Wtime();
+        write_dataset(file, mag_name, H5T_NATIVE_DOUBLE, H5T_IEEE_F64LE, mag, dims, offset, count);
+        MPI_Barrier(MPI_COMM_WORLD);
+        t_mag_wb1 = MPI_Wtime();
 
-    int local_bad = 0;
-    for (i = 0; i < n_elem; ++i) {
-        double expected =
-            sqrt(curl_x_expected[i] * curl_x_expected[i] + curl_y_expected[i] * curl_y_expected[i] +
-                 curl_z_expected[i] * curl_z_expected[i]);
-        if (fabs(mag[i] - expected) > EPSILON) {
-            local_bad++;
-            break;
+        /* Correctness check (not timed): u/v/w were generated with the
+         * same deterministic pattern by hdf5_bench_curl_write -- every
+         * timestep uses the identical pattern, so expected curl/magnitude
+         * are regenerated locally here rather than reading anything back
+         * a second time. */
+        float *u = (float *)malloc(sizeof(float) * n_elem);
+        float *v = (float *)malloc(sizeof(float) * n_elem);
+        float *w = (float *)malloc(sizeof(float) * n_elem);
+        for (i = 0; i < n_elem; ++i) {
+            u[i] = (float)((i % 1000) + 1);
+            v[i] = (float)(((i + 137) % 1000) + 1);
+            w[i] = (float)(((i + 613) % 1000) + 1);
+        }
+        double *curl_x_expected = (double *)malloc(sizeof(double) * n_elem);
+        double *curl_y_expected = (double *)malloc(sizeof(double) * n_elem);
+        double *curl_z_expected = (double *)malloc(sizeof(double) * n_elem);
+        curl_math_compute(u, v, w, (size_t)nx, (size_t)ny, (size_t)nz_per_rank, curl_x_expected,
+                          curl_y_expected, curl_z_expected);
+
+        int local_bad = 0;
+        for (i = 0; i < n_elem; ++i) {
+            double expected =
+                sqrt(curl_x_expected[i] * curl_x_expected[i] + curl_y_expected[i] * curl_y_expected[i] +
+                     curl_z_expected[i] * curl_z_expected[i]);
+            if (fabs(mag[i] - expected) > EPSILON) {
+                local_bad++;
+                break;
+            }
+        }
+        int step_bad = 0;
+        MPI_Reduce(&local_bad, &step_bad, 1, MPI_INT, MPI_SUM, 0, MPI_COMM_WORLD);
+        global_bad += step_bad;
+
+        free(u);
+        free(v);
+        free(w);
+        free(curl_x_expected);
+        free(curl_y_expected);
+        free(curl_z_expected);
+
+        double local_readback  = t_readback1 - t_readback0;
+        double local_curl_comp = t_curl_compute1 - t_curl_compute0;
+        double local_curl_wb   = t_curl_wb1 - t_curl_wb0;
+        double local_mag_comp  = t_mag_compute1 - t_mag_compute0;
+        double local_mag_wb    = t_mag_wb1 - t_mag_wb0;
+
+        double max_readback, max_curl_comp, max_curl_wb, max_mag_comp, max_mag_wb;
+        MPI_Reduce(&local_readback, &max_readback, 1, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD);
+        MPI_Reduce(&local_curl_comp, &max_curl_comp, 1, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD);
+        MPI_Reduce(&local_curl_wb, &max_curl_wb, 1, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD);
+        MPI_Reduce(&local_mag_comp, &max_mag_comp, 1, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD);
+        MPI_Reduce(&local_mag_wb, &max_mag_wb, 1, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD);
+
+        if (rank == 0) {
+            double step_total =
+                max_setup + max_readback + max_curl_comp + max_curl_wb + max_mag_comp + max_mag_wb;
+            printf("curl_posthoc_analyze,%d,%d,%ld,%ld,%ld,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%d\n", step,
+                   nranks, nx, ny, nz_per_rank, max_setup, max_readback, max_curl_comp, max_curl_wb,
+                   max_mag_comp, max_mag_wb, step_total, step_bad);
+            fflush(stdout);
         }
     }
-    int global_bad = 0;
-    MPI_Reduce(&local_bad, &global_bad, 1, MPI_INT, MPI_SUM, 0, MPI_COMM_WORLD);
 
-    double local_setup     = t_setup1 - t_setup0;
-    double local_readback  = t_readback1 - t_readback0;
-    double local_curl_comp = t_curl_compute1 - t_curl_compute0;
-    double local_curl_wb   = t_curl_wb1 - t_curl_wb0;
-    double local_mag_comp  = t_mag_compute1 - t_mag_compute0;
-    double local_mag_wb    = t_mag_wb1 - t_mag_wb0;
-
-    double max_setup, max_readback, max_curl_comp, max_curl_wb, max_mag_comp, max_mag_wb;
-    MPI_Reduce(&local_setup, &max_setup, 1, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD);
-    MPI_Reduce(&local_readback, &max_readback, 1, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD);
-    MPI_Reduce(&local_curl_comp, &max_curl_comp, 1, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD);
-    MPI_Reduce(&local_curl_wb, &max_curl_wb, 1, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD);
-    MPI_Reduce(&local_mag_comp, &max_mag_comp, 1, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD);
-    MPI_Reduce(&local_mag_wb, &max_mag_wb, 1, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD);
-
-    if (rank == 0) {
-        double total = max_setup + max_readback + max_curl_comp + max_curl_wb + max_mag_comp + max_mag_wb;
-        printf("curl_posthoc_analyze,%d,%ld,%ld,%ld,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%d\n", nranks, nx, ny,
-               nz_per_rank, max_setup, max_readback, max_curl_comp, max_curl_wb, max_mag_comp, max_mag_wb,
-               total, global_bad);
-        fflush(stdout);
-    }
+    H5Fclose(file);
 
     free(u_rb);
     free(v_rb);
@@ -249,12 +286,6 @@ main(int argc, char **argv)
     free(curl_y);
     free(curl_z);
     free(mag);
-    free(u);
-    free(v);
-    free(w);
-    free(curl_x_expected);
-    free(curl_y_expected);
-    free(curl_z_expected);
 
     MPI_Finalize();
     return global_bad != 0;

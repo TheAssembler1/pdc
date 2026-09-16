@@ -37,6 +37,16 @@ one), unit grid spacing. Like `vector_magnitude`'s plain
 data shape, not a scientifically exact discretization of E3SM's actual
 grid.
 
+Like `analysis_scripts/`'s magnitude benchmark, every mode here repeats
+its write(+compute) cycle for `N_TIMESTEPS = 3` timesteps within one
+session (or, for posthoc/HDF5, across its write and analyze phases),
+each producing a distinct, uniquely named set of objects/datasets
+(`u_0`/`u_1`/`u_2`, `curl_x_0`/`curl_x_1`/`curl_x_2`,
+`vorticity_magnitude_0`/..., etc.) rather than a single shot -- see
+`bench_magnitude.c`'s comment on why per-timestep names are required
+instead of a shared name with an incrementing `time_step` property.
+Each timestep gets its own CSV row (see "Result CSV schemas" below).
+
 ### Domain decomposition
 
 Each rank owns a local `NX x NY x NZ_PER_RANK` block of `u`, `v`, `w`
@@ -165,13 +175,14 @@ NZ_PER_RANK=128 sbatch --nodes=4 curl_eager_analysis.sbatch
 ## Result CSV schemas
 
 Eager (`results_curl_eager_<jobid>.csv`) and eager-compressed
-(`results_curl_eager_compress_<jobid>.csv`), straight from
-`bench_curl_eager`'s own output (the compressed variant's `mode` field
-is relabeled `curl_eager_compress` by `curl_eager_compress_analysis.sbatch`,
-everything else identical):
+(`results_curl_eager_compress_<jobid>.csv`), one row per timestep,
+straight from `bench_curl_eager`'s own output (the compressed variant's
+`mode` field is relabeled `curl_eager_compress` by
+`curl_eager_compress_analysis.sbatch`, everything else identical):
 ```
-mode,n_ranks,nx,ny,nz_per_rank,compress,setup_s,write_s,confirm_read_s,total_s,bad
+mode,step,n_ranks,nx,ny,nz_per_rank,compress,setup_s,write_s,confirm_read_s,total_s,bad
 ```
+`setup_s` is the one-time session setup cost, repeated on every row.
 `total_s` as printed includes `confirm_read_s` (the post-write
 confirmation read -- see `bench_curl_eager.c`); `plot_curl_totals.py`
 deliberately excludes it from the reconstructed total it plots, since
@@ -179,25 +190,30 @@ it's a correctness check for this benchmark, not part of the workload
 being timed (same reasoning as `analysis_scripts/plot_totals.py`'s
 `confirm_read_s` exclusion).
 
-Posthoc (`results_curl_posthoc_<jobid>.csv`), combining both phases'
-CSV lines plus the measured relaunch cost into one row:
+Posthoc (`results_curl_posthoc_<jobid>.csv`), one row per timestep,
+pairing write-phase step *N* with analyze-phase step *N* and folding in
+the measured relaunch cost:
 ```
-mode,n_ranks,nx,ny,nz_per_rank,compress,write_setup_s,write_s,relaunch_s,analyze_setup_s,readback_s,curl_compute_s,curl_writeback_s,magnitude_compute_s,magnitude_writeback_s,total_s,bad
+mode,step,n_ranks,nx,ny,nz_per_rank,compress,write_setup_s,write_s,relaunch_s,analyze_setup_s,readback_s,curl_compute_s,curl_writeback_s,magnitude_compute_s,magnitude_writeback_s,total_s,bad
 ```
 `relaunch_s` is wall-clock time across the close+restart cycle
 (`srun_close_server.sh` + `srun_server_restart.sh`) between the write
-and analyze phases. `total_s` sums every phase's cost including the
-relaunch. `curl_compute_s`/`curl_writeback_s` and
+and analyze phases -- since the relaunch happens once per job rather
+than once per timestep, the same `relaunch_s` value is repeated on
+every timestep's row, same as `write_setup_s`/`analyze_setup_s`.
+`total_s` sums every phase's cost including the relaunch.
+`curl_compute_s`/`curl_writeback_s` and
 `magnitude_compute_s`/`magnitude_writeback_s` are both measured within
 the single analyze phase (see `bench_curl_analyze.c`) -- there's no
 separate relaunch between computing curl and computing magnitude from
 it, since both happen in the same already-running process.
 
-HDF5 baseline (`results_curl_hdf5_<jobid>.csv`), combining both phases'
-CSV lines into one row -- no relaunch column, since there's no server to
-close/restart, just the file reopened fresh for the analyze phase:
+HDF5 baseline (`results_curl_hdf5_<jobid>.csv`), one row per timestep,
+pairing write-phase step *N* with analyze-phase step *N* -- no relaunch
+column, since there's no server to close/restart, just the file
+reopened fresh for the analyze phase:
 ```
-mode,n_ranks,nx,ny,nz_per_rank,write_setup_s,write_s,analyze_setup_s,readback_s,curl_compute_s,curl_writeback_s,magnitude_compute_s,magnitude_writeback_s,total_s,bad
+mode,step,n_ranks,nx,ny,nz_per_rank,write_setup_s,write_s,analyze_setup_s,readback_s,curl_compute_s,curl_writeback_s,magnitude_compute_s,magnitude_writeback_s,total_s,bad
 ```
 
 ## Usage on Perlmutter

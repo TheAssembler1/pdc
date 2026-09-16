@@ -64,19 +64,27 @@ echo "Lustre striping: count=${STRIPE_COUNT} size=${STRIPE_SIZE_BYTES} bytes ($(
 rm -f "$OUT_FILE"
 lfs setstripe -c "$STRIPE_COUNT" -S "$STRIPE_SIZE_BYTES" "$OUT_FILE" || echo "WARNING: lfs setstripe failed, falling back to filesystem default layout"
 
-echo "mode,n_ranks,nx,ny,nz_per_rank,write_setup_s,write_s,analyze_setup_s,readback_s,curl_compute_s,curl_writeback_s,magnitude_compute_s,magnitude_writeback_s,total_s,bad" > "$RESULTS"
+echo "mode,step,n_ranks,nx,ny,nz_per_rank,write_setup_s,write_s,analyze_setup_s,readback_s,curl_compute_s,curl_writeback_s,magnitude_compute_s,magnitude_writeback_s,total_s,bad" > "$RESULTS"
 
 ./srun_hdf5_curl_write.sh
 ./srun_hdf5_curl_analyze.sh
 
-IFS=, read -r w_mode w_nranks w_nx w_ny w_nz w_setup w_write < "$WRITE_LOG"
-IFS=, read -r a_mode a_nranks a_nx a_ny a_nz a_setup a_readback a_curl_compute a_curl_writeback a_mag_compute a_mag_writeback a_total a_bad < "$ANALYZE_LOG"
-
-if [ "$w_setup" = "FAILED" ] || [ "$a_setup" = "FAILED" ]; then
-  echo "curl_hdf5,${CLIENT_TOTAL_TASKS},${NX},${NY},${NZ_PER_RANK},FAILED" >> "$RESULTS"
-else
-  total=$(awk "BEGIN{print $w_setup + $w_write + $a_setup + $a_readback + $a_curl_compute + $a_curl_writeback + $a_mag_compute + $a_mag_writeback}")
-  echo "curl_hdf5,${CLIENT_TOTAL_TASKS},${NX},${NY},${NZ_PER_RANK},${w_setup},${w_write},${a_setup},${a_readback},${a_curl_compute},${a_curl_writeback},${a_mag_compute},${a_mag_writeback},${total},${a_bad}" >> "$RESULTS"
-fi
+# Both WRITE_LOG and ANALYZE_LOG now hold one line per timestep
+# (N_TIMESTEPS=3 in hdf5_bench_curl_write.c / hdf5_bench_curl_analyze.c),
+# in matching step order, so pair them up line-by-line via two file
+# descriptors and emit one combined "curl_hdf5" row per timestep.
+exec 3< "$WRITE_LOG"
+exec 4< "$ANALYZE_LOG"
+while IFS=, read -r w_mode w_step w_nranks w_nx w_ny w_nz w_setup w_write <&3 && \
+      IFS=, read -r a_mode a_step a_nranks a_nx a_ny a_nz a_setup a_readback a_curl_compute a_curl_writeback a_mag_compute a_mag_writeback a_total a_bad <&4; do
+  if [ "$w_setup" = "FAILED" ] || [ "$a_setup" = "FAILED" ]; then
+    echo "curl_hdf5,${w_step},${CLIENT_TOTAL_TASKS},${NX},${NY},${NZ_PER_RANK},FAILED" >> "$RESULTS"
+  else
+    total=$(awk "BEGIN{print $w_setup + $w_write + $a_setup + $a_readback + $a_curl_compute + $a_curl_writeback + $a_mag_compute + $a_mag_writeback}")
+    echo "curl_hdf5,${w_step},${CLIENT_TOTAL_TASKS},${NX},${NY},${NZ_PER_RANK},${w_setup},${w_write},${a_setup},${a_readback},${a_curl_compute},${a_curl_writeback},${a_mag_compute},${a_mag_writeback},${total},${a_bad}" >> "$RESULTS"
+  fi
+done
+exec 3<&-
+exec 4<&-
 
 echo "Done. Results in $RESULTS"
