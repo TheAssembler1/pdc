@@ -18,7 +18,7 @@ PDC_VECTOR *pdc_an_builtin_funcs_vector_g = NULL;
  * array of variants gathered from possibly-several of these entries by
  * PDCan_link_builtin_func. */
 typedef struct pdc_an_builtin_entry_t {
-    char *                 name;
+    char *                name;
     pdc_an_func_variant_t variant;
 } pdc_an_builtin_entry_t;
 
@@ -302,9 +302,9 @@ PDCan_add_builtin_func(char *func_name, a_func_t a_func, pdc_tf_dev_t dev)
         PGOTO_ERROR(FAIL, "a_func was NULL");
 
     pdc_an_builtin_entry_t *builtin_func = PDC_calloc(1, sizeof(pdc_an_builtin_entry_t));
-    builtin_func->name                  = strdup(func_name);
-    builtin_func->variant.a_func        = a_func;
-    builtin_func->variant.dev           = dev;
+    builtin_func->name                   = strdup(func_name);
+    builtin_func->variant.a_func         = a_func;
+    builtin_func->variant.dev            = dev;
 
     pdc_vector_add(pdc_an_builtin_funcs_vector_g, builtin_func);
 
@@ -328,12 +328,12 @@ done:
  * resulting variant so an_vertex_free can free each independently.
  */
 perr_t
-PDCan_link_builtin_func(char *func_name, pdc_tf_dev_t dev, pdc_tf_location_t location,
-                        const char *params_str, pdc_an_func_t *f)
+PDCan_link_builtin_func(char *func_name, pdc_tf_dev_t dev, pdc_tf_location_t location, const char *params_str,
+                        pdc_an_func_t *f)
 {
     FUNC_ENTER(NULL);
 
-    perr_t ret_value  = SUCCEED;
+    perr_t ret_value   = SUCCEED;
     int    num_matches = 0;
 
     if (func_name == NULL)
@@ -346,8 +346,7 @@ PDCan_link_builtin_func(char *func_name, pdc_tf_dev_t dev, pdc_tf_location_t loc
         pdc_an_builtin_entry_t *entry = pdc_vector_get(pdc_an_builtin_funcs_vector_g, i);
         if (entry == NULL)
             PGOTO_ERROR(FAIL, "builtin registry entry was NULL");
-        if (strcmp(entry->name, func_name) == 0 &&
-            (dev == PDC_TF_NUM_DEVICES || entry->variant.dev == dev))
+        if (strcmp(entry->name, func_name) == 0 && (dev == PDC_TF_NUM_DEVICES || entry->variant.dev == dev))
             num_matches++;
     }
 

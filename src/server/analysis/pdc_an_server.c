@@ -781,8 +781,8 @@ PDCan_exec_graph(pdc_an_dg_entry_t *entry, char **target_state_names, int num_ta
         bool an_func_ok = chosen->a_func(&internal_params, chosen->params_str, input_bufs, input_regions,
                                          f->num_inputs, output_bufs, output_regions, f->num_outputs);
         clock_gettime(CLOCK_MONOTONIC, &an_func_t1);
-        double an_exec_time = (an_func_t1.tv_sec - an_func_t0.tv_sec) +
-                              (an_func_t1.tv_nsec - an_func_t0.tv_nsec) / 1e9;
+        double an_exec_time =
+            (an_func_t1.tv_sec - an_func_t0.tv_sec) + (an_func_t1.tv_nsec - an_func_t0.tv_nsec) / 1e9;
 
         /* Only "magnitude" is one of the three tracked computation
          * metrics (see PDC_stat_metric_t) -- "curl" and anything else
@@ -793,7 +793,8 @@ PDCan_exec_graph(pdc_an_dg_entry_t *entry, char **target_state_names, int num_ta
             PDC_stats_record(PDC_STAT_MAGNITUDE, an_exec_time);
 
         if (f->num_variants > 1) {
-            double utilization    = (chosen->dev == PDC_TF_CPU_DEVICE) ? avg_cpu_utilization : avg_gpu_utilization;
+            double utilization =
+                (chosen->dev == PDC_TF_CPU_DEVICE) ? avg_cpu_utilization : avg_gpu_utilization;
             double projected_time = an_exec_time * (1.0 - fmax(utilization, 0.1));
             an_update_exec_time(chosen, projected_time, f->name);
         }
