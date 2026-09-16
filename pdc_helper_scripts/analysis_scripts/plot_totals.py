@@ -42,6 +42,7 @@ import argparse
 import csv
 import glob
 import os
+import re
 import textwrap
 from collections import defaultdict
 
@@ -161,7 +162,14 @@ def load_all(results_dir):
     two different jobs' timesteps together."""
     best = {}  # (mode, n_ranks) -> (mtime, rows)
     for mode in MODE_ORDER:
+        # results_{mode}_*.csv would also glob-match a longer mode's
+        # files that happen to share this mode as a prefix (e.g. "eager"
+        # matching "results_eager_posthoc_1.csv" too) -- anchor the
+        # jobid to be purely digits so only this exact mode's files match.
+        name_re = re.compile(rf"^results_{re.escape(mode)}_\d+\.csv$")
         for path in glob.glob(os.path.join(results_dir, f"results_{mode}_*.csv")):
+            if not name_re.match(os.path.basename(path)):
+                continue
             mtime = os.path.getmtime(path)
             rows_by_ranks = defaultdict(list)
             for row in read_results_csv(path):

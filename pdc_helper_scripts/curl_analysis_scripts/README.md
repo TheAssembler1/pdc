@@ -2,11 +2,11 @@
 
 Slurm jobs and supporting bash scripts for an E3SM-shaped curl +
 vorticity-magnitude analysis benchmark, comparing PDC eager
-(DataFlyway), a genuinely two-restart PDC posthoc workflow, and a plain
-parallel-HDF5 baseline -- modeled after the tropical-cyclone-track use
-case in the paper this compares against (curl of wind velocity /
-magnitude of curl, used to detect atmospheric rotation in E3SM output on
-Frontier).
+(DataFlyway), a GPU-ZFP-compressed variant of eager, a genuinely
+single-restart PDC posthoc workflow, and a plain parallel-HDF5
+baseline -- modeled after the tropical-cyclone-track use case in the
+paper this compares against (curl of wind velocity / magnitude of
+curl, used to detect atmospheric rotation in E3SM output on Frontier).
 
 ## The pipeline
 
@@ -94,6 +94,24 @@ transformation framework end to end -- no new compression code. This is
 exactly the poster's "an analysis output can itself be compressed or
 transformed" claim, exercised for real.
 
+- **Eager, compressed** (`bench_curl_eager --compress`,
+  `curl_eager_compress_analysis.sbatch`): mechanically identical to
+  plain eager -- same binary, same one-continuous-session shape -- with
+  `COMPRESS` fixed to `1` instead of an ad hoc env-var override, and its
+  own dedicated results file
+  (`results_curl_eager_compress_<jobid>.csv`) and `curl_eager_compress`
+  mode label. Kept as its own test type (rather than folding compressed
+  runs into `results_curl_eager_*.csv` distinguished only by the CSV's
+  `compress` column) so it shows up in `plot_curl_totals.py` as its own
+  directly comparable workload next to plain eager, posthoc, and the
+  HDF5 baseline. Posthoc's analyze phase also accepts `COMPRESS=1` (see
+  `curl_posthoc_analysis.sbatch`) since `bench_curl_analyze.c` composes
+  the identical transform onto its own `vorticity_magnitude` write, but
+  that variant doesn't get its own dedicated test type here -- only
+  eager does, per this section. There's no HDF5-compressed variant at
+  all: compression is a PDC transformation-framework feature with
+  nothing analogous on the plain-HDF5 side.
+
 ## E3SM data-shape derivation
 
 The source paper doesn't state a grid resolution, so there's no single
@@ -135,19 +153,31 @@ NZ_PER_RANK=128 sbatch --nodes=4 curl_eager_analysis.sbatch
 | `srun_hdf5_curl_write.sh` | HDF5 baseline phase 1: runs `hdf5_bench_curl_write` |
 | `srun_hdf5_curl_analyze.sh` | HDF5 baseline phase 2: runs `hdf5_bench_curl_analyze` (reads u/v/w, computes curl then magnitude, writes both) |
 | `curl_eager_analysis.sbatch` | Single-node-count job: eager curl+magnitude |
+| `curl_eager_compress_analysis.sbatch` | Single-node-count job: eager curl+magnitude, GPU-ZFP-compressed `vorticity_magnitude` (`COMPRESS` fixed to `1`) |
 | `curl_posthoc_analysis.sbatch` | Single-node-count job: 2-phase posthoc curl+magnitude |
 | `curl_hdf5_analysis.sbatch` | Single-node-count job: 2-phase HDF5 baseline curl+magnitude |
 | `curl_eager_analysis_run.sh` | Submits chained `curl_eager_analysis.sbatch` jobs, one per node count |
+| `curl_eager_compress_analysis_run.sh` | Submits chained `curl_eager_compress_analysis.sbatch` jobs, one per node count |
 | `curl_posthoc_analysis_run.sh` | Submits chained `curl_posthoc_analysis.sbatch` jobs, one per node count |
 | `curl_hdf5_analysis_run.sh` | Submits chained `curl_hdf5_analysis.sbatch` jobs, one per node count |
+| `plot_curl_totals.py` | Stacked-bar + line-graph comparison of total workload time across eager / eager (compressed) / posthoc / HDF5, reconstructed from this directory's `results_curl_<mode>_*.csv` files |
 
 ## Result CSV schemas
 
-Eager (`results_curl_eager_<jobid>.csv`), straight from
-`bench_curl_eager`'s own output:
+Eager (`results_curl_eager_<jobid>.csv`) and eager-compressed
+(`results_curl_eager_compress_<jobid>.csv`), straight from
+`bench_curl_eager`'s own output (the compressed variant's `mode` field
+is relabeled `curl_eager_compress` by `curl_eager_compress_analysis.sbatch`,
+everything else identical):
 ```
 mode,n_ranks,nx,ny,nz_per_rank,compress,setup_s,write_s,confirm_read_s,total_s,bad
 ```
+`total_s` as printed includes `confirm_read_s` (the post-write
+confirmation read -- see `bench_curl_eager.c`); `plot_curl_totals.py`
+deliberately excludes it from the reconstructed total it plots, since
+it's a correctness check for this benchmark, not part of the workload
+being timed (same reasoning as `analysis_scripts/plot_totals.py`'s
+`confirm_read_s` exclusion).
 
 Posthoc (`results_curl_posthoc_<jobid>.csv`), combining both phases'
 CSV lines plus the measured relaunch cost into one row:
@@ -184,13 +214,19 @@ Then submit:
 
 ```
 cd pdc_helper_scripts/curl_analysis_scripts
-./curl_eager_analysis_run.sh     # submits chained jobs, one per node count
-./curl_posthoc_analysis_run.sh   # same, for the 3-phase PDC posthoc variant
-./curl_hdf5_analysis_run.sh      # same, for the 3-phase HDF5 baseline
+./curl_eager_analysis_run.sh           # submits chained jobs, one per node count
+./curl_eager_compress_analysis_run.sh  # same, for the dedicated GPU-compressed eager variant
+./curl_posthoc_analysis_run.sh         # same, for the 2-phase PDC posthoc variant
+./curl_hdf5_analysis_run.sh            # same, for the 2-phase HDF5 baseline
 
-COMPRESS=1 ./curl_eager_analysis_run.sh    # GPU-compressed vorticity_magnitude variant
-COMPRESS=1 ./curl_posthoc_analysis_run.sh  # (no HDF5 equivalent -- compression is a PDC-only option)
+COMPRESS=1 ./curl_posthoc_analysis_run.sh  # ad hoc compressed posthoc sweep (no HDF5 equivalent)
 ```
 
 Each job defaults to `--account=m2621`; edit the `#SBATCH` header, or
 export `SBATCH_ACCOUNT=<yours>`, if that allocation isn't yours.
+
+Once results exist for whichever modes you ran, plot them:
+
+```
+python3 plot_curl_totals.py --results-dir . --out curl_totals_comparison.png
+```
