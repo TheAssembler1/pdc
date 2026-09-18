@@ -28,8 +28,17 @@
  *   record_type,name,step,mean_s,stdev_s,count,value
  * with record_type one of:
  *   api_call               -- one row per distinct PDC API call name
- *   throughput_write_MBps  -- one row per write-phase timestep
- *   throughput_read_MBps   -- one row per read-phase timestep
+ *   throughput_write_MBps  -- one row per write-phase timestep. Data size
+ *                             over the observed I/O time: the whole
+ *                             step's wall-clock time (object create/close,
+ *                             transfer create/close, transfer start/wait)
+ *                             minus sleep(sleeptime) in async mode, since
+ *                             that sleep stands in for compute the client
+ *                             does while the transfer is in flight, not
+ *                             time spent waiting on I/O -- so async
+ *                             throughput is expected to come out HIGHER
+ *                             than sync's, not lower.
+ *   throughput_read_MBps   -- one row per read-phase timestep, same basis
  *   total_data_size_bytes  -- one row, whole run, one direction, all ranks
  *   data_size_per_rank_bytes -- one row, whole run, one direction, one rank
  */
@@ -176,6 +185,19 @@ main(int argc, char **argv)
 
     /* ---- write phase (vpicio-style) ---- */
     for (int step = 0; step < steps; step++) {
+        /* Throughput is data size over the OBSERVED I/O time for the
+         * whole step, including metadata operations (object
+         * create/close, transfer create/close) -- those are real,
+         * unavoidable per-timestep cost, not incidental setup to be
+         * excluded. sleep(sleeptime) below is excluded, though: it's
+         * standing in for compute the client does WHILE the transfer is
+         * in flight, not time spent waiting on I/O, so it's subtracted
+         * back out of the elapsed time below -- this is also why async
+         * throughput is expected to come out higher than sync's, not
+         * lower, despite the extra wall-clock time async takes overall. */
+        MPI_Barrier(MPI_COMM_WORLD);
+        double step_t0 = MPI_Wtime();
+
         for (int i = 0; i < N_OBJS; i++) {
             sprintf(obj_name, "%s-%d", obj_names[i], step);
             pdcid_t prop = (i < 7) ? obj_prop_float : obj_prop_int;
@@ -192,15 +214,6 @@ main(int argc, char **argv)
                       transfer_requests[i] = PDCregion_transfer_create(write_ptrs[i], PDC_WRITE, obj_ids[i],
                                                                        region_local, region_remote));
 
-        /* Throughput is data size over the OBSERVED I/O time -- bracket
-         * strictly transfer start to transfer stop, not object
-         * creation/transfer setup overhead above (negligible for sync,
-         * but the setup calls' own timing is already captured separately
-         * via PDC_TIMED/api_call rows, so it shouldn't also be folded
-         * into the throughput denominator). */
-        MPI_Barrier(MPI_COMM_WORLD);
-        double step_t0 = MPI_Wtime();
-
         PDC_TIMED(&stats, "PDCregion_transfer_start_all_mpi",
                   PDCregion_transfer_start_all_mpi(transfer_requests, N_OBJS, MPI_COMM_WORLD));
 
@@ -210,14 +223,17 @@ main(int argc, char **argv)
         PDC_TIMED(&stats, "PDCregion_transfer_wait_all",
                   PDCregion_transfer_wait_all(transfer_requests, N_OBJS));
 
-        MPI_Barrier(MPI_COMM_WORLD);
-        double step_t1              = MPI_Wtime();
-        write_throughput_mbps[step] = global_bytes_per_step / (step_t1 - step_t0) / 1e6;
-
         for (int i = 0; i < N_OBJS; i++)
             PDC_TIMED(&stats, "PDCregion_transfer_close", PDCregion_transfer_close(transfer_requests[i]));
         for (int i = 0; i < N_OBJS; i++)
             PDC_TIMED(&stats, "PDCobj_close", PDCobj_close(obj_ids[i]));
+
+        MPI_Barrier(MPI_COMM_WORLD);
+        double step_t1 = MPI_Wtime();
+        double step_io_elapsed = step_t1 - step_t0;
+        if (mode == XFER_ASYNC)
+            step_io_elapsed -= (double)sleeptime;
+        write_throughput_mbps[step] = global_bytes_per_step / step_io_elapsed / 1e6;
 
         if (rank == 0)
             LOG_WARNING("write step %d: %.2f MB/s\n", step, write_throughput_mbps[step]);
@@ -226,6 +242,12 @@ main(int argc, char **argv)
     /* ---- read phase (bdcats-style), same process: server region cache
      * from the writes above is still warm. ---- */
     for (int step = 0; step < steps; step++) {
+        /* See the write phase above: whole-step elapsed time including
+         * metadata ops, minus sleep(sleeptime) (compute overlapped with
+         * in-flight I/O, not time spent waiting on it) for async. */
+        MPI_Barrier(MPI_COMM_WORLD);
+        double step_t0 = MPI_Wtime();
+
         for (int i = 0; i < N_OBJS; i++) {
             sprintf(obj_name, "%s-%d", obj_names[i], step);
             PDC_TIMED(&stats, "PDCobj_open_col", obj_ids[i] = PDCobj_open_col(obj_name, pdc_id));
@@ -240,11 +262,6 @@ main(int argc, char **argv)
                       transfer_requests[i] = PDCregion_transfer_create(read_ptrs[i], PDC_READ, obj_ids[i],
                                                                        region_local, region_remote));
 
-        /* See the write phase above: bracket strictly transfer start to
-         * transfer stop, not the object open/transfer setup above it. */
-        MPI_Barrier(MPI_COMM_WORLD);
-        double step_t0 = MPI_Wtime();
-
         PDC_TIMED(&stats, "PDCregion_transfer_start_all_mpi",
                   PDCregion_transfer_start_all_mpi(transfer_requests, N_OBJS, MPI_COMM_WORLD));
 
@@ -254,14 +271,17 @@ main(int argc, char **argv)
         PDC_TIMED(&stats, "PDCregion_transfer_wait_all",
                   PDCregion_transfer_wait_all(transfer_requests, N_OBJS));
 
-        MPI_Barrier(MPI_COMM_WORLD);
-        double step_t1             = MPI_Wtime();
-        read_throughput_mbps[step] = global_bytes_per_step / (step_t1 - step_t0) / 1e6;
-
         for (int i = 0; i < N_OBJS; i++)
             PDC_TIMED(&stats, "PDCregion_transfer_close", PDCregion_transfer_close(transfer_requests[i]));
         for (int i = 0; i < N_OBJS; i++)
             PDC_TIMED(&stats, "PDCobj_close", PDCobj_close(obj_ids[i]));
+
+        MPI_Barrier(MPI_COMM_WORLD);
+        double step_t1 = MPI_Wtime();
+        double step_io_elapsed = step_t1 - step_t0;
+        if (mode == XFER_ASYNC)
+            step_io_elapsed -= (double)sleeptime;
+        read_throughput_mbps[step] = global_bytes_per_step / step_io_elapsed / 1e6;
 
         int step_bad = 0;
         for (uint64_t i = 0; i < numparticles; i++) {

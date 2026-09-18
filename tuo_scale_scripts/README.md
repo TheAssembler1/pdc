@@ -43,16 +43,16 @@ data_dir_size_bytes,,,,,,2621440
   `count = nranks * 8 objects * steps`).
 - `throughput_write_MBps` / `throughput_read_MBps`: one row per timestep,
   computed from the total bytes moved across all ranks that timestep
-  divided by the observed I/O window for that timestep -- bracketed
-  strictly from `PDCregion_transfer_start_all_mpi` to
-  `PDCregion_transfer_wait_all` returning, not the surrounding object
-  create/transfer-create setup. In async mode this window still includes
-  the `sleep(sleeptime)` between start and wait (that's the actual
-  elapsed time from kicking off the transfer to confirming it's done),
-  so a longer `sleeptime` will show as lower throughput here even though
-  the real data movement is unaffected -- that tradeoff is inherent to
-  async's design (compute overlapped with in-flight I/O), not a
-  measurement bug.
+  divided by the observed I/O time for that timestep -- the whole step's
+  wall-clock time, including metadata operations (object create/close,
+  transfer create/close), since those are real per-timestep cost, not
+  incidental setup to exclude. In async mode, `sleep(sleeptime)` between
+  transfer start and wait is subtracted back out of that elapsed time:
+  the client isn't waiting on I/O during that sleep, it's doing (simulated)
+  compute while the transfer runs in the background, so counting that
+  time against I/O throughput would be wrong. This means async throughput
+  is expected to come out *higher* than sync's, not lower, despite async
+  taking more wall-clock time per step overall.
 - `total_data_size_bytes` / `data_size_per_rank_bytes`: what the client
   itself counted it moved, the whole run, one direction (write and read
   move the identical volume), across all ranks vs. one rank.
