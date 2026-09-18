@@ -1,12 +1,17 @@
 #!/bin/bash
 # Small, fast sanity check of the whole pipeline (sbatch submission,
-# pdc_server startup, vpic_bdcats write+read-back, CSV extraction) on a
-# single node with a tiny particle count -- run this BEFORE run_sync.sh /
+# pdc_server startup, vpic_bdcats write+read-back, CSV extraction) on
+# 2 nodes with a tiny particle count -- run this BEFORE run_sync.sh /
 # run_async.sh to catch config problems (bad PDC_DATA_LOC, a partition/
-# account mismatch in vpic_bdcats.sbatch, etc.) without waiting on a real
+# account mismatch in vpic_bdcats.sbatch, a cross-node transport issue
+# like Tuolumne's cxi-only libfabric, etc.) without waiting on a real
 # node-count sweep or writing anything close to the full sweep's ~4 TiB.
+# 2 nodes (not 1) specifically because some issues -- e.g. the ofi+tcp
+# vs ofi+cxi transport mismatch fixed in srun_server.sh/
+# srun_client_vpic_bdcats.sh/srun_close_server.sh -- only showed up once
+# the server/client actually had to communicate across node boundaries.
 #
-# Runs both sync and async (short sleep) modes, 1 node, 2 timesteps,
+# Runs both sync and async (short sleep) modes, 2 nodes, 2 timesteps,
 # 1024 particles/rank -- seconds, not the tens of minutes a real sweep
 # step takes. Uses `sbatch --wait` (rather than run_sync.sh/run_async.sh's
 # --dependency=afterok chaining) so this script can block and print each
@@ -26,7 +31,7 @@ export RESULTS_DIR=${RESULTS_DIR:-$PWD/results_small_scale_$(date +%Y%m%d_%H%M%S
 mkdir -p "$RESULTS_DIR"
 echo "Results will land in: $RESULTS_DIR"
 
-NODES=1
+NODES=2
 export NUM_NODES="$NODES"
 
 for MODE in sync async; do
