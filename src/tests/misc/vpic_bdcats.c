@@ -118,27 +118,27 @@ main(int argc, char **argv)
     }
     void *write_ptrs[N_OBJS] = {ref_dx, ref_dy, ref_dz, ref_ux, ref_uy, ref_uz, ref_q, ref_id};
 
-    float *read_dx = (float *)malloc(numparticles * sizeof(float));
-    float *read_dy = (float *)malloc(numparticles * sizeof(float));
-    float *read_dz = (float *)malloc(numparticles * sizeof(float));
-    float *read_ux = (float *)malloc(numparticles * sizeof(float));
-    float *read_uy = (float *)malloc(numparticles * sizeof(float));
-    float *read_uz = (float *)malloc(numparticles * sizeof(float));
-    float *read_q  = (float *)malloc(numparticles * sizeof(float));
-    int *  read_id = (int *)malloc(numparticles * sizeof(int));
+    float *read_dx           = (float *)malloc(numparticles * sizeof(float));
+    float *read_dy           = (float *)malloc(numparticles * sizeof(float));
+    float *read_dz           = (float *)malloc(numparticles * sizeof(float));
+    float *read_ux           = (float *)malloc(numparticles * sizeof(float));
+    float *read_uy           = (float *)malloc(numparticles * sizeof(float));
+    float *read_uz           = (float *)malloc(numparticles * sizeof(float));
+    float *read_q            = (float *)malloc(numparticles * sizeof(float));
+    int *  read_id           = (int *)malloc(numparticles * sizeof(int));
     void * read_ptrs[N_OBJS] = {read_dx, read_dy, read_dz, read_ux, read_uy, read_uz, read_q, read_id};
 
-    const size_t bytes_per_particle = 7 * sizeof(float) + sizeof(int); /* == 32 */
+    const size_t bytes_per_particle    = 7 * sizeof(float) + sizeof(int); /* == 32 */
     const double local_bytes_per_step  = (double)numparticles * (double)bytes_per_particle;
     const double global_bytes_per_step = local_bytes_per_step * (double)nranks;
 
     double *write_throughput_mbps = (double *)malloc(sizeof(double) * (size_t)steps);
     double *read_throughput_mbps  = (double *)malloc(sizeof(double) * (size_t)steps);
 
-    pdcid_t pdc_id, cont_prop, cont_id, region_local, region_remote;
-    pdcid_t obj_prop_float, obj_prop_int;
-    pdcid_t obj_ids[N_OBJS];
-    pdcid_t transfer_requests[N_OBJS];
+    pdcid_t  pdc_id, cont_prop, cont_id, region_local, region_remote;
+    pdcid_t  obj_prop_float, obj_prop_int;
+    pdcid_t  obj_ids[N_OBJS];
+    pdcid_t  transfer_requests[N_OBJS];
     uint64_t dims[1], offset_local[1], offset_remote[1], mysize[1];
     char     obj_name[64];
     int      global_bad = 0;
@@ -201,10 +201,11 @@ main(int argc, char **argv)
         if (mode == XFER_ASYNC)
             sleep((unsigned int)sleeptime);
 
-        PDC_TIMED(&stats, "PDCregion_transfer_wait_all", PDCregion_transfer_wait_all(transfer_requests, N_OBJS));
+        PDC_TIMED(&stats, "PDCregion_transfer_wait_all",
+                  PDCregion_transfer_wait_all(transfer_requests, N_OBJS));
 
         MPI_Barrier(MPI_COMM_WORLD);
-        double step_t1 = MPI_Wtime();
+        double step_t1              = MPI_Wtime();
         write_throughput_mbps[step] = global_bytes_per_step / (step_t1 - step_t0) / 1e6;
 
         for (int i = 0; i < N_OBJS; i++)
@@ -242,10 +243,11 @@ main(int argc, char **argv)
         if (mode == XFER_ASYNC)
             sleep((unsigned int)sleeptime);
 
-        PDC_TIMED(&stats, "PDCregion_transfer_wait_all", PDCregion_transfer_wait_all(transfer_requests, N_OBJS));
+        PDC_TIMED(&stats, "PDCregion_transfer_wait_all",
+                  PDCregion_transfer_wait_all(transfer_requests, N_OBJS));
 
         MPI_Barrier(MPI_COMM_WORLD);
-        double step_t1 = MPI_Wtime();
+        double step_t1             = MPI_Wtime();
         read_throughput_mbps[step] = global_bytes_per_step / (step_t1 - step_t0) / 1e6;
 
         for (int i = 0; i < N_OBJS; i++)

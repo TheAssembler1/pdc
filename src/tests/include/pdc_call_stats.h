@@ -68,7 +68,7 @@ pdc_call_stats_record(pdc_call_stats_t *s, const char *name, double elapsed_s)
 }
 
 #ifdef ENABLE_MPI
-#define PDC_TIMED(stats, name, call)                                                                        \
+#define PDC_TIMED(stats, name, call)                                                                         \
     do {                                                                                                     \
         double _pdc_timed_t0 = MPI_Wtime();                                                                  \
         call;                                                                                                \
@@ -83,7 +83,7 @@ pdc_call_stats_now(void)
     clock_gettime(CLOCK_MONOTONIC, &ts);
     return (double)ts.tv_sec + (double)ts.tv_nsec / 1e9;
 }
-#define PDC_TIMED(stats, name, call)                                                                        \
+#define PDC_TIMED(stats, name, call)                                                                         \
     do {                                                                                                     \
         double _pdc_timed_t0 = pdc_call_stats_now();                                                         \
         call;                                                                                                \
