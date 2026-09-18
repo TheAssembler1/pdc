@@ -130,12 +130,16 @@ running `run_small_scale.sh` on Tuolumne:
   per node via `-n` so the backgrounded server and the client (launched by
   the two `flux run` calls inside the batch script) can both fit and run
   at the same time.
-- The client hanging indefinitely behind the still-running server (rather
-  than an explicit error) was the actual symptom of the batch allocation
-  not providing enough total slots -- if it recurs after the fixes above,
-  it likely means a node doesn't actually have `SERVERS_PER_NODE +
-  CLIENTS_PER_NODE` free cores; check with `flux jobs -a` while it's stuck
-  and reduce `CLIENTS_PER_NODE`/`SERVERS_PER_NODE` if so.
+- The client hanging indefinitely with no error, even with slot sizing
+  fixed above, was actually caused by starting the server with
+  `flux run ... &` -- `flux run` is a blocking, *attached* submission
+  (like `srun`); backgrounding it with shell `&` only backgrounds the
+  shell's wait on it, it does not turn it into Flux's fire-and-forget mode,
+  and the still-attached `flux run` prevented the client's own `flux run`
+  from ever being scheduled. `vpic_bdcats_job.flux.sh` now starts the
+  server with `flux submit` instead, which returns a jobid immediately
+  without attaching -- the actual Flux verb for "run this in the
+  background."
 
 The benchmark binary and CSV pipeline (`vpic_bdcats`, `pdc_call_stats.h`)
 are fully tested locally against a real `pdc_server` over plain MPI.

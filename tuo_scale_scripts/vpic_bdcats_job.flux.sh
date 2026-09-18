@@ -11,12 +11,17 @@
 # Additional required env when MODE=async:
 #   ASYNC_SLEEP_S
 #
-# NOTE: `flux run` rejects -n/--ntasks combined with --tasks-per-node
-# ("Per-resource options can't be used with per-task options") -- fixed
-# after hitting this for real on Tuolumne; only -N + --tasks-per-node is
-# passed now. The rest of this script is still only validated as far as
-# that point -- if something past the first `flux run` breaks, it's
-# unverified past here.
+# NOTE: two real issues found running this on Tuolumne:
+#   - `flux run` rejects -n/--ntasks combined with --tasks-per-node
+#     ("Per-resource options can't be used with per-task options") --
+#     only -N + --tasks-per-node is passed to any flux run/submit below.
+#   - The server MUST be started with `flux submit`, not `flux run ... &`.
+#     `flux run` is a blocking, attached submission (like srun) -- shell
+#     `&` only backgrounds the *shell's wait* on it, it doesn't turn it
+#     into Flux's fire-and-forget submission mode, and the still-attached
+#     flux run held things such that the client's own flux run never got
+#     scheduled. `flux submit` returns a jobid immediately without
+#     attaching, which is the actual "run this in the background" verb.
 
 set -xeu
 
@@ -49,9 +54,8 @@ SERVER_LOG="${RESULTS_DIR}/server_${MODE}_${NUM_NODES}.log"
 CLIENT_LOG="${RESULTS_DIR}/client_${MODE}_${NUM_NODES}.log"
 OUT_CSV="${RESULTS_DIR}/vpic_bdcats_${MODE}_${NUM_NODES}.csv"
 
-flux run -N "$NUM_NODES" --tasks-per-node="$SERVERS_PER_NODE" \
-  --output="$SERVER_LOG" ./pdc_server &
-SERVER_JOB_PID=$!
+SERVER_JOBID=$(flux submit -N "$NUM_NODES" --tasks-per-node="$SERVERS_PER_NODE" \
+  --output="$SERVER_LOG" ./pdc_server)
 
 # Give the servers time to come up and write their connection info before
 # the client tries to look them up -- mirrors the sleep already used in
@@ -65,7 +69,13 @@ flux run -N "$NUM_NODES" --tasks-per-node="$CLIENTS_PER_NODE" \
 flux run -N "$NUM_NODES" --tasks-per-node="$SERVERS_PER_NODE" \
   ./close_server
 
-wait "$SERVER_JOB_PID" || true
+# close_server's RPC makes the pdc_server processes exit on their own;
+# wait for that Flux job to actually finish (and reap it) before moving on.
+# `flux job wait` requires the job to have been submitted with the
+# `waitable` flag, which this wasn't -- `flux job attach` works
+# unconditionally and just streams any remaining output until the job
+# exits, which is all that's needed here.
+flux job attach "$SERVER_JOBID" || true
 
 # vpic_bdcats.c prints its CSV (header + api_call/throughput/data-size
 # rows) interleaved with ordinary LOG_WARNING lines on rank 0's stdout --
