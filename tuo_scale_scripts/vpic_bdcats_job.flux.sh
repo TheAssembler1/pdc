@@ -11,11 +11,12 @@
 # Additional required env when MODE=async:
 #   ASYNC_SLEEP_S
 #
-# NOTE: written against the documented `flux run`/`flux batch` CLI
-# (https://flux-framework.readthedocs.io) but not validated against a real
-# Flux instance -- there isn't one available in the environment this was
-# written in. Check `flux run --help` on the actual system for any flag
-# naming differences (e.g. --tasks-per-node) before relying on this at scale.
+# NOTE: `flux run` rejects -n/--ntasks combined with --tasks-per-node
+# ("Per-resource options can't be used with per-task options") -- fixed
+# after hitting this for real on Tuolumne; only -N + --tasks-per-node is
+# passed now. The rest of this script is still only validated as far as
+# that point -- if something past the first `flux run` breaks, it's
+# unverified past here.
 
 set -xeu
 
@@ -30,9 +31,6 @@ PDC_TMPDIR=${PDC_TMPDIR:?}
 BIN_DIR=${BIN_DIR:?}
 RESULTS_DIR=${RESULTS_DIR:?}
 ASYNC_SLEEP_S=${ASYNC_SLEEP_S:-0}
-
-SERVER_TOTAL_TASKS=$((NUM_NODES * SERVERS_PER_NODE))
-CLIENT_TOTAL_TASKS=$((NUM_NODES * CLIENTS_PER_NODE))
 
 mkdir -p "$RESULTS_DIR" "$PDC_DATA_LOC"
 
@@ -51,7 +49,7 @@ SERVER_LOG="${RESULTS_DIR}/server_${MODE}_${NUM_NODES}.log"
 CLIENT_LOG="${RESULTS_DIR}/client_${MODE}_${NUM_NODES}.log"
 OUT_CSV="${RESULTS_DIR}/vpic_bdcats_${MODE}_${NUM_NODES}.csv"
 
-flux run -N "$NUM_NODES" -n "$SERVER_TOTAL_TASKS" --tasks-per-node="$SERVERS_PER_NODE" \
+flux run -N "$NUM_NODES" --tasks-per-node="$SERVERS_PER_NODE" \
   --output="$SERVER_LOG" ./pdc_server &
 SERVER_JOB_PID=$!
 
@@ -60,11 +58,11 @@ SERVER_JOB_PID=$!
 # this repo's Slurm srun_*.sh scripts and run_multiple_mpi_test.sh.
 sleep 5
 
-flux run -N "$NUM_NODES" -n "$CLIENT_TOTAL_TASKS" --tasks-per-node="$CLIENTS_PER_NODE" \
+flux run -N "$NUM_NODES" --tasks-per-node="$CLIENTS_PER_NODE" \
   --output="$CLIENT_LOG" \
   ./vpic_bdcats "$NUMPARTICLES" "$STEPS" "$MODE" "$ASYNC_SLEEP_S"
 
-flux run -N "$NUM_NODES" -n "$SERVER_TOTAL_TASKS" --tasks-per-node="$SERVERS_PER_NODE" \
+flux run -N "$NUM_NODES" --tasks-per-node="$SERVERS_PER_NODE" \
   ./close_server
 
 wait "$SERVER_JOB_PID" || true
