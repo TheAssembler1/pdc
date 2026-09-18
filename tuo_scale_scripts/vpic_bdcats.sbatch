@@ -35,7 +35,12 @@
 #SBATCH --output=%x_%j.log
 
 set -xeu
-cd "$SLURM_SUBMIT_DIR"
+# Tuolumne's sbatch/srun are Flux's own Slurm-compatibility wrappers (its
+# rc2 runs this script directly as a Flux job), not real Slurm -- Flux's
+# shim doesn't populate SLURM_SUBMIT_DIR the way real Slurm does. The job
+# already starts in the submission directory under this shim, so fall
+# back to $PWD instead of failing on the unset var.
+cd "${SLURM_SUBMIT_DIR:-$PWD}"
 
 export NUM_NODES=$SLURM_JOB_NUM_NODES
 SERVERS_PER_NODE=${SERVERS_PER_NODE:?}
