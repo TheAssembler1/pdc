@@ -1,6 +1,6 @@
 # tuo_scale_scripts
 
-Flux-scheduled scaling study for `vpic_bdcats` (`src/tests/misc/vpic_bdcats.c`)
+Slurm-scheduled scaling study for `vpic_bdcats` (`src/tests/misc/vpic_bdcats.c`)
 on Tuolumne, from 1 to 128 nodes.
 
 ## What `vpic_bdcats` does
@@ -47,32 +47,63 @@ data_size_per_rank_bytes,,,,,,655360
   direction (write and read move the identical volume), across all ranks
   vs. one rank.
 
+## Scheduler: Slurm (`sbatch`/`srun`), not Flux
+
+This directory originally targeted Flux (`flux batch`/`flux run`/`flux
+submit`), but real testing on Tuolumne showed the client's inner `flux
+run` reliably hitting "waiting for resources" and never getting
+co-scheduled alongside the backgrounded server job, even after reserving
+a whole `--exclusive` node -- see git history (`vpic_bdcats_job.flux.sh`,
+now removed) for the sequence of Flux-specific fixes that were tried.
+
+`pdc_helper_scripts/curl_analysis_scripts` already runs the identical
+concurrent-server-plus-client pattern via plain Slurm and has for a long
+time: one `sbatch` allocation sized to the *combined* server + client
+task count per node, a server `srun` step backgrounded with `&`, and a
+client `srun` step in the foreground -- no special flag (no `--overlap`)
+needed, because Slurm's default job-step semantics let multiple `srun`
+steps within one `sbatch` allocation run concurrently as long as their
+combined per-node task request doesn't exceed `--ntasks-per-node`. This
+directory now mirrors that exact pattern instead of Flux's sub-instance
+model, which doesn't have an equivalent default.
+
 ## Files
 
 - `common.sh` -- shared config sourced by every script below: node-count
   list (1, 2, 4, 8, 16, 32, 64, 128), `SERVERS_PER_NODE` (4),
-  `CLIENTS_PER_NODE` (32), `STEPS` (5), and `NUMPARTICLES` -- computed
-  once, held constant across the whole sweep (weak scaling), sized so
-  that the **128-node step alone writes ~4 TiB** across all 5 timesteps
-  (smaller node counts in the same sweep write proportionally less).
-  Requires `PDC_DATA_LOC` to already be set to real parallel scratch --
-  see below.
-- `vpic_bdcats_job.flux.sh` -- the actual per-node-count, per-mode `flux
-  batch` job: cleans out `PDC_DATA_LOC`/`PDC_TMPDIR` from any previous run
-  first, starts `pdc_server`, runs `vpic_bdcats`, closes the server,
-  extracts that run's CSV. Not invoked directly.
+  `CLIENTS_PER_NODE` (32), `STEPS` (5), `NUMPARTICLES` -- computed once,
+  held constant across the whole sweep (weak scaling), sized so that the
+  **128-node step alone writes ~4 TiB** across all 5 timesteps (smaller
+  node counts in the same sweep write proportionally less) -- and
+  `TASKS_PER_NODE`/`CPUS_PER_TASK`, derived from `CORES_PER_NODE`
+  (default 96, matching Tuolumne's pbatch queue) so the single `sbatch`
+  allocation is sized to fit server + client tasks without oversubscribing
+  cores. Requires `PDC_DATA_LOC` to already be set to real parallel
+  scratch -- see below.
+- `vpic_bdcats.sbatch` -- the actual per-node-count, per-mode Slurm job:
+  cleans out `PDC_DATA_LOC`/`PDC_TMPDIR` from any previous run first,
+  starts `pdc_server` (backgrounded via `&`), runs `vpic_bdcats` in the
+  foreground, closes the server, extracts that run's CSV. Delegates to
+  `srun_server.sh` / `srun_client_vpic_bdcats.sh` / `srun_close_server.sh`
+  (mirroring `pdc_helper_scripts/curl_analysis_scripts`'s file layout).
+  Not invoked directly -- `--nodes`/`--ntasks-per-node`/`--cpus-per-task`
+  are always overridden at submit time by the `run_*.sh` scripts below.
 - `run_sync.sh` / `run_async.sh` -- sweep drivers, one per transfer mode,
-  submitting `vpic_bdcats_job.flux.sh` once per node count and blocking on
-  `flux job attach` before moving to the next (chosen over Flux's
-  dependency flags since those vary by version). **`run_async.sh`'s sleep
-  duration (`SLEEP_TIME`) is declared at the very top of the file** --
-  edit it there.
+  submitting `vpic_bdcats.sbatch` once per node count via `sbatch
+  --dependency=afterok`, chained so each node count starts only after the
+  previous one finishes (mirrors
+  `pdc_helper_scripts/curl_analysis_scripts/curl_eager_analysis_run.sh`).
+  These submit the whole chain and return immediately -- check progress
+  with `squeue -u $USER`. **`run_async.sh`'s sleep duration
+  (`SLEEP_TIME`) is declared at the very top of the file** -- edit it
+  there.
 - `run_small_scale.sh` -- a fast, 1-node, tiny-particle-count (1024/rank,
-  2 steps) sanity check of the whole pipeline (flux submission, server
-  startup, write+read-back, CSV extraction) for both modes. **Run this
-  first**, before either sweep, to catch a bad `PDC_DATA_LOC` or a Flux
-  flag mismatch without waiting on a real sweep step or writing anywhere
-  near 4 TiB.
+  2 steps) sanity check of the whole pipeline (sbatch submission, server
+  startup, write+read-back, CSV extraction) for both modes, blocking via
+  `sbatch --wait` so it can print each CSV immediately. **Run this
+  first**, before either sweep, to catch a bad `PDC_DATA_LOC` or a
+  partition/account mismatch without waiting on a real sweep step or
+  writing anywhere near 4 TiB.
 
 ## Required: `PDC_DATA_LOC`
 
@@ -106,47 +137,20 @@ export PDC_DATA_LOC=/p/lustre1/$USER/pdc_vpic_bdcats_scale
 ./run_async.sh         # full sweep, 1..128 nodes, async mode
 ```
 
+`vpic_bdcats.sbatch`'s `--partition=pbatch` default matches Tuolumne's
+queue name observed via `flux resource list`; add `--account=<bank>` to
+the `sbatch` calls in `run_*.sh` if your site requires one.
+
 Override any of `SERVERS_PER_NODE`, `CLIENTS_PER_NODE`, `STEPS`,
-`NUMPARTICLES` as env vars before running (see `common.sh` for defaults).
+`NUMPARTICLES`, `CORES_PER_NODE` as env vars before running (see
+`common.sh` for defaults).
 
 Each node count writes `vpic_bdcats_<mode>_<nodes>.csv` to `$RESULTS_DIR`,
 tagged with a trailing `# n_nodes=...,servers_per_node=...,...` comment
 line recording that run's shape.
 
-**Flux submission layer status**: originally written against the
-documented `flux batch`/`flux run`/`flux job attach` CLI
-(https://flux-framework.readthedocs.io) with no Flux instance available to
-test against; real issues have since been found and fixed by actually
-running `run_small_scale.sh` on Tuolumne:
-- `flux run` rejects `-n`/`--ntasks` combined with `--tasks-per-node`
-  ("Per-resource options can't be used with per-task options") -- every
-  `flux run` call in `vpic_bdcats_job.flux.sh` now uses `-N` +
-  `--tasks-per-node` only.
-- `flux batch` has a *different* flag set than `flux run` -- confirmed via
-  `flux batch --help` on Tuolumne, it has no `--tasks-per-node` at all. Its
-  resource unit is "slots" (`-n`/`--nslots`, default 1 core each)
-  distributed across `-N`/`--nodes`.
-- Starting the server with `flux run ... &` caused the client's own
-  `flux run` to never get scheduled -- `flux run` is a blocking, *attached*
-  submission (like `srun`); backgrounding it with shell `&` only
-  backgrounds the shell's wait on it, it does not turn it into Flux's
-  fire-and-forget mode. `vpic_bdcats_job.flux.sh` now starts the server
-  with `flux submit` instead, which returns a jobid immediately without
-  attaching -- the actual Flux verb for "run this in the background."
-- Even after both fixes above, the client's inner `flux run` still hit
-  "waiting for resources" (confirmed live via
-  `flux proxy <outer-jobid> flux job attach <inner-jobid>`), despite
-  `flux resource list` showing 96 idle cores on the node -- requesting
-  `SERVERS_PER_NODE + CLIENTS_PER_NODE` slots via the outer `flux batch`'s
-  `-n` didn't map onto actual schedulable task capacity the way that math
-  assumed. `run_sync.sh`/`run_async.sh`/`run_small_scale.sh` now request
-  `--exclusive` whole nodes instead of counting slots, sidestepping the
-  slot-to-task mapping question entirely -- the two inner `flux run`/
-  `flux submit` calls (each independently sized via `--tasks-per-node`)
-  then divide up the whole node themselves.
-
 The benchmark binary and CSV pipeline (`vpic_bdcats`, `pdc_call_stats.h`)
 are fully tested locally against a real `pdc_server` over plain MPI.
 `run_small_scale.sh` getting a clean CSV on your first try is the signal
-that the Flux layer itself is now working end to end on Tuolumne -- run it
-again after any Flux-related change before trusting the full sweep.
+that the Slurm layer itself is working end to end on Tuolumne -- run it
+again after any Slurm-related change before trusting the full sweep.

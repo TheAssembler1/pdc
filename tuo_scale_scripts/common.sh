@@ -1,12 +1,23 @@
 #!/bin/bash
 # Shared config, sourced by run_sync.sh, run_async.sh, run_small_scale.sh,
-# and vpic_bdcats_job.flux.sh, so the node-count list and the
-# weak-scaling particle count are computed in exactly one place instead
-# of drifting between the sync/async drivers.
+# and vpic_bdcats.sbatch, so the node-count list and the weak-scaling
+# particle count are computed in exactly one place instead of drifting
+# between the sync/async drivers.
 
 export SERVERS_PER_NODE=${SERVERS_PER_NODE:-4}
 export CLIENTS_PER_NODE=${CLIENTS_PER_NODE:-32}
 export STEPS=${STEPS:-5}
+
+# Combined per-node task count and per-task core count for the single
+# sbatch allocation both the server and client srun steps share. 96
+# matches Tuolumne's pbatch queue (confirmed via `flux resource list`);
+# override CORES_PER_NODE if running this elsewhere.
+export CORES_PER_NODE=${CORES_PER_NODE:-96}
+export TASKS_PER_NODE=$((SERVERS_PER_NODE + CLIENTS_PER_NODE))
+export CPUS_PER_TASK=${CPUS_PER_TASK:-$((CORES_PER_NODE / TASKS_PER_NODE))}
+if [ "$CPUS_PER_TASK" -lt 1 ]; then
+    export CPUS_PER_TASK=1
+fi
 
 # Weak scaling: NUMPARTICLES (per rank) is held constant across every node
 # count in the sweep, sized so that the TOP of the sweep (128 nodes) writes
