@@ -26,6 +26,7 @@ echo "Results will land in: $RESULTS_DIR"
 prev_jid=""
 for nodes in "${NODE_COUNTS[@]}"; do
     echo "=== [sync] Submitting vpic_bdcats scale job: $nodes node(s) ==="
+    export NUM_NODES="$nodes"
     if [ -z "$prev_jid" ]; then
         jid=$(sbatch --parsable \
                 --job-name="vpic-bdcats-sync-${nodes}" \

@@ -21,10 +21,19 @@
 # overrides them from common.sh's SERVERS_PER_NODE/CLIENTS_PER_NODE.
 #
 # Required env (set by the calling run_*.sh, which sources common.sh):
-#   SERVERS_PER_NODE, CLIENTS_PER_NODE, STEPS, NUMPARTICLES, MODE
-#   (sync|async), PDC_DATA_LOC, PDC_TMPDIR, BIN_DIR, RESULTS_DIR
+#   NUM_NODES, SERVERS_PER_NODE, CLIENTS_PER_NODE, STEPS, NUMPARTICLES,
+#   MODE (sync|async), PDC_DATA_LOC, PDC_TMPDIR, BIN_DIR, RESULTS_DIR
 # Additional required env when MODE=async:
 #   ASYNC_SLEEP_S
+#
+# NUM_NODES is passed explicitly by the caller rather than read from
+# SLURM_JOB_NUM_NODES -- Tuolumne's sbatch/srun are Flux's own Slurm-
+# compatibility wrappers (its rc2 runs this script directly as a Flux
+# job), not real Slurm, and that shim doesn't populate SLURM_JOB_NUM_NODES
+# (confirmed: "line 45: SLURM_JOB_NUM_NODES: unbound variable" on a real
+# run). Every run_*.sh already knows the node count it's submitting with,
+# so there's no need to recover it from a Slurm-specific env var this
+# shim doesn't set.
 
 #SBATCH --job-name=vpic-bdcats-scale
 #SBATCH --nodes=1
@@ -42,7 +51,8 @@ set -xeu
 # back to $PWD instead of failing on the unset var.
 cd "${SLURM_SUBMIT_DIR:-$PWD}"
 
-export NUM_NODES=$SLURM_JOB_NUM_NODES
+NUM_NODES=${NUM_NODES:?}
+export NUM_NODES
 SERVERS_PER_NODE=${SERVERS_PER_NODE:?}
 CLIENTS_PER_NODE=${CLIENTS_PER_NODE:?}
 export SERVERS_PER_NODE CLIENTS_PER_NODE

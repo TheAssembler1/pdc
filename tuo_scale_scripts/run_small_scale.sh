@@ -27,6 +27,7 @@ mkdir -p "$RESULTS_DIR"
 echo "Results will land in: $RESULTS_DIR"
 
 NODES=1
+export NUM_NODES="$NODES"
 
 for MODE in sync async; do
     export MODE
