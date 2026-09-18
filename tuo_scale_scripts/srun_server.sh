@@ -23,16 +23,21 @@
 # Force ofi+cxi explicitly instead of fixing the Perlmutter-only
 # detection itself.
 #
-# HG_HOST is just "cxi0", with no per-rank id suffix -- an earlier version
+# HG_HOST is "cxi0:" -- note the trailing colon, an EMPTY per-rank id
+# field, not simply "cxi0" with no colon at all. An earlier version
 # mirrored curl_analysis_scripts' Perlmutter HG_HOST=cxi0:$SLURM_LOCALID,
 # but SLURM_LOCALID is unbound under Tuolumne's Flux Slurm-compatibility
 # shim (same as SLURM_SUBMIT_DIR/SLURM_JOB_NUM_NODES, fixed earlier), so
-# it silently evaluated to empty for every rank. Confirmed harmless for
-# the server specifically: a real run with the resulting connection
-# string "ofi+cxi://cxi0::7000" (empty id) on all 8 ranks/2 nodes still
-# printed "Server ready!" -- the port (pdc_server_rank_g % 32 + 7000,
-# already unique per global rank) is what actually disambiguates
-# processes sharing a NIC here, not the HG_HOST suffix.
+# it accidentally evaluated to "cxi0:" (empty id) for every rank --
+# confirmed as a real, working connection string ("ofi+cxi://cxi0::7000"
+# on all 8 ranks/2 nodes printed "Server ready!"). Simplifying that to a
+# plain "cxi0" (no colon) was tried next and made ALL 8 ranks fail
+# HG_Init() -- with no colon, pdc_server's own port
+# (pdc_server_rank_g % 32 + 7000) lands directly after a single colon
+# instead of after an empty id field, and na_ofi's cxi provider parses
+# that differently (likely as a pid/domain field with a much smaller
+# valid range than a TCP port). "cxi0:" (empty id, not no id) is the only
+# form confirmed to actually work -- keep the trailing colon.
 
 set -xeu
 
@@ -46,7 +51,7 @@ srun \
   --ntasks-per-node="$SERVERS_PER_NODE" \
   --error="${RESULTS_DIR}/server_${LOG_TAG}_${NUM_NODES}.err" \
   --output="${RESULTS_DIR}/server_${LOG_TAG}_${NUM_NODES}.log" \
-  bash -c 'export HG_TRANSPORT=ofi+cxi; export HG_HOST=cxi0; exec ./pdc_server' &
+  bash -c 'export HG_TRANSPORT=ofi+cxi; export HG_HOST=cxi0:; exec ./pdc_server' &
 popd
 
 # Give the servers time to stand up and publish their address info before

@@ -9,15 +9,15 @@
 #
 # HG_TRANSPORT/HG_HOST: see srun_server.sh -- Tuolumne's libfabric only has
 # the cxi provider, not the "ofi+tcp" pdc_client_connect.c defaults to
-# off-Perlmutter. HG_HOST is plain "cxi0", no per-rank id suffix: an
-# earlier version offset SLURM_LOCALID by SERVERS_PER_NODE (mirroring
-# curl_analysis_scripts' Perlmutter HG_HOST=cxi0:$((SLURM_LOCALID + 8))),
-# but SLURM_LOCALID is unbound under Tuolumne's Flux Slurm-compatibility
-# shim, so every rank's arithmetic collapsed to the same literal id --
-# confirmed as the actual cause of a real run where every one of 8 client
-# ranks failed HG_Init() with an identical "ofi+cxi://cxi0:4" connection
-# string. The port (already unique per global rank) is what disambiguates
-# processes sharing a NIC here, not the HG_HOST suffix -- see srun_server.sh.
+# off-Perlmutter. HG_HOST is "cxi0:" (trailing colon, empty id field) --
+# NOT "cxi0" with no colon (confirmed to make every rank fail HG_Init(),
+# see srun_server.sh) and NOT an explicit non-empty id: an earlier version
+# offset SLURM_LOCALID by SERVERS_PER_NODE (mirroring curl_analysis_scripts'
+# Perlmutter HG_HOST=cxi0:$((SLURM_LOCALID + 8))), but SLURM_LOCALID is
+# unbound under Tuolumne's Flux Slurm-compatibility shim, so every rank's
+# arithmetic collapsed to the same literal id -- confirmed as the actual
+# cause of a real run where every one of 8 client ranks failed HG_Init()
+# with an identical "ofi+cxi://cxi0:4" connection string.
 
 set -xeu
 
@@ -30,7 +30,7 @@ srun \
   --ntasks-per-node="$CLIENTS_PER_NODE" \
   --output="$CLIENT_LOG" \
   --error="${RESULTS_DIR}/client_${LOG_TAG}_${NUM_NODES}.err" \
-  bash -c 'export HG_TRANSPORT=ofi+cxi; export HG_HOST=cxi0; exec ./vpic_bdcats "$NUMPARTICLES" "$STEPS" "$MODE" "$ASYNC_SLEEP_S"'
+  bash -c 'export HG_TRANSPORT=ofi+cxi; export HG_HOST=cxi0:; exec ./vpic_bdcats "$NUMPARTICLES" "$STEPS" "$MODE" "$ASYNC_SLEEP_S"'
 popd
 
 # vpic_bdcats.c prints its CSV (header + api_call/throughput/data-size
