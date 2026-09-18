@@ -13,7 +13,9 @@
 #include "pdc_timing.h"
 #include "pdc_interface.h"
 #include "pdc_tf_poly_sched.h"
+#ifdef JSONC_ENABLED
 #include "json-c/json.h"
+#endif
 
 PDC_VECTOR *pdc_tf_builtin_funcs_vector_g = NULL;
 
@@ -280,6 +282,7 @@ done:
     FUNC_LEAVE(ret_value);
 }
 
+#ifdef JSONC_ENABLED
 static struct array_list *
 get_json_array(struct json_object *json_obj, char *arr_name)
 {
@@ -319,6 +322,7 @@ done:
         FUNC_LEAVE(ret_value);
     FUNC_LEAVE(json_object_get_string(str_json_obj));
 }
+#endif /* JSONC_ENABLED */
 
 char *pdc_tf_dev_strs[]      = {"CPU", "GPU"};
 char *pdc_tf_location_strs[] = {"builtin", "external"};
@@ -384,6 +388,21 @@ vertex_free(void *data)
     FUNC_LEAVE_VOID();
 }
 
+#ifndef JSONC_ENABLED
+/* JSON-C wasn't found at configure time (see root CMakeLists.txt) -- the
+ * only thing that's actually unavailable is attaching a graph; every
+ * other PDC operation (object/region create, read, write, ...) works
+ * unaffected. Callers already treat a NULL return the same as any other
+ * graph-load failure (see PDCtf_dg_json_create, src/api/pdc_tf/pdc_tf.c). */
+pdc_dg_t *
+PDCtf_dg_json_create_common(char *filepath)
+{
+    LOG_ERROR("PDCtf_dg_json_create_common: JSON-C support was not compiled in (JSONC_ROOT_DIR was not "
+              "set at build time) -- cannot parse transformation graph \"%s\"\n",
+              filepath);
+    return NULL;
+}
+#else
 pdc_dg_t *
 PDCtf_dg_json_create_common(char *filepath)
 {
@@ -525,6 +544,7 @@ done:
 
     FUNC_LEAVE(ret_value);
 }
+#endif /* JSONC_ENABLED */
 
 size_t
 PDCtf_get_pdc_region_t_elements(pdc_tf_region_t reg)

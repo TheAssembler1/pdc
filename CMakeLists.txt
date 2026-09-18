@@ -23,18 +23,18 @@ foreach(p
 endforeach()
 
 # Dependencies directories
-# JSON-C: required, not optional -- core graph JSON parsing (an_client/
-# tf_client graphs), not a transformation, so PDC can't function without it.
-if(NOT DEFINED ENV{JSONC_ROOT_DIR} OR "$ENV{JSONC_ROOT_DIR}" STREQUAL "")
-    message(FATAL_ERROR "Environment variable JSONC_ROOT_DIR is not set")
+#
+# Every dependency below is optional, JSON-C included: unset the
+# corresponding *_ROOT_DIR env var (or *_DIR for SZ3/TurboPFor/CUSZ) and
+# that piece compiles out instead of cmake hard-failing. Without JSON-C
+# specifically, PDCtf_dg_json_create/PDCan_dg_json_create (attaching a
+# transformation/analysis graph) return a clear "not compiled in" error at
+# runtime (see pdc_tf_common.c / pdc_an_common.c's own #ifdef JSONC_ENABLED)
+# -- every other PDC operation (object/region create, read, write, ...) is
+# unaffected, since graph attachment is the only thing that needs it.
+if(DEFINED ENV{JSONC_ROOT_DIR} AND NOT "$ENV{JSONC_ROOT_DIR}" STREQUAL "")
+  set(JSONC_ROOT $ENV{JSONC_ROOT_DIR})
 endif()
-set(JSONC_ROOT $ENV{JSONC_ROOT_DIR})
-
-# Every transformation's third-party dependency below (ZFP, libsodium, SZ3,
-# CUSZ, TurboPFor) is optional: unset the corresponding *_ROOT_DIR env var
-# (or *_DIR for SZ3/TurboPFor/CUSZ) and that one transformation compiles
-# out (see pdc_tf_builtin_common.h's ENABLE_TF_* guards and each
-# pdc_tf_builtin_*.c file's own #ifdef) instead of cmake hard-failing.
 if(DEFINED ENV{ZFP_ROOT_DIR} AND NOT "$ENV{ZFP_ROOT_DIR}" STREQUAL "")
   set(ZFP_ROOT $ENV{ZFP_ROOT_DIR})
 endif()
@@ -63,17 +63,23 @@ else()
   message(STATUS "ZFP_ROOT_DIR not set -- zfp_compress/zfp_decompress transformation disabled")
 endif()
 
-# JSONC
-find_path(JSONC_INCLUDE_DIR NAMES json-c/json.h PATHS "${JSONC_ROOT}/include")
-find_library(JSONC_LIBRARY NAMES json-c PATHS "${JSONC_ROOT}/lib64" "${JSONC_ROOT}/lib")
-if(NOT JSONC_INCLUDE_DIR)
-  message(FATAL_ERROR "Could not find JSON-C headers in ${JSONC_ROOT}/include")
+# JSONC -- pdc_tf_common.c / pdc_an_common.c graph JSON parsing only
+if(JSONC_ROOT)
+  find_path(JSONC_INCLUDE_DIR NAMES json-c/json.h PATHS "${JSONC_ROOT}/include")
+  find_library(JSONC_LIBRARY NAMES json-c PATHS "${JSONC_ROOT}/lib64" "${JSONC_ROOT}/lib")
+  if(NOT JSONC_INCLUDE_DIR)
+    message(FATAL_ERROR "JSONC_ROOT_DIR is set but could not find JSON-C headers in ${JSONC_ROOT}/include")
+  endif()
+  if(NOT JSONC_LIBRARY)
+    message(FATAL_ERROR "JSONC_ROOT_DIR is set but could not find JSON-C library in ${JSONC_ROOT}/lib64 or ${JSONC_ROOT}/lib")
+  endif()
+  include_directories(${JSONC_INCLUDE_DIR})
+  link_libraries(${JSONC_LIBRARY})
+  set(JSONC_ENABLED 1)
+  add_compile_definitions(JSONC_ENABLED=1)
+else()
+  message(STATUS "JSONC_ROOT_DIR not set -- transformation/analysis graph attachment disabled (PDCtf_dg_json_create / PDCan_dg_json_create will return an error at runtime); everything else still works")
 endif()
-if(NOT JSONC_LIBRARY)
-  message(FATAL_ERROR "Could not find JSON-C library in ${JSONC_ROOT}/lib64 or ${JSONC_ROOT}/lib")
-endif()
-include_directories(${JSONC_INCLUDE_DIR})
-link_libraries(${JSONC_LIBRARY})
 
 # LIBSODIUM -- pdc_tf_builtin_encrypt_cpu.c only
 if(LIBSODIUM_ROOT)

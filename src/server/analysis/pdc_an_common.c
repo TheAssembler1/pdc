@@ -9,7 +9,9 @@
 #include "pdc_an_builtin_common.h"
 #include "pdc_client_server_common.h"
 #include "pdc_timing.h"
+#ifdef JSONC_ENABLED
 #include "json-c/json.h"
+#endif
 
 PDC_VECTOR *pdc_an_builtin_funcs_vector_g = NULL;
 
@@ -161,6 +163,7 @@ done:
     FUNC_LEAVE(ret_value);
 }
 
+#ifdef JSONC_ENABLED
 static struct array_list *
 get_json_array(struct json_object *json_obj, char *arr_name)
 {
@@ -200,6 +203,7 @@ done:
         FUNC_LEAVE(ret_value);
     FUNC_LEAVE(json_object_get_string(str_json_obj));
 }
+#endif /* JSONC_ENABLED */
 
 static bool
 an_vertices_are_equal(void *v1, void *v2)
@@ -407,6 +411,21 @@ PDCan_dg_get_state(pdc_dg_t *dg, const char *name)
     return &node->u.state;
 }
 
+#ifndef JSONC_ENABLED
+/* JSON-C wasn't found at configure time (see root CMakeLists.txt) -- the
+ * only thing that's actually unavailable is attaching a graph; every
+ * other PDC operation (object/region create, read, write, ...) works
+ * unaffected. Callers already treat a NULL return the same as any other
+ * graph-load failure (see PDCan_dg_json_create, src/api/pdc_an/pdc_an.c). */
+pdc_dg_t *
+PDCan_dg_json_create_common(char *filepath)
+{
+    LOG_ERROR("PDCan_dg_json_create_common: JSON-C support was not compiled in (JSONC_ROOT_DIR was not "
+              "set at build time) -- cannot parse analysis graph \"%s\"\n",
+              filepath);
+    return NULL;
+}
+#else
 pdc_dg_t *
 PDCan_dg_json_create_common(char *filepath)
 {
@@ -704,3 +723,4 @@ done:
 
     FUNC_LEAVE(ret_value);
 }
+#endif /* JSONC_ENABLED */
