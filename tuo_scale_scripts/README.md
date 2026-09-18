@@ -116,17 +116,26 @@ line recording that run's shape.
 **Flux submission layer status**: originally written against the
 documented `flux batch`/`flux run`/`flux job attach` CLI
 (https://flux-framework.readthedocs.io) with no Flux instance available to
-test against; two real issues have since been found and fixed by actually
+test against; real issues have since been found and fixed by actually
 running `run_small_scale.sh` on Tuolumne:
 - `flux run` rejects `-n`/`--ntasks` combined with `--tasks-per-node`
   ("Per-resource options can't be used with per-task options") -- every
-  `flux run` call now uses `-N` + `--tasks-per-node` only.
-- The outer `flux batch` allocation must reserve enough tasks/node for the
-  backgrounded server *and* the client to run at the same time -- it now
-  uses `--tasks-per-node=$((SERVERS_PER_NODE + CLIENTS_PER_NODE))` instead
-  of a flat `-n` total, matching the same per-node style as the inner
-  `flux run` calls (mismatching the two styles is what caused the client
-  to hang forever behind the still-running server the first time).
+  `flux run` call in `vpic_bdcats_job.flux.sh` now uses `-N` +
+  `--tasks-per-node` only.
+- `flux batch` has a *different* flag set than `flux run` -- confirmed via
+  `flux batch --help` on Tuolumne, it has no `--tasks-per-node` at all. Its
+  resource unit is "slots" (`-n`/`--nslots`, default 1 core each)
+  distributed across `-N`/`--nodes`, so `run_sync.sh`/`run_async.sh`/
+  `run_small_scale.sh` request `SERVERS_PER_NODE + CLIENTS_PER_NODE` slots
+  per node via `-n` so the backgrounded server and the client (launched by
+  the two `flux run` calls inside the batch script) can both fit and run
+  at the same time.
+- The client hanging indefinitely behind the still-running server (rather
+  than an explicit error) was the actual symptom of the batch allocation
+  not providing enough total slots -- if it recurs after the fixes above,
+  it likely means a node doesn't actually have `SERVERS_PER_NODE +
+  CLIENTS_PER_NODE` free cores; check with `flux jobs -a` while it's stuck
+  and reduce `CLIENTS_PER_NODE`/`SERVERS_PER_NODE` if so.
 
 The benchmark binary and CSV pipeline (`vpic_bdcats`, `pdc_call_stats.h`)
 are fully tested locally against a real `pdc_server` over plain MPI.

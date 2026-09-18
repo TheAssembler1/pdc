@@ -10,13 +10,14 @@
 # 1024 particles/rank -- seconds, not the tens of minutes a real sweep
 # step takes.
 #
-# NOTE: the flux batch allocation below reserves SERVERS_PER_NODE +
-# CLIENTS_PER_NODE tasks/node via --tasks-per-node (not -n) so the
-# backgrounded server and the client flux run inside vpic_bdcats_job.flux.sh
-# can both actually fit and run concurrently -- an earlier version used -n
-# at this level while the inner flux run calls used --tasks-per-node, which
-# under-provisioned the sub-instance and made the client job hang forever
-# behind the still-running server. Found on Tuolumne; see README.md.
+# NOTE: `flux batch` has a different flag set than `flux run` -- no
+# --tasks-per-node at all (confirmed via `flux batch --help` on Tuolumne).
+# Its resource unit is "slots" (-n/--nslots, default 1 core each)
+# distributed across -N/--nodes, so the allocation below requests
+# SERVERS_PER_NODE + CLIENTS_PER_NODE slots/node via -n so the backgrounded
+# server and the client flux run inside vpic_bdcats_job.flux.sh (which use
+# --tasks-per-node themselves -- a real flux run option) can both fit and
+# run at the same time. See README.md.
 
 set -eu
 cd "$(dirname "$0")"
@@ -39,7 +40,7 @@ for MODE in sync async; do
     jid=$(flux batch \
             --job-name="vpic-bdcats-small-${MODE}" \
             --nodes="$NODES" \
-            --tasks-per-node="$((SERVERS_PER_NODE + CLIENTS_PER_NODE))" \
+            -n "$((NODES * (SERVERS_PER_NODE + CLIENTS_PER_NODE)))" \
             --time-limit=10m \
             --env=NUM_NODES="$NODES" \
             --env=MODE="$MODE" \
