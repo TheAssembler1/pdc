@@ -10,8 +10,13 @@
 # 1024 particles/rank -- seconds, not the tens of minutes a real sweep
 # step takes.
 #
-# NOTE: written against the documented `flux batch`/`flux job attach` CLI
-# but not validated against a real Flux instance -- see README.md.
+# NOTE: the flux batch allocation below reserves SERVERS_PER_NODE +
+# CLIENTS_PER_NODE tasks/node via --tasks-per-node (not -n) so the
+# backgrounded server and the client flux run inside vpic_bdcats_job.flux.sh
+# can both actually fit and run concurrently -- an earlier version used -n
+# at this level while the inner flux run calls used --tasks-per-node, which
+# under-provisioned the sub-instance and made the client job hang forever
+# behind the still-running server. Found on Tuolumne; see README.md.
 
 set -eu
 cd "$(dirname "$0")"
@@ -34,7 +39,7 @@ for MODE in sync async; do
     jid=$(flux batch \
             --job-name="vpic-bdcats-small-${MODE}" \
             --nodes="$NODES" \
-            -n "$((NODES * (SERVERS_PER_NODE + CLIENTS_PER_NODE)))" \
+            --tasks-per-node="$((SERVERS_PER_NODE + CLIENTS_PER_NODE))" \
             --time-limit=10m \
             --env=NUM_NODES="$NODES" \
             --env=MODE="$MODE" \

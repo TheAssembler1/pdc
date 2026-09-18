@@ -113,13 +113,23 @@ Each node count writes `vpic_bdcats_<mode>_<nodes>.csv` to `$RESULTS_DIR`,
 tagged with a trailing `# n_nodes=...,servers_per_node=...,...` comment
 line recording that run's shape.
 
-**Not validated against a real Flux instance** -- written against the
+**Flux submission layer status**: originally written against the
 documented `flux batch`/`flux run`/`flux job attach` CLI
-(https://flux-framework.readthedocs.io) since none was available in the
-environment this was written in. The benchmark binary and CSV pipeline
-themselves (`vpic_bdcats`, `pdc_call_stats.h`) *are* fully tested locally
-against a real `pdc_server` over plain MPI -- only the Flux submission
-layer is unverified. Check `flux run --help` / `flux batch --help` on
-Tuolumne itself for any flag differences (in particular
-`--tasks-per-node` and `--env`) before relying on this at scale --
-`run_small_scale.sh` is the fastest way to find out.
+(https://flux-framework.readthedocs.io) with no Flux instance available to
+test against; two real issues have since been found and fixed by actually
+running `run_small_scale.sh` on Tuolumne:
+- `flux run` rejects `-n`/`--ntasks` combined with `--tasks-per-node`
+  ("Per-resource options can't be used with per-task options") -- every
+  `flux run` call now uses `-N` + `--tasks-per-node` only.
+- The outer `flux batch` allocation must reserve enough tasks/node for the
+  backgrounded server *and* the client to run at the same time -- it now
+  uses `--tasks-per-node=$((SERVERS_PER_NODE + CLIENTS_PER_NODE))` instead
+  of a flat `-n` total, matching the same per-node style as the inner
+  `flux run` calls (mismatching the two styles is what caused the client
+  to hang forever behind the still-running server the first time).
+
+The benchmark binary and CSV pipeline (`vpic_bdcats`, `pdc_call_stats.h`)
+are fully tested locally against a real `pdc_server` over plain MPI.
+`run_small_scale.sh` getting a clean CSV on your first try is the signal
+that the Flux layer itself is now working end to end on Tuolumne -- run it
+again after any Flux-related change before trusting the full sweep.
