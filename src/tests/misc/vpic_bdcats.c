@@ -229,7 +229,7 @@ main(int argc, char **argv)
             PDC_TIMED(&stats, "PDCobj_close", PDCobj_close(obj_ids[i]));
 
         MPI_Barrier(MPI_COMM_WORLD);
-        double step_t1 = MPI_Wtime();
+        double step_t1         = MPI_Wtime();
         double step_io_elapsed = step_t1 - step_t0;
         if (mode == XFER_ASYNC)
             step_io_elapsed -= (double)sleeptime;
@@ -277,7 +277,7 @@ main(int argc, char **argv)
             PDC_TIMED(&stats, "PDCobj_close", PDCobj_close(obj_ids[i]));
 
         MPI_Barrier(MPI_COMM_WORLD);
-        double step_t1 = MPI_Wtime();
+        double step_t1         = MPI_Wtime();
         double step_io_elapsed = step_t1 - step_t0;
         if (mode == XFER_ASYNC)
             step_io_elapsed -= (double)sleeptime;
