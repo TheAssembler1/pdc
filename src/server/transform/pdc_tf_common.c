@@ -168,13 +168,20 @@ PDCtf_init_builtin_funcs()
     perr_t ret_value = SUCCEED;
 
 #ifdef CUDA_ENABLED
+    /* The polynomial GPU cost model is entirely optional: the only
+     * production call site (pdc_server_region_transfer.c) hardcodes
+     * PDC_TF_SCHED_STATIC, which never consults it at all, and even the
+     * DYNAMIC path (not currently used in production) falls back to a
+     * simple lowest-utilization heuristic whenever the model isn't
+     * initialized -- see pdc_tf_poly_select_gpu/pdc_tf_poly_predict,
+     * pdc_tf_poly_sched.c. There's no sensible system-wide default
+     * coefficients file (it's fitted offline, per-cluster, per-kernel), so
+     * only attempt to load one if the user explicitly opts in. */
     const char *coeff_file = getenv("PDC_POLY_COEFF_FILE");
-    if (coeff_file == NULL)
-        coeff_file = "/pscratch/sd/n/nlewi26/src/work_space/poly_coefficients.txt";
-    if (pdc_tf_poly_sched_init(coeff_file) != 0)
-        LOG_WARNING(
-            "Failed to initialize polynomial scheduler from %s; GPU scheduling will use fallback heuristic\n",
-            coeff_file);
+    if (coeff_file != NULL && pdc_tf_poly_sched_init(coeff_file) != 0)
+        LOG_WARNING("Failed to initialize polynomial scheduler from %s (PDC_POLY_COEFF_FILE); GPU "
+                    "scheduling will use the fallback heuristic\n",
+                    coeff_file);
 #endif
 
     if (pdc_tf_builtin_funcs_vector_g == NULL)

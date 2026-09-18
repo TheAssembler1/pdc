@@ -10,8 +10,14 @@
 #define ENABLE_TF_SECRET_BOX_ENCRYPTION
 // FIXME: same
 #define ENABLE_TF_SZ_COMPRESSION
-// FIXME: same
+// Unlike the flags above, this one must stay conditional on CUDA_ENABLED
+// (matching the ENABLE_TF_ZFP_COMPRESSION + CUDA_ENABLED pattern below) --
+// pdc_tf_builtin_sz_gpu.c needs cusz.h/cuda_runtime.h and real cuSZ/CUDA
+// linkage to compile at all, so unconditionally defining this (as it was
+// before) broke any build without the CUDA toolkit present.
+#if defined(ENABLE_TF_SZ_COMPRESSION) && defined(CUDA_ENABLED)
 #define ENABLE_TF_SZ_GPU_COMPRESSSION
+#endif
 // FIXME: same
 #define ENABLE_TF_TURBO_COMPRESSION
 

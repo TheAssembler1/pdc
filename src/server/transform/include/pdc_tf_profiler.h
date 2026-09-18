@@ -1,7 +1,14 @@
 #ifndef PDC_TF_PROFILER_H
 #define PDC_TF_PROFILER_H
 
+#ifdef CUDA_ENABLED
+/* Only pdc_tf_nvml_profiler_update's implementation (pdc_tf_profiler.c)
+ * actually needs NVML types; nothing declared below does, so gating just
+ * this include keeps the rest of this header (and everyone who includes
+ * it -- pdc_tf_server.c, pdc_an_server.c, pdc_tf_poly_sched.c) usable
+ * without the CUDA toolkit present at all. */
 #include <nvml.h>
+#endif
 #include "pdc_logger.h"
 #include "pdc_timing.h"
 #include "pdc_malloc.h"

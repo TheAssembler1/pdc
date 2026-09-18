@@ -1,7 +1,9 @@
 #include <string.h>
 #include <stdlib.h>
 #include <math.h>
+#ifdef CUDA_ENABLED
 #include <cuda_runtime.h>
+#endif
 
 #include "pdc_an_server.h"
 #include "pdc_malloc.h"
@@ -770,11 +772,16 @@ PDCan_exec_graph(pdc_an_dg_entry_t *entry, char **target_state_names, int num_ta
         }
         pdc_an_func_variant_t *chosen = an_select_variant(f, avg_cpu_utilization, avg_gpu_utilization);
 
+#ifdef CUDA_ENABLED
+        /* chosen->dev can only be PDC_TF_GPU_DEVICE here when CUDA_ENABLED
+         * registered a GPU variant (see PDCan_init_builtin_funcs) --
+         * unreachable, not just untested, without it. */
         if (chosen->dev == PDC_TF_GPU_DEVICE) {
             cudaError_t cerr = cudaSetDevice(0);
             if (cerr != cudaSuccess)
                 PGOTO_ERROR(FAIL, "Failed to set CUDA device 0 for transformation \"%s\"\n", f->name);
         }
+#endif
 
         struct timespec an_func_t0, an_func_t1;
         clock_gettime(CLOCK_MONOTONIC, &an_func_t0);

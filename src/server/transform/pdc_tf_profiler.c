@@ -50,6 +50,19 @@ pdc_tf_avg_cpu_utilization(void)
 }
 
 /* ── NVML profiler update — non-static so pdc_tf_server.c can call it ─────── */
+#ifndef CUDA_ENABLED
+/* No CUDA toolkit (and therefore no NVML) available to link against --
+ * pdc_tf_profiler_nvml_device_count stays 0, which every reader above
+ * already treats as "no GPU data available" (pdc_tf_avg_gpu_utilization
+ * returns -1.0, pdc_tf_get_device_lag returns all -1.0 sentinels, etc.),
+ * so every caller works unchanged, just always on the CPU-only path. */
+perr_t
+pdc_tf_nvml_profiler_update(void)
+{
+    FUNC_ENTER(NULL);
+    FUNC_LEAVE(SUCCEED);
+}
+#else
 perr_t
 pdc_tf_nvml_profiler_update(void)
 {
@@ -122,6 +135,7 @@ pdc_tf_nvml_profiler_update(void)
 done:
     FUNC_LEAVE(ret_value);
 }
+#endif /* CUDA_ENABLED */
 
 /* ── CPU profiler update ──────────────────────────────────────────────────── */
 static perr_t

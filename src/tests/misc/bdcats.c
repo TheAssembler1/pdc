@@ -32,7 +32,6 @@
 #include <math.h>
 #include <inttypes.h>
 #include "pdc.h"
-#include <cuda_runtime.h>
 #include <mpi.h>
 
 #define dLEAP          2

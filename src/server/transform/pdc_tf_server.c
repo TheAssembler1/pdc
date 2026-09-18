@@ -1,7 +1,9 @@
 #include <assert.h>
 #include <string.h>
 #include <time.h>
+#ifdef CUDA_ENABLED
 #include <cuda_runtime.h>
+#endif
 
 #include "pdc_tf_server.h"
 #include "pdc_malloc.h"
@@ -382,6 +384,10 @@ PDCtf_exec_graph(pdc_dg_t *dg, uint64_t flat_conceptual_offset, char *cur_state,
             internal_params.host_to_dev_time       = 0;
             internal_params.dev_to_host_time       = 0;
 
+#ifdef CUDA_ENABLED
+            /* f->dev can only be PDC_TF_GPU_DEVICE here when CUDA_ENABLED
+             * registered at least one GPU builtin (see PDCtf_init_builtin_funcs)
+             * -- unreachable, not just untested, without it. */
             if (f->dev == PDC_TF_GPU_DEVICE) {
                 int gpu_idx = close_time_g ? 0 : min_gpu_utilization_device_index;
                 LOG_WARNING("SCHED: setting CUDA device to %d for edge %u func=%s\n", gpu_idx, best_edge_idx,
@@ -390,6 +396,7 @@ PDCtf_exec_graph(pdc_dg_t *dg, uint64_t flat_conceptual_offset, char *cur_state,
                 if (err != cudaSuccess)
                     PGOTO_ERROR(FAIL, "Failed to set device %d\n", gpu_idx);
             }
+#endif
 
             LOG_WARNING("SCHED: executing edge %u func=%s dev=%s\n", best_edge_idx, f->name,
                         f->dev == PDC_TF_CPU_DEVICE ? "CPU" : "GPU");
@@ -591,6 +598,10 @@ PDCtf_exec_graph_backup(pdc_dg_t *dg, uint64_t flat_conceptual_offset, char *cur
             internal_params.host_to_dev_time       = 0;
             internal_params.dev_to_host_time       = 0;
 
+#ifdef CUDA_ENABLED
+            /* f->dev can only be PDC_TF_GPU_DEVICE here when CUDA_ENABLED
+             * registered at least one GPU builtin (see PDCtf_init_builtin_funcs)
+             * -- unreachable, not just untested, without it. */
             if (f->dev == PDC_TF_GPU_DEVICE) {
                 LOG_WARNING("SCHED: setting CUDA device to %d for edge %u func=%s\n",
                             (always_use_gpu || close_time_g) ? 0 : min_gpu_utilization_device_index,
@@ -601,6 +612,7 @@ PDCtf_exec_graph_backup(pdc_dg_t *dg, uint64_t flat_conceptual_offset, char *cur
                     PGOTO_ERROR(FAIL, "Failed to set device %d\n",
                                 (always_use_gpu || close_time_g) ? 0 : min_gpu_utilization_device_index);
             }
+#endif
 
             LOG_WARNING("SCHED: executing edge %u func=%s dev=%s\n", best_edge_idx, f->name,
                         f->dev == PDC_TF_CPU_DEVICE ? "CPU" : "GPU");

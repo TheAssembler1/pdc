@@ -114,35 +114,38 @@ if(NOT SZ3_LIBRARY)
 endif()
 include_directories(${SZ3_INCLUDE_DIR})
 link_libraries(${SZ3_LIBRARY})
-# Check if CUSZ_GPU_DIR is defined; if not, take from environment
-if(NOT DEFINED CUSZ_GPU_DIR)
-  set(CUSZ_GPU_DIR $ENV{CUSZ_GPU_DIR})
+# GPU CUSZ -- only pdc_tf_builtin_sz_gpu.c needs this (gated on
+# CUDA_ENABLED via ENABLE_TF_SZ_GPU_COMPRESSSION, pdc_tf_builtin_common.h),
+# so the library itself is only required when CUDA_ENABLED. Previously
+# unconditional, which meant `cmake` itself hard-failed with FATAL_ERROR
+# on any system without a cuSZ GPU install, even one with CUDA_ROOT_DIR
+# unset entirely (e.g. an AMD system with no CUDA toolkit at all).
+if(CUDA_ENABLED)
+  if(NOT DEFINED CUSZ_GPU_DIR)
+    set(CUSZ_GPU_DIR $ENV{CUSZ_GPU_DIR})
+  endif()
+  message(STATUS "CUSZ_GPU_DIR = ${CUSZ_GPU_DIR}")
+  # Find CUSZ headers (not SZ3)
+  find_path(CUSZ_INCLUDE_DIR
+    NAMES cusz.h context.h api_v2.h header.h
+    PATHS "${CUSZ_GPU_DIR}/include/cusz"
+  )
+  if(NOT CUSZ_INCLUDE_DIR)
+    message(FATAL_ERROR "Could not find CUSZ headers in ${CUSZ_GPU_DIR}/include/cusz")
+  endif()
+  include_directories(${CUSZ_INCLUDE_DIR})
+  find_library(CUSZ_LIBRARY
+    NAMES cusz
+    PATHS
+      "${CUSZ_GPU_DIR}/lib"
+      "${CUSZ_GPU_DIR}/lib64"
+  )
+  if(NOT CUSZ_LIBRARY)
+    message(FATAL_ERROR "Could not find CUSZ library in ${CUSZ_GPU_DIR}/lib or lib64")
+  endif()
+  message(STATUS "CUSZ_LIBRARY = ${CUSZ_LIBRARY}")
+  link_libraries(${CUSZ_LIBRARY})
 endif()
-# GPU CUSZ
-if(NOT DEFINED CUSZ_GPU_DIR)
-  set(CUSZ_GPU_DIR $ENV{CUSZ_GPU_DIR})
-endif()
-message(STATUS "CUSZ_GPU_DIR = ${CUSZ_GPU_DIR}")
-# Find CUSZ headers (not SZ3)
-find_path(CUSZ_INCLUDE_DIR
-  NAMES cusz.h context.h api_v2.h header.h
-  PATHS "${CUSZ_GPU_DIR}/include/cusz"
-)
-if(NOT CUSZ_INCLUDE_DIR)
-  message(FATAL_ERROR "Could not find CUSZ headers in ${CUSZ_GPU_DIR}/include/cusz")
-endif()
-include_directories(${CUSZ_INCLUDE_DIR})
-find_library(CUSZ_LIBRARY
-  NAMES cusz
-  PATHS
-    "${CUSZ_GPU_DIR}/lib"
-    "${CUSZ_GPU_DIR}/lib64"
-)
-if(NOT CUSZ_LIBRARY)
-  message(FATAL_ERROR "Could not find CUSZ library in ${CUSZ_GPU_DIR}/lib or lib64")
-endif()
-message(STATUS "CUSZ_LIBRARY = ${CUSZ_LIBRARY}")
-link_libraries(${CUSZ_LIBRARY})
 
 # JSONC
 if(NOT DEFINED TURBO_DIR)
