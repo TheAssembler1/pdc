@@ -13,6 +13,18 @@
 #
 # Required env: BIN_DIR, PDC_DATA_LOC, PDC_TMPDIR, NUM_NODES,
 #   SERVERS_PER_NODE, SERVER_TOTAL_TASKS, LOG_TAG, RESULTS_DIR
+#
+# HG_TRANSPORT/HG_HOST: pdc_server defaults to "ofi+tcp" unless it detects
+# Perlmutter specifically (PDC_get_default_mercury_transport(),
+# pdc_server.c:228) -- on Tuolumne that default is simply wrong: libfabric
+# here only has the cxi provider built in (confirmed via a real 2-node
+# run's stderr: `na_ofi_provider_check(): Requested OFI provider
+# "tcp;ofi_rxm" ... is not available ... available providers: cxi`).
+# Force ofi+cxi explicitly instead of fixing the Perlmutter-only
+# detection itself. HG_HOST's cxi0:<id> suffix is a per-rank endpoint id,
+# not a NIC selector -- mirrors
+# pdc_helper_scripts/curl_analysis_scripts/srun_server.sh's
+# HG_HOST=cxi0:$SLURM_LOCALID exactly (same fix, different system).
 
 set -xeu
 
@@ -26,7 +38,7 @@ srun \
   --ntasks-per-node="$SERVERS_PER_NODE" \
   --error="${RESULTS_DIR}/server_${LOG_TAG}_${NUM_NODES}.err" \
   --output="${RESULTS_DIR}/server_${LOG_TAG}_${NUM_NODES}.log" \
-  ./pdc_server &
+  bash -c 'export HG_TRANSPORT=ofi+cxi; export HG_HOST=cxi0:$SLURM_LOCALID; exec ./pdc_server' &
 popd
 
 # Give the servers time to stand up and publish their address info before
