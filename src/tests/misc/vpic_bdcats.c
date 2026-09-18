@@ -176,9 +176,6 @@ main(int argc, char **argv)
 
     /* ---- write phase (vpicio-style) ---- */
     for (int step = 0; step < steps; step++) {
-        MPI_Barrier(MPI_COMM_WORLD);
-        double step_t0 = MPI_Wtime();
-
         for (int i = 0; i < N_OBJS; i++) {
             sprintf(obj_name, "%s-%d", obj_names[i], step);
             pdcid_t prop = (i < 7) ? obj_prop_float : obj_prop_int;
@@ -194,6 +191,15 @@ main(int argc, char **argv)
             PDC_TIMED(&stats, "PDCregion_transfer_create",
                       transfer_requests[i] = PDCregion_transfer_create(write_ptrs[i], PDC_WRITE, obj_ids[i],
                                                                        region_local, region_remote));
+
+        /* Throughput is data size over the OBSERVED I/O time -- bracket
+         * strictly transfer start to transfer stop, not object
+         * creation/transfer setup overhead above (negligible for sync,
+         * but the setup calls' own timing is already captured separately
+         * via PDC_TIMED/api_call rows, so it shouldn't also be folded
+         * into the throughput denominator). */
+        MPI_Barrier(MPI_COMM_WORLD);
+        double step_t0 = MPI_Wtime();
 
         PDC_TIMED(&stats, "PDCregion_transfer_start_all_mpi",
                   PDCregion_transfer_start_all_mpi(transfer_requests, N_OBJS, MPI_COMM_WORLD));
@@ -220,9 +226,6 @@ main(int argc, char **argv)
     /* ---- read phase (bdcats-style), same process: server region cache
      * from the writes above is still warm. ---- */
     for (int step = 0; step < steps; step++) {
-        MPI_Barrier(MPI_COMM_WORLD);
-        double step_t0 = MPI_Wtime();
-
         for (int i = 0; i < N_OBJS; i++) {
             sprintf(obj_name, "%s-%d", obj_names[i], step);
             PDC_TIMED(&stats, "PDCobj_open_col", obj_ids[i] = PDCobj_open_col(obj_name, pdc_id));
@@ -236,6 +239,11 @@ main(int argc, char **argv)
             PDC_TIMED(&stats, "PDCregion_transfer_create",
                       transfer_requests[i] = PDCregion_transfer_create(read_ptrs[i], PDC_READ, obj_ids[i],
                                                                        region_local, region_remote));
+
+        /* See the write phase above: bracket strictly transfer start to
+         * transfer stop, not the object open/transfer setup above it. */
+        MPI_Barrier(MPI_COMM_WORLD);
+        double step_t0 = MPI_Wtime();
 
         PDC_TIMED(&stats, "PDCregion_transfer_start_all_mpi",
                   PDCregion_transfer_start_all_mpi(transfer_requests, N_OBJS, MPI_COMM_WORLD));
