@@ -78,6 +78,32 @@ export OUT_CSV
 ./srun_client_vpic_bdcats.sh
 ./srun_close_server.sh
 
+# Sanity-check that data actually landed on disk, not just in the
+# server's in-memory region cache -- this has to run AFTER
+# srun_close_server.sh, since close_server's RPC is what flushes that
+# cache to the storage backend (see srun_close_server.sh's own comment).
+# PDC writes object data under $PDC_DATA_LOC/pdc_data/<obj_id>/... (see
+# src/server/pdc_server_region/pdc_server_data.c:112-113), matching
+# pdc_helper_scripts/curl_analysis_scripts/curl_eager_analysis.sbatch's
+# own du -sb check.
+BYTES_PER_PARTICLE=32   # 7 floats + 1 int (dX,dY,dZ,Ux,Uy,Uz,q,i) -- matches src/tests/misc/vpic_bdcats.c
+EXPECTED_BYTES=$((CLIENT_TOTAL_TASKS * NUMPARTICLES * BYTES_PER_PARTICLE * STEPS))
+ACTUAL_BYTES=$(du -sb "$PDC_DATA_LOC/pdc_data" 2>/dev/null | awk '{print $1}')
+ACTUAL_BYTES=${ACTUAL_BYTES:-0}
+echo "PDC data dir size: ${ACTUAL_BYTES} bytes (expected ~${EXPECTED_BYTES} bytes)"
+if [ "$ACTUAL_BYTES" -eq 0 ]; then
+    echo "ERROR: $PDC_DATA_LOC/pdc_data is empty -- no data was actually written to disk" >&2
+    exit 1
+fi
+awk -v e="$EXPECTED_BYTES" -v a="$ACTUAL_BYTES" 'BEGIN {
+    ratio = a / e
+    if (ratio < 0.95 || ratio > 1.05)
+        printf "WARNING: actual/expected data size ratio %.3f is outside [0.95, 1.05] -- possible incomplete write or stale data directory\n", ratio
+    else
+        printf "OK: actual/expected data size ratio %.3f within tolerance\n", ratio
+}'
+echo "data_dir_size_bytes,,,,,,${ACTUAL_BYTES}" >> "$OUT_CSV"
+
 echo "# n_nodes=${NUM_NODES},servers_per_node=${SERVERS_PER_NODE},clients_per_node=${CLIENTS_PER_NODE},mode=${MODE},steps=${STEPS},numparticles_per_rank=${NUMPARTICLES},async_sleep_s=${ASYNC_SLEEP_S}" >> "$OUT_CSV"
 
 echo "Wrote $OUT_CSV"

@@ -35,6 +35,7 @@ throughput_read_MBps,,0,,,,131.664722
 ...
 total_data_size_bytes,,,,,,2621440
 data_size_per_rank_bytes,,,,,,655360
+data_dir_size_bytes,,,,,,2621440
 ```
 
 - `api_call` rows: one per distinct PDC API call name, pooled across every
@@ -43,9 +44,15 @@ data_size_per_rank_bytes,,,,,,655360
 - `throughput_write_MBps` / `throughput_read_MBps`: one row per timestep,
   computed from the total bytes moved across all ranks that timestep
   divided by the wall-clock window for that timestep's transfer.
-- `total_data_size_bytes` / `data_size_per_rank_bytes`: the whole run, one
-  direction (write and read move the identical volume), across all ranks
-  vs. one rank.
+- `total_data_size_bytes` / `data_size_per_rank_bytes`: what the client
+  itself counted it moved, the whole run, one direction (write and read
+  move the identical volume), across all ranks vs. one rank.
+- `data_dir_size_bytes`: what actually landed on disk under
+  `$PDC_DATA_LOC/pdc_data` (`du -sb`, checked in `vpic_bdcats.sbatch`
+  after `close_server` flushes the region cache) -- an independent check
+  against `total_data_size_bytes` that the client's own byte counting
+  matches real storage, not just what PDC's in-memory cache reported.
+  `vpic_bdcats.sbatch` fails the job outright if this is 0.
 
 ## Scheduler: Slurm (`sbatch`/`srun`), not Flux
 
