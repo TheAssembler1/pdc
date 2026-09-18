@@ -47,7 +47,7 @@
 #include <mpi.h>
 
 #define N_OBJECTS_PER_TIMESTEP 7 /* u, v, w, curl_x, curl_y, curl_z, vorticity_magnitude */
-#define ROOT_RANK 0              /* rank_id passed to PDCobj_create_mpi in bench_curl_eager.c */
+#define ROOT_RANK              0 /* rank_id passed to PDCobj_create_mpi in bench_curl_eager.c */
 
 int
 main(int argc, char **argv)
