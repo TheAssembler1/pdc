@@ -1,0 +1,36 @@
+#!/bin/bash
+# Shared config, sourced by run_sync.sh, run_async.sh, run_small_scale.sh,
+# and vpic_bdcats_job.flux.sh, so the node-count list and the
+# weak-scaling particle count are computed in exactly one place instead
+# of drifting between the sync/async drivers.
+
+export SERVERS_PER_NODE=${SERVERS_PER_NODE:-4}
+export CLIENTS_PER_NODE=${CLIENTS_PER_NODE:-32}
+export STEPS=${STEPS:-5}
+
+# Weak scaling: NUMPARTICLES (per rank) is held constant across every node
+# count in the sweep, sized so that the TOP of the sweep (128 nodes) writes
+# 4 TiB total across all STEPS timesteps. Smaller node counts in the same
+# sweep therefore write proportionally less (e.g. 1 node writes 1/128th of
+# 4 TiB). bytes_per_particle=32 == 7 floats + 1 int (dX,dY,dZ,Ux,Uy,Uz,q,i),
+# matching src/tests/misc/vpic_bdcats.c exactly.
+TOP_NODES=128
+BYTES_PER_PARTICLE=32
+TOTAL_BYTES_TARGET=$((4 * 1024 * 1024 * 1024 * 1024)) # 4 TiB
+TOP_TOTAL_RANKS=$((TOP_NODES * CLIENTS_PER_NODE))
+export NUMPARTICLES=${NUMPARTICLES:-$((TOTAL_BYTES_TARGET / (TOP_TOTAL_RANKS * BYTES_PER_PARTICLE * STEPS)))}
+
+# Required, not defaulted to a relative path: at 4 TiB total, this MUST
+# point at real parallel scratch storage, not whatever filesystem BIN_DIR
+# happens to sit on. Set this once in your environment (or export it
+# before invoking run_sync.sh/run_async.sh/run_small_scale.sh) --
+# e.g. export PDC_DATA_LOC=/p/lustre1/$USER/pdc_vpic_bdcats_scale
+: "${PDC_DATA_LOC:?PDC_DATA_LOC must be set to a real parallel-filesystem path -- this sweep writes up to 4 TiB}"
+export PDC_DATA_LOC
+export PDC_TMPDIR=${PDC_TMPDIR:-$PDC_DATA_LOC}
+
+export BIN_DIR=${BIN_DIR:-$(cd "$(dirname "${BASH_SOURCE[0]}")/../build/bin" && pwd)}
+
+# 1, 2, 4, 8, 16, 32, 64, 128 -- matches every other scaling sweep in this
+# repo (pdc_helper_scripts/curl_analysis_scripts, mpi_scale_scripts).
+NODE_COUNTS=(1 2 4 8 16 32 64 128)
