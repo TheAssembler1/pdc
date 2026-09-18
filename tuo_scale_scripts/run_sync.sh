@@ -11,14 +11,16 @@
 # pipeline (server, client, CSV extraction) on a single node before
 # committing to this full sweep.
 #
-# NOTE: `flux batch` has a different flag set than `flux run` -- no
-# --tasks-per-node at all (confirmed via `flux batch --help` on Tuolumne).
-# Its resource unit is "slots" (-n/--nslots, default 1 core each)
-# distributed across -N/--nodes, so the allocation below requests
-# SERVERS_PER_NODE + CLIENTS_PER_NODE slots/node via -n so the backgrounded
-# server and the client flux run inside vpic_bdcats_job.flux.sh (which use
-# --tasks-per-node themselves -- a real flux run option) can both fit and
-# run at the same time. See README.md.
+# NOTE: this reserves whole nodes (--exclusive) rather than trying to
+# precisely count SERVERS_PER_NODE + CLIENTS_PER_NODE resource "slots" via
+# -n. An earlier version used -n with that exact count and still hit
+# "waiting for resources" on the client's inner flux run (confirmed via
+# `flux proxy <jobid> flux job attach <inner-jobid>`) even though
+# `flux resource list` showed 96 idle cores/node -- a slot's default size
+# didn't map 1:1 onto a task the way that math assumed. --exclusive sidesteps
+# guessing the exact mapping by giving the whole node to the sub-instance,
+# which the two inner flux run/submit calls (each independently sized via
+# --tasks-per-node) then divide up themselves. See README.md.
 #
 # Required: export PDC_DATA_LOC to real parallel scratch first (see
 # common.sh) -- this sweep's 128-node step alone writes ~4 TiB.
@@ -37,7 +39,7 @@ for nodes in "${NODE_COUNTS[@]}"; do
     jid=$(flux batch \
             --job-name="vpic-bdcats-sync-${nodes}" \
             --nodes="$nodes" \
-            -n "$((nodes * (SERVERS_PER_NODE + CLIENTS_PER_NODE)))" \
+            --exclusive \
             --time-limit=30m \
             --env=NUM_NODES="$nodes" \
             --env=MODE="$MODE" \

@@ -125,21 +125,25 @@ running `run_small_scale.sh` on Tuolumne:
 - `flux batch` has a *different* flag set than `flux run` -- confirmed via
   `flux batch --help` on Tuolumne, it has no `--tasks-per-node` at all. Its
   resource unit is "slots" (`-n`/`--nslots`, default 1 core each)
-  distributed across `-N`/`--nodes`, so `run_sync.sh`/`run_async.sh`/
-  `run_small_scale.sh` request `SERVERS_PER_NODE + CLIENTS_PER_NODE` slots
-  per node via `-n` so the backgrounded server and the client (launched by
-  the two `flux run` calls inside the batch script) can both fit and run
-  at the same time.
-- The client hanging indefinitely with no error, even with slot sizing
-  fixed above, was actually caused by starting the server with
-  `flux run ... &` -- `flux run` is a blocking, *attached* submission
-  (like `srun`); backgrounding it with shell `&` only backgrounds the
-  shell's wait on it, it does not turn it into Flux's fire-and-forget mode,
-  and the still-attached `flux run` prevented the client's own `flux run`
-  from ever being scheduled. `vpic_bdcats_job.flux.sh` now starts the
-  server with `flux submit` instead, which returns a jobid immediately
-  without attaching -- the actual Flux verb for "run this in the
-  background."
+  distributed across `-N`/`--nodes`.
+- Starting the server with `flux run ... &` caused the client's own
+  `flux run` to never get scheduled -- `flux run` is a blocking, *attached*
+  submission (like `srun`); backgrounding it with shell `&` only
+  backgrounds the shell's wait on it, it does not turn it into Flux's
+  fire-and-forget mode. `vpic_bdcats_job.flux.sh` now starts the server
+  with `flux submit` instead, which returns a jobid immediately without
+  attaching -- the actual Flux verb for "run this in the background."
+- Even after both fixes above, the client's inner `flux run` still hit
+  "waiting for resources" (confirmed live via
+  `flux proxy <outer-jobid> flux job attach <inner-jobid>`), despite
+  `flux resource list` showing 96 idle cores on the node -- requesting
+  `SERVERS_PER_NODE + CLIENTS_PER_NODE` slots via the outer `flux batch`'s
+  `-n` didn't map onto actual schedulable task capacity the way that math
+  assumed. `run_sync.sh`/`run_async.sh`/`run_small_scale.sh` now request
+  `--exclusive` whole nodes instead of counting slots, sidestepping the
+  slot-to-task mapping question entirely -- the two inner `flux run`/
+  `flux submit` calls (each independently sized via `--tasks-per-node`)
+  then divide up the whole node themselves.
 
 The benchmark binary and CSV pipeline (`vpic_bdcats`, `pdc_call_stats.h`)
 are fully tested locally against a real `pdc_server` over plain MPI.
