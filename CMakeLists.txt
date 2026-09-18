@@ -23,36 +23,45 @@ foreach(p
 endforeach()
 
 # Dependencies directories
-# ZFP
-if(NOT DEFINED ENV{ZFP_ROOT_DIR} OR "$ENV{ZFP_ROOT_DIR}" STREQUAL "")
-    message(FATAL_ERROR "Environment variable ZFP_ROOT_DIR is not set")
-endif()
-set(ZFP_ROOT $ENV{ZFP_ROOT_DIR})
-# JSON-C
+# JSON-C: required, not optional -- core graph JSON parsing (an_client/
+# tf_client graphs), not a transformation, so PDC can't function without it.
 if(NOT DEFINED ENV{JSONC_ROOT_DIR} OR "$ENV{JSONC_ROOT_DIR}" STREQUAL "")
     message(FATAL_ERROR "Environment variable JSONC_ROOT_DIR is not set")
 endif()
 set(JSONC_ROOT $ENV{JSONC_ROOT_DIR})
-# libsodium
-if(NOT DEFINED ENV{LIBSODIUM_ROOT_DIR} OR "$ENV{LIBSODIUM_ROOT_DIR}" STREQUAL "")
-    message(FATAL_ERROR "Environment variable LIBSODIUM_ROOT_DIR is not set")
+
+# Every transformation's third-party dependency below (ZFP, libsodium, SZ3,
+# CUSZ, TurboPFor) is optional: unset the corresponding *_ROOT_DIR env var
+# (or *_DIR for SZ3/TurboPFor/CUSZ) and that one transformation compiles
+# out (see pdc_tf_builtin_common.h's ENABLE_TF_* guards and each
+# pdc_tf_builtin_*.c file's own #ifdef) instead of cmake hard-failing.
+if(DEFINED ENV{ZFP_ROOT_DIR} AND NOT "$ENV{ZFP_ROOT_DIR}" STREQUAL "")
+  set(ZFP_ROOT $ENV{ZFP_ROOT_DIR})
 endif()
-set(LIBSODIUM_ROOT $ENV{LIBSODIUM_ROOT_DIR})
+if(DEFINED ENV{LIBSODIUM_ROOT_DIR} AND NOT "$ENV{LIBSODIUM_ROOT_DIR}" STREQUAL "")
+  set(LIBSODIUM_ROOT $ENV{LIBSODIUM_ROOT_DIR})
+endif()
 if(DEFINED ENV{CUDA_ROOT_DIR} AND NOT "$ENV{CUDA_ROOT_DIR}" STREQUAL "")
   set(CUDA_ROOT $ENV{CUDA_ROOT_DIR})
 endif()
 
-# ZFP
-find_path(ZFP_INCLUDE_DIR NAMES zfp.h PATHS "${ZFP_ROOT}/include")
-find_library(ZFP_LIBRARY NAMES zfp PATHS "${ZFP_ROOT}/lib64" "${ZFP_ROOT}/lib")
-if(NOT ZFP_INCLUDE_DIR)
-  message(FATAL_ERROR "Could not find ZFP headers in ${ZFP_ROOT}/include")
+# ZFP -- pdc_tf_builtin_zfp_cpu.c / pdc_tf_builtin_zfp_gpu.c
+if(ZFP_ROOT)
+  find_path(ZFP_INCLUDE_DIR NAMES zfp.h PATHS "${ZFP_ROOT}/include")
+  find_library(ZFP_LIBRARY NAMES zfp PATHS "${ZFP_ROOT}/lib64" "${ZFP_ROOT}/lib")
+  if(NOT ZFP_INCLUDE_DIR)
+    message(FATAL_ERROR "ZFP_ROOT_DIR is set but could not find ZFP headers in ${ZFP_ROOT}/include")
+  endif()
+  if(NOT ZFP_LIBRARY)
+    message(FATAL_ERROR "ZFP_ROOT_DIR is set but could not find ZFP library in ${ZFP_ROOT}/lib64 or ${ZFP_ROOT}/lib")
+  endif()
+  include_directories(${ZFP_INCLUDE_DIR})
+  link_libraries(${ZFP_LIBRARY})
+  set(ZFP_ENABLED 1)
+  add_compile_definitions(ZFP_ENABLED=1)
+else()
+  message(STATUS "ZFP_ROOT_DIR not set -- zfp_compress/zfp_decompress transformation disabled")
 endif()
-if(NOT ZFP_LIBRARY)
-  message(FATAL_ERROR "Could not find ZFP library in ${ZFP_ROOT}/lib64 or ${ZFP_ROOT}/lib")
-endif()
-include_directories(${ZFP_INCLUDE_DIR})
-link_libraries(${ZFP_LIBRARY})
 
 # JSONC
 find_path(JSONC_INCLUDE_DIR NAMES json-c/json.h PATHS "${JSONC_ROOT}/include")
@@ -61,22 +70,28 @@ if(NOT JSONC_INCLUDE_DIR)
   message(FATAL_ERROR "Could not find JSON-C headers in ${JSONC_ROOT}/include")
 endif()
 if(NOT JSONC_LIBRARY)
-  message(FATAL_ERROR "Could not find JSON-C library in ${JSONC_ROOT}/lib64 or ${LIBSODIUM_ROOT}/lib")
+  message(FATAL_ERROR "Could not find JSON-C library in ${JSONC_ROOT}/lib64 or ${JSONC_ROOT}/lib")
 endif()
 include_directories(${JSONC_INCLUDE_DIR})
 link_libraries(${JSONC_LIBRARY})
 
-# LIBSODIUM
-find_path(LIBSODIUM_INCLUDE_DIR NAMES sodium.h PATHS "${LIBSODIUM_ROOT}/include")
-find_library(LIBSODIUM_LIBRARY NAMES sodium PATHS "${LIBSODIUM_ROOT}/lib")
-if(NOT LIBSODIUM_INCLUDE_DIR)
-  message(FATAL_ERROR "Could not find libsodium headers in ${LIBSODIUM_ROOT}/include")
+# LIBSODIUM -- pdc_tf_builtin_encrypt_cpu.c only
+if(LIBSODIUM_ROOT)
+  find_path(LIBSODIUM_INCLUDE_DIR NAMES sodium.h PATHS "${LIBSODIUM_ROOT}/include")
+  find_library(LIBSODIUM_LIBRARY NAMES sodium PATHS "${LIBSODIUM_ROOT}/lib")
+  if(NOT LIBSODIUM_INCLUDE_DIR)
+    message(FATAL_ERROR "LIBSODIUM_ROOT_DIR is set but could not find libsodium headers in ${LIBSODIUM_ROOT}/include")
+  endif()
+  if(NOT LIBSODIUM_LIBRARY)
+    message(FATAL_ERROR "LIBSODIUM_ROOT_DIR is set but could not find libsodium library in ${LIBSODIUM_ROOT}/lib")
+  endif()
+  include_directories(${LIBSODIUM_INCLUDE_DIR})
+  link_libraries(${LIBSODIUM_LIBRARY})
+  set(LIBSODIUM_ENABLED 1)
+  add_compile_definitions(LIBSODIUM_ENABLED=1)
+else()
+  message(STATUS "LIBSODIUM_ROOT_DIR not set -- secret_box_encrypt/decrypt transformation disabled")
 endif()
-if(NOT LIBSODIUM_LIBRARY)
-  message(FATAL_ERROR "Could not find libsodium library in ${LIBSODIUM_ROOT}/lib")
-endif()
-include_directories(${LIBSODIUM_INCLUDE_DIR})
-link_libraries(${LIBSODIUM_LIBRARY})
 
 # CUDA 
 if(CUDA_ROOT)
@@ -103,17 +118,25 @@ if(NOT DEFINED SZ_CPU_DIR)
   set(SZ_CPU_DIR $ENV{SZ_CPU_DIR})
 endif()
 message(STATUS "SZ_CPU_DIR = ${SZ_CPU_DIR}")
-# SZ3
-find_path(SZ3_INCLUDE_DIR NAMES sz3c.h PATHS "${SZ_CPU_DIR}/include/SZ3c")
-find_library(SZ3_LIBRARY NAMES SZ3c PATHS "${SZ_CPU_DIR}/lib64" "${SZ_CPU_DIR}/lib")
-if(NOT SZ3_INCLUDE_DIR)
-  message(FATAL_ERROR "Could not find SZ3 headers in ${SZ_CPU_DIR}/include")
+# SZ3 -- pdc_tf_builtin_sz_cpu.c only. Optional: unset/empty SZ_CPU_DIR
+# disables the sz_compress/sz_decompress transformation instead of cmake
+# hard-failing.
+if(SZ_CPU_DIR)
+  find_path(SZ3_INCLUDE_DIR NAMES sz3c.h PATHS "${SZ_CPU_DIR}/include/SZ3c")
+  find_library(SZ3_LIBRARY NAMES SZ3c PATHS "${SZ_CPU_DIR}/lib64" "${SZ_CPU_DIR}/lib")
+  if(NOT SZ3_INCLUDE_DIR)
+    message(FATAL_ERROR "SZ_CPU_DIR is set but could not find SZ3 headers in ${SZ_CPU_DIR}/include")
+  endif()
+  if(NOT SZ3_LIBRARY)
+    message(FATAL_ERROR "SZ_CPU_DIR is set but could not find SZ3 library in ${SZ_CPU_DIR}/lib64 or ${SZ_CPU_DIR}/lib")
+  endif()
+  include_directories(${SZ3_INCLUDE_DIR})
+  link_libraries(${SZ3_LIBRARY})
+  set(SZ3_ENABLED 1)
+  add_compile_definitions(SZ3_ENABLED=1)
+else()
+  message(STATUS "SZ_CPU_DIR not set -- sz_compress/sz_decompress transformation disabled")
 endif()
-if(NOT SZ3_LIBRARY)
-  message(FATAL_ERROR "Could not find SZ3 library in ${SZ_CPU_DIR}/lib64 or ${SZ_CPU_DIR}/lib")
-endif()
-include_directories(${SZ3_INCLUDE_DIR})
-link_libraries(${SZ3_LIBRARY})
 # GPU CUSZ -- only pdc_tf_builtin_sz_gpu.c needs this (gated on
 # CUDA_ENABLED via ENABLE_TF_SZ_GPU_COMPRESSSION, pdc_tf_builtin_common.h),
 # so the library itself is only required when CUDA_ENABLED. Previously
@@ -147,20 +170,28 @@ if(CUDA_ENABLED)
   link_libraries(${CUSZ_LIBRARY})
 endif()
 
-# JSONC
+# TurboPFor -- pdc_tf_builtin_turbo_cpu.c only. Optional: unset/empty
+# TURBO_DIR disables the turbo_compress/turbo_decompress transformation
+# instead of cmake hard-failing.
 if(NOT DEFINED TURBO_DIR)
   set(TURBO_DIR $ENV{TURBO_DIR})
 endif()
-find_path(TURBO_DIR_INCLUDE NAMES ic.h PATHS "${TURBO_DIR}/include")
-find_library(TURBO_DIR_LIB NAMES ic PATHS "${TURBO_DIR}")
-if(NOT TURBO_DIR_INCLUDE)
-  message(FATAL_ERROR "Could not find TURBO_DIR headers in ${TURBO_DIR}/include")
+if(TURBO_DIR)
+  find_path(TURBO_DIR_INCLUDE NAMES ic.h PATHS "${TURBO_DIR}/include")
+  find_library(TURBO_DIR_LIB NAMES ic PATHS "${TURBO_DIR}")
+  if(NOT TURBO_DIR_INCLUDE)
+    message(FATAL_ERROR "TURBO_DIR is set but could not find its headers in ${TURBO_DIR}/include")
+  endif()
+  if(NOT TURBO_DIR_LIB)
+    message(FATAL_ERROR "TURBO_DIR is set but could not find its library in ${TURBO_DIR}")
+  endif()
+  include_directories(${TURBO_DIR_INCLUDE})
+  link_libraries(${TURBO_DIR_LIB})
+  set(TURBO_ENABLED 1)
+  add_compile_definitions(TURBO_ENABLED=1)
+else()
+  message(STATUS "TURBO_DIR not set -- turbo_compress/turbo_decompress transformation disabled")
 endif()
-if(NOT TURBO_DIR_LIB)
-  message(FATAL_ERROR "Could not find TURBO_DIR library in ${TURBO_DIR}")
-endif()
-include_directories(${TURBO_DIR_INCLUDE})
-link_libraries(${TURBO_DIR_LIB})
 
 # Set a consistent MACOSX_RPATH default across all CMake versions.
 # checks if the variable CMAKE_MACOSX_RPATH is not defined and sets it to 0 if it is not defined.

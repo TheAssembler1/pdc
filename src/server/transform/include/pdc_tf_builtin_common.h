@@ -4,22 +4,30 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-// FIXME: this should be picked up from the cmakelists
+// Each of these tracks whether the root CMakeLists.txt actually found that
+// transformation's third-party dependency (ZFP_ENABLED/LIBSODIUM_ENABLED/
+// SZ3_ENABLED/TURBO_ENABLED, set only when the corresponding *_ROOT_DIR
+// env var was set and the library was actually found there) -- every
+// transformation dependency is optional, so a missing one compiles that
+// one transformation out instead of failing the whole build.
+#ifdef ZFP_ENABLED
 #define ENABLE_TF_ZFP_COMPRESSION
-// FIMXE: same
+#endif
+#ifdef LIBSODIUM_ENABLED
 #define ENABLE_TF_SECRET_BOX_ENCRYPTION
-// FIXME: same
+#endif
+#ifdef SZ3_ENABLED
 #define ENABLE_TF_SZ_COMPRESSION
-// Unlike the flags above, this one must stay conditional on CUDA_ENABLED
-// (matching the ENABLE_TF_ZFP_COMPRESSION + CUDA_ENABLED pattern below) --
+#endif
 // pdc_tf_builtin_sz_gpu.c needs cusz.h/cuda_runtime.h and real cuSZ/CUDA
-// linkage to compile at all, so unconditionally defining this (as it was
-// before) broke any build without the CUDA toolkit present.
+// linkage to compile at all, so this additionally requires CUDA_ENABLED
+// (matching the ENABLE_TF_ZFP_COMPRESSION + CUDA_ENABLED pattern below).
 #if defined(ENABLE_TF_SZ_COMPRESSION) && defined(CUDA_ENABLED)
 #define ENABLE_TF_SZ_GPU_COMPRESSSION
 #endif
-// FIXME: same
+#ifdef TURBO_ENABLED
 #define ENABLE_TF_TURBO_COMPRESSION
+#endif
 
 #include "pdc_tf_common.h"
 
