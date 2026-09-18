@@ -61,6 +61,16 @@ data_dir_size_bytes,,,,,,2621440
   after `close_server` flushes the region cache) -- an independent check
   against `total_data_size_bytes` that the client's own byte counting
   matches real storage, not just what PDC's in-memory cache reported.
+  Expect this to run well above `total_data_size_bytes` at
+  `run_small_scale.sh`'s tiny sizing (1024 particles/rank): each object
+  is partitioned across all `SERVERS_PER_NODE * NUM_NODES` servers, and
+  each per-server shard file carries a fixed storage overhead on top of
+  its actual data (confirmed on a real 2-node run: ~4 KB of real data
+  per shard file, ~42 KB actual file size) -- that overhead is roughly
+  fixed per file, not proportional to data size, so it dominates at tiny
+  particle counts and should become negligible at real sweep scale. The
+  ratio-tolerance WARNING in `vpic_bdcats.sbatch` is non-fatal for
+  exactly this reason; only an actually-empty directory fails the job.
   `vpic_bdcats.sbatch` fails the job outright if this is 0.
 
 ## Scheduler: Slurm (`sbatch`/`srun`), not Flux
