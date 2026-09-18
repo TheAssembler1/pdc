@@ -7,9 +7,9 @@
 #   LOG_TAG, RESULTS_DIR
 #
 # HG_TRANSPORT/HG_HOST: see srun_server.sh -- close_server is a client-role
-# binary too (pdc_client_connect.c), same cxi-only fix, same endpoint-id
-# offset as srun_client_vpic_bdcats.sh (safe to reuse the same range since
-# that client step has already exited by the time this one starts).
+# binary too (pdc_client_connect.c), same cxi-only fix, plain "cxi0" with
+# no per-rank id suffix (SLURM_LOCALID is unbound under Tuolumne's Flux
+# Slurm-compatibility shim -- see srun_client_vpic_bdcats.sh).
 
 set -xeu
 
@@ -20,7 +20,7 @@ srun \
   --ntasks-per-node="$SERVERS_PER_NODE" \
   --error="${RESULTS_DIR}/close_server_${LOG_TAG}_${NUM_NODES}.err" \
   --output="${RESULTS_DIR}/close_server_${LOG_TAG}_${NUM_NODES}.log" \
-  bash -c 'export HG_TRANSPORT=ofi+cxi; export HG_HOST=cxi0:$((SLURM_LOCALID + '"$SERVERS_PER_NODE"')); exec ./close_server'
+  bash -c 'export HG_TRANSPORT=ofi+cxi; export HG_HOST=cxi0; exec ./close_server'
 popd
 
 # Let the backgrounded server step fully exit before the job script
