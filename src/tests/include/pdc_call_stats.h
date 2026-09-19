@@ -96,14 +96,18 @@ pdc_call_stats_now(void)
 /**
  * Reduces (sum, sumsq, count) for each recorded call name across every
  * rank in `comm` and, on `rank`==0, writes one CSV row per name:
- *   api_call,<name>,,<mean_s>,<stdev_s>,<count>,
+ *   <record_type>,<name>,,<mean_s>,<stdev_s>,<count>,
  * (the trailing empty fields keep column count consistent with the
  * throughput/data-size rows a caller may also write to the same file --
  * see pdc_call_stats.h's own header comment in the benchmark that uses
- * this, e.g. vpic_bdcats.c, for the full CSV schema).
+ * this, e.g. vpic_bdcats.c, for the full CSV schema). `record_type` lets
+ * a caller keeping more than one pdc_call_stats_t (e.g. one per benchmark
+ * phase, so the same call name's timing doesn't get pooled across
+ * phases) tag each one distinctly -- pass "api_call" for the traditional
+ * single-stats-object behavior.
  */
 static inline void
-pdc_call_stats_print_csv(pdc_call_stats_t *s, FILE *out, int rank, MPI_Comm comm)
+pdc_call_stats_print_csv(pdc_call_stats_t *s, FILE *out, int rank, MPI_Comm comm, const char *record_type)
 {
     for (int i = 0; i < s->n_entries; i++) {
         double local[3]  = {s->entries[i].sum, s->entries[i].sumsq, (double)s->entries[i].count};
@@ -116,7 +120,7 @@ pdc_call_stats_print_csv(pdc_call_stats_t *s, FILE *out, int rank, MPI_Comm comm
             if (var < 0.0) /* floating-point noise around a true variance of ~0 */
                 var = 0.0;
             double stdev = sqrt(var);
-            fprintf(out, "api_call,%s,,%.9f,%.9f,%.0f,\n", s->entries[i].name, mean, stdev, count);
+            fprintf(out, "%s,%s,,%.9f,%.9f,%.0f,\n", record_type, s->entries[i].name, mean, stdev, count);
         }
     }
 }

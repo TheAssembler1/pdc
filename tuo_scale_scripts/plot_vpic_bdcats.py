@@ -12,7 +12,7 @@ parsing the filename or hardcoding this benchmark's byte-per-particle
 constant -- ranks = clients_per_node * n_nodes, and data volume comes
 straight from the CSV's own total_data_size_bytes row.
 
-Produces three figures:
+Produces five figures:
   1. Stacked bar: observed I/O time (write below, read above) per mode
      per node count -- the same write/read split vpic_bdcats.c itself
      times (PDCregion_transfer_start_all_mpi through
@@ -23,6 +23,24 @@ Produces three figures:
   3. Line: aggregate throughput (total bytes moved / total observed time,
      not a mean of per-step rates) vs node count, one line per
      mode x direction (write/read).
+  4/5. Stacked bar, one figure per direction (write, read): sync and
+     async bars per node count, EACH stacked by PDC operation (object
+     create/open, transfer create, transfer start_all_mpi, transfer
+     wait_all, transfer close, object close) -- requires the
+     api_call_write/api_call_read CSV rows (see below); older CSVs from
+     before that split only have pooled `api_call` rows and can't
+     produce these two figures.
+
+     Each operation's stacked segment is `mean_s * count / ranks` from
+     that direction's api_call_write/api_call_read rows -- mean call
+     duration times calls-per-rank across the whole run, i.e. the time
+     one representative rank would spend on that operation if its calls
+     ran back-to-back with no imbalance. This is an ESTIMATE, not a
+     wall-clock measurement: unlike figures 1-3 (which come from a single
+     barrier-bounded step_t0/step_t1 window and so capture cross-rank
+     synchronization/imbalance), summing these per-operation estimates
+     will generally NOT exactly equal the corresponding bar in figure 1 --
+     that gap IS the synchronization/imbalance cost, not an error.
 
 Async's sleep(sleeptime) between transfer start and wait is standing in
 for compute overlapped with in-flight I/O and is already excluded from
@@ -61,6 +79,30 @@ COLOR = {
 }
 MODE_LINE_COLOR = {"sync": "#2a78d6", "async": "#eb6834"}
 MODE_LABEL = {"sync": "Sync", "async": "Async"}
+
+# Per-operation stacked bars (figures 4/5): fill = operation role (a
+# validated-adjacent 6-hue categorical order, slots 3-8 of the dataviz
+# skill's default palette -- slots 1-2, blue/orange, are reserved for
+# mode identity elsewhere in this script, used here as each bar's EDGE
+# color instead so operation (fill) and mode (edge) are two independent
+# channels -- mirrors pdc_helper_scripts/*/plot_*totals.py's segment
+# fill / workload edge convention). WRITE_OPS and READ_OPS share the
+# same color BY POSITION for their analogous role (index 0 = "acquire
+# object handle": PDCobj_create_mpi for write, PDCobj_open_col for read).
+WRITE_OPS = [
+    "PDCobj_create_mpi", "PDCregion_transfer_create", "PDCregion_transfer_start_all_mpi",
+    "PDCregion_transfer_wait_all", "PDCregion_transfer_close", "PDCobj_close",
+]
+READ_OPS = [
+    "PDCobj_open_col", "PDCregion_transfer_create", "PDCregion_transfer_start_all_mpi",
+    "PDCregion_transfer_wait_all", "PDCregion_transfer_close", "PDCobj_close",
+]
+OP_ROLE_COLOR = ["#1baf7a", "#eda100", "#e87ba4", "#008300", "#4a3aa7", "#e34948"]
+OP_ROLE_LABEL = [
+    "object create/open", "transfer create", "transfer start_all_mpi",
+    "transfer wait_all", "transfer close", "object close",
+]
+MODE_EDGE_COLOR = MODE_LINE_COLOR
 
 _FILE_RE = re.compile(r"^vpic_bdcats_(sync|async)_(\d+)\.csv$")
 
@@ -154,9 +196,24 @@ def load_all(dirs):
             # actually means.
             agg_throughput_mbps[direction] = (bytes_per_step * len(steps_seen) / 1e6) / total_time
 
+        # Per-operation time estimate for the write/read stacked-by-
+        # operation figures: mean_s * count / ranks -- see module
+        # docstring for exactly what this does and doesn't represent.
+        # Absent on CSVs from before the api_call_write/api_call_read
+        # split (pooled "api_call" rows only) -- op_time stays empty in
+        # that case, and plot_operation_bar skips runs with no data
+        # rather than erroring.
+        op_time = {"write": {}, "read": {}}
+        for r in rows:
+            if r["record_type"] == "api_call_write":
+                op_time["write"][r["name"]] = float(r["mean_s"]) * float(r["count"]) / ranks
+            elif r["record_type"] == "api_call_read":
+                op_time["read"][r["name"]] = float(r["mean_s"]) * float(r["count"]) / ranks
+
         runs[key] = dict(
             mode=mode, n_nodes=n_nodes, ranks=ranks, particles_total=particles_total,
             gib=gib, steps=steps, time_s=time_s, throughput_mbps=agg_throughput_mbps,
+            op_time=op_time,
         )
     return runs
 
@@ -272,6 +329,76 @@ def plot_throughput_line(runs, all_nodes, out_path):
     print(f"Wrote {out_path}")
 
 
+def plot_operation_bar(runs, all_nodes, direction, out_path):
+    """Stacked bar for one direction (write or read): sync/async bars per
+    node count, each stacked by PDC operation. See module docstring for
+    the mean_s * count / ranks estimate this is built from."""
+    ops = WRITE_OPS if direction == "write" else READ_OPS
+    n_groups = len(all_nodes)
+    group_width = 0.7
+    bar_w = group_width / 2 * 0.85
+    x = np.arange(n_groups)
+
+    fig, ax = plt.subplots(figsize=(max(7.0, 1.6 * n_groups), 6.0), constrained_layout=True)
+
+    any_data = False
+    for mi, mode in enumerate(MODE_ORDER):
+        offset = (mi - 0.5) * (group_width / 2)
+        bottoms = np.zeros(n_groups)
+        for oi, op in enumerate(ops):
+            heights = np.array(
+                [runs[(mode, n)]["op_time"][direction].get(op, 0.0) if (mode, n) in runs else 0.0
+                 for n in all_nodes]
+            )
+            if np.any(heights > 0):
+                any_data = True
+            ax.bar(
+                x + offset, heights, bar_w, bottom=bottoms,
+                color=OP_ROLE_COLOR[oi], edgecolor=MODE_EDGE_COLOR[mode], linewidth=1.3,
+                zorder=3,
+            )
+            bottoms += heights
+
+    if not any_data:
+        print(f"Skipping {out_path}: no api_call_{direction} rows found "
+              f"(rerun the sweep with the current vpic_bdcats.c to get per-operation timing)")
+        plt.close(fig)
+        return
+
+    ax.set_xticks(x)
+    ax.set_xticklabels([xtick_label(runs[(MODE_ORDER[0], n)] if (MODE_ORDER[0], n) in runs
+                                     else runs[(MODE_ORDER[1], n)]) for n in all_nodes], fontsize=8)
+    ax.set_ylabel(f"Estimated {direction} time per operation (s), stacked")
+    ax.set_title(f"vpic_bdcats: {direction} time by PDC operation (sync vs async)")
+    ax.yaxis.grid(True, linestyle="--", alpha=0.4, zorder=0)
+    ax.set_axisbelow(True)
+
+    op_handles = [plt.Rectangle((0, 0), 1, 1, facecolor=OP_ROLE_COLOR[i]) for i in range(len(ops))]
+    leg1 = ax.legend(op_handles, OP_ROLE_LABEL, title="PDC operation", loc="upper left",
+                      fontsize=8, title_fontsize=8)
+    ax.add_artist(leg1)
+    mode_handles = [
+        plt.Rectangle((0, 0), 1, 1, facecolor="white", edgecolor=MODE_EDGE_COLOR[m], linewidth=2.0)
+        for m in MODE_ORDER
+    ]
+    ax.legend(mode_handles, [MODE_LABEL[m] for m in MODE_ORDER], title="mode", loc="upper right",
+              fontsize=8, title_fontsize=8)
+
+    # Headroom above the tallest bar so the top-left "PDC operation"
+    # legend doesn't sit on top of a bar that happens to be tallest near
+    # the left edge -- matches plot_curl_totals.py's convention.
+    y_max = max(
+        (sum(runs[(mode, n)]["op_time"][direction].values()) for mode in MODE_ORDER for n in all_nodes
+         if (mode, n) in runs),
+        default=1.0,
+    )
+    ax.set_ylim(0, y_max * 1.25)
+
+    fig.savefig(out_path, dpi=200)
+    plt.close(fig)
+    print(f"Wrote {out_path}")
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("dirs", nargs="*", default=["."],
@@ -289,6 +416,8 @@ def main():
     plot_stacked_bar(runs, all_nodes, os.path.join(args.out_dir, "vpic_bdcats_stacked_bar.png"))
     plot_total_time_line(runs, all_nodes, os.path.join(args.out_dir, "vpic_bdcats_total_time.png"))
     plot_throughput_line(runs, all_nodes, os.path.join(args.out_dir, "vpic_bdcats_throughput.png"))
+    plot_operation_bar(runs, all_nodes, "write", os.path.join(args.out_dir, "vpic_bdcats_write_ops.png"))
+    plot_operation_bar(runs, all_nodes, "read", os.path.join(args.out_dir, "vpic_bdcats_read_ops.png"))
 
 
 if __name__ == "__main__":

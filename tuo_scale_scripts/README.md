@@ -22,12 +22,22 @@ Two transfer modes (`argv[3]`):
 
 Every distinct PDC client API call is timed (`pdc_call_stats.h`'s
 `PDC_TIMED` macro) and pooled into a mean/stdev/count across every rank.
-Output is a CSV to stdout:
+One-time setup/teardown calls (`PDCinit`, container/property
+create/close, ...) go in one pool (`api_call`); the write-phase loop and
+read-phase loop each get their OWN pool (`api_call_write` /
+`api_call_read`), even for call names both loops share
+(`PDCregion_transfer_create`/`start_all_mpi`/`wait_all`/`close`,
+`PDCobj_close`) -- a single shared pool would otherwise merge
+write-phase and read-phase timings for those names into one
+indistinguishable mean. Output is a CSV to stdout:
 
 ```
 record_type,name,step,mean_s,stdev_s,count,value
 api_call,PDCinit,,0.136790256,0.005833318,4,
-api_call,PDCobj_create_mpi,,0.000043734,0.000028744,160,
+api_call_write,PDCobj_create_mpi,,0.000043734,0.000028744,160,
+api_call_write,PDCregion_transfer_wait_all,,0.000101202,0.000034552,20,
+api_call_read,PDCobj_open_col,,0.000037066,0.000026051,160,
+api_call_read,PDCregion_transfer_wait_all,,0.006377127,0.024424627,20,
 ...
 throughput_write_MBps,,0,,,,134.091060
 ...
@@ -38,9 +48,12 @@ data_size_per_rank_bytes,,,,,,655360
 data_dir_size_bytes,,,,,,2621440
 ```
 
-- `api_call` rows: one per distinct PDC API call name, pooled across every
-  rank and every occurrence (e.g. `PDCobj_create_mpi` has
-  `count = nranks * 8 objects * steps`).
+- `api_call` rows: one per distinct one-time setup/teardown call name, not
+  phase-specific.
+- `api_call_write` / `api_call_read` rows: one per distinct call name made
+  inside that phase's loop only, pooled across every rank and every
+  occurrence within that phase (e.g. `api_call_write,PDCobj_create_mpi`
+  has `count = nranks * 8 objects * steps`).
 - `throughput_write_MBps` / `throughput_read_MBps`: one row per timestep,
   computed from the total bytes moved across all ranks that timestep
   divided by the observed I/O time for that timestep -- the whole step's

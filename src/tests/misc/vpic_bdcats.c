@@ -11,7 +11,13 @@
  *
  * Every distinct PDC client API call is timed with PDC_TIMED
  * (pdc_call_stats.h) and pooled into a mean/stdev/count reported per call
- * name, across every rank, at the end.
+ * name, across every rank, at the end. One-time setup/teardown calls
+ * (PDCinit, container/property create/close, ...) go in one pool; the
+ * write-phase loop and read-phase loop each get their OWN pool, even for
+ * call names both loops share (PDCregion_transfer_create/
+ * start_all_mpi/wait_all/close, PDCobj_close) -- a single shared pool
+ * would otherwise merge write-phase and read-phase timings for those
+ * names into one indistinguishable mean.
  *
  * Two transfer modes, selected by argv[3]:
  *   sync  -- PDCregion_transfer_start_all_mpi immediately followed by
@@ -27,7 +33,12 @@
  * Prints a CSV to stdout from rank 0 on completion:
  *   record_type,name,step,mean_s,stdev_s,count,value
  * with record_type one of:
- *   api_call               -- one row per distinct PDC API call name
+ *   api_call               -- one row per distinct one-time setup/teardown
+ *                             call name (PDCinit, container/property
+ *                             create/close, ...), not phase-specific
+ *   api_call_write          -- one row per distinct call name made inside
+ *                             the write-phase loop only
+ *   api_call_read           -- same, for the read-phase loop only
  *   throughput_write_MBps  -- one row per write-phase timestep. Data size
  *                             over the observed I/O time: the whole
  *                             step's wall-clock time (object create/close,
@@ -99,8 +110,19 @@ main(int argc, char **argv)
                     mode == XFER_SYNC ? "sync" : "async",
                     mode == XFER_SYNC ? "" : " (sleep between start/wait)");
 
-    pdc_call_stats_t stats;
+    /* `stats` times one-time setup/teardown calls that happen once for
+     * the whole run (PDCinit, container/property create/close, ...) --
+     * neither write-phase nor read-phase specific. `write_stats` and
+     * `read_stats` time everything inside each phase's loop separately,
+     * even calls with the same name in both loops (PDCregion_transfer_
+     * create/start_all_mpi/wait_all/close, PDCobj_close) -- a single
+     * shared stats object would otherwise pool those two phases' timings
+     * into one indistinguishable mean, which is exactly the gap that
+     * motivated splitting this out. */
+    pdc_call_stats_t stats, write_stats, read_stats;
     pdc_call_stats_init(&stats);
+    pdc_call_stats_init(&write_stats);
+    pdc_call_stats_init(&read_stats);
 
     /* Reference data: identical content written under every timestep's
      * distinct object names, so read-back verification just compares
@@ -201,7 +223,7 @@ main(int argc, char **argv)
         for (int i = 0; i < N_OBJS; i++) {
             sprintf(obj_name, "%s-%d", obj_names[i], step);
             pdcid_t prop = (i < 7) ? obj_prop_float : obj_prop_int;
-            PDC_TIMED(&stats, "PDCobj_create_mpi",
+            PDC_TIMED(&write_stats, "PDCobj_create_mpi",
                       obj_ids[i] = PDCobj_create_mpi(cont_id, obj_name, prop, 0, MPI_COMM_WORLD));
             if (obj_ids[i] == 0) {
                 LOG_ERROR("Failed to create object %s\n", obj_name);
@@ -210,23 +232,23 @@ main(int argc, char **argv)
         }
 
         for (int i = 0; i < N_OBJS; i++)
-            PDC_TIMED(&stats, "PDCregion_transfer_create",
+            PDC_TIMED(&write_stats, "PDCregion_transfer_create",
                       transfer_requests[i] = PDCregion_transfer_create(write_ptrs[i], PDC_WRITE, obj_ids[i],
                                                                        region_local, region_remote));
 
-        PDC_TIMED(&stats, "PDCregion_transfer_start_all_mpi",
+        PDC_TIMED(&write_stats, "PDCregion_transfer_start_all_mpi",
                   PDCregion_transfer_start_all_mpi(transfer_requests, N_OBJS, MPI_COMM_WORLD));
 
         if (mode == XFER_ASYNC)
             sleep((unsigned int)sleeptime);
 
-        PDC_TIMED(&stats, "PDCregion_transfer_wait_all",
+        PDC_TIMED(&write_stats, "PDCregion_transfer_wait_all",
                   PDCregion_transfer_wait_all(transfer_requests, N_OBJS));
 
         for (int i = 0; i < N_OBJS; i++)
-            PDC_TIMED(&stats, "PDCregion_transfer_close", PDCregion_transfer_close(transfer_requests[i]));
+            PDC_TIMED(&write_stats, "PDCregion_transfer_close", PDCregion_transfer_close(transfer_requests[i]));
         for (int i = 0; i < N_OBJS; i++)
-            PDC_TIMED(&stats, "PDCobj_close", PDCobj_close(obj_ids[i]));
+            PDC_TIMED(&write_stats, "PDCobj_close", PDCobj_close(obj_ids[i]));
 
         MPI_Barrier(MPI_COMM_WORLD);
         double step_t1         = MPI_Wtime();
@@ -250,7 +272,7 @@ main(int argc, char **argv)
 
         for (int i = 0; i < N_OBJS; i++) {
             sprintf(obj_name, "%s-%d", obj_names[i], step);
-            PDC_TIMED(&stats, "PDCobj_open_col", obj_ids[i] = PDCobj_open_col(obj_name, pdc_id));
+            PDC_TIMED(&read_stats, "PDCobj_open_col", obj_ids[i] = PDCobj_open_col(obj_name, pdc_id));
             if (obj_ids[i] == 0) {
                 LOG_ERROR("Failed to open object %s\n", obj_name);
                 return 1;
@@ -258,23 +280,23 @@ main(int argc, char **argv)
         }
 
         for (int i = 0; i < N_OBJS; i++)
-            PDC_TIMED(&stats, "PDCregion_transfer_create",
+            PDC_TIMED(&read_stats, "PDCregion_transfer_create",
                       transfer_requests[i] = PDCregion_transfer_create(read_ptrs[i], PDC_READ, obj_ids[i],
                                                                        region_local, region_remote));
 
-        PDC_TIMED(&stats, "PDCregion_transfer_start_all_mpi",
+        PDC_TIMED(&read_stats, "PDCregion_transfer_start_all_mpi",
                   PDCregion_transfer_start_all_mpi(transfer_requests, N_OBJS, MPI_COMM_WORLD));
 
         if (mode == XFER_ASYNC)
             sleep((unsigned int)sleeptime);
 
-        PDC_TIMED(&stats, "PDCregion_transfer_wait_all",
+        PDC_TIMED(&read_stats, "PDCregion_transfer_wait_all",
                   PDCregion_transfer_wait_all(transfer_requests, N_OBJS));
 
         for (int i = 0; i < N_OBJS; i++)
-            PDC_TIMED(&stats, "PDCregion_transfer_close", PDCregion_transfer_close(transfer_requests[i]));
+            PDC_TIMED(&read_stats, "PDCregion_transfer_close", PDCregion_transfer_close(transfer_requests[i]));
         for (int i = 0; i < N_OBJS; i++)
-            PDC_TIMED(&stats, "PDCobj_close", PDCobj_close(obj_ids[i]));
+            PDC_TIMED(&read_stats, "PDCobj_close", PDCobj_close(obj_ids[i]));
 
         MPI_Barrier(MPI_COMM_WORLD);
         double step_t1         = MPI_Wtime();
@@ -311,7 +333,9 @@ main(int argc, char **argv)
     if (rank == 0) {
         printf("record_type,name,step,mean_s,stdev_s,count,value\n");
     }
-    pdc_call_stats_print_csv(&stats, stdout, rank, MPI_COMM_WORLD);
+    pdc_call_stats_print_csv(&stats, stdout, rank, MPI_COMM_WORLD, "api_call");
+    pdc_call_stats_print_csv(&write_stats, stdout, rank, MPI_COMM_WORLD, "api_call_write");
+    pdc_call_stats_print_csv(&read_stats, stdout, rank, MPI_COMM_WORLD, "api_call_read");
     if (rank == 0) {
         for (int step = 0; step < steps; step++)
             printf("throughput_write_MBps,,%d,,,,%.6f\n", step, write_throughput_mbps[step]);

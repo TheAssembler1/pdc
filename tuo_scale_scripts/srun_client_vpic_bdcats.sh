@@ -33,8 +33,8 @@ srun \
   bash -c 'export HG_TRANSPORT=ofi+cxi; export HG_HOST=cxi0:; exec ./vpic_bdcats "$NUMPARTICLES" "$STEPS" "$MODE" "$ASYNC_SLEEP_S"'
 popd
 
-# vpic_bdcats.c prints its CSV (header + api_call/throughput/data-size
-# rows) interleaved with ordinary LOG_WARNING lines on rank 0's stdout --
-# keep only the CSV lines.
-grep -E "^(record_type,|api_call,|throughput_write_MBps,|throughput_read_MBps,|total_data_size_bytes,|data_size_per_rank_bytes,)" \
+# vpic_bdcats.c prints its CSV (header + api_call/api_call_write/
+# api_call_read/throughput/data-size rows) interleaved with ordinary
+# LOG_WARNING lines on rank 0's stdout -- keep only the CSV lines.
+grep -E "^(record_type,|api_call,|api_call_write,|api_call_read,|throughput_write_MBps,|throughput_read_MBps,|total_data_size_bytes,|data_size_per_rank_bytes,)" \
   "$CLIENT_LOG" > "$OUT_CSV"
