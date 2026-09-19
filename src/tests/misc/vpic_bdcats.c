@@ -246,7 +246,8 @@ main(int argc, char **argv)
                   PDCregion_transfer_wait_all(transfer_requests, N_OBJS));
 
         for (int i = 0; i < N_OBJS; i++)
-            PDC_TIMED(&write_stats, "PDCregion_transfer_close", PDCregion_transfer_close(transfer_requests[i]));
+            PDC_TIMED(&write_stats, "PDCregion_transfer_close",
+                      PDCregion_transfer_close(transfer_requests[i]));
         for (int i = 0; i < N_OBJS; i++)
             PDC_TIMED(&write_stats, "PDCobj_close", PDCobj_close(obj_ids[i]));
 
@@ -294,7 +295,8 @@ main(int argc, char **argv)
                   PDCregion_transfer_wait_all(transfer_requests, N_OBJS));
 
         for (int i = 0; i < N_OBJS; i++)
-            PDC_TIMED(&read_stats, "PDCregion_transfer_close", PDCregion_transfer_close(transfer_requests[i]));
+            PDC_TIMED(&read_stats, "PDCregion_transfer_close",
+                      PDCregion_transfer_close(transfer_requests[i]));
         for (int i = 0; i < N_OBJS; i++)
             PDC_TIMED(&read_stats, "PDCobj_close", PDCobj_close(obj_ids[i]));
 
