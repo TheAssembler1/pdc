@@ -187,3 +187,27 @@ are fully tested locally against a real `pdc_server` over plain MPI.
 `run_small_scale.sh` getting a clean CSV on your first try is the signal
 that the Slurm layer itself is working end to end on Tuolumne -- run it
 again after any Slurm-related change before trusting the full sweep.
+
+## Plotting: `plot_vpic_bdcats.py`
+
+Reads every `vpic_bdcats_<mode>_<nodes>.csv` under the given directories
+(one directory per sweep, e.g. `results_sync_<timestamp>/` and
+`results_async_<timestamp>/`) and produces three PNGs:
+
+```
+python3 plot_vpic_bdcats.py results_sync_<timestamp> results_async_<timestamp> -o plots/
+```
+
+- `vpic_bdcats_stacked_bar.png` -- observed I/O time per mode per node
+  count, write stacked below read.
+- `vpic_bdcats_total_time.png` -- total observed I/O time (write + read)
+  vs scale, one line per mode.
+- `vpic_bdcats_throughput.png` -- aggregate throughput (total bytes moved
+  / total observed time, not a mean of per-step rates) vs scale, one line
+  per mode per direction.
+
+Every value is read from each CSV's own trailing `# key=value,...`
+metadata comment rather than parsed from the filename or recomputed from
+a hardcoded bytes-per-particle constant, so it stays correct even if
+`common.sh`'s sizing changes. Requires `numpy` and `matplotlib` (no
+pandas), matching `pdc_helper_scripts/*/plot_*totals.py`'s convention.
