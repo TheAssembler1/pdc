@@ -1,17 +1,18 @@
 #!/bin/bash
 # Sweeps vpic_bdcats in "async" transfer mode (sleep(SLEEP_TIME) between
 # transfer start and wait, standing in for compute overlapped with
-# in-flight I/O) across NODE_COUNTS (common.sh; 1, 2, 4, ..., 32 nodes),
-# one sbatch job per node count, chained with --dependency=afterok so
-# they run one at a time -- see run_sync.sh's header comment.
+# in-flight I/O) across NODE_COUNTS (common.sh; 64, 128 nodes -- just the
+# top two points of the original 1..128 progression), one sbatch job per
+# node count, chained with --dependency=afterok so they run one at a
+# time -- see run_sync.sh's header comment.
 #
 # Run tuo_scale_scripts/run_small_scale.sh first to sanity-check the whole
 # pipeline (server, client, CSV extraction) on a single node before
 # committing to this full sweep.
 #
 # Required: export PDC_DATA_LOC to real parallel scratch first (see
-# common.sh) -- this sweep's 32-node step alone writes ~1 TiB (NUMPARTICLES
-# is still sized against a 128-node, 4 TiB target -- see common.sh).
+# common.sh) -- this sweep's 128-node step alone writes the full 4 TiB
+# target (64 nodes writes half that, ~2 TiB -- see common.sh).
 
 # --- sleep time (seconds) between transfer start and wait, i.e. the ---
 # --- simulated compute duration overlapped with in-flight I/O.       ---

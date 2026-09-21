@@ -22,12 +22,12 @@ fi
 # Weak scaling: NUMPARTICLES (per rank) is held constant across every node
 # count in the sweep, sized against a TOP_NODES-node target of 4 TiB
 # total across all STEPS timesteps. TOP_NODES is a pure sizing anchor,
-# independent of NODE_COUNTS below -- it's 128 even though the sweep
-# itself is capped at 32 nodes, so the 32-node step writes 32/128 = 1/4
-# of 4 TiB (~1 TiB), and 1 node writes 1/128th of 4 TiB. Change TOP_NODES
-# if you want the top of NODE_COUNTS to hit 4 TiB itself. bytes_per_particle=32
-# == 7 floats + 1 int (dX,dY,dZ,Ux,Uy,Uz,q,i), matching
-# src/tests/misc/vpic_bdcats.c exactly.
+# independent of NODE_COUNTS below -- with NODE_COUNTS topping out at 128
+# (same as TOP_NODES), the 128-node step writes the full 4 TiB target and
+# 64 nodes writes 64/128 = 1/2 of that (~2 TiB). Change TOP_NODES if you
+# want the top of NODE_COUNTS to hit a different target instead.
+# bytes_per_particle=32 == 7 floats + 1 int (dX,dY,dZ,Ux,Uy,Uz,q,i),
+# matching src/tests/misc/vpic_bdcats.c exactly.
 TOP_NODES=128
 BYTES_PER_PARTICLE=32
 TOTAL_BYTES_TARGET=$((4 * 1024 * 1024 * 1024 * 1024)) # 4 TiB
@@ -45,6 +45,7 @@ export PDC_TMPDIR=${PDC_TMPDIR:-$PDC_DATA_LOC}
 
 export BIN_DIR=${BIN_DIR:-$(cd "$(dirname "${BASH_SOURCE[0]}")/../build/bin" && pwd)}
 
-# 1, 2, 4, 8, 16, 32 -- sweep capped at 32 nodes (see TOP_NODES above for
-# how that interacts with the weak-scaling data-volume target).
-NODE_COUNTS=(1 2 4 8 16 32)
+# 64, 128 -- just the top two points of the original 1..128 progression
+# (see TOP_NODES above for how that interacts with the weak-scaling
+# data-volume target).
+NODE_COUNTS=(64 128)

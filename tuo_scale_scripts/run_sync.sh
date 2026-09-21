@@ -1,8 +1,9 @@
 #!/bin/bash
 # Sweeps vpic_bdcats in "sync" transfer mode (start immediately followed
-# by wait, no overlap) across NODE_COUNTS (common.sh; 1, 2, 4, ..., 32
-# nodes), one sbatch job per node count, chained with
-# --dependency=afterok so they run one at a time -- mirrors
+# by wait, no overlap) across NODE_COUNTS (common.sh; 64, 128 nodes --
+# just the top two points of the original 1..128 progression), one
+# sbatch job per node count, chained with --dependency=afterok so they
+# run one at a time -- mirrors
 # ../pdc_helper_scripts/curl_analysis_scripts/curl_eager_analysis_run.sh.
 # This submits the whole chain and returns immediately; check progress
 # with `squeue -u $USER`.
@@ -12,8 +13,8 @@
 # committing to this full sweep.
 #
 # Required: export PDC_DATA_LOC to real parallel scratch first (see
-# common.sh) -- this sweep's 32-node step alone writes ~1 TiB (NUMPARTICLES
-# is still sized against a 128-node, 4 TiB target -- see common.sh).
+# common.sh) -- this sweep's 128-node step alone writes the full 4 TiB
+# target (64 nodes writes half that, ~2 TiB -- see common.sh).
 
 set -eu
 cd "$(dirname "$0")"

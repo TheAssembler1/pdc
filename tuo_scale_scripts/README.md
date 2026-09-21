@@ -1,7 +1,7 @@
 # tuo_scale_scripts
 
 Slurm-scheduled scaling study for `vpic_bdcats` (`src/tests/misc/vpic_bdcats.c`)
-on Tuolumne, from 1 to 32 nodes.
+on Tuolumne, at 64 and 128 nodes.
 
 ## What `vpic_bdcats` does
 
@@ -109,14 +109,13 @@ model, which doesn't have an equivalent default.
 ## Files
 
 - `common.sh` -- shared config sourced by every script below: node-count
-  list (1, 2, 4, 8, 16, 32), `SERVERS_PER_NODE` (4), `CLIENTS_PER_NODE`
-  (32), `STEPS` (5), `NUMPARTICLES` -- computed once, held constant across
-  the whole sweep (weak scaling), sized against a 128-node/4 TiB target
-  even though the sweep itself is capped at 32 nodes, so **the 32-node
-  step alone writes ~1 TiB** (32/128 of the 4 TiB target) across all 5
-  timesteps (smaller node counts in the same sweep write proportionally
-  less; bump `TOP_NODES` in `common.sh` if you want the top of this
-  32-node sweep itself to hit 4 TiB) -- and
+  list (64, 128 -- the top two points of the original 1..128
+  progression), `SERVERS_PER_NODE` (4), `CLIENTS_PER_NODE` (32), `STEPS`
+  (5), `NUMPARTICLES` -- computed once, held constant across the whole
+  sweep (weak scaling), sized against a 128-node/4 TiB target -- since
+  the sweep's top node count now matches `TOP_NODES`, **the 128-node
+  step writes the full 4 TiB target**, and 64 nodes writes half that
+  (~2 TiB) -- and
   `TASKS_PER_NODE`/`CPUS_PER_TASK`, derived from `CORES_PER_NODE`
   (default 96, matching Tuolumne's pbatch queue) so the single `sbatch`
   allocation is sized to fit server + client tasks without oversubscribing
@@ -148,11 +147,11 @@ model, which doesn't have an equivalent default.
   up once server and client actually have to talk across a node
   boundary. **Run this first**, before either sweep, to catch a bad
   `PDC_DATA_LOC` or a partition/account mismatch without waiting on a
-  real sweep step or writing anywhere near the sweep's ~1 TiB top.
+  real sweep step or writing anywhere near the sweep's 4 TiB top.
 
 ## Required: `PDC_DATA_LOC`
 
-At up to ~1 TiB for a single run (the 32-node step), this **must** point
+At up to 4 TiB for a single run (the 128-node step), this **must** point
 at real parallel scratch, not wherever `BIN_DIR` happens to sit.
 `common.sh` requires it to already be set (it will refuse to run
 otherwise):
@@ -179,8 +178,8 @@ elsewhere.
 export PDC_DATA_LOC=/p/lustre1/$USER/pdc_vpic_bdcats_scale
 
 ./run_small_scale.sh   # sanity check first -- 2 nodes, seconds, both modes
-./run_sync.sh          # full sweep, 1..32 nodes, sync mode
-./run_async.sh         # full sweep, 1..32 nodes, async mode
+./run_sync.sh          # full sweep, 64 and 128 nodes, sync mode
+./run_async.sh         # full sweep, 64 and 128 nodes, async mode
 ```
 
 `vpic_bdcats.sbatch`'s `--partition=pbatch` default matches Tuolumne's
