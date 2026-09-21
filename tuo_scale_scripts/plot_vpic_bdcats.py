@@ -12,39 +12,37 @@ parsing the filename or hardcoding this benchmark's byte-per-particle
 constant -- ranks = clients_per_node * n_nodes, and data volume comes
 straight from the CSV's own total_data_size_bytes row.
 
-Produces eight figures. write and read are ALWAYS separate figures --
+Produces six figures. write and read are ALWAYS separate figures --
 nothing here draws a write+read stack or combines the two directions
 into one number.
-  1/2. Bar (write_stacked_bar.png, read_stacked_bar.png), one figure per
-     direction: sync vs async observed I/O time -- the whole step's
-     wall-clock time vpic_bdcats.c itself times
-     (PDCregion_transfer_start_all_mpi through
-     PDCregion_transfer_wait_all, including metadata ops, minus
-     sleep(sleeptime) for async -- see vpic_bdcats.c's docstring).
-  3/4. Line (write_total_time.png, read_total_time.png), one figure per
-     direction: the same observed I/O time as 1/2, plotted as a line vs
-     node count instead of a bar.
-  5/6. Line (throughput_write.png, throughput_read.png), one figure per
-     direction: aggregate throughput (total bytes moved / total observed
-     time, not a mean of per-step rates) vs node count, one line per mode.
-  7/8. Stacked bar (write_ops.png, read_ops.png), one figure per
-     direction: sync and async bars per node count, EACH stacked by PDC
-     operation (object create/open, transfer create, transfer
-     start_all_mpi, transfer wait_all, transfer close, object close) --
-     requires the api_call_write/api_call_read CSV rows (see below);
-     older CSVs from before that split only have pooled `api_call` rows
-     and can't produce these two figures.
+  1/2. Stacked bar (write_stacked_bar.png, read_stacked_bar.png), one
+     figure per direction: sync and async bars per node count, EACH
+     stacked by PDC operation (object create/open, transfer create,
+     transfer start_all_mpi, transfer wait_all, transfer close, object
+     close) -- requires the api_call_write/api_call_read CSV rows (see
+     below); older CSVs from before that split only have pooled
+     `api_call` rows and can't produce these two figures.
 
      Each operation's stacked segment is `mean_s * count / ranks` from
      that direction's api_call_write/api_call_read rows -- mean call
      duration times calls-per-rank across the whole run, i.e. the time
      one representative rank would spend on that operation if its calls
      ran back-to-back with no imbalance. This is an ESTIMATE, not a
-     wall-clock measurement: unlike figures 1-6 (which come from a single
-     barrier-bounded step_t0/step_t1 window and so capture cross-rank
-     synchronization/imbalance), summing these per-operation estimates
-     will generally NOT exactly equal the corresponding bar in figures
-     1/2 -- that gap IS the synchronization/imbalance cost, not an error.
+     wall-clock measurement: it won't generally sum to EXACTLY the same
+     total as the whole step's actual barrier-bounded wall-clock time
+     (PDCregion_transfer_start_all_mpi through
+     PDCregion_transfer_wait_all, including metadata ops, minus
+     sleep(sleeptime) for async -- see vpic_bdcats.c's docstring), since
+     that measurement captures cross-rank synchronization/imbalance this
+     per-operation estimate doesn't. Figures 3/4 (write_total_time.png/
+     read_total_time.png) plot that actual wall-clock total instead.
+  3/4. Line (write_total_time.png, read_total_time.png), one figure per
+     direction: total observed I/O time vs node count, one line per mode
+     -- the actual barrier-bounded wall-clock measurement described above,
+     not the per-operation estimate figures 1/2 are built from.
+  5/6. Line (throughput_write.png, throughput_read.png), one figure per
+     direction: aggregate throughput (total bytes moved / total observed
+     time, not a mean of per-step rates) vs node count, one line per mode.
 
 Async's sleep(sleeptime) between transfer start and wait is standing in
 for compute overlapped with in-flight I/O and is already excluded from
@@ -222,47 +220,11 @@ def xtick_label(run):
     )
 
 
-def plot_direction_bar(runs, all_nodes, direction, out_path):
-    """Sync vs async bars per node count for one direction only. write and
-    read are never combined into one figure -- each gets its own bar
-    chart, own y-scale."""
-    n_groups = len(all_nodes)
-    group_width = 0.7
-    bar_w = group_width / 2 * 0.85
-    x = np.arange(n_groups)
-
-    fig, ax = plt.subplots(figsize=(max(7.0, 1.6 * n_groups), 6.0), constrained_layout=True)
-
-    for mi, mode in enumerate(MODE_ORDER):
-        offset = (mi - 0.5) * (group_width / 2)
-        heights = np.array(
-            [runs[(mode, n)]["time_s"][direction] if (mode, n) in runs else 0.0 for n in all_nodes]
-        )
-        ax.bar(x + offset, heights, bar_w, color=MODE_LINE_COLOR[mode], edgecolor="white",
-               linewidth=0.6, label=MODE_LABEL[mode], zorder=3)
-        for xi, h in zip(x, heights):
-            if h > 0:
-                ax.text(xi + offset, h + 0.02 * heights.max(), f"{h:.1f}s",
-                        ha="center", va="bottom", fontsize=8)
-
-    ax.set_xticks(x)
-    ax.set_xticklabels([xtick_label(runs[(MODE_ORDER[0], n)] if (MODE_ORDER[0], n) in runs
-                                     else runs[(MODE_ORDER[1], n)]) for n in all_nodes], fontsize=8)
-    ax.set_ylabel(f"Observed {direction} time (s)")
-    ax.set_title(f"vpic_bdcats: sync vs async observed {direction} time")
-    ax.yaxis.grid(True, linestyle="--", alpha=0.4, zorder=0)
-    ax.set_axisbelow(True)
-    ax.legend(fontsize=9)
-
-    fig.savefig(out_path, dpi=200)
-    plt.close(fig)
-    print(f"Wrote {out_path}")
-
-
 def plot_total_time_line(runs, all_nodes, direction, out_path):
-    """Line version of plot_direction_bar's data for one direction --
-    same time_s[direction] values, plotted as a line vs scale instead of
-    a bar. write and read each get their own figure, never combined."""
+    """Line version of the observed-I/O-time data plot_operation_bar
+    stacks by operation for one direction -- same time_s[direction]
+    totals, plotted as a line vs scale instead of a bar. write and read
+    each get their own figure, never combined."""
     n_groups = len(all_nodes)
     x = np.arange(n_groups)
     fig, ax = plt.subplots(figsize=(max(6.5, 1.4 * n_groups), 5.5), constrained_layout=True)
@@ -399,14 +361,12 @@ def main():
     all_nodes = sorted({n for (_, n) in runs})
     os.makedirs(args.out_dir, exist_ok=True)
 
-    plot_direction_bar(runs, all_nodes, "write", os.path.join(args.out_dir, "write_stacked_bar.png"))
-    plot_direction_bar(runs, all_nodes, "read", os.path.join(args.out_dir, "read_stacked_bar.png"))
     plot_total_time_line(runs, all_nodes, "write", os.path.join(args.out_dir, "write_total_time.png"))
     plot_total_time_line(runs, all_nodes, "read", os.path.join(args.out_dir, "read_total_time.png"))
     plot_throughput_line(runs, all_nodes, "write", os.path.join(args.out_dir, "throughput_write.png"))
     plot_throughput_line(runs, all_nodes, "read", os.path.join(args.out_dir, "throughput_read.png"))
-    plot_operation_bar(runs, all_nodes, "write", os.path.join(args.out_dir, "write_ops.png"))
-    plot_operation_bar(runs, all_nodes, "read", os.path.join(args.out_dir, "read_ops.png"))
+    plot_operation_bar(runs, all_nodes, "write", os.path.join(args.out_dir, "write_stacked_bar.png"))
+    plot_operation_bar(runs, all_nodes, "read", os.path.join(args.out_dir, "read_stacked_bar.png"))
 
 
 if __name__ == "__main__":

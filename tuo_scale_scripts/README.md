@@ -205,32 +205,33 @@ again after any Slurm-related change before trusting the full sweep.
 
 Reads every `vpic_bdcats_<mode>_<nodes>.csv` under the given directories
 (one directory per sweep, e.g. `results_sync_<timestamp>/` and
-`results_async_<timestamp>/`) and produces eight PNGs. write and read are
+`results_async_<timestamp>/`) and produces six PNGs. write and read are
 ALWAYS separate figures -- nothing combines the two directions:
 
 ```
 python3 plot_vpic_bdcats.py results_sync_<timestamp> results_async_<timestamp> -o plots/
 ```
 
-- `write_stacked_bar.png` / `read_stacked_bar.png` -- sync vs async
-  observed I/O time per node count, one figure per direction.
-- `write_total_time.png` / `read_total_time.png` -- the same observed I/O
-  time as the two bar charts above, plotted as a line vs scale instead.
-- `throughput_write.png` / `throughput_read.png` -- aggregate throughput
-  (total bytes moved / total observed time, not a mean of per-step
-  rates) vs scale, one line per mode, one figure per direction.
-- `write_ops.png` / `read_ops.png` -- sync/async bars per node count,
-  each stacked by PDC operation (object create/open, transfer create,
-  transfer start_all_mpi, transfer wait_all, transfer close, object
-  close) -- fill = operation, edge = mode. Requires the
+- `write_stacked_bar.png` / `read_stacked_bar.png` -- sync/async bars per
+  node count, each stacked by PDC operation (object create/open, transfer
+  create, transfer start_all_mpi, transfer wait_all, transfer close,
+  object close) -- fill = operation, edge = mode. Requires the
   `api_call_write`/`api_call_read` CSV rows (`vpic_bdcats.c`); older CSVs
   with only pooled `api_call` rows can't produce these two and are
   skipped with a message rather than erroring. Each segment is `mean_s *
   count / ranks`, an ESTIMATE of one rank's time in that operation, not
   a wall-clock measurement -- it won't exactly sum to
-  `write_stacked_bar.png`/`read_stacked_bar.png`'s bars, since those come
+  `write_total_time.png`/`read_total_time.png`'s values, since those come
   from an actual barrier-bounded window and this doesn't capture
   cross-rank synchronization/imbalance.
+- `write_total_time.png` / `read_total_time.png` -- total observed I/O
+  time vs scale, one line per mode -- the actual barrier-bounded
+  wall-clock measurement (the whole step's time including metadata ops,
+  minus `sleep(sleeptime)` for async), not the per-operation estimate the
+  stacked bars above are built from.
+- `throughput_write.png` / `throughput_read.png` -- aggregate throughput
+  (total bytes moved / total observed time, not a mean of per-step
+  rates) vs scale, one line per mode, one figure per direction.
 
 Every value is read from each CSV's own trailing `# key=value,...`
 metadata comment rather than parsed from the filename or recomputed from
