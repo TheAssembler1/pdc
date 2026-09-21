@@ -15,7 +15,7 @@
 
 # --- sleep time (seconds) between transfer start and wait, i.e. the ---
 # --- simulated compute duration overlapped with in-flight I/O.       ---
-SLEEP_TIME=2
+SLEEP_TIME=10
 
 set -eu
 cd "$(dirname "$0")"
