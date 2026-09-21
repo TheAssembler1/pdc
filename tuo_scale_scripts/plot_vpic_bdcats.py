@@ -12,35 +12,39 @@ parsing the filename or hardcoding this benchmark's byte-per-particle
 constant -- ranks = clients_per_node * n_nodes, and data volume comes
 straight from the CSV's own total_data_size_bytes row.
 
-Produces five figures:
-  1. Stacked bar: observed I/O time (write below, read above) per mode
-     per node count -- the same write/read split vpic_bdcats.c itself
-     times (PDCregion_transfer_start_all_mpi through
-     PDCregion_transfer_wait_all, whole step including metadata ops,
-     minus sleep(sleeptime) for async -- see vpic_bdcats.c's docstring).
-  2. Line: total observed I/O time (write+read) vs node count, one line
-     per mode.
-  3. Line: aggregate throughput (total bytes moved / total observed time,
-     not a mean of per-step rates) vs node count, one line per
-     mode x direction (write/read).
-  4/5. Stacked bar, one figure per direction (write, read): sync and
-     async bars per node count, EACH stacked by PDC operation (object
-     create/open, transfer create, transfer start_all_mpi, transfer
-     wait_all, transfer close, object close) -- requires the
-     api_call_write/api_call_read CSV rows (see below); older CSVs from
-     before that split only have pooled `api_call` rows and can't
-     produce these two figures.
+Produces eight figures. write and read are ALWAYS separate figures --
+nothing here draws a write+read stack or combines the two directions
+into one number.
+  1/2. Bar (write_stacked_bar.png, read_stacked_bar.png), one figure per
+     direction: sync vs async observed I/O time -- the whole step's
+     wall-clock time vpic_bdcats.c itself times
+     (PDCregion_transfer_start_all_mpi through
+     PDCregion_transfer_wait_all, including metadata ops, minus
+     sleep(sleeptime) for async -- see vpic_bdcats.c's docstring).
+  3/4. Line (write_total_time.png, read_total_time.png), one figure per
+     direction: the same observed I/O time as 1/2, plotted as a line vs
+     node count instead of a bar.
+  5/6. Line (throughput_write.png, throughput_read.png), one figure per
+     direction: aggregate throughput (total bytes moved / total observed
+     time, not a mean of per-step rates) vs node count, one line per mode.
+  7/8. Stacked bar (write_ops.png, read_ops.png), one figure per
+     direction: sync and async bars per node count, EACH stacked by PDC
+     operation (object create/open, transfer create, transfer
+     start_all_mpi, transfer wait_all, transfer close, object close) --
+     requires the api_call_write/api_call_read CSV rows (see below);
+     older CSVs from before that split only have pooled `api_call` rows
+     and can't produce these two figures.
 
      Each operation's stacked segment is `mean_s * count / ranks` from
      that direction's api_call_write/api_call_read rows -- mean call
      duration times calls-per-rank across the whole run, i.e. the time
      one representative rank would spend on that operation if its calls
      ran back-to-back with no imbalance. This is an ESTIMATE, not a
-     wall-clock measurement: unlike figures 1-3 (which come from a single
+     wall-clock measurement: unlike figures 1-6 (which come from a single
      barrier-bounded step_t0/step_t1 window and so capture cross-rank
      synchronization/imbalance), summing these per-operation estimates
-     will generally NOT exactly equal the corresponding bar in figure 1 --
-     that gap IS the synchronization/imbalance cost, not an error.
+     will generally NOT exactly equal the corresponding bar in figures
+     1/2 -- that gap IS the synchronization/imbalance cost, not an error.
 
 Async's sleep(sleeptime) between transfer start and wait is standing in
 for compute overlapped with in-flight I/O and is already excluded from
@@ -68,15 +72,6 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
 MODE_ORDER = ["sync", "async"]
-# write = lighter tint, read = base color, same hue per mode -- mirrors
-# the write/read-vs-mode encoding used in the HTML sweep report (blue =
-# sync, orange = async; light = write, saturated = read).
-COLOR = {
-    ("sync", "write"): "#86b6ef",
-    ("sync", "read"): "#2a78d6",
-    ("async", "write"): "#f4ac8f",
-    ("async", "read"): "#eb6834",
-}
 MODE_LINE_COLOR = {"sync": "#2a78d6", "async": "#eb6834"}
 MODE_LABEL = {"sync": "Sync", "async": "Async"}
 
@@ -227,7 +222,10 @@ def xtick_label(run):
     )
 
 
-def plot_stacked_bar(runs, all_nodes, out_path):
+def plot_direction_bar(runs, all_nodes, direction, out_path):
+    """Sync vs async bars per node count for one direction only. write and
+    read are never combined into one figure -- each gets its own bar
+    chart, own y-scale."""
     n_groups = len(all_nodes)
     group_width = 0.7
     bar_w = group_width / 2 * 0.85
@@ -237,61 +235,21 @@ def plot_stacked_bar(runs, all_nodes, out_path):
 
     for mi, mode in enumerate(MODE_ORDER):
         offset = (mi - 0.5) * (group_width / 2)
-        bottoms = np.zeros(n_groups)
-        for direction in ("write", "read"):
-            heights = np.array(
-                [runs[(mode, n)]["time_s"][direction] if (mode, n) in runs else 0.0 for n in all_nodes]
-            )
-            ax.bar(
-                x + offset, heights, bar_w, bottom=bottoms,
-                color=COLOR[(mode, direction)], edgecolor="white", linewidth=0.6,
-                label=f"{MODE_LABEL[mode]} {direction}" if n_groups else None,
-                zorder=3,
-            )
-            bottoms += heights
-        for xi, n in zip(x, all_nodes):
-            if (mode, n) in runs:
-                total = sum(runs[(mode, n)]["time_s"].values())
-                ax.text(xi + offset, total + 0.02 * bottoms.max(), f"{total:.1f}s",
+        heights = np.array(
+            [runs[(mode, n)]["time_s"][direction] if (mode, n) in runs else 0.0 for n in all_nodes]
+        )
+        ax.bar(x + offset, heights, bar_w, color=MODE_LINE_COLOR[mode], edgecolor="white",
+               linewidth=0.6, label=MODE_LABEL[mode], zorder=3)
+        for xi, h in zip(x, heights):
+            if h > 0:
+                ax.text(xi + offset, h + 0.02 * heights.max(), f"{h:.1f}s",
                         ha="center", va="bottom", fontsize=8)
 
     ax.set_xticks(x)
     ax.set_xticklabels([xtick_label(runs[(MODE_ORDER[0], n)] if (MODE_ORDER[0], n) in runs
                                      else runs[(MODE_ORDER[1], n)]) for n in all_nodes], fontsize=8)
-    ax.set_ylabel("Observed I/O time (s)")
-    ax.set_title("vpic_bdcats: sync vs async observed I/O time (write + read, stacked)")
-    ax.yaxis.grid(True, linestyle="--", alpha=0.4, zorder=0)
-    ax.set_axisbelow(True)
-
-    handles = [
-        plt.Rectangle((0, 0), 1, 1, facecolor=COLOR[(m, d)])
-        for m in MODE_ORDER for d in ("write", "read")
-    ]
-    labels = [f"{MODE_LABEL[m]} {d}" for m in MODE_ORDER for d in ("write", "read")]
-    ax.legend(handles, labels, loc="upper left", fontsize=8, ncol=2)
-
-    fig.savefig(out_path, dpi=200)
-    plt.close(fig)
-    print(f"Wrote {out_path}")
-
-
-def plot_total_time_line(runs, all_nodes, out_path):
-    n_groups = len(all_nodes)
-    x = np.arange(n_groups)
-    fig, ax = plt.subplots(figsize=(max(6.5, 1.4 * n_groups), 5.5), constrained_layout=True)
-
-    for mode in MODE_ORDER:
-        totals = np.array(
-            [sum(runs[(mode, n)]["time_s"].values()) if (mode, n) in runs else np.nan for n in all_nodes]
-        )
-        ax.plot(x, totals, marker="o", markersize=6, linewidth=2, color=MODE_LINE_COLOR[mode],
-                label=MODE_LABEL[mode])
-
-    ax.set_xticks(x)
-    ax.set_xticklabels([xtick_label(runs[(MODE_ORDER[0], n)] if (MODE_ORDER[0], n) in runs
-                                     else runs[(MODE_ORDER[1], n)]) for n in all_nodes], fontsize=8)
-    ax.set_ylabel("Total observed I/O time (s), write + read")
-    ax.set_title("vpic_bdcats: total observed I/O time vs scale")
+    ax.set_ylabel(f"Observed {direction} time (s)")
+    ax.set_title(f"vpic_bdcats: sync vs async observed {direction} time")
     ax.yaxis.grid(True, linestyle="--", alpha=0.4, zorder=0)
     ax.set_axisbelow(True)
     ax.legend(fontsize=9)
@@ -301,28 +259,56 @@ def plot_total_time_line(runs, all_nodes, out_path):
     print(f"Wrote {out_path}")
 
 
-def plot_throughput_line(runs, all_nodes, out_path):
+def plot_total_time_line(runs, all_nodes, direction, out_path):
+    """Line version of plot_direction_bar's data for one direction --
+    same time_s[direction] values, plotted as a line vs scale instead of
+    a bar. write and read each get their own figure, never combined."""
     n_groups = len(all_nodes)
     x = np.arange(n_groups)
     fig, ax = plt.subplots(figsize=(max(6.5, 1.4 * n_groups), 5.5), constrained_layout=True)
 
     for mode in MODE_ORDER:
-        for direction, style, marker in (("write", "-", "o"), ("read", "--", "s")):
-            vals = np.array(
-                [runs[(mode, n)]["throughput_mbps"][direction] / 1e3 if (mode, n) in runs else np.nan
-                 for n in all_nodes]
-            )
-            ax.plot(x, vals, style, marker=marker, markersize=6, linewidth=2,
-                    color=MODE_LINE_COLOR[mode], label=f"{MODE_LABEL[mode]} {direction}")
+        vals = np.array(
+            [runs[(mode, n)]["time_s"][direction] if (mode, n) in runs else np.nan for n in all_nodes]
+        )
+        ax.plot(x, vals, marker="o", markersize=6, linewidth=2, color=MODE_LINE_COLOR[mode],
+                label=MODE_LABEL[mode])
 
     ax.set_xticks(x)
     ax.set_xticklabels([xtick_label(runs[(MODE_ORDER[0], n)] if (MODE_ORDER[0], n) in runs
                                      else runs[(MODE_ORDER[1], n)]) for n in all_nodes], fontsize=8)
-    ax.set_ylabel("Aggregate throughput (GB/s)")
-    ax.set_title("vpic_bdcats: throughput vs scale (total bytes / total observed time)")
+    ax.set_ylabel(f"Observed {direction} time (s)")
+    ax.set_title(f"vpic_bdcats: {direction} time vs scale")
     ax.yaxis.grid(True, linestyle="--", alpha=0.4, zorder=0)
     ax.set_axisbelow(True)
-    ax.legend(fontsize=9, ncol=2)
+    ax.legend(fontsize=9)
+
+    fig.savefig(out_path, dpi=200)
+    plt.close(fig)
+    print(f"Wrote {out_path}")
+
+
+def plot_throughput_line(runs, all_nodes, direction, out_path):
+    n_groups = len(all_nodes)
+    x = np.arange(n_groups)
+    fig, ax = plt.subplots(figsize=(max(6.5, 1.4 * n_groups), 5.5), constrained_layout=True)
+
+    for mode in MODE_ORDER:
+        vals = np.array(
+            [runs[(mode, n)]["throughput_mbps"][direction] / 1e3 if (mode, n) in runs else np.nan
+             for n in all_nodes]
+        )
+        ax.plot(x, vals, marker="o", markersize=6, linewidth=2,
+                color=MODE_LINE_COLOR[mode], label=MODE_LABEL[mode])
+
+    ax.set_xticks(x)
+    ax.set_xticklabels([xtick_label(runs[(MODE_ORDER[0], n)] if (MODE_ORDER[0], n) in runs
+                                     else runs[(MODE_ORDER[1], n)]) for n in all_nodes], fontsize=8)
+    ax.set_ylabel(f"Aggregate {direction} throughput (GB/s)")
+    ax.set_title(f"vpic_bdcats: {direction} throughput vs scale")
+    ax.yaxis.grid(True, linestyle="--", alpha=0.4, zorder=0)
+    ax.set_axisbelow(True)
+    ax.legend(fontsize=9)
 
     fig.savefig(out_path, dpi=200)
     plt.close(fig)
@@ -413,11 +399,14 @@ def main():
     all_nodes = sorted({n for (_, n) in runs})
     os.makedirs(args.out_dir, exist_ok=True)
 
-    plot_stacked_bar(runs, all_nodes, os.path.join(args.out_dir, "vpic_bdcats_stacked_bar.png"))
-    plot_total_time_line(runs, all_nodes, os.path.join(args.out_dir, "vpic_bdcats_total_time.png"))
-    plot_throughput_line(runs, all_nodes, os.path.join(args.out_dir, "vpic_bdcats_throughput.png"))
-    plot_operation_bar(runs, all_nodes, "write", os.path.join(args.out_dir, "vpic_bdcats_write_ops.png"))
-    plot_operation_bar(runs, all_nodes, "read", os.path.join(args.out_dir, "vpic_bdcats_read_ops.png"))
+    plot_direction_bar(runs, all_nodes, "write", os.path.join(args.out_dir, "write_stacked_bar.png"))
+    plot_direction_bar(runs, all_nodes, "read", os.path.join(args.out_dir, "read_stacked_bar.png"))
+    plot_total_time_line(runs, all_nodes, "write", os.path.join(args.out_dir, "write_total_time.png"))
+    plot_total_time_line(runs, all_nodes, "read", os.path.join(args.out_dir, "read_total_time.png"))
+    plot_throughput_line(runs, all_nodes, "write", os.path.join(args.out_dir, "throughput_write.png"))
+    plot_throughput_line(runs, all_nodes, "read", os.path.join(args.out_dir, "throughput_read.png"))
+    plot_operation_bar(runs, all_nodes, "write", os.path.join(args.out_dir, "write_ops.png"))
+    plot_operation_bar(runs, all_nodes, "read", os.path.join(args.out_dir, "read_ops.png"))
 
 
 if __name__ == "__main__":
