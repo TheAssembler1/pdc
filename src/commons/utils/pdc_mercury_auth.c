@@ -110,7 +110,14 @@ PDC_discover_perlmutter_cxi_auth(unsigned int *svc_id, unsigned int *vni)
             continue;
         }
 
-        if (sscanf(line, "   ---> Valid VNIs    : %u", &parsed_value) == 1) {
+        /* Real `cxi_service -v list` output has a plain "VNIs : <ids...>"
+         * field directly under the service ID block (confirmed against
+         * real Perlmutter output) -- not a "--->"-prefixed "Valid VNIs"
+         * restriction sub-line like "Valid Members"/"Valid TCs" use. A
+         * service can list multiple space-separated VNIs (e.g.
+         * "VNIs : 1 10"); %u here only captures the first one, which is
+         * sufficient since only one VNI is needed for SLINGSHOT_VNIS. */
+        if (sscanf(line, " VNIs : %u", &parsed_value) == 1) {
             current_vni = parsed_value;
             if (enabled == TRUE && system_service == FALSE && member_match == TRUE) {
                 *svc_id   = current_svc_id;
