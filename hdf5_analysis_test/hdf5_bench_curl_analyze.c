@@ -238,10 +238,8 @@ main(int argc, char **argv)
             double expected =
                 sqrt(curl_x_expected[i] * curl_x_expected[i] + curl_y_expected[i] * curl_y_expected[i] +
                      curl_z_expected[i] * curl_z_expected[i]);
-            if (fabs(mag[i] - expected) > EPSILON) {
+            if (fabs(mag[i] - expected) > EPSILON)
                 local_bad++;
-                break;
-            }
         }
         int step_bad = 0;
         MPI_Reduce(&local_bad, &step_bad, 1, MPI_INT, MPI_SUM, 0, MPI_COMM_WORLD);

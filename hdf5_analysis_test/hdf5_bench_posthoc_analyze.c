@@ -182,10 +182,8 @@ main(int argc, char **argv)
             float  ey       = (float)(((i + 137) % 1000) + 1);
             float  ez       = (float)(((i + 613) % 1000) + 1);
             double expected = sqrt((double)ex * ex + (double)ey * ey + (double)ez * ez);
-            if (fabs(mag[i] - expected) > EPSILON) {
+            if (fabs(mag[i] - expected) > EPSILON)
                 local_bad++;
-                break;
-            }
         }
 
         double local_readback  = t_readback1 - t_readback0;
