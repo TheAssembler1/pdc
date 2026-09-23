@@ -299,10 +299,8 @@ main(int argc, char **argv)
         for (i = 0; i < (size_t)n_elem; ++i) {
             double x = (double)vx[i], y = (double)vy[i], z = (double)vz[i];
             double expected = sqrt(x * x + y * y + z * z);
-            if (fabs(mag[i] - expected) > EPSILON) {
+            if (fabs(mag[i] - expected) > EPSILON)
                 local_bad++;
-                break;
-            }
         }
 
         double local_write     = t_write1 - t_write0;

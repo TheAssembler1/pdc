@@ -281,10 +281,8 @@ main(int argc, char **argv)
          * applies unchanged. */
         int local_bad = 0;
         for (i = 0; i < n_elem; ++i) {
-            if (fabs(mag_read[i] - mag_expected[i]) > EPSILON) {
+            if (fabs(mag_read[i] - mag_expected[i]) > EPSILON)
                 local_bad++;
-                break;
-            }
         }
         int step_bad = 0;
         MPI_Reduce(&local_bad, &step_bad, 1, MPI_INT, MPI_SUM, 0, MPI_COMM_WORLD);
