@@ -736,6 +736,16 @@ PDC_Server_data_io_region_per_file_transformations(uint64_t obj_id, int obj_ndim
     if (strcmp(region_mapping->region_state.cur_state, desired_state) == 0) {
         LOG_WARNING("Current state was equal to desired state\n");
         *ran_transformation = true;
+        /* No transform ran, so output_region (only set by PDCtf_exec_graph
+         * below) was never populated -- buf already holds exactly what's
+         * on disk (read in above for !is_write), matching input_region's
+         * shape/size, so that's what the caller's buffer should get.
+         * Previously this returned SUCCEED without ever copying anything
+         * into cpy_buf on a read, leaving it as whatever PDC_malloc
+         * returned -- silently wrong data for any read that legitimately
+         * needs no transform. */
+        if (!is_write)
+            memcpy(cpy_buf, buf, PDCtf_get_pdc_region_t_bytes(input_region));
         PGOTO_DONE(SUCCEED);
     }
     else if (PDCtf_exec_graph(dg, flat_conceptual_offset, region_mapping->region_state.cur_state,

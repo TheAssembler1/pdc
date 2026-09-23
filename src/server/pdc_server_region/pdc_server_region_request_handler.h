@@ -855,7 +855,22 @@ HG_TEST_RPC_CB(transfer_request, handle)
                     PGOTO_ERROR(HG_OTHER_ERROR, "Failed to PDCan_store_attach_mapping\n");
                 }
                 if (an_e->tf_json_filepath != NULL && strlen(an_e->tf_json_filepath) > 0) {
-                    if (PDCtf_store_json_mapping(an_e->obj_id, an_e->tf_json_filepath, an_e->tf_client_state,
+                    /* This branch handles READ RPCs (see the enclosing
+                     * if (in.access_type == PDC_WRITE) at the top of this
+                     * function) -- cur_state must be tf_store_state here,
+                     * matching PDC_Client_transfer_request's own
+                     * access_type == PDC_READ branch
+                     * (pdc_client_connect.c), not tf_client_state (that's
+                     * the WRITE branch's convention, a few lines up in
+                     * this same function). Passing tf_client_state here
+                     * made cur_state ("decompressed") equal
+                     * desired_state/client_state ("decompressed") in
+                     * PDC_Server_data_io_region_per_file_transformations,
+                     * so it looked like no transform was needed and
+                     * PDCtf_exec_graph (the decompression) never ran --
+                     * even though PDCan_exec_graph's write had genuinely
+                     * left the data compressed on disk. */
+                    if (PDCtf_store_json_mapping(an_e->obj_id, an_e->tf_json_filepath, an_e->tf_store_state,
                                                  an_e->tf_client_state, an_e->tf_store_state, an_e->offset,
                                                  an_e->size, an_e->ndim, an_e->pdc_var_type) != SUCCEED) {
                         PGOTO_ERROR(HG_OTHER_ERROR,
