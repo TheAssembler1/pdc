@@ -54,6 +54,17 @@
  *   - No lazy trigger and no single-handle read/write interleaving --
  *     same as adios2_bench_magnitude.cpp.
  *
+ * Correctness checking goes one step further here than either PDC's own
+ * posthoc analog (bench_curl_analyze.c) or the HDF5 one
+ * (hdf5_bench_curl_analyze.c): both of those validate the in-memory
+ * computed buffer against a freshly-regenerated expected value without
+ * ever reading vorticity_magnitude back from storage (documented in
+ * both as fine since everything happens within one continuous
+ * process/session). This benchmark instead does a real confirmation
+ * read of vorticity_magnitude back from the .bp file via a fresh Engine
+ * and validates *that* -- removing any doubt that the write itself, not
+ * just the CPU-side curl math, round-tripped correctly.
+ *
  * Usage: adios2_bench_curl <nx> <ny> <nz_per_rank> [out_file]
  *
  * Prints one CSV line per timestep from rank 0:
@@ -207,12 +218,35 @@ main(int argc, char **argv)
             double max_writeback;
             MPI_Reduce(&local_writeback, &max_writeback, 1, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD);
 
-            /* Correctness check (not timed): u/v/w are the same
+            /* Confirmation read of vorticity_magnitude back from the
+             * .bp file (see file header comment) -- a fresh Engine, the
+             * same pattern used for the u/v/w readback above, while the
+             * writer Engine is still open for later steps. */
+            double              t_confirm0 = MPI_Wtime();
+            std::vector<double> mag_rb(n_elem);
+            {
+                adios2::IO     mrio    = adios.DeclareIO("BenchCurlMagConfirm" + std::to_string(step));
+                adios2::Engine mreader = mrio.Open(out_file, adios2::Mode::ReadRandomAccess);
+                auto           rmag    = mrio.InquireVariable<double>("vorticity_magnitude");
+                rmag.SetStepSelection({(size_t)step, 1});
+                rmag.SetSelection({start, count});
+                mreader.Get(rmag, mag_rb.data(), adios2::Mode::Sync);
+                mreader.Close();
+            }
+            MPI_Barrier(MPI_COMM_WORLD);
+            double t_confirm1    = MPI_Wtime();
+            double local_confirm = t_confirm1 - t_confirm0;
+            double max_confirm;
+            MPI_Reduce(&local_confirm, &max_confirm, 1, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD);
+
+            /* Correctness check (not timed): validated against mag_rb,
+             * the value actually read back from the file, not the
+             * pre-write in-memory mag buffer -- u/v/w are the same
              * deterministic pattern every timestep, so mag_expected
              * (computed once above via curl_math.h) applies unchanged. */
             int local_bad = 0;
             for (size_t i = 0; i < n_elem; ++i) {
-                if (fabs(mag[i] - mag_expected[i]) > EPSILON)
+                if (fabs(mag_rb[i] - mag_expected[i]) > EPSILON)
                     local_bad++;
             }
             int step_bad = 0;
@@ -220,10 +254,11 @@ main(int argc, char **argv)
             global_bad += step_bad;
 
             if (rank == 0) {
-                double step_total = max_setup + max_write + max_readback + max_compute + max_writeback;
-                printf("adios2_posthoc_curl,%d,%d,%ld,%ld,%ld,%.6f,%.6f,%.6f,%.6f,%.6f,0.000000,%.6f,%d\n",
-                       step, nranks, nx, ny, nz_per_rank, max_setup, max_write, max_readback, max_compute,
-                       max_writeback, step_total, step_bad);
+                double step_total =
+                    max_setup + max_write + max_readback + max_compute + max_writeback + max_confirm;
+                printf("adios2_posthoc_curl,%d,%d,%ld,%ld,%ld,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%d\n", step,
+                       nranks, nx, ny, nz_per_rank, max_setup, max_write, max_readback, max_compute,
+                       max_writeback, max_confirm, step_total, step_bad);
                 fflush(stdout);
             }
         }
