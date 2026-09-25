@@ -84,16 +84,22 @@ echo "Lustre striping: count=${STRIPE_COUNT} size=${STRIPE_SIZE_BYTES} bytes ($(
 rm -f "$OUT_FILE"
 lfs setstripe -c "$STRIPE_COUNT" -S "$STRIPE_SIZE_BYTES" "$OUT_FILE" || echo "WARNING: lfs setstripe failed, falling back to filesystem default layout"
 
-echo "mode,step,n_ranks,n_elem,write_setup_s,write_s,relaunch_s,analyze_setup_s,readback_s,compute_s,writeback_s,total_s,bad" > "$RESULTS"
+echo "mode,step,n_ranks,n_elem,write_setup_s,write_s,write_close_s,relaunch_s,analyze_setup_s,readback_s,compute_s,writeback_s,analyze_close_s,total_s,bad" > "$RESULTS"
 
 ./srun_hdf5_write.sh
 
 # Unlike the PDC posthoc benchmark, there's no server to close and
-# restart here -- HDF5 talks straight to the file, which is already
-# durable once srun_hdf5_write.sh's H5Fclose returns. The only relaunch
+# restart here -- HDF5 talks straight to the file, so the only relaunch
 # cost between the two phases is plain Slurm srun-launch overhead, not
 # something this script explicitly does, so there's nothing to time here
 # (kept as an explicit 0 column so the two benchmarks' CSVs line up).
+# H5Fclose itself, previously assumed free on the theory that data
+# written via collective H5Dwrite is already durable, is NOT assumed
+# here anymore -- hdf5_bench_write.c / hdf5_bench_posthoc_analyze.c now
+# each measure their own H5Fclose() directly (write_close_s,
+# analyze_close_s below), the same treatment PDC's close_server and
+# ADIOS2's writer.Close() get, so no system's close cost goes
+# unmeasured by default assumption.
 relaunch_s=0
 
 ./srun_hdf5_posthoc_analyze.sh
@@ -104,28 +110,37 @@ relaunch_s=0
 # descriptors and emit one combined "hdf5" row per timestep.
 exec 3< "$WRITE_LOG"
 exec 4< "$ANALYZE_LOG"
-while IFS=, read -r w_mode w_step w_nranks w_nelem w_setup w_write <&3 && \
-      IFS=, read -r a_mode a_step a_nranks a_nelem a_setup a_readback a_compute a_writeback a_total a_bad <&4; do
+while IFS=, read -r w_mode w_step w_nranks w_nelem w_setup w_write w_close <&3 && \
+      IFS=, read -r a_mode a_step a_nranks a_nelem a_setup a_readback a_compute a_writeback a_close a_bad <&4; do
   if [ "$w_setup" = "FAILED" ] || [ "$a_setup" = "FAILED" ]; then
     echo "hdf5,${w_step},${CLIENT_TOTAL_TASKS},${N_ELEM},FAILED" >> "$RESULTS"
   else
+    # total_s deliberately excludes w_close/a_close -- they're carried as
+    # their own columns (for direct visibility, per-phase) and folded in
+    # exactly once, below, via avg_close_s -> total_with_close_s. Summing
+    # them in here too would double-count them.
     total=$(awk "BEGIN{print $w_setup + $w_write + $relaunch_s + $a_setup + $a_readback + $a_compute + $a_writeback}")
-    echo "hdf5,${w_step},${CLIENT_TOTAL_TASKS},${N_ELEM},${w_setup},${w_write},${relaunch_s},${a_setup},${a_readback},${a_compute},${a_writeback},${total},${a_bad}" >> "$RESULTS"
+    echo "hdf5,${w_step},${CLIENT_TOTAL_TASKS},${N_ELEM},${w_setup},${w_write},${w_close},${relaunch_s},${a_setup},${a_readback},${a_compute},${a_writeback},${a_close},${total},${a_bad}" >> "$RESULTS"
+    # w_close/a_close are constant across every timestep row (one-time
+    # H5Fclose per phase) -- capture once for the trailing avg_close_s
+    # column below.
+    final_w_close=$w_close
+    final_a_close=$a_close
   fi
 done
 exec 3<&-
 exec 4<&-
 
-# No PDC server here to checkpoint on close, so there's no per-rank
-# "close" cost to average -- avg_close_s is always 0. Still append the
-# same two trailing columns eager_pdc.sbatch / lazy_pdc.sbatch /
-# posthoc_pdc.sbatch add (avg_close_s, total_with_close_s) so all four
-# results_*.csv files share one schema and total_with_close_s is directly
-# comparable across modes without special-casing HDF5.
-avg_close_s=0
+# No PDC server here to checkpoint on close, but H5Fclose cost is real
+# and now measured (write_close_s + analyze_close_s above) -- sum the
+# two per-phase closes into avg_close_s so this trailing column means
+# the same thing ("real close/flush cost") across every mode's CSV and
+# plot_totals.py's aggregate() (which reads this exact column name)
+# folds it in identically instead of treating HDF5 as having none.
+avg_close_s=$(awk "BEGIN{print ${final_w_close:-0} + ${final_a_close:-0}}")
 awk -F, -v OFS=, -v avgclose="$avg_close_s" '
   NR==1 { print $0, "avg_close_s", "total_with_close_s"; next }
-  NF==13 { print $0, avgclose, ($12 + avgclose); next }
+  NF==15 { print $0, avgclose, ($14 + avgclose); next }
   { print }
 ' "$RESULTS" > "${RESULTS}.tmp" && mv "${RESULTS}.tmp" "$RESULTS"
 

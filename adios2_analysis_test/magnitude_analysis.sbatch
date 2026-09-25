@@ -50,7 +50,7 @@ rm -rf "$OUT_FILE"
 lfs setstripe -c "$STRIPE_COUNT" -S "$STRIPE_SIZE_BYTES" "$OUT_DIR" \
   || echo "WARNING: lfs setstripe failed, falling back to filesystem default layout"
 
-echo "mode,step,n_ranks,n_elem,setup_s,write_s,confirm_read_s,step_total_s,bad" > "$RESULTS"
+echo "mode,step,n_ranks,n_elem,setup_s,write_s,confirm_read_s,close_s,step_total_s,bad" > "$RESULTS"
 
 srun \
   -N "$NUM_NODES" \

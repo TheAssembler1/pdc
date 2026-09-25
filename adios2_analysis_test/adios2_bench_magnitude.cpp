@@ -48,7 +48,16 @@
  * Usage: adios2_bench_magnitude <n_elem_per_rank> [out_file]
  *
  * Prints one CSV line per timestep from rank 0:
- *   mode,step,n_client_ranks,n_elem,setup_s,write_s,confirm_read_s,step_total_s,bad
+ *   mode,step,n_client_ranks,n_elem,setup_s,write_s,confirm_read_s,close_s,step_total_s,bad
+ *
+ * close_s times writer.Close() (BP5's durability flush), a one-time job
+ * cost repeated on every row for CSV convenience -- same convention as
+ * setup_s and directly analogous to PDC's avg_close_s (close_server's
+ * checkpoint-to-disk cost). Previously left completely untimed; measured
+ * externally via whole-process wall-clock time it accounts for a real,
+ * non-trivial chunk of cost (~0.6-0.8s at 64 MiB/rank locally) that a
+ * total omitting it would understate, the same way omitting PDC's
+ * close_server cost would understate PDC's total.
  */
 
 #define N_TIMESTEPS 3
@@ -118,6 +127,7 @@ main(int argc, char **argv)
     }
 
     double step_write_s[N_TIMESTEPS];
+    double max_close = 0;
     {
         adios2::Engine writer = io.Open(out_file, adios2::Mode::Write);
         for (int step = 0; step < N_TIMESTEPS; ++step) {
@@ -144,7 +154,22 @@ main(int argc, char **argv)
             double local_write = t_write1 - t_write0;
             MPI_Reduce(&local_write, &step_write_s[step], 1, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD);
         }
+
+        /* writer.Close() was previously left completely untimed -- measured
+         * externally via whole-process wall-clock time, it accounts for
+         * ~0.6-0.8s (real, not noise) at 64 MiB/rank, larger than PDC's own
+         * separately-timed server close cost. This is the durability-flush
+         * analog of PDC's close_server (avg_close_s in the PDC CSVs): BP5
+         * finalizes/flushes whatever wasn't already written during EndStep()
+         * here, so leaving it untimed understated ADIOS2's true total cost
+         * the same way omitting close_server would for PDC. */
+        MPI_Barrier(MPI_COMM_WORLD);
+        double t_close0 = MPI_Wtime();
         writer.Close();
+        MPI_Barrier(MPI_COMM_WORLD);
+        double t_close1    = MPI_Wtime();
+        double local_close = t_close1 - t_close0;
+        MPI_Reduce(&local_close, &max_close, 1, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD);
     }
 
     /* Confirmation read: a fresh engine, matching Data Flyway's
@@ -187,9 +212,14 @@ main(int argc, char **argv)
             global_bad += step_bad;
 
             if (rank == 0) {
-                double step_total = max_setup + step_write_s[step] + max_read;
-                printf("adios2_derived,%d,%d,%ld,%.6f,%.6f,%.6f,%.6f,%d\n", step, nranks, n_elem, max_setup,
-                       step_write_s[step], max_read, step_total, step_bad);
+                /* max_close is a one-time job cost (like max_setup), not a
+                 * per-step cost -- repeated on every row for CSV
+                 * convenience, matching PDC's own avg_close_s convention,
+                 * and added into step_total here the same way avg_close_s
+                 * is folded into total_with_close_s for PDC. */
+                double step_total = max_setup + step_write_s[step] + max_read + max_close;
+                printf("adios2_derived,%d,%d,%ld,%.6f,%.6f,%.6f,%.6f,%.6f,%d\n", step, nranks, n_elem,
+                       max_setup, step_write_s[step], max_read, max_close, step_total, step_bad);
                 fflush(stdout);
             }
         }

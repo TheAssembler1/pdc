@@ -15,6 +15,11 @@
 #   adios2_bench_compression_encryption  - ZFP + EncryptionOperator (libsodium,
 #                                          ADIOS2's own shipped plugin) chained, analog of
 #                                          src/tests/transformation/compression_encryption_transform.c
+#   adios2_verify_magnitude              - standalone read-only verifier for
+#                                          adios2_bench_magnitude's output, run as a
+#                                          genuinely separate process after the writer
+#                                          exits, so read timing isn't conflated with
+#                                          the writer's own warm process/connection state
 
 # := (not ?=): Make's own built-in default for CXX is g++, which
 # already counts as "set" and would silently win over ?=.
@@ -33,7 +38,7 @@ ADIOS2_LIB := -L$(ADIOS2_PREFIX)/$(ADIOS2_LIBDIR) -Wl,-rpath,$(ADIOS2_PREFIX)/$(
 ADIOS2_DEFINES := -DADIOS2_USE_MPI=1
 
 TARGETS := adios2_bench_magnitude adios2_bench_curl adios2_bench_compression \
-           adios2_bench_compression_encryption
+           adios2_bench_compression_encryption adios2_verify_magnitude
 
 .PHONY: all clean
 
@@ -52,6 +57,9 @@ adios2_bench_compression: adios2_bench_compression.cpp
 # name at runtime, not linked -- just needs to be on the loader's
 # search path, hence the same -rpath as the rest of ADIOS2's own libs.
 adios2_bench_compression_encryption: adios2_bench_compression_encryption.cpp
+	$(CXX) $(CXXFLAGS) $(ADIOS2_DEFINES) $(ADIOS2_INCLUDE) -o $@ $< $(ADIOS2_LIB)
+
+adios2_verify_magnitude: adios2_verify_magnitude.cpp
 	$(CXX) $(CXXFLAGS) $(ADIOS2_DEFINES) $(ADIOS2_INCLUDE) -o $@ $< $(ADIOS2_LIB)
 
 clean:

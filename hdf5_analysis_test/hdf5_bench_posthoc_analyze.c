@@ -15,7 +15,12 @@
  * Usage: hdf5_bench_posthoc_analyze <n_elem_per_rank> [out_file]
  *
  * Prints one CSV line per timestep from rank 0:
- *   mode,step,n_client_ranks,n_elem,setup_s,readback_s,compute_s,writeback_s,step_total_s,bad
+ *   mode,step,n_client_ranks,n_elem,setup_s,readback_s,compute_s,writeback_s,close_s,step_total_s,bad
+ *
+ * close_s times this phase's own H5Fclose() -- see hdf5_bench_write.c's
+ * header comment for why this is now measured instead of assumed free.
+ * Folded into step_total_s the same way PDC's own avg_close_s is folded
+ * into posthoc_pdc.sbatch's total_with_close_s.
  */
 
 #define N_TIMESTEPS 3
@@ -144,8 +149,13 @@ main(int argc, char **argv)
     MPI_Reduce(&local_setup, &max_setup, 1, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD);
 
     /* Like hdf5_bench_write.c, vx/vy/vz/magnitude are per-timestep-named
-     * datasets ("vx_0", "vx_1", ...). */
-    int global_bad = 0;
+     * datasets ("vx_0", "vx_1", ...). CSV printing is deferred until
+     * after H5Fclose is timed below (close_s is a one-time cost, so
+     * every row needs its value). */
+    double max_readback_by_step[N_TIMESTEPS], max_compute_by_step[N_TIMESTEPS];
+    double max_writeback_by_step[N_TIMESTEPS];
+    int    step_bad_by_step[N_TIMESTEPS];
+    int    global_bad = 0;
     for (step = 0; step < N_TIMESTEPS; ++step) {
         char vx_name[32], vy_name[32], vz_name[32], mag_name[32];
         snprintf(vx_name, sizeof(vx_name), "vx_%d", step);
@@ -190,23 +200,35 @@ main(int argc, char **argv)
         double local_compute   = t_compute1 - t_compute0;
         double local_writeback = t_writeback1 - t_writeback0;
 
-        double max_readback, max_compute, max_writeback;
-        int    step_bad = 0;
-        MPI_Reduce(&local_readback, &max_readback, 1, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD);
-        MPI_Reduce(&local_compute, &max_compute, 1, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD);
-        MPI_Reduce(&local_writeback, &max_writeback, 1, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD);
+        int step_bad = 0;
+        MPI_Reduce(&local_readback, &max_readback_by_step[step], 1, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD);
+        MPI_Reduce(&local_compute, &max_compute_by_step[step], 1, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD);
+        MPI_Reduce(&local_writeback, &max_writeback_by_step[step], 1, MPI_DOUBLE, MPI_MAX, 0,
+                   MPI_COMM_WORLD);
         MPI_Reduce(&local_bad, &step_bad, 1, MPI_INT, MPI_SUM, 0, MPI_COMM_WORLD);
+        step_bad_by_step[step] = step_bad;
         global_bad += step_bad;
-
-        if (rank == 0) {
-            double step_total = max_readback + max_compute + max_writeback;
-            printf("posthoc_analyze,%d,%d,%ld,%.6f,%.6f,%.6f,%.6f,%.6f,%d\n", step, nranks, n_elem, max_setup,
-                   max_readback, max_compute, max_writeback, step_total, step_bad);
-            fflush(stdout);
-        }
     }
 
+    MPI_Barrier(MPI_COMM_WORLD);
+    double t_close0 = MPI_Wtime();
     H5Fclose(file);
+    MPI_Barrier(MPI_COMM_WORLD);
+    double t_close1    = MPI_Wtime();
+    double local_close = t_close1 - t_close0;
+    double max_close;
+    MPI_Reduce(&local_close, &max_close, 1, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD);
+
+    if (rank == 0) {
+        for (step = 0; step < N_TIMESTEPS; ++step) {
+            double step_total =
+                max_readback_by_step[step] + max_compute_by_step[step] + max_writeback_by_step[step] + max_close;
+            printf("posthoc_analyze,%d,%d,%ld,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%d\n", step, nranks, n_elem,
+                   max_setup, max_readback_by_step[step], max_compute_by_step[step],
+                   max_writeback_by_step[step], max_close, step_total, step_bad_by_step[step]);
+        }
+        fflush(stdout);
+    }
 
     free(vx_rb);
     free(vy_rb);

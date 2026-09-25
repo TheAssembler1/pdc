@@ -14,7 +14,16 @@
  * Usage: hdf5_bench_write <n_elem_per_rank> [out_file]
  *
  * Prints one CSV line per timestep from rank 0:
- *   mode,step,n_client_ranks,n_elem,setup_s,write_s
+ *   mode,step,n_client_ranks,n_elem,setup_s,write_s,close_s
+ *
+ * close_s times H5Fclose(), a one-time job cost repeated on every row for
+ * CSV convenience (same convention as setup_s). Previously left
+ * completely untimed on the (unverified) assumption that closing a file
+ * already made durable by collective H5Dwrite calls is comparatively
+ * free -- now actually measured instead of assumed, the same treatment
+ * PDC's own close_server cost and ADIOS2's writer.Close() get, so a
+ * three-way "which system understated its own close cost" comparison
+ * is possible instead of one-sided.
  */
 
 #define N_TIMESTEPS 3
@@ -135,7 +144,12 @@ main(int argc, char **argv)
     MPI_Reduce(&local_setup, &max_setup, 1, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD);
 
     /* One dataset per variable per timestep ("vx_0", "vx_1", ...), since
-     * HDF5 datasets are named entities within one file. */
+     * HDF5 datasets are named entities within one file. CSV printing is
+     * deferred until after H5Fclose is timed below (close_s is a
+     * one-time cost, so every row needs its value -- same reason
+     * adios2_bench_magnitude.cpp buffers step_write_s[] instead of
+     * printing inline). */
+    double max_write_by_step[N_TIMESTEPS];
     for (step = 0; step < N_TIMESTEPS; ++step) {
         char vx_name[32], vy_name[32], vz_name[32];
         snprintf(vx_name, sizeof(vx_name), "vx_%d", step);
@@ -150,16 +164,25 @@ main(int argc, char **argv)
         t_write1 = MPI_Wtime();
 
         double local_write = t_write1 - t_write0;
-        double max_write;
-        MPI_Reduce(&local_write, &max_write, 1, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD);
-
-        if (rank == 0) {
-            printf("posthoc_write,%d,%d,%ld,%.6f,%.6f\n", step, nranks, n_elem, max_setup, max_write);
-            fflush(stdout);
-        }
+        MPI_Reduce(&local_write, &max_write_by_step[step], 1, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD);
     }
 
+    MPI_Barrier(MPI_COMM_WORLD);
+    double t_close0 = MPI_Wtime();
     H5Fclose(file);
+    MPI_Barrier(MPI_COMM_WORLD);
+    double t_close1    = MPI_Wtime();
+    double local_close = t_close1 - t_close0;
+    double max_close;
+    MPI_Reduce(&local_close, &max_close, 1, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD);
+
+    if (rank == 0) {
+        for (step = 0; step < N_TIMESTEPS; ++step) {
+            printf("posthoc_write,%d,%d,%ld,%.6f,%.6f,%.6f\n", step, nranks, n_elem, max_setup,
+                   max_write_by_step[step], max_close);
+        }
+        fflush(stdout);
+    }
 
     free(vx);
     free(vy);
