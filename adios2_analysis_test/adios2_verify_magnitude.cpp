@@ -51,11 +51,11 @@ main(int argc, char **argv)
     size_t offset = (size_t)rank * (size_t)n_elem;
     size_t count  = (size_t)n_elem;
 
-    double t_open0 = MPI_Wtime();
-    adios2::ADIOS adios(MPI_COMM_WORLD);
-    adios2::IO    rio    = adios.DeclareIO("VerifyMagnitude");
+    double         t_open0 = MPI_Wtime();
+    adios2::ADIOS  adios(MPI_COMM_WORLD);
+    adios2::IO     rio    = adios.DeclareIO("VerifyMagnitude");
     adios2::Engine reader = rio.Open(out_file, adios2::Mode::ReadRandomAccess);
-    auto           rmag  = rio.InquireVariable<float>("magnitude");
+    auto           rmag   = rio.InquireVariable<float>("magnitude");
     MPI_Barrier(MPI_COMM_WORLD);
     double t_open1    = MPI_Wtime();
     double local_open = t_open1 - t_open0;

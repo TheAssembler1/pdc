@@ -203,8 +203,7 @@ main(int argc, char **argv)
         int step_bad = 0;
         MPI_Reduce(&local_readback, &max_readback_by_step[step], 1, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD);
         MPI_Reduce(&local_compute, &max_compute_by_step[step], 1, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD);
-        MPI_Reduce(&local_writeback, &max_writeback_by_step[step], 1, MPI_DOUBLE, MPI_MAX, 0,
-                   MPI_COMM_WORLD);
+        MPI_Reduce(&local_writeback, &max_writeback_by_step[step], 1, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD);
         MPI_Reduce(&local_bad, &step_bad, 1, MPI_INT, MPI_SUM, 0, MPI_COMM_WORLD);
         step_bad_by_step[step] = step_bad;
         global_bad += step_bad;
@@ -221,8 +220,8 @@ main(int argc, char **argv)
 
     if (rank == 0) {
         for (step = 0; step < N_TIMESTEPS; ++step) {
-            double step_total =
-                max_readback_by_step[step] + max_compute_by_step[step] + max_writeback_by_step[step] + max_close;
+            double step_total = max_readback_by_step[step] + max_compute_by_step[step] +
+                                max_writeback_by_step[step] + max_close;
             printf("posthoc_analyze,%d,%d,%ld,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%d\n", step, nranks, n_elem,
                    max_setup, max_readback_by_step[step], max_compute_by_step[step],
                    max_writeback_by_step[step], max_close, step_total, step_bad_by_step[step]);
