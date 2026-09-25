@@ -28,7 +28,8 @@
 #SBATCH --cpus-per-task=3
 #SBATCH --account=m2621
 #SBATCH --time=00:30:00
-#SBATCH --constraint=cpu
+#SBATCH --constraint=gpu
+#SBATCH --gpus-per-node=4
 #SBATCH --qos=regular
 #SBATCH --output=%x_%j.log
 
