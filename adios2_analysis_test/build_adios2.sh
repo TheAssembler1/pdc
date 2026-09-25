@@ -12,6 +12,21 @@
 # Usage: ./build_adios2.sh
 # Override any variable by exporting it first, e.g.:
 #   ADIOS2_PREFIX=$HOME/adios2-install ./build_adios2.sh
+#
+# ZFP and Sodium are only needed by adios2_bench_compression and
+# adios2_bench_compression_encryption (adios2_bench_magnitude/_curl use
+# neither). If your zfp/libsodium install predates or doesn't export a
+# modern CMake package-config file (zfp-config.cmake /
+# sodium-config.cmake -- ADIOS2 needs the real package-config, not just
+# a *_ROOT_DIR-style custom Find module, which some older builds, e.g.
+# ones set up for PDC's own ZFP_ROOT_DIR convention, don't provide),
+# ADIOS2's own configure will fail outright even though the library
+# itself is perfectly usable. Skip the affected feature to unblock the
+# other two programs immediately:
+#   ENABLE_ZFP=OFF ./build_adios2.sh
+#   ENABLE_SODIUM=OFF ./build_adios2.sh
+ENABLE_ZFP="${ENABLE_ZFP:-ON}"
+ENABLE_SODIUM="${ENABLE_SODIUM:-ON}"
 
 set -euo pipefail
 
@@ -44,20 +59,22 @@ echo "== libsodium prefix:  $SODIUM_PREFIX"
 echo "== parallel jobs:     $JOBS"
 echo
 
-if [ ! -d "$ZFP_PREFIX" ]; then
+if [ "$ENABLE_ZFP" = "ON" ] && [ ! -d "$ZFP_PREFIX" ]; then
   echo "ERROR: ZFP_PREFIX ($ZFP_PREFIX) does not exist." >&2
   echo "  This path was guessed as \$WORKSPACE_ROOT/install/zfp -- if zfp is built" >&2
   echo "  and installed somewhere else on this machine, rerun as:" >&2
   echo "    ZFP_PREFIX=/path/to/zfp/install $0" >&2
-  echo "  If zfp isn't built at all yet, build/install it first." >&2
+  echo "  If zfp isn't built at all yet, either build/install it first, or skip" >&2
+  echo "  it with ENABLE_ZFP=OFF (see this script's header comment)." >&2
   exit 1
 fi
-if [ ! -d "$SODIUM_PREFIX" ]; then
+if [ "$ENABLE_SODIUM" = "ON" ] && [ ! -d "$SODIUM_PREFIX" ]; then
   echo "ERROR: SODIUM_PREFIX ($SODIUM_PREFIX) does not exist." >&2
   echo "  This path was guessed as \$WORKSPACE_ROOT/install/libsodium -- if libsodium" >&2
   echo "  is built and installed somewhere else on this machine, rerun as:" >&2
   echo "    SODIUM_PREFIX=/path/to/libsodium/install $0" >&2
-  echo "  If libsodium isn't built at all yet, build/install it first." >&2
+  echo "  If libsodium isn't built at all yet, either build/install it first, or" >&2
+  echo "  skip it with ENABLE_SODIUM=OFF (see this script's header comment)." >&2
   exit 1
 fi
 
@@ -75,12 +92,18 @@ git -C "$ADIOS2_SRC_DIR" checkout --quiet "$ADIOS2_VERSION"
 echo "== Configuring (clean)..."
 rm -rf "$ADIOS2_BUILD_DIR"
 mkdir -p "$ADIOS2_BUILD_DIR"
+
+CMAKE_PREFIX_PATH_PARTS=()
+[ "$ENABLE_ZFP" = "ON" ] && CMAKE_PREFIX_PATH_PARTS+=("$ZFP_PREFIX")
+[ "$ENABLE_SODIUM" = "ON" ] && CMAKE_PREFIX_PATH_PARTS+=("$SODIUM_PREFIX")
+CMAKE_PREFIX_PATH_JOINED="$(IFS=';'; echo "${CMAKE_PREFIX_PATH_PARTS[*]:-}")"
+
 cmake -S "$ADIOS2_SRC_DIR" -B "$ADIOS2_BUILD_DIR" \
   -DCMAKE_BUILD_TYPE=Release \
   -DCMAKE_INSTALL_PREFIX="$ADIOS2_PREFIX" \
   -DCMAKE_C_COMPILER=mpicc \
   -DCMAKE_CXX_COMPILER=mpicxx \
-  -DCMAKE_PREFIX_PATH="$ZFP_PREFIX;$SODIUM_PREFIX" \
+  -DCMAKE_PREFIX_PATH="$CMAKE_PREFIX_PATH_JOINED" \
   -DADIOS2_USE_MPI=ON \
   -DADIOS2_USE_HDF5=OFF \
   -DADIOS2_USE_CUDA=OFF \
@@ -91,8 +114,8 @@ cmake -S "$ADIOS2_SRC_DIR" -B "$ADIOS2_BUILD_DIR" \
   -DADIOS2_USE_SST=OFF \
   -DADIOS2_USE_UCX=OFF \
   -DADIOS2_USE_Derived_Variable=ON \
-  -DADIOS2_USE_ZFP=ON \
-  -DADIOS2_USE_Sodium=ON \
+  -DADIOS2_USE_ZFP="$ENABLE_ZFP" \
+  -DADIOS2_USE_Sodium="$ENABLE_SODIUM" \
   -DBUILD_TESTING=OFF \
   -DADIOS2_BUILD_EXAMPLES=OFF
 
@@ -109,3 +132,11 @@ ADIOS2_PREFIX="$ADIOS2_PREFIX" make -C "$SCRIPT_DIR"
 echo
 echo "== Done. Binaries in $SCRIPT_DIR:"
 ls -1 "$SCRIPT_DIR"/adios2_bench_*
+if [ "$ENABLE_ZFP" != "ON" ] || [ "$ENABLE_SODIUM" != "ON" ]; then
+  echo
+  echo "NOTE: built with ENABLE_ZFP=$ENABLE_ZFP ENABLE_SODIUM=$ENABLE_SODIUM."
+  echo "  adios2_bench_magnitude and adios2_bench_curl are unaffected, but"
+  echo "  adios2_bench_compression / adios2_bench_compression_encryption will"
+  echo "  fail at runtime (not compile time) with an unrecognized-operator"
+  echo "  error if the corresponding feature is off."
+fi
