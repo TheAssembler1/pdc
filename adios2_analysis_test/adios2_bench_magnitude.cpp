@@ -103,6 +103,21 @@ main(int argc, char **argv)
     adios2::ADIOS adios(MPI_COMM_WORLD);
     adios2::IO    io = adios.DeclareIO("BenchMagnitude");
 
+    /* BP5's default aggregation strategy (TwoLevelShm) routes writes
+     * through a subset of node-local "aggregator" ranks via shared
+     * memory rather than every rank touching storage directly -- not
+     * MPI-IO collective I/O the way HDF5's H5FD_MPIO_COLLECTIVE is, but
+     * a comparable "fewer ranks actually do I/O" strategy. Optional
+     * override so this benchmark can also be run with every rank writing
+     * independently (no aggregation at all), for a genuine independent-
+     * I/O comparison point -- see magnitude_analysis_everyonewrites.sbatch. */
+    const char *aggregation_type = getenv("ADIOS2_AGGREGATION_TYPE");
+    if (aggregation_type != nullptr) {
+        io.SetParameter("AggregationType", aggregation_type);
+        if (rank == 0)
+            fprintf(stderr, "adios2_bench_magnitude: AggregationType=%s\n", aggregation_type);
+    }
+
     size_t global = (size_t)nranks * (size_t)n_elem;
     size_t offset = (size_t)rank * (size_t)n_elem;
     size_t count  = (size_t)n_elem;
