@@ -11,6 +11,7 @@ set -xeu
 
 pushd "$BIN_DIR"
 srun \
+  --overlap \
   -N "$NUM_NODES" \
   -n "$CLIENT_TOTAL_TASKS" \
   --ntasks-per-node="$CLIENTS_PER_NODE" \

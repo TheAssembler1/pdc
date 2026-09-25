@@ -31,6 +31,7 @@ pushd "$BIN_DIR"
 # by mistake) checkpoint.
 rm -rf "${PDC_DATA_LOC:?}"/*
 srun \
+  --overlap \
   -N "$NUM_NODES" \
   -n "$SERVER_TOTAL_TASKS" \
   --ntasks-per-node="$SERVERS_PER_NODE" \
