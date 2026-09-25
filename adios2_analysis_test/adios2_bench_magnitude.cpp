@@ -140,7 +140,7 @@ main(int argc, char **argv)
             writer.EndStep();
 
             MPI_Barrier(MPI_COMM_WORLD);
-            double t_write1 = MPI_Wtime();
+            double t_write1    = MPI_Wtime();
             double local_write = t_write1 - t_write0;
             MPI_Reduce(&local_write, &step_write_s[step], 1, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD);
         }
@@ -168,9 +168,9 @@ main(int argc, char **argv)
             reader.Get(rmag, mag.data(), adios2::Mode::Sync);
 
             MPI_Barrier(MPI_COMM_WORLD);
-            double t_read1     = MPI_Wtime();
-            double local_read  = t_read1 - t_read0;
-            double max_read    = 0;
+            double t_read1    = MPI_Wtime();
+            double local_read = t_read1 - t_read0;
+            double max_read   = 0;
             MPI_Reduce(&local_read, &max_read, 1, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD);
 
             /* Correctness check (not timed): same deterministic pattern

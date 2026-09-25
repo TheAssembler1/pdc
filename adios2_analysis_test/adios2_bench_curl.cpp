@@ -153,7 +153,7 @@ main(int argc, char **argv)
             writer.Put(var_w, w.data());
             writer.EndStep();
             MPI_Barrier(MPI_COMM_WORLD);
-            double t_write1 = MPI_Wtime();
+            double t_write1    = MPI_Wtime();
             double local_write = t_write1 - t_write0;
             double max_write;
             MPI_Reduce(&local_write, &max_write, 1, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD);
@@ -181,18 +181,18 @@ main(int argc, char **argv)
                 reader.Close();
             }
             MPI_Barrier(MPI_COMM_WORLD);
-            double t_readback1 = MPI_Wtime();
+            double t_readback1    = MPI_Wtime();
             double local_readback = t_readback1 - t_readback0;
             double max_readback;
             MPI_Reduce(&local_readback, &max_readback, 1, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD);
 
-            double t_compute0 = MPI_Wtime();
+            double              t_compute0 = MPI_Wtime();
             std::vector<double> cx(n_elem), cy(n_elem), cz(n_elem);
             curl_math_compute(u_rb.data(), v_rb.data(), w_rb.data(), (size_t)nx, (size_t)ny,
                               (size_t)nz_per_rank, cx.data(), cy.data(), cz.data());
             for (size_t i = 0; i < n_elem; ++i)
                 mag[i] = sqrt(cx[i] * cx[i] + cy[i] * cy[i] + cz[i] * cz[i]);
-            double t_compute1 = MPI_Wtime();
+            double t_compute1    = MPI_Wtime();
             double local_compute = t_compute1 - t_compute0;
             double max_compute;
             MPI_Reduce(&local_compute, &max_compute, 1, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD);
@@ -202,7 +202,7 @@ main(int argc, char **argv)
             writer.Put(var_mag, mag.data());
             writer.EndStep();
             MPI_Barrier(MPI_COMM_WORLD);
-            double t_writeback1 = MPI_Wtime();
+            double t_writeback1    = MPI_Wtime();
             double local_writeback = t_writeback1 - t_writeback0;
             double max_writeback;
             MPI_Reduce(&local_writeback, &max_writeback, 1, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD);

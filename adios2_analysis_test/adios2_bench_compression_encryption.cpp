@@ -147,7 +147,7 @@ main(int argc, char **argv)
             writer.EndStep();
 
             MPI_Barrier(MPI_COMM_WORLD);
-            double t_write1 = MPI_Wtime();
+            double t_write1    = MPI_Wtime();
             double local_write = t_write1 - t_write0;
             MPI_Reduce(&local_write, &step_write_s[step], 1, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD);
         }
