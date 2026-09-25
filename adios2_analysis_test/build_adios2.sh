@@ -17,12 +17,22 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
+# Auto-derive a workspace root by assuming this PDC checkout lives at
+# <workspace>/source/pdc (adios2_analysis_test's grandparent's parent),
+# and that zfp/libsodium/adios2 install prefixes are siblings under
+# <workspace>/install/ -- the convention this repo's own scripts already
+# rely on (e.g. vpicio_scale.sh's PDC_DATA_LOC=.../work_space/install/pdc
+# next to .../work_space/source/pdc). Only used as a *default*; every
+# path below is still directly overridable by exporting the variable
+# first, since this guess is wrong for any other layout.
+WORKSPACE_ROOT_GUESS="$(cd "$SCRIPT_DIR/../../.." 2>/dev/null && pwd || true)"
+
 ADIOS2_VERSION="${ADIOS2_VERSION:-v2.12.1}"
 ADIOS2_SRC_DIR="${ADIOS2_SRC_DIR:-$SCRIPT_DIR/.adios2_src}"
 ADIOS2_BUILD_DIR="${ADIOS2_BUILD_DIR:-$SCRIPT_DIR/.adios2_build}"
-ADIOS2_PREFIX="${ADIOS2_PREFIX:-/mnt/fast/nlewis/workspace/install/adios2}"
-ZFP_PREFIX="${ZFP_PREFIX:-/mnt/fast/nlewis/workspace/install/zfp}"
-SODIUM_PREFIX="${SODIUM_PREFIX:-/mnt/fast/nlewis/workspace/install/libsodium}"
+ADIOS2_PREFIX="${ADIOS2_PREFIX:-$WORKSPACE_ROOT_GUESS/install/adios2}"
+ZFP_PREFIX="${ZFP_PREFIX:-$WORKSPACE_ROOT_GUESS/install/zfp}"
+SODIUM_PREFIX="${SODIUM_PREFIX:-$WORKSPACE_ROOT_GUESS/install/libsodium}"
 JOBS="${JOBS:-$(nproc)}"
 
 echo "== ADIOS2 version:    $ADIOS2_VERSION"
@@ -35,11 +45,19 @@ echo "== parallel jobs:     $JOBS"
 echo
 
 if [ ! -d "$ZFP_PREFIX" ]; then
-  echo "ERROR: ZFP_PREFIX ($ZFP_PREFIX) does not exist -- build/install zfp first" >&2
+  echo "ERROR: ZFP_PREFIX ($ZFP_PREFIX) does not exist." >&2
+  echo "  This path was guessed as \$WORKSPACE_ROOT/install/zfp -- if zfp is built" >&2
+  echo "  and installed somewhere else on this machine, rerun as:" >&2
+  echo "    ZFP_PREFIX=/path/to/zfp/install $0" >&2
+  echo "  If zfp isn't built at all yet, build/install it first." >&2
   exit 1
 fi
 if [ ! -d "$SODIUM_PREFIX" ]; then
-  echo "ERROR: SODIUM_PREFIX ($SODIUM_PREFIX) does not exist -- build/install libsodium first" >&2
+  echo "ERROR: SODIUM_PREFIX ($SODIUM_PREFIX) does not exist." >&2
+  echo "  This path was guessed as \$WORKSPACE_ROOT/install/libsodium -- if libsodium" >&2
+  echo "  is built and installed somewhere else on this machine, rerun as:" >&2
+  echo "    SODIUM_PREFIX=/path/to/libsodium/install $0" >&2
+  echo "  If libsodium isn't built at all yet, build/install it first." >&2
   exit 1
 fi
 
