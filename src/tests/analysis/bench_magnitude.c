@@ -290,6 +290,14 @@ main(int argc, char **argv)
          * read-triggered hook -- see file header comment). Either way,
          * the result comes back from the server, never computed here. */
         t_read0 = MPI_Wtime();
+        /* Re-zero every timestep, not just once before the loop -- vx/vy/vz
+         * (and therefore the expected magnitude) are identical every
+         * timestep, so without this a silently no-op read on step 1/2
+         * would leave the previous timestep's correct-looking values in
+         * place and the correctness check below would pass without this
+         * step's read having actually happened. Matches
+         * adios2_bench_magnitude.cpp's std::fill before every Get(). */
+        memset(mag, 0, sizeof(double) * n_elem);
         do_transfer(mag, PDC_READ, mag_obj, reg, reg_global, "read magnitude");
         MPI_Barrier(MPI_COMM_WORLD);
         t_read1 = MPI_Wtime();
