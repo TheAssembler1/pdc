@@ -29,3 +29,15 @@ docs/build
 
 # ignore .zed
 .zed
+
+# adios2_analysis_test/build_adios2.sh clones+builds ADIOS2 locally into
+# these -- never commit a third-party source/build tree
+adios2_analysis_test/.adios2_src
+adios2_analysis_test/.adios2_build
+# compiled benchmark binaries and their .bp output, not source
+adios2_analysis_test/adios2_bench_magnitude
+adios2_analysis_test/adios2_bench_curl
+adios2_analysis_test/adios2_bench_compression
+adios2_analysis_test/adios2_bench_compression_encryption
+adios2_analysis_test/*.bp
+adios2_analysis_test/*.bp.key
