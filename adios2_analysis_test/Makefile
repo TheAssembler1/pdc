@@ -24,7 +24,11 @@ ADIOS2_PREFIX ?= /mnt/fast/nlewis/workspace/install/adios2
 CURL_MATH_INCLUDE := -I../src/tests/analysis
 
 ADIOS2_INCLUDE := -I$(ADIOS2_PREFIX)/include
-ADIOS2_LIB := -L$(ADIOS2_PREFIX)/lib -Wl,-rpath,$(ADIOS2_PREFIX)/lib \
+# Some installs (e.g. this project's own local dev machine) use plain
+# lib/; others (RHEL/Cray-toolchain machines, e.g. Perlmutter) use
+# lib64/ instead -- auto-detect rather than hardcoding either.
+ADIOS2_LIBDIR := $(if $(wildcard $(ADIOS2_PREFIX)/lib64/libadios2_c.*),lib64,lib)
+ADIOS2_LIB := -L$(ADIOS2_PREFIX)/$(ADIOS2_LIBDIR) -Wl,-rpath,$(ADIOS2_PREFIX)/$(ADIOS2_LIBDIR) \
               -ladios2_cxx_mpi -ladios2_cxx -ladios2_c_mpi -ladios2_c
 ADIOS2_DEFINES := -DADIOS2_USE_MPI=1
 
