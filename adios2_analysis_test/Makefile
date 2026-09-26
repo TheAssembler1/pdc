@@ -20,6 +20,11 @@
 #                                          genuinely separate process after the writer
 #                                          exits, so read timing isn't conflated with
 #                                          the writer's own warm process/connection state
+#   adios2_vpicio                        - 8-field VPIC-style particle write, analog of
+#                                          src/tests/misc/vpicio.c
+#   adios2_bdcats                        - reads back what adios2_vpicio wrote, analog of
+#                                          src/tests/misc/bdcats.c -- run as its own
+#                                          process after the writer exits
 
 # := (not ?=): Make's own built-in default for CXX is g++, which
 # already counts as "set" and would silently win over ?=.
@@ -38,7 +43,8 @@ ADIOS2_LIB := -L$(ADIOS2_PREFIX)/$(ADIOS2_LIBDIR) -Wl,-rpath,$(ADIOS2_PREFIX)/$(
 ADIOS2_DEFINES := -DADIOS2_USE_MPI=1
 
 TARGETS := adios2_bench_magnitude adios2_bench_curl adios2_bench_compression \
-           adios2_bench_compression_encryption adios2_verify_magnitude
+           adios2_bench_compression_encryption adios2_verify_magnitude \
+           adios2_vpicio adios2_bdcats
 
 .PHONY: all clean
 
@@ -60,6 +66,12 @@ adios2_bench_compression_encryption: adios2_bench_compression_encryption.cpp
 	$(CXX) $(CXXFLAGS) $(ADIOS2_DEFINES) $(ADIOS2_INCLUDE) -o $@ $< $(ADIOS2_LIB)
 
 adios2_verify_magnitude: adios2_verify_magnitude.cpp
+	$(CXX) $(CXXFLAGS) $(ADIOS2_DEFINES) $(ADIOS2_INCLUDE) -o $@ $< $(ADIOS2_LIB)
+
+adios2_vpicio: adios2_vpicio.cpp
+	$(CXX) $(CXXFLAGS) $(ADIOS2_DEFINES) $(ADIOS2_INCLUDE) -o $@ $< $(ADIOS2_LIB)
+
+adios2_bdcats: adios2_bdcats.cpp
 	$(CXX) $(CXXFLAGS) $(ADIOS2_DEFINES) $(ADIOS2_INCLUDE) -o $@ $< $(ADIOS2_LIB)
 
 clean:

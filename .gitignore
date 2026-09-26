@@ -40,5 +40,7 @@ adios2_analysis_test/adios2_bench_curl
 adios2_analysis_test/adios2_bench_compression
 adios2_analysis_test/adios2_bench_compression_encryption
 adios2_analysis_test/adios2_verify_magnitude
+adios2_analysis_test/adios2_vpicio
+adios2_analysis_test/adios2_bdcats
 adios2_analysis_test/*.bp
 adios2_analysis_test/*.bp.key
