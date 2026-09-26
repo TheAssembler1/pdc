@@ -32,19 +32,17 @@ cd "$SLURM_SUBMIT_DIR"
 
 module load cray-hdf5-parallel
 
+# CLIENTS_PER_NODE, NX/NY/NZ_PER_RANK: see ../common.sh (no PDC server
+# here, so SERVERS_PER_NODE from that file is unused). This file's own
+# #SBATCH --ntasks-per-node above must still equal CLIENTS_PER_NODE.
+source "$SLURM_SUBMIT_DIR/../common.sh"
+
 export NUM_NODES=$SLURM_JOB_NUM_NODES
-export CLIENTS_PER_NODE=32
 export CLIENT_TOTAL_TASKS=$((NUM_NODES * CLIENTS_PER_NODE))
 
 export BIN_DIR=${BIN_DIR:-$PWD/../../hdf5_analysis_test}
 export OUT_DIR=${OUT_DIR:-$SCRATCH/hdf5_curl_analysis_bench}
 mkdir -p "$OUT_DIR"
-
-# See README.md for how these were derived from the source paper's
-# reported data volumes (u,v,w ~4GB total at a 96-rank reference point).
-export NX=${NX:-256}
-export NY=${NY:-256}
-export NZ_PER_RANK=${NZ_PER_RANK:-64}
 
 export LOG_TAG=curl_hdf5
 export RESULTS=$PWD/results_curl_hdf5_${SLURM_JOB_ID}.csv

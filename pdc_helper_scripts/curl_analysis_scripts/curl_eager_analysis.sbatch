@@ -1,6 +1,6 @@
 #!/bin/bash
 # PDC eager (DataFlyway) curl + vorticity-magnitude analysis -- single
-# node-count step. 8 data servers/node, 32 client ranks/node, writing one
+# node-count step. 2 data servers/node, 32 client ranks/node, writing one
 # CSV row to results_curl_eager_<jobid>.csv.
 #
 # Submit one of these per node count via curl_eager_analysis_run.sh, or
@@ -10,7 +10,7 @@
 
 #SBATCH --job-name=pdc-curl-eager
 #SBATCH --nodes=8
-#SBATCH --ntasks-per-node=40
+#SBATCH --ntasks-per-node=34
 #SBATCH --cpus-per-task=3
 #SBATCH --account=m2621
 #SBATCH --time=00:30:00
@@ -21,9 +21,12 @@
 set -u
 cd "$SLURM_SUBMIT_DIR"
 
+# SERVERS_PER_NODE, CLIENTS_PER_NODE, NX/NY/NZ_PER_RANK/COMPRESS: see
+# ../common.sh -- this file's own #SBATCH --ntasks-per-node above must
+# still equal SERVERS_PER_NODE + CLIENTS_PER_NODE (see that file's caveat).
+source "$SLURM_SUBMIT_DIR/../common.sh"
+
 export NUM_NODES=$SLURM_JOB_NUM_NODES
-export SERVERS_PER_NODE=8
-export CLIENTS_PER_NODE=32
 export SERVER_TOTAL_TASKS=$((NUM_NODES * SERVERS_PER_NODE))
 export CLIENT_TOTAL_TASKS=$((NUM_NODES * CLIENTS_PER_NODE))
 
@@ -31,15 +34,6 @@ export BIN_DIR=${BIN_DIR:-$PWD/../../build/bin}
 export PDC_DATA_LOC=${PDC_DATA_LOC:-$SCRATCH/pdc_curl_analysis_bench}
 export PDC_TMPDIR=${PDC_TMPDIR:-$PDC_DATA_LOC}
 mkdir -p "$PDC_DATA_LOC"
-
-# See README.md for how these were derived from the source paper's
-# reported data volumes (u,v,w ~4GB total at a 96-rank reference point,
-# so that curl comes out to ~4GB and vorticity_magnitude to ~2.7GB,
-# matching the paper's reported ~4GB/~3GB).
-export NX=${NX:-256}
-export NY=${NY:-256}
-export NZ_PER_RANK=${NZ_PER_RANK:-64}
-export COMPRESS=${COMPRESS:-0}
 
 export LOG_TAG=curl_eager
 export RESULTS=$PWD/results_curl_eager_${SLURM_JOB_ID}.csv

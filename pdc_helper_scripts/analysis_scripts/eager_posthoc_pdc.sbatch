@@ -39,9 +39,12 @@
 set -u
 cd "$SLURM_SUBMIT_DIR"
 
+# SERVERS_PER_NODE, CLIENTS_PER_NODE, N_ELEM: see ../common.sh -- this
+# file's own #SBATCH --ntasks-per-node above must still equal
+# SERVERS_PER_NODE + CLIENTS_PER_NODE (see that file's caveat).
+source "$SLURM_SUBMIT_DIR/../common.sh"
+
 export NUM_NODES=$SLURM_JOB_NUM_NODES
-export SERVERS_PER_NODE=2
-export CLIENTS_PER_NODE=32
 export SERVER_TOTAL_TASKS=$((NUM_NODES * SERVERS_PER_NODE))
 export CLIENT_TOTAL_TASKS=$((NUM_NODES * CLIENTS_PER_NODE))
 
@@ -50,9 +53,6 @@ export PDC_DATA_LOC=${PDC_DATA_LOC:-$SCRATCH/pdc_analysis_bench}
 export PDC_TMPDIR=${PDC_TMPDIR:-$PDC_DATA_LOC}
 mkdir -p "$PDC_DATA_LOC"
 
-export N_ELEM=${N_ELEM:-16777216}   # 64 MiB/rank of float32 -- see the
-                                     # identical comment in posthoc_pdc.sbatch
-                                     # for the full aggregate-size math.
 export LOG_TAG=eager_posthoc
 export RESULTS=$PWD/results_eager_posthoc_${SLURM_JOB_ID}.csv
 export WRITE_LOG=$PWD/write_${LOG_TAG}_${SLURM_JOB_ID}.csv

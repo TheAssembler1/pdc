@@ -14,7 +14,7 @@
 
 #SBATCH --job-name=pdc-curl-posthoc
 #SBATCH --nodes=8
-#SBATCH --ntasks-per-node=40
+#SBATCH --ntasks-per-node=34
 #SBATCH --cpus-per-task=3
 #SBATCH --account=m2621
 #SBATCH --time=00:30:00
@@ -25,9 +25,12 @@
 set -u
 cd "$SLURM_SUBMIT_DIR"
 
+# SERVERS_PER_NODE, CLIENTS_PER_NODE, NX/NY/NZ_PER_RANK/COMPRESS: see
+# ../common.sh -- this file's own #SBATCH --ntasks-per-node above must
+# still equal SERVERS_PER_NODE + CLIENTS_PER_NODE (see that file's caveat).
+source "$SLURM_SUBMIT_DIR/../common.sh"
+
 export NUM_NODES=$SLURM_JOB_NUM_NODES
-export SERVERS_PER_NODE=8
-export CLIENTS_PER_NODE=32
 export SERVER_TOTAL_TASKS=$((NUM_NODES * SERVERS_PER_NODE))
 export CLIENT_TOTAL_TASKS=$((NUM_NODES * CLIENTS_PER_NODE))
 
@@ -35,11 +38,6 @@ export BIN_DIR=${BIN_DIR:-$PWD/../../build/bin}
 export PDC_DATA_LOC=${PDC_DATA_LOC:-$SCRATCH/pdc_curl_analysis_bench}
 export PDC_TMPDIR=${PDC_TMPDIR:-$PDC_DATA_LOC}
 mkdir -p "$PDC_DATA_LOC"
-
-export NX=${NX:-256}
-export NY=${NY:-256}
-export NZ_PER_RANK=${NZ_PER_RANK:-64}
-export COMPRESS=${COMPRESS:-0}
 
 export RESULTS=$PWD/results_curl_posthoc_${SLURM_JOB_ID}.csv
 export WRITE_LOG=$PWD/write_curl_posthoc_${SLURM_JOB_ID}.csv

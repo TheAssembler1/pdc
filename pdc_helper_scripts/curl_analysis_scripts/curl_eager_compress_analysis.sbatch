@@ -24,7 +24,7 @@
 
 #SBATCH --job-name=pdc-curl-eager-compress
 #SBATCH --nodes=8
-#SBATCH --ntasks-per-node=40
+#SBATCH --ntasks-per-node=34
 #SBATCH --cpus-per-task=3
 #SBATCH --account=m2621
 #SBATCH --time=00:30:00
@@ -36,9 +36,15 @@
 set -u
 cd "$SLURM_SUBMIT_DIR"
 
+# SERVERS_PER_NODE, CLIENTS_PER_NODE, NX/NY/NZ_PER_RANK: see ../common.sh
+# -- this file's own #SBATCH --ntasks-per-node above must still equal
+# SERVERS_PER_NODE + CLIENTS_PER_NODE (see that file's caveat). COMPRESS
+# is forced to 1 below regardless of common.sh's default -- that's the
+# whole point of this dedicated variant (see file header comment).
+source "$SLURM_SUBMIT_DIR/../common.sh"
+export COMPRESS=1
+
 export NUM_NODES=$SLURM_JOB_NUM_NODES
-export SERVERS_PER_NODE=8
-export CLIENTS_PER_NODE=32
 export SERVER_TOTAL_TASKS=$((NUM_NODES * SERVERS_PER_NODE))
 export CLIENT_TOTAL_TASKS=$((NUM_NODES * CLIENTS_PER_NODE))
 
@@ -46,13 +52,6 @@ export BIN_DIR=${BIN_DIR:-$PWD/../../build/bin}
 export PDC_DATA_LOC=${PDC_DATA_LOC:-$SCRATCH/pdc_curl_analysis_bench}
 export PDC_TMPDIR=${PDC_TMPDIR:-$PDC_DATA_LOC}
 mkdir -p "$PDC_DATA_LOC"
-
-# See README.md for how these were derived from the source paper's
-# reported data volumes.
-export NX=${NX:-256}
-export NY=${NY:-256}
-export NZ_PER_RANK=${NZ_PER_RANK:-64}
-export COMPRESS=1
 
 export LOG_TAG=curl_eager_compress
 export RESULTS=$PWD/results_curl_eager_compress_${SLURM_JOB_ID}.csv

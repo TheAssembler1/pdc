@@ -36,27 +36,18 @@ cd "$SLURM_SUBMIT_DIR"
 
 module load cray-hdf5-parallel
 
+# CLIENTS_PER_NODE, N_ELEM: see ../common.sh (no PDC server here, so
+# SERVERS_PER_NODE from that file is unused). This file's own #SBATCH
+# --ntasks-per-node above must still equal CLIENTS_PER_NODE.
+source "$SLURM_SUBMIT_DIR/../common.sh"
+
 export NUM_NODES=$SLURM_JOB_NUM_NODES
-export CLIENTS_PER_NODE=32
 export CLIENT_TOTAL_TASKS=$((NUM_NODES * CLIENTS_PER_NODE))
 
 export BIN_DIR=${BIN_DIR:-$PWD/../../hdf5_analysis_test}
 export OUT_DIR=${OUT_DIR:-$SCRATCH/hdf5_analysis_bench}
 mkdir -p "$OUT_DIR"
 
-export N_ELEM=${N_ELEM:-16777216}   # 64 MiB/rank of float32 -- at the max
-                                     # scale point (128 nodes * 32 ranks/node
-                                     # = 4096 ranks), this writes 320 MiB/rank
-                                     # per timestep (192 MiB input + 128 MiB
-                                     # magnitude out), and with N_TIMESTEPS=3
-                                     # in hdf5_bench_write.c /
-                                     # hdf5_bench_posthoc_analyze.c that's
-                                     # 960 MiB/rank, ~3.75 TiB (~4.12 TB)
-                                     # aggregate against a 4 TB budget --
-                                     # just over on paper but within
-                                     # rounding of typical scratch quotas;
-                                     # reduce N_ELEM if that budget is a
-                                     # hard constraint.
 export LOG_TAG=hdf5
 export RESULTS=$PWD/results_hdf5_${SLURM_JOB_ID}.csv
 export OUT_FILE=${OUT_DIR}/hdf5_bench_magnitude_${NUM_NODES}.h5

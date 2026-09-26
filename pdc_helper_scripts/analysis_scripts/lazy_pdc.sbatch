@@ -22,9 +22,12 @@
 set -u
 cd "$SLURM_SUBMIT_DIR"
 
+# SERVERS_PER_NODE, CLIENTS_PER_NODE, N_ELEM: see ../common.sh -- this
+# file's own #SBATCH --ntasks-per-node above must still equal
+# SERVERS_PER_NODE + CLIENTS_PER_NODE (see that file's caveat).
+source "$SLURM_SUBMIT_DIR/../common.sh"
+
 export NUM_NODES=$SLURM_JOB_NUM_NODES
-export SERVERS_PER_NODE=2
-export CLIENTS_PER_NODE=32
 export SERVER_TOTAL_TASKS=$((NUM_NODES * SERVERS_PER_NODE))
 export CLIENT_TOTAL_TASKS=$((NUM_NODES * CLIENTS_PER_NODE))
 
@@ -33,18 +36,6 @@ export PDC_DATA_LOC=${PDC_DATA_LOC:-$SCRATCH/pdc_analysis_bench}
 export PDC_TMPDIR=${PDC_TMPDIR:-$PDC_DATA_LOC}
 mkdir -p "$PDC_DATA_LOC"
 
-export N_ELEM=${N_ELEM:-16777216}   # 64 MiB/rank of float32 -- at the max
-                                     # scale point (128 nodes * 32 ranks/node
-                                     # = 4096 ranks), this writes 320 MiB/rank
-                                     # per timestep (192 MiB input + 128 MiB
-                                     # magnitude out), and with N_TIMESTEPS=3
-                                     # in bench_magnitude.c that's 960
-                                     # MiB/rank, ~3.75 TiB (~4.12 TB)
-                                     # aggregate against a 4 TB budget --
-                                     # just over on paper but within
-                                     # rounding of typical scratch quotas;
-                                     # reduce N_ELEM if that budget is a
-                                     # hard constraint.
 export LOG_TAG=lazy
 export RESULTS=$PWD/results_lazy_${SLURM_JOB_ID}.csv
 
