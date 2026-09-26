@@ -6,12 +6,15 @@
 
 cd "$(dirname "$0")"
 
+source ../common.sh
+NTASKS_PER_NODE=$((SERVERS_PER_NODE + CLIENTS_PER_NODE))
+
 prev_jid=""
 for nodes in 1 2 4 8; do
     if [ -z "$prev_jid" ]; then
-        jid=$(sbatch --nodes=$nodes eager_posthoc_pdc.sbatch | awk '{print $4}')
+        jid=$(sbatch --nodes=$nodes --ntasks-per-node=$NTASKS_PER_NODE eager_posthoc_pdc.sbatch | awk '{print $4}')
     else
-        jid=$(sbatch --nodes=$nodes --dependency=afterok:$prev_jid eager_posthoc_pdc.sbatch | awk '{print $4}')
+        jid=$(sbatch --nodes=$nodes --ntasks-per-node=$NTASKS_PER_NODE --dependency=afterok:$prev_jid eager_posthoc_pdc.sbatch | awk '{print $4}')
     fi
     echo "Submitted job $jid with $nodes nodes"
     prev_jid=$jid
