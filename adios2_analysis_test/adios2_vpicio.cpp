@@ -122,10 +122,10 @@ main(int argc, char **argv)
     for (int step = 0; step < steps; ++step) {
         /* Same per-step boundary overrides on q/i at index 0 and
          * numparticles-1 as vpicio.c's own step loop. */
-        q[0]                  = (float)(rank + step * 2);
-        id[0]                 = rank + step;
-        q[numparticles - 1]   = (float)(rank - step * 2);
-        id[numparticles - 1]  = rank - step;
+        q[0]                 = (float)(rank + step * 2);
+        id[0]                = rank + step;
+        q[numparticles - 1]  = (float)(rank - step * 2);
+        id[numparticles - 1] = rank - step;
 
         MPI_Barrier(MPI_COMM_WORLD);
         double t_write0 = MPI_Wtime();
