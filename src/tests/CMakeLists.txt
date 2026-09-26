@@ -78,6 +78,7 @@ set(PROGRAMS
   obj/obj_round_robin_io_all
   obj/delete_obj
   misc/vpicio
+  misc/vpicio_verify
   misc/bdcats
   misc/vpic_bdcats
   tags/kvtag_add_get
