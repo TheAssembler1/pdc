@@ -1,7 +1,8 @@
 #!/bin/bash
-# Start pdc_server in the background for this job's node count. Mirrors
-# vpicio_scripts/srun_server.sh: 8 data servers/node, decoupled from the
-# client rank count (see srun_client_*.sh / srun_hdf5.sh, 32 ranks/node).
+# Start pdc_server in the background for this job's node count. 2 data
+# servers/node (vpicio_scripts/srun_server.sh uses 8; this directory's
+# sbatch scripts intentionally use fewer), decoupled from the client rank
+# count (see srun_client_*.sh / srun_hdf5.sh, 32 ranks/node).
 # static_region_partition splits each object across however many data
 # servers exist regardless of client count, so this doesn't need to match
 # the client rank count for correctness -- see bench_magnitude.c's comment

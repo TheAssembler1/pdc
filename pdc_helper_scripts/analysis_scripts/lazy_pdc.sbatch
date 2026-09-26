@@ -1,6 +1,6 @@
 #!/bin/bash
 # PDC lazy (read-triggered, in-session) magnitude analysis -- single
-# node-count step. 8 data servers/node, 32 client ranks/node (see
+# node-count step. 2 data servers/node, 32 client ranks/node (see
 # srun_server.sh / srun_client_lazy.sh), writing one CSV row to
 # results_lazy_<jobid>.csv.
 #
@@ -11,7 +11,7 @@
 
 #SBATCH --job-name=pdc-lazy-magnitude
 #SBATCH --nodes=8
-#SBATCH --ntasks-per-node=40
+#SBATCH --ntasks-per-node=34
 #SBATCH --cpus-per-task=3
 #SBATCH --account=m2621
 #SBATCH --time=00:30:00
@@ -23,7 +23,7 @@ set -u
 cd "$SLURM_SUBMIT_DIR"
 
 export NUM_NODES=$SLURM_JOB_NUM_NODES
-export SERVERS_PER_NODE=8
+export SERVERS_PER_NODE=2
 export CLIENTS_PER_NODE=32
 export SERVER_TOTAL_TASKS=$((NUM_NODES * SERVERS_PER_NODE))
 export CLIENT_TOTAL_TASKS=$((NUM_NODES * CLIENTS_PER_NODE))
