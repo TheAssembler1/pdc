@@ -384,8 +384,8 @@ main(int argc, char **argv)
 #endif
 
         if (rank == 0) {
-            printf("vpicio,%d,%d,%s,%.6f,%.6f,%.6f\n", iter, size, transformation_str, setup_s,
-                   step_write_s, setup_s + step_write_s);
+            printf("vpicio,%d,%d,%s,%.6f,%.6f,%.6f\n", iter, size, transformation_str, setup_s, step_write_s,
+                   setup_s + step_write_s);
             fflush(stdout);
         }
     } // End for steps

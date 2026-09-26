@@ -96,8 +96,8 @@ main(int argc, char **argv)
             char obj_name[64];
             snprintf(obj_name, sizeof(obj_name), "%s-%d", obj_names[i], iter);
 
-            double t_open0 = MPI_Wtime();
-            pdcid_t obj    = PDCobj_open(obj_name, pdc);
+            double  t_open0 = MPI_Wtime();
+            pdcid_t obj     = PDCobj_open(obj_name, pdc);
             if (obj == 0) {
                 fprintf(stderr, "open failed for %s\n", obj_name);
                 MPI_Abort(MPI_COMM_WORLD, 1);
@@ -127,13 +127,25 @@ main(int argc, char **argv)
                 uint64_t global_j = (uint64_t)rank * numparticles + j;
                 double   expected;
                 switch (i) {
-                    case 0: expected = (double)((global_j % 1000) + 1); break;                /* dX */
-                    case 1: expected = (double)(((global_j + 137) % 1000) + 1); break;         /* dY */
-                    case 2: expected = (double)(((global_j + 271) % 1000) + 1); break;         /* dZ */
-                    case 3: expected = (double)(((global_j + 613) % 1000) + 1); break;         /* Ux */
-                    case 4: expected = (double)(((global_j + 911) % 1000) + 1); break;         /* Uy */
-                    case 5: expected = (double)(((global_j + 1301) % 1000) + 1); break;        /* Uz */
-                    case 6:                                                                    /* q */
+                    case 0:
+                        expected = (double)((global_j % 1000) + 1);
+                        break; /* dX */
+                    case 1:
+                        expected = (double)(((global_j + 137) % 1000) + 1);
+                        break; /* dY */
+                    case 2:
+                        expected = (double)(((global_j + 271) % 1000) + 1);
+                        break; /* dZ */
+                    case 3:
+                        expected = (double)(((global_j + 613) % 1000) + 1);
+                        break; /* Ux */
+                    case 4:
+                        expected = (double)(((global_j + 911) % 1000) + 1);
+                        break; /* Uy */
+                    case 5:
+                        expected = (double)(((global_j + 1301) % 1000) + 1);
+                        break; /* Uz */
+                    case 6:    /* q */
                         if (j == 0)
                             expected = (double)(rank + iter * 2);
                         else if (j == numparticles - 1)
