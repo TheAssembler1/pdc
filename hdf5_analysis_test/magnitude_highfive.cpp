@@ -41,7 +41,7 @@
  */
 
 #define N_TIMESTEPS 3
-#define EPSILON 1e-3
+#define EPSILON     1e-3
 
 #include <cmath>
 #include <cstdio>
@@ -172,7 +172,8 @@ main(int argc, char **argv)
         double t_readback1 = MPI_Wtime();
         {
             double local_readback = t_readback1 - t_readback0;
-            MPI_Reduce(&local_readback, &max_readback_by_step[step], 1, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD);
+            MPI_Reduce(&local_readback, &max_readback_by_step[step], 1, MPI_DOUBLE, MPI_MAX, 0,
+                       MPI_COMM_WORLD);
         }
 
         double t_compute0 = MPI_Wtime();
@@ -193,7 +194,8 @@ main(int argc, char **argv)
         double t_writeback1 = MPI_Wtime();
         {
             double local_writeback = t_writeback1 - t_writeback0;
-            MPI_Reduce(&local_writeback, &max_writeback_by_step[step], 1, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD);
+            MPI_Reduce(&local_writeback, &max_writeback_by_step[step], 1, MPI_DOUBLE, MPI_MAX, 0,
+                       MPI_COMM_WORLD);
         }
 
         /* Confirmation read of magnitude_<step> back from the file (see
@@ -249,8 +251,8 @@ main(int argc, char **argv)
                                 max_confirm_by_step[step] + max_close;
             printf("magnitude_highfive,%d,%d,%ld,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%d\n", step, nranks,
                    n_elem, max_setup, max_write_by_step[step], max_readback_by_step[step],
-                   max_compute_by_step[step], max_writeback_by_step[step], max_confirm_by_step[step], max_close,
-                   step_total, step_bad_by_step[step]);
+                   max_compute_by_step[step], max_writeback_by_step[step], max_confirm_by_step[step],
+                   max_close, step_total, step_bad_by_step[step]);
         }
         fflush(stdout);
     }
