@@ -22,7 +22,7 @@
 
 # ── PDC server/client topology (analysis_scripts/, curl_analysis_scripts/,
 #    every mode except the HDF5 baselines, which have no PDC server) ──────
-export SERVERS_PER_NODE=${SERVERS_PER_NODE:-2}
+export SERVERS_PER_NODE=${SERVERS_PER_NODE:-4}
 export CLIENTS_PER_NODE=${CLIENTS_PER_NODE:-32}
 
 # ── Magnitude workload sizing (analysis_scripts/) ─────────────────────────

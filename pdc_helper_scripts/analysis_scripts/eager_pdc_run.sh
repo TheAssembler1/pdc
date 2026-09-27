@@ -10,7 +10,7 @@ source ../common.sh
 NTASKS_PER_NODE=$((SERVERS_PER_NODE + CLIENTS_PER_NODE))
 
 prev_jid=""
-for nodes in 1 2 4 8; do
+for nodes in 1 2 4 8 16 32 64 128; do
     if [ -z "$prev_jid" ]; then
         jid=$(sbatch --nodes=$nodes --ntasks-per-node=$NTASKS_PER_NODE eager_pdc.sbatch | awk '{print $4}')
     else
