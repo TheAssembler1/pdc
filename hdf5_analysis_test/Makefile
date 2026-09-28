@@ -46,6 +46,16 @@ HIGHFIVE_INCLUDE := -I$(HIGHFIVE_SRC)/include
 # (the compiler wrappers already have them).
 HDF5_CXX_INCLUDE ?= $(shell h5pcc -show 2>/dev/null | grep -oE -- '-I[^ ]+' | tr '\n' ' ')
 HDF5_CXX_LIBDIR  ?= $(shell h5pcc -show 2>/dev/null | grep -oE -- '-L[^ ]+' | tr '\n' ' ')
+# h5pcc bakes an rpath into the C binaries it produces, so they find
+# libhdf5.so on the compute nodes regardless of LD_LIBRARY_PATH at
+# runtime; a plain -L/-lhdf5 link does NOT do this (-L is link-time
+# only), and LD_LIBRARY_PATH from `module load` does not reliably reach
+# srun-launched compute-node tasks on Perlmutter -- confirmed the hard
+# way (every rank of every magnitude_highfive job failed with "error
+# while loading shared libraries: libhdf5.so.1000: cannot open shared
+# object file"). Fix: bake the same -L directories in as -Wl,-rpath too.
+comma := ,
+HDF5_CXX_RPATH := $(foreach d,$(patsubst -L%,%,$(HDF5_CXX_LIBDIR)),-Wl$(comma)-rpath$(comma)$(d))
 
 TARGETS := hdf5_bench_write hdf5_bench_posthoc_analyze \
            hdf5_bench_curl_write hdf5_bench_curl_analyze \
@@ -82,7 +92,7 @@ highfive-fetch:
 	fi
 
 magnitude_highfive: magnitude_highfive.cpp | highfive-fetch
-	$(CXX) $(CXXFLAGS) $(HIGHFIVE_INCLUDE) $(HDF5_CXX_INCLUDE) $(HDF5_CXX_LIBDIR) -o $@ $< -lhdf5 -lm
+	$(CXX) $(CXXFLAGS) $(HIGHFIVE_INCLUDE) $(HDF5_CXX_INCLUDE) $(HDF5_CXX_LIBDIR) $(HDF5_CXX_RPATH) -o $@ $< -lhdf5 -lm
 
 clean:
 	rm -f $(TARGETS) *.h5
