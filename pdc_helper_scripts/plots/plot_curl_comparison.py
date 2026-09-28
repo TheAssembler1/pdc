@@ -12,18 +12,23 @@ analysis/transformation/io (each of pdc/, hdf5/, adios2/ below is now
 its own directory with its own Makefile/sbatch scripts, not one shared
 curl_analysis_scripts/ root):
 
-    pdc_helper_scripts/analysis/curl/
-      pdc/
-        2_servers_<date>/results_curl_eager_<jobid>.csv
-        4_servers_<date>/results_curl_eager_<jobid>.csv
-        8_servers_<date>/results_curl_eager_<jobid>.csv, results_curl_posthoc_<jobid>.csv, ...
-        ...                                       <- more <N>_servers* dirs will show up
-        csv_res/, and loose results_curl_<mode>_<jobid>.csv files anywhere
-          else under pdc/                          <- also scanned for non-eager PDC modes
-      hdf5/results_curl_hdf5_<jobid>.csv
-      adios2/results_adios2_curl_<jobid>.csv        <- note: no "curl_" in the filename,
-                                                        that directory's own naming convention
-      plots/plot_curl_comparison.py                 <- this file
+    pdc_helper_scripts/
+      analysis/curl/
+        pdc/
+          2_servers_<date>/results_curl_eager_<jobid>.csv
+          4_servers_<date>/results_curl_eager_<jobid>.csv
+          8_servers_<date>/results_curl_eager_<jobid>.csv, results_curl_posthoc_<jobid>.csv, ...
+          <MM_DD_YYYY>-<jobid>/                    <- new sweep-loop job output (one job now
+                                                        covers 2/4/8 servers via its own
+                                                        servers_per_node CSV column)
+          ...                                       <- more <N>_servers* dirs will show up
+          csv_res/, and loose results_curl_<mode>_<jobid>.csv files anywhere
+            else under pdc/                         <- also scanned for non-eager PDC modes
+        hdf5/results_curl_hdf5_<jobid>.csv
+        adios2/results_adios2_curl_<jobid>.csv       <- note: no "curl_" in the filename,
+                                                          that directory's own naming convention
+      plots/plot_curl_comparison.py                  <- this file, top-level (sibling of
+                                                           analysis/, transformation/, io/)
 
 Eager's server count is parsed from the leading "<N>_servers" of each
 directory name directly under --results-root (default analysis/curl/pdc)
@@ -333,9 +338,9 @@ def aggregate(rows, one_time_cols, per_step_cols):
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     script_dir = os.path.dirname(os.path.abspath(__file__))
-    default_results_root = os.path.normpath(os.path.join(script_dir, "..", "curl", "pdc"))
-    default_hdf5_root = os.path.normpath(os.path.join(script_dir, "..", "curl", "hdf5"))
-    default_adios2_root = os.path.normpath(os.path.join(script_dir, "..", "curl", "adios2"))
+    default_results_root = os.path.normpath(os.path.join(script_dir, "..", "analysis", "curl", "pdc"))
+    default_hdf5_root = os.path.normpath(os.path.join(script_dir, "..", "analysis", "curl", "hdf5"))
+    default_adios2_root = os.path.normpath(os.path.join(script_dir, "..", "analysis", "curl", "adios2"))
     ap.add_argument(
         "--results-root", default=default_results_root,
         help="Directory holding <N>_servers* subdirectories and/or results_curl_<mode>_*.csv files (default: analysis/curl/pdc)",

@@ -55,7 +55,7 @@ lfs setstripe -c "$STRIPE_COUNT" -S "$STRIPE_SIZE_BYTES" "$OUT_DIR" \
 VPICIO_RESULTS=$PWD/results_adios2_vpicio_${SLURM_JOB_ID}.csv
 BDCATS_RESULTS=$PWD/results_adios2_bdcats_${SLURM_JOB_ID}.csv
 
-echo "mode,step,n_ranks,setup_s,write_s,close_s,step_total_s" > "$VPICIO_RESULTS"
+echo "servers_per_node,mode,step,n_ranks,setup_s,write_s,close_s,step_total_s,last_step_write_s" > "$VPICIO_RESULTS"
 echo "mode,step,n_ranks,open_s,read_s,step_total_s" > "$BDCATS_RESULTS"
 
 srun \
@@ -67,7 +67,8 @@ srun \
   --error="vpicio_${NUM_NODES}.err" \
   "$BIN_DIR/adios2_vpicio" "$NPARTICLES" "$STEPS" "$SLEEPTIME" "$OUT_FILE"
 
-grep "^adios2_vpicio," "vpicio_${NUM_NODES}.log" >> "$VPICIO_RESULTS" || true
+VPICIO_RAW=$(mktemp "${VPICIO_RESULTS}.raw.XXXXXX")
+grep "^adios2_vpicio," "vpicio_${NUM_NODES}.log" >> "$VPICIO_RAW" || true
 
 srun \
   --overlap \
@@ -80,8 +81,23 @@ srun \
 
 grep "^adios2_bdcats," "bdcats_${NUM_NODES}.log" >> "$BDCATS_RESULTS" || true
 
-# Prepend servers_per_node as the first column (0 -- no PDC server involved).
-sed -i "1s/^/servers_per_node,/; 2,\$s/^/0,/" "$VPICIO_RESULTS"
+# The last of STEPS timesteps is VPIC-IO's real "outlier" I/O phase -- it
+# must run to completion before the job can end, so it can never overlap
+# with a following step's compute the way every earlier step can (see
+# evaluation.tex's own "the outlier phase for VPIC-IO" framing and
+# adios2_vpicio.cpp's own SLEEPTIME comment). Report its write_s as its
+# own column, repeated on every row, same convention
+# transformation/vpicio_zfp/'s sbatch scripts use for their own
+# last_step_write_s.
+last_step_write_s=$(tail -1 "$VPICIO_RAW" 2>/dev/null | awk -F, '{print $5}')
+
+# Prepend servers_per_node (0 -- no PDC server involved) and append
+# last_step_write_s to every row of the raw writer output.
+awk -F, -v OFS=, -v laststep="$last_step_write_s" '{ print 0, $0, laststep }' "$VPICIO_RAW" >> "$VPICIO_RESULTS"
+rm -f "$VPICIO_RAW"
+
+# BDCATS_RESULTS (verification, not workload timing) keeps the simpler
+# sed-based prepend -- no last-step column needed there.
 sed -i "1s/^/servers_per_node,/; 2,\$s/^/0,/" "$BDCATS_RESULTS"
 
 echo "Done. Results in $VPICIO_RESULTS and $BDCATS_RESULTS"

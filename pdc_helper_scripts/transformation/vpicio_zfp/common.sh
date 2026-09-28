@@ -33,10 +33,13 @@ export SERVER_SWEEP=${SERVER_SWEEP:-"2 4 8"}
 # MiB/rank/step, matching this project's own established VPIC-IO sizing
 # convention (see evaluation.tex / vpicio_scripts/vpicio_scale.sh's
 # original NPARTICLES). STEPS=5 matches that same convention.
-# SLEEPTIME defaults to 0 (no synthetic "emulate compute" delay) --
-# vpicio.c's write_s already correctly excludes whatever sleep time is
-# configured here from its timing regardless, but 0 keeps real runs from
-# being padded with time nobody is measuring anything during.
+# SLEEPTIME defaults to 40s -- the paper's own compute-overlap
+# convention (evaluation.tex: "40s/100s GEMM" per step; 40s is the
+# standard point, 100s only an independent one-off comparison). vpicio.c's
+# write_s already correctly excludes whatever sleep time is configured
+# here from its timing regardless -- this is purely the emulated-compute
+# phase the write is meant to overlap with, not padding on the measured
+# cost itself.
 export NPARTICLES=${NPARTICLES:-8388608}
 export STEPS=${STEPS:-5}
-export SLEEPTIME=${SLEEPTIME:-0}
+export SLEEPTIME=${SLEEPTIME:-40}

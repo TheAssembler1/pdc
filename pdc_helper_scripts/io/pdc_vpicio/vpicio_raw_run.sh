@@ -2,7 +2,7 @@
 # Submits one vpicio_raw.sbatch job per node count (1, 2, 4, 8, 16, 32,
 # 64, 128), chained with --dependency=afterok so they run one at a time
 # and each gets its own results_vpicio_raw_<jobid>.csv. Mirrors
-# transformation/vpicio_zfp/zfp_compress_cpu_run.sh.
+# transformation/vpicio_zfp/vpicio_zfp_run.sh.
 
 cd "$(dirname "$0")"
 

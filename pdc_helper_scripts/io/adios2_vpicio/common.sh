@@ -24,7 +24,9 @@ export STEPS=${STEPS:-5}
 
 # How long (seconds) adios2_vpicio sleeps between steps to emulate
 # compute -- see adios2_vpicio.cpp's own header comment for exactly
-# where this sits relative to the timed write bracket. 0 by default (no
-# synthetic delay); set nonzero to match vpicio_scripts/common.sh's own
-# SLEEPTIME convention.
-export SLEEPTIME=${SLEEPTIME:-0}
+# where this sits relative to the timed write bracket. Defaults to 40s,
+# matching io/pdc_vpicio/'s and transformation/vpicio_zfp/'s own
+# SLEEPTIME convention (the paper's standard compute-overlap point) --
+# both sides of the PDC-vs-ADIOS2 comparison need the same compute
+# overlap to be comparable.
+export SLEEPTIME=${SLEEPTIME:-40}

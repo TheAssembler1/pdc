@@ -56,7 +56,7 @@ OUTDIR=$PWD/$(date +%m_%d_%Y)-${SLURM_JOB_ID}
 mkdir -p "$OUTDIR"
 export RESULTS=$OUTDIR/results_zfp_compress_cpu_${SLURM_JOB_ID}.csv
 
-echo "servers_per_node,mode,step,n_ranks,transform,setup_s,write_s,step_total_s,avg_close_s,total_with_close_s" > "$RESULTS"
+echo "servers_per_node,mode,step,n_ranks,transform,setup_s,write_s,step_total_s,avg_close_s,total_with_close_s,last_step_write_s" > "$RESULTS"
 
 for SERVERS_PER_NODE in $SERVER_SWEEP; do
   export SERVERS_PER_NODE
@@ -81,11 +81,22 @@ for SERVERS_PER_NODE in $SERVER_SWEEP; do
   avg_close_s=$(grep 'total close time' "$CLOSE_LOG" 2>/dev/null | \
     sed -n 's/.*total close time = \([0-9.]*\).*/\1/p' | \
     awk '{sum+=$1; n++} END{if(n>0) printf "%.6f", sum/n; else print "0"}')
+
+  # The last of STEPS timesteps is VPIC-IO's real "outlier" I/O phase --
+  # it must run to completion before the job can end, so it can never
+  # overlap with a following step's compute the way every earlier step
+  # can (see evaluation.tex's own "the outlier phase for VPIC-IO" framing
+  # and vpicio.c's own SLEEPTIME comment). Report its write_s as its own
+  # column, repeated on every row of this step (same one-time-per-job
+  # convention as avg_close_s), rather than leaving callers to rediscover
+  # "the last step" by re-deriving max(step) themselves.
+  last_step_write_s=$(tail -1 "$STEP_RAW" 2>/dev/null | awk -F, '{print $6}')
+
   # Fold in close time and prepend servers_per_node, then append this
   # step's (headerless) rows to the shared, multi-step $RESULTS.
-  awk -F, -v OFS=, -v avgclose="$avg_close_s" -v srv="$SERVERS_PER_NODE" '
-    NF==7 { print srv, $0, avgclose, ($7 + avgclose); next }
-    { print srv, $0 }
+  awk -F, -v OFS=, -v avgclose="$avg_close_s" -v srv="$SERVERS_PER_NODE" -v laststep="$last_step_write_s" '
+    NF==7 { print srv, $0, avgclose, ($7 + avgclose), laststep; next }
+    { print srv, $0, "", "", laststep }
   ' "$STEP_RAW" >> "$RESULTS"
   rm -f "$STEP_RAW"
 
