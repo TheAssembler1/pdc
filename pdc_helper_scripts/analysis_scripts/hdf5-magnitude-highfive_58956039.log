@@ -1,0 +1,14 @@
+Lustre striping: count=128 size=67108864 bytes (64 MiB/rank), target=/pscratch/sd/n/nlewi26/hdf5_analysis_bench/magnitude_highfive_8.h5
++ pushd /pscratch/sd/n/nlewi26/src/work_space/source/pdc/pdc_helper_scripts/analysis_scripts/../../hdf5_analysis_test
+/pscratch/sd/n/nlewi26/src/work_space/source/pdc/hdf5_analysis_test /pscratch/sd/n/nlewi26/src/work_space/source/pdc/pdc_helper_scripts/analysis_scripts
++ srun -N 8 -n 256 --ntasks-per-node=32 --output=client_magnitude_highfive_8.log --error=client_magnitude_highfive_8.err ./magnitude_highfive 16777216 /pscratch/sd/n/nlewi26/hdf5_analysis_bench/magnitude_highfive_8.h5
+srun: error: nid005622: tasks 0-31: Exited with exit code 127
+srun: Terminating StepId=58956039.0
+srun: error: nid006713: tasks 192-223: Exited with exit code 127
+srun: error: nid005679: tasks 96-127: Exited with exit code 127
+srun: error: nid006620: tasks 128-159: Exited with exit code 127
+srun: error: nid006621: tasks 160-191: Exited with exit code 127
+srun: error: nid005623: tasks 32-63: Exited with exit code 127
+srun: error: nid006739: tasks 224-255: Exited with exit code 127
+srun: error: nid005678: tasks 64-95: Exited with exit code 127
+Done. Results in /pscratch/sd/n/nlewi26/src/work_space/source/pdc/pdc_helper_scripts/analysis_scripts/results_magnitude_highfive_58956039.csv
