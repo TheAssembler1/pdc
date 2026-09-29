@@ -994,11 +994,6 @@ PDC_region_cache_clock_cycle(void *ptr)
                     gettimeofday(&finish_time, NULL);
                     elapsed_time = finish_time.tv_sec - current_time.tv_sec +
                                    (finish_time.tv_usec - current_time.tv_usec) / 1000000.0;
-
-                    if (nflush > 0) {
-                        PDC_get_time_str(cur_time);
-                        LOG_INFO("Flushed %d regions to storage, took %.4fs\n", nflush, elapsed_time);
-                    }
                 }
                 else {
                     pthread_mutex_lock(&pdc_obj_cache_list_mutex);
