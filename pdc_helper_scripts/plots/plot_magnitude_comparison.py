@@ -354,9 +354,17 @@ def main():
     ap.add_argument("--highfive-root", default=default_highfive_root, help="Directory holding results_magnitude_highfive_*.csv (default: analysis/magnitude/highfive)")
     ap.add_argument("--out", default=None, help="Output PNG path (default: <script dir>/magnitude_comparison.png)")
     ap.add_argument("--modes", default=",".join(DEFAULT_PLOT_MODES), help="Comma-separated subset of modes to plot")
+    ap.add_argument(
+        "--server-count", type=int, default=None, choices=[2, 4, 8],
+        help="Restrict DF-eager/DF-view/PDC posthoc to just this one servers-per-node value "
+             "(one plain bar per mode instead of a 2/4/8-server bracket + trend line). "
+             "Default: all server counts found on disk, bracketed as usual.",
+    )
     args = ap.parse_args()
 
-    out_path = args.out or os.path.join(script_dir, "magnitude_comparison.png")
+    out_path = args.out or os.path.join(
+        script_dir, f"magnitude_comparison_{args.server_count}servers.png" if args.server_count else "magnitude_comparison.png"
+    )
 
     modes = [m.strip() for m in args.modes.split(",") if m.strip() and m.strip() != "eager"]
     for m in modes:
@@ -375,6 +383,10 @@ def main():
     server_counts = sorted({n_servers for rows in per_mode_rows.values() for (n_servers, _) in rows})
     if not server_counts:
         raise SystemExit(f"No results_<mode>_*.csv rows found under {args.results_root!r}")
+    if args.server_count is not None:
+        if args.server_count not in server_counts:
+            raise SystemExit(f"--server-count {args.server_count} not found on disk (available: {server_counts})")
+        server_counts = [args.server_count]
     print(f"Found server counts: {server_counts} (applies to both DF-eager and DF-view)")
 
     # series key -> n_ranks -> (segments, data_gb). PDC posthoc only has a
@@ -441,7 +453,15 @@ def main():
 
     def bar_label(key):
         mode, n_servers = key
-        return str(n_servers) if mode in MULTI_SERVER_MODES else MODE_LABEL[mode]
+        if mode in MULTI_SERVER_MODES:
+            # With --server-count, there's no bracket header naming the
+            # mode above a single bar (see the bracket-skip guard below),
+            # so the bar's own label has to carry the mode name instead
+            # of just its (now-constant, redundant) server count.
+            if args.server_count is not None:
+                return MULTI_SERVER_MODES[mode]["bracket_label"].split("\n")[0]
+            return str(n_servers)
+        return MODE_LABEL[mode]
 
     def bar_label_color(key):
         mode, n_servers = key
@@ -522,7 +542,12 @@ def main():
     for ms_mode, info in MULTI_SERVER_MODES.items():
         for gi, n_ranks in enumerate(all_ranks):
             keys = [(ms_mode, n) for n in server_counts if n_ranks in per_series[(ms_mode, n)]]
-            if not keys:
+            # A single selected server count (--server-count) has exactly
+            # one bar, not a span -- a "bracket" around one bar is just a
+            # zero-width vertical tick, not useful, so skip it (the
+            # linear-fit trend line below already has the identical
+            # len(xs) < 2 guard for the same reason).
+            if len(keys) < 2:
                 continue
             xs = [bar_centers[(k, gi)] for k in keys]
             local_max = max(sum(per_series[k][n_ranks][0].values()) for k in keys)
@@ -563,7 +588,10 @@ def main():
     ax.set_xticklabels([rank_gb_label(n) for n in all_ranks])
     ax.set_xlabel("MPI ranks / data size (GB)")
     ax.set_ylabel("total workload time (s)")
-    ax.set_title("magnitude analysis: workload comparison")
+    title = "magnitude analysis: workload comparison"
+    if args.server_count is not None:
+        title += f" ({args.server_count} servers/node)"
+    ax.set_title(title)
     ax.yaxis.set_minor_locator(AutoMinorLocator(2))
     ax.yaxis.grid(True, which="major", linestyle="-", linewidth=0.8, color="#888888", alpha=0.7, zorder=0)
     ax.yaxis.grid(True, which="minor", linestyle="-", linewidth=0.5, color="#aaaaaa", alpha=0.5, zorder=0)

@@ -33,3 +33,15 @@ python3 plot_vpicio_comparison.py
 Each accepts `--*-root` flags to point at a different results location
 and `--out` to write elsewhere -- see `--help` or the script's own
 docstring for the exact flags and default paths.
+
+`plot_magnitude_comparison.py` additionally takes `--server-count
+{2,4,8}` to produce a single-server-count variant instead of the default
+2/4/8-bracketed comparison: one plain bar per mode (no bracket, no
+trend line -- both only make sense across multiple server counts), title
+and output filename tagged with the count:
+
+```
+python3 plot_magnitude_comparison.py --server-count 2   # magnitude_comparison_2servers.png
+python3 plot_magnitude_comparison.py --server-count 4   # magnitude_comparison_4servers.png
+python3 plot_magnitude_comparison.py --server-count 8   # magnitude_comparison_8servers.png
+```
