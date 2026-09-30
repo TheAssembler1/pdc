@@ -162,9 +162,9 @@ MODE_ORDER = ["hdf5", "magnitude_highfive", "adios2_magnitude", "eager_posthoc"]
 DEFAULT_PLOT_MODES = ["hdf5", "magnitude_highfive", "adios2_magnitude"]
 MODE_LABEL = {
     "eager_posthoc": "DF-eager+PH",
-    "hdf5": "HDF5 Posthoc",
-    "magnitude_highfive": "HDF5 HighFive",
-    "adios2_magnitude": "ADIOS2 Eager",
+    "hdf5": "HDF5",
+    "magnitude_highfive": "HighFive",
+    "adios2_magnitude": "ADIOS2",
 }
 # Identity color for each mode's bar-top label (a separate visual channel
 # from the segment fill above). Deliberately distinct from the
@@ -207,7 +207,7 @@ WIP_POSTHOC_SERVERS = {4: 2.0, 2: 4.0}
 # WIP_POSTHOC_SERVERS); the bracket/trend-line treatment is otherwise
 # identical to DF-eager/DF-view, per explicit request.
 MULTI_SERVER_MODES = {
-    "posthoc": {"bracket_label": "PDC Posthoc", "colors": ["#004D40", "#00897B", "#4DB6AC"]},
+    "posthoc": {"bracket_label": "PDC", "colors": ["#004D40", "#00897B", "#4DB6AC"]},
     "eager": {"bracket_label": "DF-eager", "colors": ["#111111", "#7D3C98", "#B03A2E"]},
     "lazy": {"bracket_label": "DF-view", "colors": ["#5D4037", "#AD1457", "#827717"]},
 }
@@ -521,7 +521,7 @@ def main():
         return "single"
 
     n_transitions = sum(1 for a, b in zip(series, series[1:]) if cluster_of(a) != cluster_of(b))
-    GAP_RATIO = 1.3
+    GAP_RATIO = 1.8
     slot_width = group_width / max(n_bars + n_transitions * GAP_RATIO, 1)
     bar_width = slot_width * 0.8
     x = np.arange(n_groups)
@@ -602,7 +602,7 @@ def main():
             ax.plot([x0, x0, x1, x1], [bracket_y - tick_h, bracket_y, bracket_y, bracket_y - tick_h],
                     color=color, linewidth=1.1, zorder=6, clip_on=False)
             ax.text((x0 + x1) / 2, bracket_y + y_max * 0.012, info["bracket_label"],
-                    ha="center", va="bottom", fontsize=8, fontweight="bold", color=color, linespacing=1.3)
+                    ha="center", va="bottom", fontsize=10, fontweight="bold", color=color, linespacing=1.3)
 
     # Linear best-fit line through each rank-count group's 2/4/8-server
     # totals, once per MULTI_SERVER_MODES entry -- same convention/
@@ -631,12 +631,13 @@ def main():
 
     ax.set_xticks(x)
     ax.set_xticklabels([rank_gb_label(n) for n in all_ranks])
-    ax.set_xlabel("MPI ranks / data size (GB)")
-    ax.set_ylabel("total workload time (s)")
+    ax.set_xlabel("MPI ranks / data size (GB)", fontsize=13)
+    ax.set_ylabel("total workload time (s)", fontsize=13)
     title = "magnitude analysis: workload comparison"
     if args.server_count is not None:
         title += f" ({args.server_count} servers/node)"
-    ax.set_title(title)
+    ax.set_title(title, fontsize=16, fontweight="bold")
+    ax.tick_params(axis="y", labelsize=11)
     ax.yaxis.set_minor_locator(AutoMinorLocator(2))
     ax.yaxis.grid(True, which="major", linestyle="-", linewidth=0.8, color="#888888", alpha=0.7, zorder=0)
     ax.yaxis.grid(True, which="minor", linestyle="-", linewidth=0.5, color="#aaaaaa", alpha=0.5, zorder=0)
@@ -654,12 +655,12 @@ def main():
             ax.text(
                 bar_centers[(key, gi)], -0.02, bar_label(key),
                 transform=label_trans, rotation=90, ha="center", va="top",
-                fontsize=9, fontweight="bold", color=bar_label_color(key), clip_on=False,
+                fontsize=11, fontweight="bold", color=bar_label_color(key), clip_on=False,
             )
     # Smaller, darker ranks/GB tick labels so they read clearly against
     # the taller rotated bar labels and strong-scaling brackets crowding
     # the space right above them.
-    ax.tick_params(axis="x", pad=88, labelsize=8, labelcolor="#111111")
+    ax.tick_params(axis="x", pad=88, labelsize=10.5, labelcolor="#111111")
 
     # A line spanning each rank-count group's own bars, sitting just above
     # that group's ranks/GB tick label, so it's visually obvious which
@@ -681,12 +682,12 @@ def main():
     ]
     seg_handles = [mpatches.Patch(facecolor=SEGMENT_COLOR[s], hatch=SEGMENT_HATCH[s], edgecolor="white") for s in seg_keys]
     seg_labels = [SEGMENT_LABEL[s] for s in seg_keys]
-    leg1 = ax.legend(seg_handles, seg_labels, title="cost segment", loc="upper left", fontsize=8, title_fontsize=8)
+    leg1 = ax.legend(seg_handles, seg_labels, title="cost segment", loc="upper left", fontsize=14, title_fontsize=15, handlelength=3, handleheight=2.2)
     ax.add_artist(leg1)
 
     if trend_label_used:
         trend_handle = plt.Line2D([0], [0], linestyle="--", linewidth=1.6, color=TREND_COLOR)
-        ax.legend([trend_handle], ["linear fit (DF-eager / DF-view, per rank count)"], loc="upper right", fontsize=8)
+        ax.legend([trend_handle], ["linear fit (DF-eager / DF-view, per rank count)"], loc="upper right", fontsize=14, handlelength=3)
 
     if any(is_wip(k) for k in series):
         fig.text(
@@ -694,7 +695,7 @@ def main():
             "* PDC posthoc at 2 and 4 servers (dashed outline) are placeholder estimates, not measured "
             "data; those runs are WIP. Values assume the measured 8 server total doubles with each halving of "
             "server count, the same trend DF-eager's and DF-view's real 2/4/8 server data show.",
-            ha="center", va="top", fontsize=8, color="#555555", wrap=True,
+            ha="center", va="top", fontsize=9.5, color="#555555", wrap=True,
         )
 
     fig.savefig(out_path, dpi=200, bbox_inches="tight")

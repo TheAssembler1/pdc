@@ -194,7 +194,7 @@ OTHER_MODE_LABEL = {
 # the rotated text never grows tall enough to collide with the ranks/GB
 # tick labels below it) -- the full description above still appears in
 # the "method / series" legend.
-OTHER_MODE_BAR_LABEL = {"eager_compress": "Eager+ZFP", "posthoc": "PDC Posthoc", "hdf5": "HDF5 Posthoc", "adios2_curl": "ADIOS2"}
+OTHER_MODE_BAR_LABEL = {"eager_compress": "Eager+ZFP", "posthoc": "PDC", "hdf5": "HDF5", "adios2_curl": "ADIOS2"}
 
 TREND_COLOR = "#52514e"
 
@@ -449,11 +449,11 @@ def main():
             ax.text(
                 bar_centers[(key, gi)], -0.02, bar_label(key),
                 transform=label_trans, rotation=90, ha="center", va="top",
-                fontsize=8.5, fontweight="bold", color=bar_label_color(key), clip_on=False,
+                fontsize=11, fontweight="bold", color=bar_label_color(key), clip_on=False,
             )
     # Smaller, darker ranks/GB tick labels so they read clearly against
     # the taller rotated bar labels crowding the space right above them.
-    ax.tick_params(axis="x", pad=88, labelsize=8, labelcolor="#111111")
+    ax.tick_params(axis="x", pad=88, labelsize=10.5, labelcolor="#111111")
 
     # A line spanning each rank-count group's own bars, sitting just above
     # that group's ranks/GB tick label, so it's visually obvious which
@@ -506,9 +506,10 @@ def main():
 
     ax.set_xticks(x)
     ax.set_xticklabels([rank_gb_label(n) for n in all_ranks])
-    ax.set_xlabel("MPI ranks / data size (GB)")
-    ax.set_ylabel("total workload time (s)")
-    ax.set_title("curl + vorticity-magnitude: eager strong scaling vs. other methods")
+    ax.set_xlabel("MPI ranks / data size (GB)", fontsize=13)
+    ax.set_ylabel("total workload time (s)", fontsize=13)
+    ax.set_title("curl + vorticity-magnitude: eager strong scaling vs. other methods", fontsize=16, fontweight="bold")
+    ax.tick_params(axis="y", labelsize=11)
     ax.yaxis.set_minor_locator(AutoMinorLocator(2))
     ax.yaxis.grid(True, which="major", linestyle="-", linewidth=0.8, color="#888888", alpha=0.7, zorder=0)
     ax.yaxis.grid(True, which="minor", linestyle="-", linewidth=0.5, color="#aaaaaa", alpha=0.5, zorder=0)
@@ -522,11 +523,11 @@ def main():
     ]
     seg_handles = [mpatches.Patch(facecolor=SEGMENT_COLOR[s], hatch=SEGMENT_HATCH[s], edgecolor="white") for s in seg_keys]
     seg_labels = [SEGMENT_LABEL[s] for s in seg_keys]
-    leg1 = ax.legend(seg_handles, seg_labels, title="cost segment", loc="upper left", fontsize=8, title_fontsize=8)
+    leg1 = ax.legend(seg_handles, seg_labels, title="cost segment", loc="upper left", fontsize=14, title_fontsize=15, handlelength=3, handleheight=2.2)
     ax.add_artist(leg1)
 
     series_handles = [
-        plt.Line2D([0], [0], marker="s", linestyle="none", markersize=8,
+        plt.Line2D([0], [0], marker="s", linestyle="none", markersize=12,
                    markerfacecolor=bar_label_color(k), markeredgecolor=bar_label_color(k))
         for k in series
     ]
@@ -534,7 +535,7 @@ def main():
     trend_handle = plt.Line2D([0], [0], linestyle="--", linewidth=1.6, color=TREND_COLOR)
     ax.legend(
         series_handles + [trend_handle], series_labels + ["linear fit (eager, per rank count)"],
-        title="method / series", loc="upper right", fontsize=8, title_fontsize=8,
+        title="method / series", loc="upper right", fontsize=14, title_fontsize=15, handlelength=3,
     )
 
     y_max = max((sum(segs.values()) for k in series for segs, _ in per_series[k].values()), default=1.0)

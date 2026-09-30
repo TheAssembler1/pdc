@@ -147,10 +147,10 @@ SEGMENT_HATCH = {"write_main": "..", "write_outlier": "///", "close": "||"}
 # order they were added to transformation/vpicio_zfp/ (CPU, then GPU,
 # then GPU+encrypt).
 MULTI_SERVER_MODES = {
-    "vpicio_raw": {"bracket_label": "PDC Raw\nStrong", "colors": ["#0B3C5D", "#328CC1", "#89C2D9"]},
-    "zfp_compress_cpu": {"bracket_label": "PDC ZFP CPU\nStrong", "colors": ["#6A3D9A", "#9D6FC2", "#C9A6E0"]},
-    "zfp_compress_gpu": {"bracket_label": "PDC ZFP GPU\nStrong", "colors": ["#1B7A3D", "#4CAF6B", "#8FD4A3"]},
-    "zfp_gpu_then_encrypt": {"bracket_label": "PDC ZFP GPU\n+Encrypt Strong", "colors": ["#B03A2E", "#D9694F", "#F0A48B"]},
+    "vpicio_raw": {"bracket_label": "PDC Raw", "colors": ["#0B3C5D", "#328CC1", "#89C2D9"]},
+    "zfp_compress_cpu": {"bracket_label": "PDC ZFP CPU", "colors": ["#6A3D9A", "#9D6FC2", "#C9A6E0"]},
+    "zfp_compress_gpu": {"bracket_label": "PDC ZFP GPU", "colors": ["#1B7A3D", "#4CAF6B", "#8FD4A3"]},
+    "zfp_gpu_then_encrypt": {"bracket_label": "PDC ZFP GPU+Encrypt", "colors": ["#B03A2E", "#D9694F", "#F0A48B"]},
 }
 # Single-bar-per-rank-count mode (no server). Reuses
 # plot_magnitude_comparison.py's / plot_curl_comparison.py's own ADIOS2
@@ -417,7 +417,11 @@ def main():
             bar_centers[(key, gi)] = x[gi] + offset
 
     y_max = max((sum(per_series[k][n].values()) for k in series for n in per_series[k]), default=1.0)
-    ax.set_ylim(0, y_max * 1.2)
+    # Extra headroom so the leftmost group's bracket, which sits right
+    # where the (large, per explicit request) "cost segment" legend is
+    # anchored, has enough vertical clearance not to render underneath
+    # (and visually washed out by) the legend box.
+    ax.set_ylim(0, y_max * 1.8)
 
     # Strong-scaling bracket + two-line header above each
     # MULTI_SERVER_MODES cluster's 3 server-count bars, same convention
@@ -436,7 +440,7 @@ def main():
             ax.plot([x0, x0, x1, x1], [bracket_y - tick_h, bracket_y, bracket_y, bracket_y - tick_h],
                     color=color, linewidth=1.1, zorder=6, clip_on=False)
             ax.text((x0 + x1) / 2, bracket_y + y_max * 0.012, info["bracket_label"],
-                    ha="center", va="bottom", fontsize=7.5, fontweight="bold", color=color, linespacing=1.3)
+                    ha="center", va="bottom", fontsize=9.5, fontweight="bold", color=color, linespacing=1.3)
 
     # Linear best-fit line through each rank-count group's 2/4/8-server
     # totals, once per MULTI_SERVER_MODES entry.
@@ -462,9 +466,10 @@ def main():
 
     ax.set_xticks(x)
     ax.set_xticklabels([str(n) for n in all_ranks])
-    ax.set_xlabel("MPI ranks")
-    ax.set_ylabel("total workload time (s)")
-    ax.set_title("VPIC-IO: write-throughput comparison")
+    ax.set_xlabel("MPI ranks", fontsize=13)
+    ax.set_ylabel("total workload time (s)", fontsize=13)
+    ax.set_title("VPIC-IO: write-throughput comparison", fontsize=16, fontweight="bold")
+    ax.tick_params(axis="y", labelsize=11)
     ax.yaxis.set_minor_locator(AutoMinorLocator(2))
     ax.yaxis.grid(True, which="major", linestyle="-", linewidth=0.8, color="#888888", alpha=0.7, zorder=0)
     ax.yaxis.grid(True, which="minor", linestyle="-", linewidth=0.5, color="#aaaaaa", alpha=0.5, zorder=0)
@@ -480,9 +485,9 @@ def main():
             ax.text(
                 bar_centers[(key, gi)], -0.02, bar_label(key),
                 transform=label_trans, rotation=90, ha="center", va="top",
-                fontsize=9, fontweight="bold", color=bar_label_color(key), clip_on=False,
+                fontsize=11, fontweight="bold", color=bar_label_color(key), clip_on=False,
             )
-    ax.tick_params(axis="x", pad=88, labelsize=8, labelcolor="#111111")
+    ax.tick_params(axis="x", pad=88, labelsize=10.5, labelcolor="#111111")
 
     group_line_trans = mtransforms.blended_transform_factory(ax.transData, ax.transAxes)
     for gi, n_ranks in enumerate(all_ranks):
@@ -498,12 +503,12 @@ def main():
     seg_keys = [s for s in SEGMENT_ORDER if any(per_series[k].get(n, {}).get(s, 0.0) > 0 for k in series for n in all_ranks)]
     seg_handles = [mpatches.Patch(facecolor=SEGMENT_COLOR[s], hatch=SEGMENT_HATCH[s], edgecolor="white") for s in seg_keys]
     seg_labels = [SEGMENT_LABEL[s] for s in seg_keys]
-    leg1 = ax.legend(seg_handles, seg_labels, title="cost segment", loc="upper left", fontsize=8, title_fontsize=8)
+    leg1 = ax.legend(seg_handles, seg_labels, title="cost segment", loc="upper left", fontsize=14, title_fontsize=15, handlelength=3, handleheight=2.2)
     ax.add_artist(leg1)
 
     if trend_label_used:
         trend_handle = plt.Line2D([0], [0], linestyle="--", linewidth=1.6, color=TREND_COLOR)
-        ax.legend([trend_handle], ["linear fit (per server-swept variant, per rank count)"], loc="upper right", fontsize=8)
+        ax.legend([trend_handle], ["linear fit (per server-swept variant, per rank count)"], loc="upper right", fontsize=14, handlelength=3)
 
     fig.savefig(out_path, dpi=200, bbox_inches="tight")
     print(f"Wrote {out_path}")
