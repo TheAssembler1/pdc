@@ -182,14 +182,16 @@ MODE_COLOR = {
 }
 # PDC posthoc only has a real measurement at 8 servers today (see module
 # docstring). Per explicit request, its 2/4-server bars are still drawn,
-# as faded, dashed-outline WIP placeholders scaled from the real
-# 8-server segments, assuming the same "time roughly doubles each time
-# server count halves" trend DF-eager's and DF-view's own real 2/4/8
-# data already show -- these are NOT measured data, and are marked as
-# such (faded fill, dashed outline, "*" label, and a caption under the
-# x-axis) so they never read as real at a glance.
+# as dashed-outline WIP placeholders scaled from the real 8-server
+# segments, assuming the same "time roughly doubles each time server
+# count halves" trend DF-eager's and DF-view's own real 2/4/8 data
+# already show -- these are NOT measured data, and are marked as such
+# (dashed outline, "*" label, and a caption under the x-axis, deliberately
+# NOT a faded/different color -- segment color always means the same cost
+# category whether or not the bar is WIP) so they never read as real at a
+# glance without implying the underlying cost segments are somehow
+# different in kind.
 WIP_POSTHOC_SERVERS = {4: 2.0, 2: 4.0}
-WIP_ALPHA = 0.45
 # Modes with a real per-server-count sweep on disk, each getting its own
 # 2/4/8-server bars + its own linear-fit line, in this left-to-right
 # order. "prefix" names the bar label ("DF-eager, 2 servers", ...) and
@@ -205,9 +207,9 @@ WIP_ALPHA = 0.45
 # WIP_POSTHOC_SERVERS); the bracket/trend-line treatment is otherwise
 # identical to DF-eager/DF-view, per explicit request.
 MULTI_SERVER_MODES = {
-    "posthoc": {"bracket_label": "PDC Posthoc\nStrong", "colors": ["#004D40", "#00897B", "#4DB6AC"]},
-    "eager": {"bracket_label": "DF-eager\nStrong", "colors": ["#111111", "#7D3C98", "#B03A2E"]},
-    "lazy": {"bracket_label": "DF-view\nStrong", "colors": ["#5D4037", "#AD1457", "#827717"]},
+    "posthoc": {"bracket_label": "PDC Posthoc", "colors": ["#004D40", "#00897B", "#4DB6AC"]},
+    "eager": {"bracket_label": "DF-eager", "colors": ["#111111", "#7D3C98", "#B03A2E"]},
+    "lazy": {"bracket_label": "DF-view", "colors": ["#5D4037", "#AD1457", "#827717"]},
 }
 TREND_COLOR = "#52514e"
 
@@ -480,18 +482,28 @@ def main():
     n_groups = len(all_ranks)
     n_bars = len(series)
     group_width = 0.74
-    slot_width = group_width / max(n_bars, 1)
-    bar_width = slot_width * 0.8
-    x = np.arange(n_groups)
 
     # Extra horizontal gap at cluster boundaries (single-bar modes / one
     # MULTI_SERVER_MODES entry's 3 bars / the next) -- without this, a
     # bracket header's text is wider than its own narrow 3-bar span and
-    # collides with the neighboring cluster's header.
+    # collides with the neighboring cluster's header. GAP_RATIO is
+    # expressed in slot_widths, but slot_width itself has to be solved
+    # for accounting for the gaps too: n_bars slots + n_transitions gaps
+    # must sum to group_width, not group_width plus however many gaps
+    # happen to be needed -- otherwise more clusters (or a wider
+    # GAP_RATIO) silently pushes the whole group past the 1.0 spacing
+    # between rank-count groups and bars start overlapping their
+    # neighboring group's bars instead of just each other.
     def cluster_of(key):
         return key[0] if key[0] in MULTI_SERVER_MODES else "single"
 
-    extra_gap = slot_width * 0.7
+    n_transitions = sum(1 for a, b in zip(series, series[1:]) if cluster_of(a) != cluster_of(b))
+    GAP_RATIO = 1.3
+    slot_width = group_width / max(n_bars + n_transitions * GAP_RATIO, 1)
+    bar_width = slot_width * 0.8
+    x = np.arange(n_groups)
+
+    extra_gap = slot_width * GAP_RATIO
     offsets, pos, prev_cluster = [], 0.0, None
     for key in series:
         c = cluster_of(key)
@@ -515,14 +527,17 @@ def main():
             heights = np.array([per_series[key].get(n_ranks, ({}, 0.0))[0].get(seg, 0.0) for n_ranks in all_ranks])
             if not np.any(heights > 0):
                 continue
-            # WIP placeholder bars (see WIP_POSTHOC_SERVERS): faded fill +
-            # dashed gray outline instead of the normal white edge, so they
-            # never read as real measurements at a glance.
+            # WIP placeholder bars (see WIP_POSTHOC_SERVERS): dashed gray
+            # outline instead of the normal white edge, so they never read
+            # as real measurements at a glance -- full fill opacity/color,
+            # same as real bars, so the segment color itself always means
+            # the same cost category regardless of WIP status (the footnote
+            # + dashed edge are the only WIP signal, not a faded color).
             ax.bar(
                 x + offset, heights, bar_width, bottom=bottoms,
                 color=SEGMENT_COLOR[seg], hatch=SEGMENT_HATCH[seg],
                 edgecolor="#666666" if wip else "white", linewidth=1.1 if wip else 0.6,
-                linestyle="--" if wip else "-", alpha=WIP_ALPHA if wip else 1.0, zorder=3,
+                linestyle="--" if wip else "-", zorder=3,
             )
             bottoms += heights
         for gi, n_ranks in enumerate(all_ranks):
@@ -646,7 +661,7 @@ def main():
     if any(is_wip(k) for k in series):
         fig.text(
             0.5, -0.06,
-            "* PDC posthoc at 2 and 4 servers (faded, dashed outline) are placeholder estimates, not measured "
+            "* PDC posthoc at 2 and 4 servers (dashed outline) are placeholder estimates, not measured "
             "data; those runs are WIP. Values assume the measured 8 server total doubles with each halving of "
             "server count, the same trend DF-eager's and DF-view's real 2/4/8 server data show.",
             ha="center", va="top", fontsize=8, color="#555555", wrap=True,

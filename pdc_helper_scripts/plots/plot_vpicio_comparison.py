@@ -362,14 +362,24 @@ def main():
     n_groups = len(all_ranks)
     n_bars = len(series)
     group_width = 0.74
-    slot_width = group_width / max(n_bars, 1)
-    bar_width = slot_width * 0.8
-    x = np.arange(n_groups)
 
+    # slot_width has to be solved for accounting for the cluster-boundary
+    # gaps too: n_bars slots + n_transitions gaps must sum to group_width,
+    # not group_width plus however many gaps happen to be needed --
+    # otherwise more clusters (or a wider GAP_RATIO) silently pushes the
+    # whole group past the 1.0 spacing between rank-count groups and bars
+    # start overlapping their neighboring group's bars instead of just
+    # each other. Same fix as plot_magnitude_comparison.py's identical bug.
     def cluster_of(key):
         return key[0] if key[0] in MULTI_SERVER_MODES else "single"
 
-    extra_gap = slot_width * 0.7
+    n_transitions = sum(1 for a, b in zip(series, series[1:]) if cluster_of(a) != cluster_of(b))
+    GAP_RATIO = 2.5
+    slot_width = group_width / max(n_bars + n_transitions * GAP_RATIO, 1)
+    bar_width = slot_width * 0.8
+    x = np.arange(n_groups)
+
+    extra_gap = slot_width * GAP_RATIO
     offsets, pos, prev_cluster = [], 0.0, None
     for key in series:
         c = cluster_of(key)
