@@ -45,3 +45,8 @@ python3 plot_magnitude_comparison.py --server-count 2   # magnitude_comparison_2
 python3 plot_magnitude_comparison.py --server-count 4   # magnitude_comparison_4servers.png
 python3 plot_magnitude_comparison.py --server-count 8   # magnitude_comparison_8servers.png
 ```
+
+`--server-count` also drops HDF5 HighFive from the default mode list
+(pass `--modes` explicitly to override) -- these single-server-count
+charts are a focused PDC-vs-HDF5-vs-ADIOS2 comparison, and HighFive is
+the same underlying library as the HDF5 posthoc baseline already shown.

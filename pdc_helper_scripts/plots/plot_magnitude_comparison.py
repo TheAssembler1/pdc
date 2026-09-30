@@ -355,12 +355,21 @@ def main():
     ap.add_argument("--adios2-root", default=default_adios2_root, help="Directory holding results_adios2_magnitude_*.csv (default: analysis/magnitude/adios2)")
     ap.add_argument("--highfive-root", default=default_highfive_root, help="Directory holding results_magnitude_highfive_*.csv (default: analysis/magnitude/highfive)")
     ap.add_argument("--out", default=None, help="Output PNG path (default: <script dir>/magnitude_comparison.png)")
-    ap.add_argument("--modes", default=",".join(DEFAULT_PLOT_MODES), help="Comma-separated subset of modes to plot")
+    ap.add_argument(
+        "--modes", default=None,
+        help=f"Comma-separated subset of modes to plot (default: {','.join(DEFAULT_PLOT_MODES)}, "
+             "minus magnitude_highfive when --server-count is given -- see that flag)",
+    )
     ap.add_argument(
         "--server-count", type=int, default=None, choices=[2, 4, 8],
         help="Restrict DF-eager/DF-view/PDC posthoc to just this one servers-per-node value "
              "(one plain bar per mode instead of a 2/4/8-server bracket + trend line). "
-             "Default: all server counts found on disk, bracketed as usual.",
+             "Also drops magnitude_highfive from the default mode list (unless --modes "
+             "overrides it) -- these single-server-count charts are meant as a focused "
+             "PDC-vs-HDF5-vs-ADIOS2 comparison, and HighFive is the same underlying library "
+             "as the HDF5 posthoc baseline already shown, not a separate data point worth "
+             "the extra bar at this zoom level. Default: all server counts found on disk,"
+             " bracketed as usual.",
     )
     args = ap.parse_args()
 
@@ -368,7 +377,13 @@ def main():
         script_dir, f"magnitude_comparison_{args.server_count}servers.png" if args.server_count else "magnitude_comparison.png"
     )
 
-    modes = [m.strip() for m in args.modes.split(",") if m.strip() and m.strip() != "eager"]
+    if args.modes is not None:
+        modes_str = args.modes
+    elif args.server_count is not None:
+        modes_str = ",".join(m for m in DEFAULT_PLOT_MODES if m != "magnitude_highfive")
+    else:
+        modes_str = ",".join(DEFAULT_PLOT_MODES)
+    modes = [m.strip() for m in modes_str.split(",") if m.strip() and m.strip() != "eager"]
     for m in modes:
         if m not in SCHEMAS:
             raise SystemExit(f"Unknown mode '{m}', expected one of {list(SCHEMAS)}")
@@ -527,19 +542,26 @@ def main():
             heights = np.array([per_series[key].get(n_ranks, ({}, 0.0))[0].get(seg, 0.0) for n_ranks in all_ranks])
             if not np.any(heights > 0):
                 continue
-            # WIP placeholder bars (see WIP_POSTHOC_SERVERS): dashed gray
-            # outline instead of the normal white edge, so they never read
-            # as real measurements at a glance -- full fill opacity/color,
-            # same as real bars, so the segment color itself always means
-            # the same cost category regardless of WIP status (the footnote
-            # + dashed edge are the only WIP signal, not a faded color).
+            # WIP placeholder bars (see WIP_POSTHOC_SERVERS): always keep
+            # the normal white edge here -- matplotlib ties a hatch
+            # pattern's color to edgecolor, so an earlier version of this
+            # that set edgecolor gray for WIP bars turned their hatch dots
+            # gray/near-black too, silently changing what the segment
+            # color means for WIP vs. real bars. The dashed gray WIP
+            # outline is drawn as a separate unfilled overlay below
+            # instead, so segment color (and its hatch) always mean the
+            # same thing regardless of WIP status.
             ax.bar(
                 x + offset, heights, bar_width, bottom=bottoms,
                 color=SEGMENT_COLOR[seg], hatch=SEGMENT_HATCH[seg],
-                edgecolor="#666666" if wip else "white", linewidth=1.1 if wip else 0.6,
-                linestyle="--" if wip else "-", zorder=3,
+                edgecolor="white", linewidth=0.6, zorder=3,
             )
             bottoms += heights
+        if wip:
+            ax.bar(
+                x + offset, bottoms, bar_width, bottom=np.zeros(n_groups),
+                fill=False, edgecolor="#666666", linewidth=1.1, linestyle="--", zorder=4,
+            )
         for gi, n_ranks in enumerate(all_ranks):
             bar_centers[(key, gi)] = x[gi] + offset
 
