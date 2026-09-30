@@ -633,10 +633,7 @@ def main():
     ax.set_xticklabels([rank_gb_label(n) for n in all_ranks])
     ax.set_xlabel("MPI ranks / data size (GB)", fontsize=13)
     ax.set_ylabel("total workload time (s)", fontsize=13)
-    title = "magnitude analysis: workload comparison"
-    if args.server_count is not None:
-        title += f" ({args.server_count} servers/node)"
-    ax.set_title(title, fontsize=16, fontweight="bold")
+    ax.set_title("magnitude analysis: workload comparison", fontsize=16, fontweight="bold")
     ax.tick_params(axis="y", labelsize=11)
     ax.yaxis.set_minor_locator(AutoMinorLocator(2))
     ax.yaxis.grid(True, which="major", linestyle="-", linewidth=0.8, color="#888888", alpha=0.7, zorder=0)
@@ -682,7 +679,7 @@ def main():
     ]
     seg_handles = [mpatches.Patch(facecolor=SEGMENT_COLOR[s], hatch=SEGMENT_HATCH[s], edgecolor="white") for s in seg_keys]
     seg_labels = [SEGMENT_LABEL[s] for s in seg_keys]
-    leg1 = ax.legend(seg_handles, seg_labels, loc="upper left", fontsize=14, handlelength=3, handleheight=2.2)
+    leg1 = ax.legend(seg_handles, seg_labels, title="cost segment", loc="upper left", fontsize=14, title_fontsize=15, handlelength=3, handleheight=2.2)
     ax.add_artist(leg1)
 
     if trend_label_used:
