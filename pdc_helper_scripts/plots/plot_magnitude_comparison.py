@@ -633,7 +633,6 @@ def main():
     ax.set_xticklabels([rank_gb_label(n) for n in all_ranks])
     ax.set_xlabel("MPI ranks / data size (GB)", fontsize=13)
     ax.set_ylabel("total workload time (s)", fontsize=13)
-    ax.set_title("magnitude analysis: workload comparison", fontsize=16, fontweight="bold")
     ax.tick_params(axis="y", labelsize=11)
     ax.yaxis.set_minor_locator(AutoMinorLocator(2))
     ax.yaxis.grid(True, which="major", linestyle="-", linewidth=0.8, color="#888888", alpha=0.7, zorder=0)
@@ -644,6 +643,13 @@ def main():
 
     # Workload-type label underneath each bar, rotated and colored by
     # series identity -- same convention plot_curl_comparison.py uses.
+    # Scale the rotated bar-label font to the largest size that still fits
+    # this chart's own bar density without adjacent labels touching --
+    # empirically ~8pt is the ceiling at 12 bars/group (this script's
+    # combined, all-server-counts view) and up to 14pt is fine once
+    # --server-count narrows it to 5 bars/group, so a fixed size can't be
+    # both legible there and non-overlapping here.
+    bar_label_fontsize = float(np.clip(95.0 / max(n_bars, 1), 8.0, 14.0))
     label_trans = mtransforms.blended_transform_factory(ax.transData, ax.transAxes)
     for key in series:
         for gi, n_ranks in enumerate(all_ranks):
@@ -652,7 +658,7 @@ def main():
             ax.text(
                 bar_centers[(key, gi)], -0.02, bar_label(key),
                 transform=label_trans, rotation=90, ha="center", va="top",
-                fontsize=11, fontweight="bold", color=bar_label_color(key), clip_on=False,
+                fontsize=bar_label_fontsize, fontweight="bold", color=bar_label_color(key), clip_on=False,
             )
     # Smaller, darker ranks/GB tick labels so they read clearly against
     # the taller rotated bar labels and strong-scaling brackets crowding

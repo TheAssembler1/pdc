@@ -440,7 +440,10 @@ def main():
 
     # Workload-type label underneath each bar, rotated and colored by
     # series identity -- same convention plot_magnitude_comparison.py
-    # uses, per explicit request.
+    # uses, per explicit request. Font scales with bar density (see that
+    # script's identical bar_label_fontsize for why a fixed size can't
+    # work across charts with different bar counts/group).
+    bar_label_fontsize = float(np.clip(95.0 / max(n_bars, 1), 8.0, 14.0))
     label_trans = mtransforms.blended_transform_factory(ax.transData, ax.transAxes)
     for key in series:
         for gi, n_ranks in enumerate(all_ranks):
@@ -449,7 +452,7 @@ def main():
             ax.text(
                 bar_centers[(key, gi)], -0.02, bar_label(key),
                 transform=label_trans, rotation=90, ha="center", va="top",
-                fontsize=11, fontweight="bold", color=bar_label_color(key), clip_on=False,
+                fontsize=bar_label_fontsize, fontweight="bold", color=bar_label_color(key), clip_on=False,
             )
     # Smaller, darker ranks/GB tick labels so they read clearly against
     # the taller rotated bar labels crowding the space right above them.
@@ -508,7 +511,6 @@ def main():
     ax.set_xticklabels([rank_gb_label(n) for n in all_ranks])
     ax.set_xlabel("MPI ranks / data size (GB)", fontsize=13)
     ax.set_ylabel("total workload time (s)", fontsize=13)
-    ax.set_title("curl + vorticity-magnitude: eager strong scaling vs. other methods", fontsize=16, fontweight="bold")
     ax.tick_params(axis="y", labelsize=11)
     ax.yaxis.set_minor_locator(AutoMinorLocator(2))
     ax.yaxis.grid(True, which="major", linestyle="-", linewidth=0.8, color="#888888", alpha=0.7, zorder=0)

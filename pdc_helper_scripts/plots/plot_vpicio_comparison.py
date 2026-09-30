@@ -468,7 +468,6 @@ def main():
     ax.set_xticklabels([str(n) for n in all_ranks])
     ax.set_xlabel("MPI ranks", fontsize=13)
     ax.set_ylabel("total workload time (s)", fontsize=13)
-    ax.set_title("VPIC-IO: write-throughput comparison", fontsize=16, fontweight="bold")
     ax.tick_params(axis="y", labelsize=11)
     ax.yaxis.set_minor_locator(AutoMinorLocator(2))
     ax.yaxis.grid(True, which="major", linestyle="-", linewidth=0.8, color="#888888", alpha=0.7, zorder=0)
@@ -477,6 +476,12 @@ def main():
     ax.spines["top"].set_visible(False)
     ax.spines["right"].set_visible(False)
 
+    # Font scales with bar density -- see
+    # plot_magnitude_comparison.py's identical bar_label_fontsize for why
+    # a fixed size can't work across charts with different bar
+    # counts/group (this chart alone ranges from ~4 bars today to ~13
+    # once all four PDC variants plus ADIOS2 have real data).
+    bar_label_fontsize = float(np.clip(95.0 / max(n_bars, 1), 8.0, 14.0))
     label_trans = mtransforms.blended_transform_factory(ax.transData, ax.transAxes)
     for key in series:
         for gi, n_ranks in enumerate(all_ranks):
@@ -485,7 +490,7 @@ def main():
             ax.text(
                 bar_centers[(key, gi)], -0.02, bar_label(key),
                 transform=label_trans, rotation=90, ha="center", va="top",
-                fontsize=11, fontweight="bold", color=bar_label_color(key), clip_on=False,
+                fontsize=bar_label_fontsize, fontweight="bold", color=bar_label_color(key), clip_on=False,
             )
     ax.tick_params(axis="x", pad=88, labelsize=10.5, labelcolor="#111111")
 
