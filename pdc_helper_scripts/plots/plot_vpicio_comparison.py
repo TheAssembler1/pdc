@@ -131,9 +131,9 @@ RAW_TO_SEGMENT = {
 # concept, rather than a separately-colored segment.
 SEGMENT_ORDER = ["write_main", "write_outlier", "close"]
 SEGMENT_LABEL = {
-    "write_main": "write (non-outlier steps)",
-    "write_outlier": "write (last step, outlier)",
-    "close": "close (server/writer)",
+    "write_main": "write",
+    "write_outlier": "write, last step",
+    "close": "close",
 }
 # Same write/close colors as plot_magnitude_comparison.py's sim_write/
 # close segments, so the same cost category reads as the same color
@@ -503,7 +503,7 @@ def main():
     seg_keys = [s for s in SEGMENT_ORDER if any(per_series[k].get(n, {}).get(s, 0.0) > 0 for k in series for n in all_ranks)]
     seg_handles = [mpatches.Patch(facecolor=SEGMENT_COLOR[s], hatch=SEGMENT_HATCH[s], edgecolor="white") for s in seg_keys]
     seg_labels = [SEGMENT_LABEL[s] for s in seg_keys]
-    leg1 = ax.legend(seg_handles, seg_labels, title="cost segment", loc="upper left", fontsize=14, title_fontsize=15, handlelength=3, handleheight=2.2)
+    leg1 = ax.legend(seg_handles, seg_labels, loc="upper left", fontsize=14, handlelength=3, handleheight=2.2)
     ax.add_artist(leg1)
 
     if trend_label_used:

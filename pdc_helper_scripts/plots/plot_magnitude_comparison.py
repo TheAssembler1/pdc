@@ -134,8 +134,8 @@ RAW_TO_SEGMENT = {
 }
 SEGMENT_ORDER = ["sim_write", "close", "ana_read", "ana_compute", "ana_write"]
 SEGMENT_LABEL = {
-    "sim_write": "write (setup + write + relaunch)",
-    "close": "close (server/writer)",
+    "sim_write": "write",
+    "close": "close",
     "ana_read": "analysis read",
     "ana_compute": "analysis compute",
     "ana_write": "analysis write",
@@ -682,7 +682,7 @@ def main():
     ]
     seg_handles = [mpatches.Patch(facecolor=SEGMENT_COLOR[s], hatch=SEGMENT_HATCH[s], edgecolor="white") for s in seg_keys]
     seg_labels = [SEGMENT_LABEL[s] for s in seg_keys]
-    leg1 = ax.legend(seg_handles, seg_labels, title="cost segment", loc="upper left", fontsize=14, title_fontsize=15, handlelength=3, handleheight=2.2)
+    leg1 = ax.legend(seg_handles, seg_labels, loc="upper left", fontsize=14, handlelength=3, handleheight=2.2)
     ax.add_artist(leg1)
 
     if trend_label_used:

@@ -152,7 +152,7 @@ RAW_TO_SEGMENT = {
 }
 SEGMENT_ORDER = ["sim_write", "close", "ana_read", "ana_compute", "ana_write"]
 SEGMENT_LABEL = {
-    "sim_write": "write (setup + write + relaunch)",
+    "sim_write": "write",
     "close": "server close",
     "ana_read": "analysis read",
     "ana_compute": "analysis compute",
@@ -185,9 +185,9 @@ OTHER_MODE_SHORT = {"eager_compress": "ZC", "posthoc": "PH", "hdf5": "H5", "adio
 OTHER_MODE_COLOR = {"eager_compress": "#D81B60", "posthoc": "#00897B", "hdf5": "#F9A825", "adios2_curl": "#5C6BC0"}
 OTHER_MODE_LABEL = {
     "eager_compress": "eager, GPU-ZFP compressed",
-    "posthoc": "PDC posthoc (8 servers)",
+    "posthoc": "PDC posthoc, 8 servers",
     "hdf5": "HDF5 posthoc",
-    "adios2_curl": "ADIOS2 (client-side compute)",
+    "adios2_curl": "ADIOS2, client-side compute",
 }
 # Short form for the rotated per-bar label (kept under ~13 characters, same
 # length budget as plot_magnitude_comparison.py's MODE_LABEL strings, so
@@ -523,7 +523,7 @@ def main():
     ]
     seg_handles = [mpatches.Patch(facecolor=SEGMENT_COLOR[s], hatch=SEGMENT_HATCH[s], edgecolor="white") for s in seg_keys]
     seg_labels = [SEGMENT_LABEL[s] for s in seg_keys]
-    leg1 = ax.legend(seg_handles, seg_labels, title="cost segment", loc="upper left", fontsize=14, title_fontsize=15, handlelength=3, handleheight=2.2)
+    leg1 = ax.legend(seg_handles, seg_labels, loc="upper left", fontsize=14, handlelength=3, handleheight=2.2)
     ax.add_artist(leg1)
 
     series_handles = [
@@ -535,7 +535,7 @@ def main():
     trend_handle = plt.Line2D([0], [0], linestyle="--", linewidth=1.6, color=TREND_COLOR)
     ax.legend(
         series_handles + [trend_handle], series_labels + ["linear fit (eager, per rank count)"],
-        title="method / series", loc="upper right", fontsize=14, title_fontsize=15, handlelength=3,
+        loc="upper right", fontsize=14, handlelength=3,
     )
 
     y_max = max((sum(segs.values()) for k in series for segs, _ in per_series[k].values()), default=1.0)
