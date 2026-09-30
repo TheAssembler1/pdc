@@ -509,8 +509,16 @@ def main():
     # GAP_RATIO) silently pushes the whole group past the 1.0 spacing
     # between rank-count groups and bars start overlapping their
     # neighboring group's bars instead of just each other.
+    # Only a MULTI_SERVER_MODES entry with more than one server count
+    # actually gets a bracket drawn (see the bracket-skip guard below) --
+    # with --server-count, every mode is back down to a single plain bar,
+    # so there's nothing to set apart with a gap and every bar should
+    # sit at the same uniform spacing, same as the single-bar modes
+    # (hdf5/adios2/highfive) already do.
     def cluster_of(key):
-        return key[0] if key[0] in MULTI_SERVER_MODES else "single"
+        if key[0] in MULTI_SERVER_MODES and len(server_counts) > 1:
+            return key[0]
+        return "single"
 
     n_transitions = sum(1 for a, b in zip(series, series[1:]) if cluster_of(a) != cluster_of(b))
     GAP_RATIO = 1.3
