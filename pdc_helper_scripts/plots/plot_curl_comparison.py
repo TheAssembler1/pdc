@@ -168,6 +168,9 @@ SEGMENT_COLOR = {
     "ana_compute": "#1baf7a", "ana_write": "#eda100",
 }
 SEGMENT_HATCH = {"sim_write": "..", "close": "||", "ana_read": "//", "ana_compute": "xx", "ana_write": "\\\\"}
+# Denser, finer hatch: double each pattern's marks and thin the hatch lines.
+SEGMENT_HATCH = {k: v * 2 for k, v in SEGMENT_HATCH.items()}
+matplotlib.rcParams["hatch.linewidth"] = 0.5
 
 # Per-server-count identity color for eager's bars (label text only --
 # fill color is reserved for cost-segment identity above), extended with
@@ -354,12 +357,16 @@ def main():
         help="Directory holding results_adios2_curl_*.csv (default: analysis/curl/adios2)",
     )
     ap.add_argument("--out", default=None, help="Output PNG path (default: <script dir>/curl_comparison.png)")
+    ap.add_argument("--column", action="store_true",
+                    help="Single-column version: DF-Eager at 8 servers only, no linear fit, column-width figure")
     args = ap.parse_args()
 
     out_path = args.out or os.path.join(script_dir, "curl_comparison.png")
     adios2_root = args.adios2_root
 
     rows_by_server_and_ranks = load_eager_all(args.results_root)
+    if args.column:
+        rows_by_server_and_ranks = {k: v for k, v in rows_by_server_and_ranks.items() if k[0] == 8}
     server_counts = sorted({n_servers for n_servers, _ in rows_by_server_and_ranks})
     if not server_counts:
         raise SystemExit(f"No results_curl_eager_*.csv rows found under {args.results_root!r}")
@@ -396,6 +403,10 @@ def main():
         per_series[(mode, None)] = segs_by_ranks
         series.append((mode, None))
 
+    if args.column:
+        # Longest to shortest total time: PDC Post-hoc, ADIOS2, then DF-Eager.
+        series = [("posthoc", None), ("adios2_curl", None), ("eager", 8)]
+
     all_ranks = sorted({n for segs in per_series.values() for n in segs})
     if not all_ranks:
         raise SystemExit("No results_curl_*.csv rows found anywhere under the results root")
@@ -412,12 +423,15 @@ def main():
 
     n_groups = len(all_ranks)
     n_bars = len(series)
-    group_width = 0.74
+    group_width = 0.86 if args.column else 0.74
     slot_width = group_width / max(n_bars, 1)
-    bar_width = slot_width * 0.8
+    bar_width = slot_width * (0.84 if args.column else 0.8)
     x = np.arange(n_groups)
 
-    fig, ax = plt.subplots(figsize=(max(9.0, 1.9 * n_groups), 8.0), constrained_layout=True)
+    if args.column:
+        fig, ax = plt.subplots(figsize=(7.0, 5.0), constrained_layout=True)
+    else:
+        fig, ax = plt.subplots(figsize=(max(9.0, 1.9 * n_groups), 6.8), constrained_layout=True)
     fig.set_facecolor("#fcfcfb")
     ax.set_facecolor("#fcfcfb")
 
@@ -432,85 +446,76 @@ def main():
             ax.bar(
                 x + offset, heights, bar_width, bottom=bottoms,
                 color=SEGMENT_COLOR[seg], hatch=SEGMENT_HATCH[seg],
-                edgecolor="white", linewidth=0.6, zorder=3,
+                edgecolor="black", linewidth=0.3, zorder=3,
             )
             bottoms += heights
         for gi, n_ranks in enumerate(all_ranks):
             bar_centers[(key, gi)] = x[gi] + offset
 
-    # Workload-type label underneath each bar, rotated and colored by
-    # series identity -- same convention plot_magnitude_comparison.py
-    # uses, per explicit request. Font scales with bar density (see that
-    # script's identical bar_label_fontsize for why a fixed size can't
-    # work across charts with different bar counts/group).
-    bar_label_fontsize = float(np.clip(95.0 / max(n_bars, 1), 8.0, 14.0))
-    label_trans = mtransforms.blended_transform_factory(ax.transData, ax.transAxes)
-    for key in series:
-        for gi, n_ranks in enumerate(all_ranks):
-            if n_ranks not in per_series[key]:
-                continue
-            ax.text(
-                bar_centers[(key, gi)], -0.02, bar_label(key),
-                transform=label_trans, rotation=90, ha="center", va="top",
-                fontsize=bar_label_fontsize, fontweight="bold", color=bar_label_color(key), clip_on=False,
-            )
-    # Smaller, darker ranks/GB tick labels so they read clearly against
-    # the taller rotated bar labels crowding the space right above them.
-    ax.tick_params(axis="x", pad=88, labelsize=10.5, labelcolor="#111111")
-
-    # A line spanning each rank-count group's own bars, sitting just above
-    # that group's ranks/GB tick label, so it's visually obvious which
-    # bars belong to which label -- per explicit request.
-    group_line_trans = mtransforms.blended_transform_factory(ax.transData, ax.transAxes)
+    # Same format as plot_magnitude_single_figure.py: the server count under each
+    # eager bar (2 red, 4 green, 8 blue, the same colors everywhere), then the
+    # method name under each group of bars with a bracket line spanning it.
+    SERVER_NUMBER_COLOR = {2: "#d62728", 4: "#2ca02c", 8: "#1f77b4"}
+    xform = ax.get_xaxis_transform()
     for gi, n_ranks in enumerate(all_ranks):
-        group_keys = [k for k in series if n_ranks in per_series[k]]
-        if not group_keys:
-            continue
-        xs = [bar_centers[(k, gi)] for k in group_keys]
-        ax.plot(
-            [min(xs) - bar_width / 2, max(xs) + bar_width / 2], [-0.195, -0.195],
-            transform=group_line_trans, color="#999999", linewidth=1.0, clip_on=False, zorder=6,
-        )
-
-    # Linear best-fit line through each rank-size group's per-server-count
-    # eager totals only (posthoc/hdf5/adios2_curl are different methods,
-    # not a "more servers" scaling knob, so a fit across them wouldn't mean
-    # strong scaling) -- fit against bar x-position so it renders straight
-    # regardless of server counts not being evenly spaced in real units.
-    trend_label_used = False
-    for gi, n_ranks in enumerate(all_ranks):
-        xs, ys = [], []
         for n_servers in server_counts:
             key = ("eager", n_servers)
-            if n_ranks in per_series[key]:
-                xs.append(bar_centers[(key, gi)])
-                ys.append(sum(per_series[key][n_ranks][0].values()))
-        if len(xs) < 2:
+            if n_ranks in per_series[key] and not args.column:
+                ax.text(bar_centers[(key, gi)], -0.012, str(n_servers), transform=xform,
+                        ha="center", va="top", fontsize=12, fontweight="bold",
+                        color=SERVER_NUMBER_COLOR.get(n_servers, "#111111"), clip_on=False)
+        for method_name, keys in (
+            ("DF-Eager", [("eager", n) for n in server_counts]),
+            ("PDC Post-hoc", [("posthoc", None)]),
+            ("ADIOS2", [("adios2_curl", None)]),
+        ):
+            present = [k for k in keys if k in per_series and n_ranks in per_series[k]]
+            if not present:
+                continue
+            xs = [bar_centers[(k, gi)] for k in present]
+            lo, hi = min(xs) - bar_width / 2, max(xs) + bar_width / 2
+            if not args.column:
+                ax.plot([lo, hi], [-0.085] * 2, transform=xform, color="#444444", linewidth=1.0,
+                        clip_on=False, zorder=6)
+            # Rotated text centers 1 pt left of its bar; nudge it onto the bar's center.
+            ax.text((lo + hi) / 2, -0.012 if args.column else -0.095, method_name,
+                    transform=mtransforms.offset_copy(xform, fig=fig, x=1.0, units="points"), ha="center", va="top",
+                    fontsize=8 if args.column else 11, rotation=90, clip_on=False)
+    ax.tick_params(axis="x", length=0)
+
+    # Least-squares straight line through each rank count's eager bars, fit against
+    # bar position. Posthoc/hdf5/adios2_curl are different methods, so they get no line.
+    eager_keys = [("eager", n) for n in server_counts if ("eager", n) in per_series]
+    for gi, n_ranks in enumerate(all_ranks):
+        keys = [k for k in eager_keys if n_ranks in per_series[k]]
+        if len(keys) < 2:
             continue
+        xs = [bar_centers[(k, gi)] for k in keys]
+        ys = [sum(per_series[k][n_ranks][0].values()) for k in keys]
         coeffs = np.polyfit(xs, ys, 1)
-        fit_xs = np.linspace(min(xs), max(xs), 20)
-        fit_ys = np.polyval(coeffs, fit_xs)
-        ax.plot(
-            fit_xs, fit_ys, linestyle="--", linewidth=1.6, color=TREND_COLOR, zorder=4, alpha=0.85,
-            label="linear fit (eager strong scaling)" if not trend_label_used else None,
-        )
-        trend_label_used = True
+        fit_x = np.linspace(min(xs), max(xs), 20)
+        ax.plot(fit_x, np.polyval(coeffs, fit_x), linestyle="-", linewidth=0.9,
+                color="#7b1fa2", zorder=4)
 
     def rank_gb_label(n_ranks):
-        # Prefer whichever series has data at this rank count for the
-        # paired data-size figure -- every series should agree on data_gb
-        # at the same n_ranks (same NX/NY/NZ_PER_RANK), so which one wins
-        # here is cosmetic. Same convention as plot_curl_totals.py.
+        # Every series agrees on data_gb at the same n_ranks (same NX/NY/NZ_PER_RANK).
         for k in series:
             if n_ranks in per_series[k]:
                 _, gb = per_series[k][n_ranks]
-                return f"{n_ranks}\n{gb:.2f}GB"
+                nodes = n_ranks // 32
+                if args.column:
+                    return f"{n_ranks}"
+                return f"{nodes} node{'s' if nodes > 1 else ''}\n{n_ranks} ranks\n{gb:.2f} GB"
         return str(n_ranks)
 
     ax.set_xticks(x)
-    ax.set_xticklabels([rank_gb_label(n) for n in all_ranks])
-    ax.set_xlabel("MPI ranks / data size (GB)", fontsize=13)
-    ax.set_ylabel("total workload time (s)", fontsize=13)
+    ax.set_xticklabels([])
+    for gi, n in enumerate(all_ranks):
+        ax.text(x[gi], -0.24 if args.column else -0.345, rank_gb_label(n), transform=ax.get_xaxis_transform(),
+                ha="center", va="top", fontsize=8 if args.column else 11, clip_on=False)
+    ax.text(0.5, -0.32 if args.column else -0.56, "MPI Ranks", transform=ax.transAxes, ha="center",
+            va="top", fontsize=9 if args.column else 14, clip_on=False)
+    ax.set_ylabel("Total Workload Time (s)", fontsize=13)
     ax.tick_params(axis="y", labelsize=11)
     ax.yaxis.set_minor_locator(AutoMinorLocator(2))
     ax.yaxis.grid(True, which="major", linestyle="-", linewidth=0.8, color="#888888", alpha=0.7, zorder=0)
@@ -523,27 +528,24 @@ def main():
         s for s in SEGMENT_ORDER
         if any(per_series[k].get(n, ({}, 0.0))[0].get(s, 0.0) > 0 for k in series for n in all_ranks)
     ]
-    seg_handles = [mpatches.Patch(facecolor=SEGMENT_COLOR[s], hatch=SEGMENT_HATCH[s], edgecolor="white") for s in seg_keys]
+    seg_handles = [mpatches.Patch(facecolor=SEGMENT_COLOR[s], hatch=SEGMENT_HATCH[s], edgecolor="black") for s in seg_keys]
     seg_labels = [SEGMENT_LABEL[s] for s in seg_keys]
-    leg1 = ax.legend(seg_handles, seg_labels, title="cost segment", loc="upper left", fontsize=14, title_fontsize=15, handlelength=3, handleheight=2.2)
+    if args.column:
+        leg1 = ax.legend(seg_handles, seg_labels, title="cost segment", loc="upper left",
+                         ncol=1, fontsize=7, title_fontsize=8, handlelength=2, handleheight=1.2, frameon=True,
+                         edgecolor="#222222", fancybox=False)
+    else:
+        leg1 = ax.legend(seg_handles, seg_labels, title="cost segment", loc="upper left", fontsize=14, title_fontsize=15, handlelength=3, handleheight=2.2)
     ax.add_artist(leg1)
 
-    series_handles = [
-        plt.Line2D([0], [0], marker="s", linestyle="none", markersize=12,
-                   markerfacecolor=bar_label_color(k), markeredgecolor=bar_label_color(k))
-        for k in series
-    ]
-    series_labels = [f"eager, {n} servers" if mode == "eager" else OTHER_MODE_LABEL[mode] for mode, n in series]
-    trend_handle = plt.Line2D([0], [0], linestyle="--", linewidth=1.6, color=TREND_COLOR)
-    ax.legend(
-        series_handles + [trend_handle], series_labels + ["linear fit (eager, per rank count)"],
-        title="method / series", loc="upper right", fontsize=14, title_fontsize=15, handlelength=3,
-    )
+    trend_handle = plt.Line2D([0], [0], linestyle="-", linewidth=0.9, color="#7b1fa2")
+    if not args.column:
+        ax.legend([trend_handle], ["linear fit"], loc="upper center", bbox_to_anchor=(0.5, 1.0), fontsize=14)
 
     y_max = max((sum(segs.values()) for k in series for segs, _ in per_series[k].values()), default=1.0)
-    ax.set_ylim(0, y_max * 1.18)
+    ax.set_ylim(0, y_max * (1.3 if args.column else 1.9))  # headroom so the keys sit above the bars
 
-    fig.savefig(out_path, dpi=200)
+    fig.savefig(out_path, dpi=200, bbox_inches="tight", pad_inches=0.05)
     print(f"Wrote {out_path}")
 
 

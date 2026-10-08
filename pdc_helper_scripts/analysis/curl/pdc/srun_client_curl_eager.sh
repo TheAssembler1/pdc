@@ -7,7 +7,8 @@
 # src/tests/analysis/bench_curl_eager.c for the full timing breakdown.
 #
 # Required env: BIN_DIR, NUM_NODES, CLIENTS_PER_NODE, CLIENT_TOTAL_TASKS,
-#   NX, NY, NZ_PER_RANK, COMPRESS, LOG_TAG, RESULTS
+#   NX, NY, NZ_PER_RANK, COMPRESS, LOG_TAG, RESULTS (TRANSIENT optional,
+#   defaults to 0 -- 1 selects the transient-curl graph, see bench_curl_eager.c)
 
 set -xeu
 
@@ -19,7 +20,7 @@ srun \
   --ntasks-per-node="$CLIENTS_PER_NODE" \
   --output="client_${LOG_TAG}_${NUM_NODES}.log" \
   --error="client_${LOG_TAG}_${NUM_NODES}.err" \
-  bash -c 'export HG_HOST=cxi0:$((SLURM_LOCALID + 8)); exec ./bench_curl_eager "$NX" "$NY" "$NZ_PER_RANK" "$COMPRESS"'
+  bash -c 'export HG_HOST=cxi0:$((SLURM_LOCALID + 8)); exec ./bench_curl_eager "$NX" "$NY" "$NZ_PER_RANK" "$COMPRESS" "${TRANSIENT:-0}"'
 popd
 
 # bench_curl_eager.c now prints one CSV line per timestep (N_TIMESTEPS=3),

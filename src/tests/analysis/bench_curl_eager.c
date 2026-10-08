@@ -77,19 +77,25 @@ main(int argc, char **argv)
     int    rank, nranks;
     long   nx, ny, nz_per_rank;
     int    compress;
+    int    transient;
     int    step;
     size_t i;
 
     double t_setup0, t_setup1, t_write0, t_write1, t_read0, t_read1;
 
     if (argc < 5) {
-        fprintf(stderr, "Usage: %s <nx> <ny> <nz_per_rank> <compress:0|1>\n", argv[0]);
+        fprintf(stderr, "Usage: %s <nx> <ny> <nz_per_rank> <compress:0|1> [transient:0|1]\n", argv[0]);
         return 1;
     }
     nx          = atol(argv[1]);
     ny          = atol(argv[2]);
     nz_per_rank = atol(argv[3]);
     compress    = atoi(argv[4]);
+    /* transient=1 declares curl_x/y/z as transient graph states (see
+     * an_client/graphs/curl_vorticity_magnitude_transient.json): they are
+     * computed server-side within the write call and never persisted, so
+     * they get no PDC object and no region attachment here. */
+    transient   = (argc >= 6) ? atoi(argv[5]) : 0;
 
     MPI_Init(&argc, &argv);
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
@@ -195,7 +201,10 @@ main(int argc, char **argv)
         }
     }
 
-    pdcid_t an_dg_id = PDCan_dg_json_create(AN_GRAPHS_DIR "curl_vorticity_magnitude.json");
+    char an_graph_path[512];
+    snprintf(an_graph_path, sizeof(an_graph_path), "%s%s", AN_GRAPHS_DIR,
+             transient ? "curl_vorticity_magnitude_transient.json" : "curl_vorticity_magnitude.json");
+    pdcid_t an_dg_id = PDCan_dg_json_create(an_graph_path);
     if (an_dg_id == 0) {
         fprintf(stderr, "PDCan_dg_json_create failed\n");
         MPI_Abort(MPI_COMM_WORLD, 1);
@@ -229,11 +238,14 @@ main(int argc, char **argv)
         u_obj      = PDCobj_create_mpi(cont, u_name, prop_float, 0, MPI_COMM_WORLD);
         v_obj      = PDCobj_create_mpi(cont, v_name, prop_float, 0, MPI_COMM_WORLD);
         w_obj      = PDCobj_create_mpi(cont, w_name, prop_float, 0, MPI_COMM_WORLD);
-        curl_x_obj = PDCobj_create_mpi(cont, curl_x_name, prop_double, 0, MPI_COMM_WORLD);
-        curl_y_obj = PDCobj_create_mpi(cont, curl_y_name, prop_double, 0, MPI_COMM_WORLD);
-        curl_z_obj = PDCobj_create_mpi(cont, curl_z_name, prop_double, 0, MPI_COMM_WORLD);
+        if (!transient) {
+            curl_x_obj = PDCobj_create_mpi(cont, curl_x_name, prop_double, 0, MPI_COMM_WORLD);
+            curl_y_obj = PDCobj_create_mpi(cont, curl_y_name, prop_double, 0, MPI_COMM_WORLD);
+            curl_z_obj = PDCobj_create_mpi(cont, curl_z_name, prop_double, 0, MPI_COMM_WORLD);
+        }
         mag_obj    = PDCobj_create_mpi(cont, mag_name, prop_double, 0, MPI_COMM_WORLD);
-        if (u_obj == 0 || v_obj == 0 || w_obj == 0 || curl_x_obj == 0 || curl_y_obj == 0 || curl_z_obj == 0 ||
+        if (u_obj == 0 || v_obj == 0 || w_obj == 0 ||
+            (!transient && (curl_x_obj == 0 || curl_y_obj == 0 || curl_z_obj == 0)) ||
             mag_obj == 0) {
             fprintf(stderr, "Failed to create one or more step-%d objects\n", step);
             MPI_Abort(MPI_COMM_WORLD, 1);
@@ -250,9 +262,11 @@ main(int argc, char **argv)
         PDCan_attach_to_region(an_dg_id, "u", u_obj, reg_global);
         PDCan_attach_to_region(an_dg_id, "v", v_obj, reg_global);
         PDCan_attach_to_region(an_dg_id, "w", w_obj, reg_global);
-        PDCan_attach_to_region(an_dg_id, "curl_x", curl_x_obj, reg_global);
-        PDCan_attach_to_region(an_dg_id, "curl_y", curl_y_obj, reg_global);
-        PDCan_attach_to_region(an_dg_id, "curl_z", curl_z_obj, reg_global);
+        if (!transient) {
+            PDCan_attach_to_region(an_dg_id, "curl_x", curl_x_obj, reg_global);
+            PDCan_attach_to_region(an_dg_id, "curl_y", curl_y_obj, reg_global);
+            PDCan_attach_to_region(an_dg_id, "curl_z", curl_z_obj, reg_global);
+        }
         PDCan_attach_to_region(an_dg_id, "vorticity_magnitude", mag_obj, reg_global);
 
         /* Write u, v, w -- the last write transparently triggers
@@ -305,9 +319,11 @@ main(int argc, char **argv)
         PDCobj_close(u_obj);
         PDCobj_close(v_obj);
         PDCobj_close(w_obj);
-        PDCobj_close(curl_x_obj);
-        PDCobj_close(curl_y_obj);
-        PDCobj_close(curl_z_obj);
+        if (!transient) {
+            PDCobj_close(curl_x_obj);
+            PDCobj_close(curl_y_obj);
+            PDCobj_close(curl_z_obj);
+        }
         PDCobj_close(mag_obj);
     }
 

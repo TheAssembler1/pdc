@@ -82,7 +82,31 @@ if [ ! -d "$ADIOS2_SRC_DIR" ]; then
   echo "== Cloning ADIOS2 $ADIOS2_VERSION..."
   git clone --quiet https://github.com/ornladios/ADIOS2.git "$ADIOS2_SRC_DIR"
 fi
-git -C "$ADIOS2_SRC_DIR" checkout --quiet "$ADIOS2_VERSION"
+git -C "$ADIOS2_SRC_DIR" checkout --quiet --force "$ADIOS2_VERSION"
+
+# v2.12.1's CURL derived-variable operator (used by adios2_bench_curl_inflight)
+# has a real indexing bug in ApplyCurl: it differences along the wrong axis
+# relative to the row-major (last-dim-fastest) stride convention the rest of
+# ADIOS2 assumes, producing wrong (not just zero) output -- confirmed by hand
+# and via bpls against a known analytic curl. This patch replaces ApplyCurl's
+# body with a direct port of src/tests/analysis/curl_math.h's own convention
+# (same stencil, same one-sided boundary handling), verified to reproduce the
+# exact expected result at 1 and 4 ranks. See
+# patches/0001-fix-curl-derived-variable-indexing.patch's diff for the
+# before/after. `git apply --check` first so this is a no-op (not an error)
+# if the patch is already applied, e.g. on a rerun against an already-patched
+# checkout.
+PATCH="$SCRIPT_DIR/patches/0001-fix-curl-derived-variable-indexing.patch"
+if git -C "$ADIOS2_SRC_DIR" apply --check "$PATCH" 2>/dev/null; then
+  echo "== Applying CURL derived-variable fix..."
+  git -C "$ADIOS2_SRC_DIR" apply "$PATCH"
+elif git -C "$ADIOS2_SRC_DIR" apply --reverse --check "$PATCH" 2>/dev/null; then
+  echo "== CURL derived-variable fix already applied, skipping."
+else
+  echo "ERROR: $PATCH does not apply cleanly to $ADIOS2_SRC_DIR at $ADIOS2_VERSION." >&2
+  echo "  ADIOS2's source may have changed around this code since the patch was written." >&2
+  exit 1
+fi
 
 # Always a fresh configure: ADIOS2's generated ADIOSConfig.h has been
 # seen not to pick up a feature-flag change on an incremental
@@ -125,18 +149,34 @@ cmake --build "$ADIOS2_BUILD_DIR" -j"$JOBS"
 echo "== Installing to $ADIOS2_PREFIX..."
 cmake --install "$ADIOS2_BUILD_DIR"
 
-echo "== Building adios2_analysis_test programs..."
-ADIOS2_PREFIX="$ADIOS2_PREFIX" make -C "$SCRIPT_DIR" clean
-ADIOS2_PREFIX="$ADIOS2_PREFIX" make -C "$SCRIPT_DIR"
+# The four ADIOS2 benchmark directories (moved here when
+# pdc_helper_scripts/ was reorganized by analysis/transformation/io --
+# this script used to build in-place in a single adios2_analysis_test/
+# directory that no longer exists).
+BENCH_DIRS=(
+  "$SCRIPT_DIR/../analysis/magnitude/adios2"
+  "$SCRIPT_DIR/../analysis/curl/adios2"
+  "$SCRIPT_DIR/../transformation/adios2_compression"
+  "$SCRIPT_DIR/../io/adios2_vpicio"
+)
+echo "== Building ADIOS2 benchmark programs..."
+for d in "${BENCH_DIRS[@]}"; do
+  echo "-- $d"
+  ADIOS2_PREFIX="$ADIOS2_PREFIX" make -C "$d" clean
+  ADIOS2_PREFIX="$ADIOS2_PREFIX" make -C "$d"
+done
 
 echo
-echo "== Done. Binaries in $SCRIPT_DIR:"
-ls -1 "$SCRIPT_DIR"/adios2_bench_*
+echo "== Done. Binaries:"
+for d in "${BENCH_DIRS[@]}"; do
+  ls -1 "$d"/adios2_bench_* "$d"/adios2_vpicio* "$d"/adios2_bdcats* 2>/dev/null
+done
 if [ "$ENABLE_ZFP" != "ON" ] || [ "$ENABLE_SODIUM" != "ON" ]; then
   echo
   echo "NOTE: built with ENABLE_ZFP=$ENABLE_ZFP ENABLE_SODIUM=$ENABLE_SODIUM."
-  echo "  adios2_bench_magnitude and adios2_bench_curl are unaffected, but"
-  echo "  adios2_bench_compression / adios2_bench_compression_encryption will"
-  echo "  fail at runtime (not compile time) with an unrecognized-operator"
-  echo "  error if the corresponding feature is off."
+  echo "  adios2_bench_magnitude, adios2_bench_curl, and adios2_bench_curl_inflight"
+  echo "  are unaffected, but adios2_bench_compression /"
+  echo "  adios2_bench_compression_encryption will fail at runtime (not compile"
+  echo "  time) with an unrecognized-operator error if the corresponding feature"
+  echo "  is off."
 fi

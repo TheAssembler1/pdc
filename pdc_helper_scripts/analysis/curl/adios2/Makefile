@@ -5,9 +5,13 @@
 # ../hdf5/ (the HDF5-side curl benchmark) so all three sides compute
 # the identical curl.
 #
-#   adios2_bench_curl  - u/v/w in, vorticity_magnitude out (posthoc --
-#                         see adios2_bench_curl.cpp), analog of
-#                         src/tests/analysis/bench_curl_eager.c
+#   adios2_bench_curl           - u/v/w in, vorticity_magnitude out (posthoc --
+#                                 see adios2_bench_curl.cpp), analog of
+#                                 src/tests/analysis/bench_curl_eager.c
+#   adios2_bench_curl_inflight  - u/v/w in, curl_x/y/z manual + vorticity_magnitude
+#                                 as a registered derived variable (in-flight --
+#                                 see adios2_bench_curl_inflight.cpp), analog of
+#                                 src/tests/analysis/bench_curl_eager.c
 
 # := (not ?=): Make's own built-in default for CXX is g++, which
 # already counts as "set" and would silently win over ?=.
@@ -25,13 +29,16 @@ ADIOS2_LIB := -L$(ADIOS2_PREFIX)/$(ADIOS2_LIBDIR) -Wl,-rpath,$(ADIOS2_PREFIX)/$(
               -ladios2_cxx_mpi -ladios2_cxx -ladios2_c_mpi -ladios2_c
 ADIOS2_DEFINES := -DADIOS2_USE_MPI=1
 
-TARGETS := adios2_bench_curl
+TARGETS := adios2_bench_curl adios2_bench_curl_inflight
 
 .PHONY: all clean
 
 all: $(TARGETS)
 
 adios2_bench_curl: adios2_bench_curl.cpp
+	$(CXX) $(CXXFLAGS) $(ADIOS2_DEFINES) $(ADIOS2_INCLUDE) $(CURL_MATH_INCLUDE) -o $@ $< $(ADIOS2_LIB)
+
+adios2_bench_curl_inflight: adios2_bench_curl_inflight.cpp
 	$(CXX) $(CXXFLAGS) $(ADIOS2_DEFINES) $(ADIOS2_INCLUDE) $(CURL_MATH_INCLUDE) -o $@ $< $(ADIOS2_LIB)
 
 clean:
