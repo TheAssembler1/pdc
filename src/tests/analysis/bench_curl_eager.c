@@ -95,7 +95,7 @@ main(int argc, char **argv)
      * an_client/graphs/curl_vorticity_magnitude_transient.json): they are
      * computed server-side within the write call and never persisted, so
      * they get no PDC object and no region attachment here. */
-    transient   = (argc >= 6) ? atoi(argv[5]) : 0;
+    transient = (argc >= 6) ? atoi(argv[5]) : 0;
 
     MPI_Init(&argc, &argv);
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
@@ -235,18 +235,17 @@ main(int argc, char **argv)
         snprintf(curl_z_name, sizeof(curl_z_name), "curl_z_%d", step);
         snprintf(mag_name, sizeof(mag_name), "vorticity_magnitude_%d", step);
 
-        u_obj      = PDCobj_create_mpi(cont, u_name, prop_float, 0, MPI_COMM_WORLD);
-        v_obj      = PDCobj_create_mpi(cont, v_name, prop_float, 0, MPI_COMM_WORLD);
-        w_obj      = PDCobj_create_mpi(cont, w_name, prop_float, 0, MPI_COMM_WORLD);
+        u_obj = PDCobj_create_mpi(cont, u_name, prop_float, 0, MPI_COMM_WORLD);
+        v_obj = PDCobj_create_mpi(cont, v_name, prop_float, 0, MPI_COMM_WORLD);
+        w_obj = PDCobj_create_mpi(cont, w_name, prop_float, 0, MPI_COMM_WORLD);
         if (!transient) {
             curl_x_obj = PDCobj_create_mpi(cont, curl_x_name, prop_double, 0, MPI_COMM_WORLD);
             curl_y_obj = PDCobj_create_mpi(cont, curl_y_name, prop_double, 0, MPI_COMM_WORLD);
             curl_z_obj = PDCobj_create_mpi(cont, curl_z_name, prop_double, 0, MPI_COMM_WORLD);
         }
-        mag_obj    = PDCobj_create_mpi(cont, mag_name, prop_double, 0, MPI_COMM_WORLD);
+        mag_obj = PDCobj_create_mpi(cont, mag_name, prop_double, 0, MPI_COMM_WORLD);
         if (u_obj == 0 || v_obj == 0 || w_obj == 0 ||
-            (!transient && (curl_x_obj == 0 || curl_y_obj == 0 || curl_z_obj == 0)) ||
-            mag_obj == 0) {
+            (!transient && (curl_x_obj == 0 || curl_y_obj == 0 || curl_z_obj == 0)) || mag_obj == 0) {
             fprintf(stderr, "Failed to create one or more step-%d objects\n", step);
             MPI_Abort(MPI_COMM_WORLD, 1);
         }
