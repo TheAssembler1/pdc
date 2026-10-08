@@ -249,9 +249,9 @@ main(int argc, char **argv)
 
             if (rank == 0) {
                 double step_total = max_setup + step_write_s[step] + max_read + max_close;
-                printf("adios2_inflight_curl,%d,%d,%ld,%ld,%ld,%.6f,%.6f,%.6f,%.6f,%.6f,%d\n", step,
-                       nranks, nx, ny, nz_per_rank, max_setup, step_write_s[step], max_read, max_close,
-                       step_total, step_bad);
+                printf("adios2_inflight_curl,%d,%d,%ld,%ld,%ld,%.6f,%.6f,%.6f,%.6f,%.6f,%d\n", step, nranks,
+                       nx, ny, nz_per_rank, max_setup, step_write_s[step], max_read, max_close, step_total,
+                       step_bad);
                 fflush(stdout);
             }
         }
