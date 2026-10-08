@@ -19,7 +19,7 @@ SWEEP_MAX=$(printf "%s\\n" $SERVER_SWEEP | sort -n | tail -1)
 NTASKS_PER_NODE=$((SWEEP_MAX + CLIENTS_PER_NODE))
 
 prev_jid=""
-for nodes in 1 2 4 8; do
+for nodes in 1 2 4 8 16 32 64 128; do
     if [ -z "$prev_jid" ]; then
         jid=$(sbatch --nodes=$nodes --ntasks-per-node=$NTASKS_PER_NODE curl_eager_compress_analysis.sbatch | awk '{print $4}')
     else
