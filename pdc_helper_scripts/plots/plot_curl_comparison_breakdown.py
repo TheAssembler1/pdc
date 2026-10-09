@@ -168,9 +168,12 @@ RAW_TO_SEGMENT = {
     "magnitude_writeback_s": "ana_write",
     "writeback_s": "ana_write",
 }
-SEGMENT_ORDER = ["sim_write", "close", "ana_read", "ana_compute", "ana_write"]
+SEGMENT_ORDER = ["sim_write", "srv_curl", "srv_mag", "srv_compress", "close", "ana_read", "ana_compute", "ana_write"]
 SEGMENT_LABEL = {
-    "sim_write": "write",
+    "sim_write": "server write",
+    "srv_curl": "server compute curl",
+    "srv_mag": "server compute mag",
+    "srv_compress": "server compress",
     "close": "server close",
     "ana_read": "analysis read",
     "ana_compute": "analysis compute",
@@ -180,15 +183,69 @@ SEGMENT_LABEL = {
 # passing lightness/chroma/CVD/normal-vision checks on both light and dark
 # surfaces -- see references/palette.md. Hatch texture doubles as the
 # secondary encoding the aqua/yellow/magenta slots' light-mode contrast
-# WARN calls for.
+# WARN calls for. srv_curl/srv_mag/srv_compress are a new DF-only
+# breakdown of the write segment (see decompose_df_write()) -- distinct
+# colors from the existing five, picked to not collide.
 SEGMENT_COLOR = {
     "sim_write": "#2a78d6", "close": "#e87ba4", "ana_read": "#eb6834",
     "ana_compute": "#1baf7a", "ana_write": "#eda100",
+    "srv_curl": "#00897B", "srv_mag": "#43A047", "srv_compress": "#8E24AA",
 }
-SEGMENT_HATCH = {"sim_write": "..", "close": "||", "ana_read": "//", "ana_compute": "xx", "ana_write": "\\\\"}
+SEGMENT_HATCH = {
+    "sim_write": "..", "close": "||", "ana_read": "//", "ana_compute": "xx", "ana_write": "\\\\",
+    "srv_curl": "--", "srv_mag": "oo", "srv_compress": "++",
+}
 # Denser, finer hatch: double each pattern's marks and thin the hatch lines.
 SEGMENT_HATCH = {k: v * 2 for k, v in SEGMENT_HATCH.items()}
 matplotlib.rcParams["hatch.linewidth"] = 0.5
+
+# DF-only write-segment breakdown (per explicit request): "server close"
+# is folded into "server write" for eager/eager_compress specifically,
+# then that combined total is split into real, log-measured sub-costs.
+# Source: the last few lines of each 8-servers eager_compress server log
+# (analysis/curl/pdc/10_07_2026-*/8servers_server_curl_eager_compress_*.log)
+# print a per-metric "name,avg_s/n,avg_s/n,..." summary (one avg/n pair
+# per server rank) for compress/magnitude/posix_write -- see
+# src/server/pdc_client_server_common.c's pdc_stat_metric_names_g and
+# src/server/analysis/pdc_an_server.c's PDC_STAT_MAGNITUDE call site.
+# There is no equivalent "curl" metric anywhere -- an_exec_time is
+# computed for curl's own analysis-function call too, but
+# pdc_an_server.c only forwards it into PDC_stats when the function name
+# contains "magnitude", so curl's own compute time is silently dropped
+# at the source, never logged. Measured across all 6 real eager_compress
+# rank counts (32-1024; nearly constant across scale, as expected for
+# weak scaling): posix_write ~2.131s, magnitude ~0.273s, compress
+# ~0.225s (mean of each metric's own per-rank-count mean-over-servers
+# value). These are approximations, not measured per-rank-count data,
+# per explicit request (this breakdown is for internal use, not for
+# publication) -- real posix_write/magnitude are reused as-is for plain
+# "eager" (DF-Eager) too, since they're structurally the same underlying
+# write/magnitude-compute operations with or without a compress step
+# chained after; "curl" is always derived as whatever's left: curl_s =
+# write_total - posix_write_s - magnitude_s - compress_s (compress_s=0
+# for plain eager), clipped at 0.
+_DF_POSIX_WRITE_S = 2.131096339285714
+_DF_MAGNITUDE_S = 0.2726378377976191
+_DF_COMPRESS_S = 0.22518531547619047
+
+
+def decompose_df_write(segs_by_ranks, compress):
+    """Mutates segs_by_ranks in place: folds close into write, then
+    splits that total into sim_write (posix)/srv_curl/srv_mag/
+    srv_compress using the fixed, log-measured constants above.
+    compress=False zeroes srv_compress (plain "eager")."""
+    c_val = _DF_COMPRESS_S if compress else 0.0
+    for n_ranks, (segs, gb) in segs_by_ranks.items():
+        total = segs["sim_write"] + segs["close"]
+        p_val = min(_DF_POSIX_WRITE_S, total)
+        m_val = min(_DF_MAGNITUDE_S, max(total - p_val, 0.0))
+        c_val_r = min(c_val, max(total - p_val - m_val, 0.0))
+        curl_val = max(total - p_val - m_val - c_val_r, 0.0)
+        segs["sim_write"] = p_val
+        segs["srv_mag"] = m_val
+        segs["srv_compress"] = c_val_r
+        segs["srv_curl"] = curl_val
+        segs["close"] = 0.0
 
 # Per-server-count identity color for eager's bars (label text only --
 # fill color is reserved for cost-segment identity above), extended with
@@ -400,6 +457,7 @@ def main():
             n_ranks: aggregate(rows, EAGER_ONE_TIME, EAGER_PER_STEP)
             for (ns, n_ranks), rows in rows_by_server_and_ranks.items() if ns == n_servers
         }
+        decompose_df_write(per_series[("eager", n_servers)], compress=False)
 
     for mode in OTHER_MODE_ORDER:
         one_time_cols, per_step_cols = MODE_SCHEMAS[mode]
@@ -473,6 +531,9 @@ def main():
                 segs_32["sim_write"] -= 6.0
                 segs_by_ranks[32] = (segs_32, gb_32)
 
+        if mode == "eager_compress":
+            decompose_df_write(segs_by_ranks, compress=True)
+
         per_series[(mode, None)] = segs_by_ranks
         series.append((mode, None))
 
@@ -502,7 +563,7 @@ def main():
     x = np.arange(n_groups)
 
     if args.column:
-        fig, ax = plt.subplots(figsize=(7.0, 3.6), constrained_layout=True)
+        fig, ax = plt.subplots(figsize=(7.0, 5.0), constrained_layout=True)
     else:
         fig, ax = plt.subplots(figsize=(max(9.0, 1.9 * n_groups), 6.8), constrained_layout=True)
     fig.set_facecolor("#fcfcfb")
@@ -585,9 +646,9 @@ def main():
     ax.set_xticks(x)
     ax.set_xticklabels([])
     for gi, n in enumerate(all_ranks):
-        ax.text(x[gi], -0.46 if args.column else -0.345, rank_gb_label(n), transform=ax.get_xaxis_transform(),
+        ax.text(x[gi], -0.33 if args.column else -0.345, rank_gb_label(n), transform=ax.get_xaxis_transform(),
                 ha="center", va="top", fontsize=10 if args.column else 13, clip_on=False)
-    ax.text(0.5, -0.62 if args.column else -0.56, "Number of Processes", transform=ax.transAxes, ha="center",
+    ax.text(0.5, -0.44 if args.column else -0.56, "Number of Processes", transform=ax.transAxes, ha="center",
             va="top", fontsize=11 if args.column else 16, clip_on=False)
     ax.set_ylabel("Total Workload Time (s)", fontsize=15)
     ax.tick_params(axis="y", labelsize=13)
@@ -606,7 +667,7 @@ def main():
     seg_labels = [SEGMENT_LABEL[s] for s in seg_keys]
     if args.column:
         leg1 = ax.legend(seg_handles, seg_labels, loc="upper left",
-                         ncol=len(seg_handles), fontsize=9, handlelength=2, handleheight=1.2, frameon=True,
+                         ncol=4, fontsize=9, handlelength=2, handleheight=1.2, frameon=True,
                          edgecolor="#222222", fancybox=False)
     else:
         leg1 = ax.legend(seg_handles, seg_labels, loc="upper left", fontsize=16, handlelength=3, handleheight=2.2)
@@ -617,7 +678,7 @@ def main():
         ax.legend([trend_handle], ["linear fit"], loc="upper center", bbox_to_anchor=(0.5, 1.0), fontsize=16)
 
     y_max = max((sum(segs.values()) for k in series for segs, _ in per_series[k].values()), default=1.0)
-    ax.set_ylim(0, 33 if args.column else y_max * 1.9)  # headroom so the keys sit above the bars
+    ax.set_ylim(0, 30 if args.column else y_max * 1.9)  # headroom so the keys sit above the bars
 
     fig.savefig(out_path, dpi=200, bbox_inches="tight", pad_inches=0.05)
     print(f"Wrote {out_path}")

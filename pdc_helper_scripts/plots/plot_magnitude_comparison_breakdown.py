@@ -140,9 +140,10 @@ RAW_TO_SEGMENT = {
     "compute_s": "ana_compute",
     "writeback_s": "ana_write",
 }
-SEGMENT_ORDER = ["sim_write", "close", "ana_read", "ana_compute", "ana_write"]
+SEGMENT_ORDER = ["sim_write", "srv_mag", "close", "ana_read", "ana_compute", "ana_write"]
 SEGMENT_LABEL = {
-    "sim_write": "write",
+    "sim_write": "server write",
+    "srv_mag": "server compute mag",
     "close": "close",
     "ana_read": "analysis read",
     "ana_compute": "analysis compute",
@@ -150,12 +151,42 @@ SEGMENT_LABEL = {
 }
 # Validated categorical quintuple (dataviz reference palette slots 1-5) --
 # see plot_curl_comparison.py's identical choice for the CVD/contrast
-# validation this passed.
+# validation this passed. srv_mag is a new DF-only breakdown of the write
+# segment (see decompose_df_write()), same color/hatch convention
+# plot_curl_comparison_breakdown.py uses for its own srv_mag.
 SEGMENT_COLOR = {
     "sim_write": "#2a78d6", "close": "#e87ba4", "ana_read": "#eb6834",
-    "ana_compute": "#1baf7a", "ana_write": "#eda100",
+    "ana_compute": "#1baf7a", "ana_write": "#eda100", "srv_mag": "#43A047",
 }
-SEGMENT_HATCH = {"sim_write": "..", "close": "||", "ana_read": "//", "ana_compute": "xx", "ana_write": "\\\\"}
+SEGMENT_HATCH = {
+    "sim_write": "..", "close": "||", "ana_read": "//", "ana_compute": "xx", "ana_write": "\\\\",
+    "srv_mag": "oo",
+}
+
+# DF-only write-segment breakdown (per explicit request), same convention
+# plot_curl_comparison_breakdown.py uses. The vector-magnitude workload's
+# own PDC server logs have no posix_write/magnitude metric lines at all
+# (checked every log under analysis/magnitude/pdc/ -- all of them predate
+# the stats instrumentation that curl's 10_07_2026 eager_compress batch
+# happened to be built with), so there's no real per-rank-count data to
+# pull for this workload. Approximated instead (not for publication, per
+# explicit request) by applying curl's own real measured write/magnitude
+# *ratio* -- posix_write ~2.131s vs magnitude ~0.273s, i.e. write is
+# ~88.7% of the write+magnitude-compute total there -- to this workload's
+# own (different) write+close total at each rank count.
+_DF_WRITE_FRAC = 2.131096339285714 / (2.131096339285714 + 0.2726378377976191)
+_DF_MAG_FRAC = 1.0 - _DF_WRITE_FRAC
+
+
+def decompose_df_write(segs_by_ranks):
+    """Mutates segs_by_ranks in place: folds close into write, then
+    splits that total into sim_write/srv_mag using the fixed ratio
+    above."""
+    for n_ranks, (segs, gb) in segs_by_ranks.items():
+        total = segs["sim_write"] + segs["close"]
+        segs["sim_write"] = total * _DF_WRITE_FRAC
+        segs["srv_mag"] = total * _DF_MAG_FRAC
+        segs["close"] = 0.0
 
 # Bar order, left to right within each rank-count group: HDF5, HighFive
 # (grouped next to HDF5 since it's the same underlying library), ADIOS2,
@@ -440,6 +471,8 @@ def main():
                 n_ranks: aggregate(ms_mode, rows)
                 for (ns, n_ranks), rows in rows_by_key.items() if ns == n_servers
             }
+            if ms_mode in ("eager", "lazy"):
+                decompose_df_write(per_series[(ms_mode, n_servers)])
 
     for mode in modes:
         if mode == "adios2_magnitude":

@@ -466,7 +466,7 @@ def main():
 
     ax.set_xticks(x)
     ax.set_xticklabels([str(n) for n in all_ranks])
-    ax.set_xlabel("MPI ranks", fontsize=13)
+    ax.set_xlabel("Number of Processes", fontsize=13)
     ax.set_ylabel("total workload time (s)", fontsize=13)
     ax.tick_params(axis="y", labelsize=11)
     ax.yaxis.set_minor_locator(AutoMinorLocator(2))
@@ -508,7 +508,7 @@ def main():
     seg_keys = [s for s in SEGMENT_ORDER if any(per_series[k].get(n, {}).get(s, 0.0) > 0 for k in series for n in all_ranks)]
     seg_handles = [mpatches.Patch(facecolor=SEGMENT_COLOR[s], hatch=SEGMENT_HATCH[s], edgecolor="white") for s in seg_keys]
     seg_labels = [SEGMENT_LABEL[s] for s in seg_keys]
-    leg1 = ax.legend(seg_handles, seg_labels, title="cost segment", loc="upper left", fontsize=14, title_fontsize=15, handlelength=3, handleheight=2.2)
+    leg1 = ax.legend(seg_handles, seg_labels, loc="upper left", fontsize=14, handlelength=3, handleheight=2.2)
     ax.add_artist(leg1)
 
     if trend_label_used:
