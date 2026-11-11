@@ -24,6 +24,10 @@ command -v cmake >/dev/null || { echo "cmake not found (module load cmake)" >&2;
 # includes it gets its own copy. PDC's CMakeLists adds -fcommon only for GCC; Cray clang
 # (Tuolumne's mpicc) otherwise fails to link with "duplicate symbol: pdc_timings".
 PDC_CFLAGS="${PDC_CFLAGS:--fcommon}"
+# PDC calls shm_open/shm_unlink but never links librt. On TOSS 4 (RHEL 8, glibc 2.28) those
+# live in librt, and lld rejects pdc_server ("undefined reference: shm_open"). Newer glibc
+# moved them into libc, where -lrt is a harmless stub.
+PDC_LIBS="${PDC_LIBS:--lrt}"
 
 STEPS=("$@")
 [ ${#STEPS[@]} -gt 0 ] || STEPS=(deps prev new)
@@ -73,7 +77,7 @@ configure_pdc() { # src build
         -DBUILD_SHARED_LIBS=ON -DBUILD_TESTING=ON -DBUILD_MPI_TESTING=ON \
         -DPDC_ENABLE_MPI=ON -DPDC_TIMING=ON -DPDC_ENABLE_CHECKPOINT=ON \
         -DMERCURY_DIR="$MERCURY_DIR" -DCMAKE_INSTALL_PREFIX="$2/install" \
-        -DCMAKE_C_FLAGS="$PDC_CFLAGS" \
+        -DCMAKE_C_FLAGS="$PDC_CFLAGS" -DCMAKE_C_STANDARD_LIBRARIES="$PDC_LIBS" \
         ${PDC_CMAKE_EXTRA:-}
     cmake --build "$2" -j"$JOBS" --target pdc_server close_server kvtag_add_scale kvtag_get_verify_scale
 }
