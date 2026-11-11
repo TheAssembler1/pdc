@@ -88,7 +88,7 @@ int
 main(int argc, char *argv[])
 {
     pdcid_t     pdc, cont_prop, cont, obj_prop;
-    pdcid_t    *obj_ids;
+    pdcid_t *   obj_ids;
     int         n_obj, n_add_tag, my_obj, my_obj_s, my_add_tag, my_add_tag_s, max_obj, max_add_tag;
     int         obj_1percent = 0, tag_1percent = 0;
     int         proc_num, my_rank, i, v;

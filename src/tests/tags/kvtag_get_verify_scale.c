@@ -88,14 +88,14 @@ int
 main(int argc, char *argv[])
 {
     pdcid_t        pdc, cont;
-    pdcid_t       *obj_ids;
+    pdcid_t *      obj_ids;
     int            n_obj, n_query, my_obj, my_obj_s, n_tag, n_tag_s, max_obj;
     int            obj_1percent = 0;
     int            proc_num, my_rank, i;
     char           obj_name[128];
     double         stime, total_time, percent_time;
     pdc_kvtag_t    kvtag;
-    void         **values;
+    void **        values;
     pdc_var_type_t value_type;
     size_t         value_size;
     int            ret_value = SUCCEED;
@@ -110,8 +110,8 @@ main(int argc, char *argv[])
     MPI_Comm_size(MPI_COMM_WORLD, &proc_num);
     MPI_Comm_rank(MPI_COMM_WORLD, &my_rank);
 #else
-    proc_num = 1;
-    my_rank  = 0;
+    proc_num             = 1;
+    my_rank              = 0;
 #endif
     if (argc < 3) {
         if (my_rank == 0)
