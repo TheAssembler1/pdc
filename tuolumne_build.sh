@@ -20,6 +20,11 @@ JOBS="${JOBS:-$(nproc)}"
 [ -n "$PDC_CC" ] || { echo "no MPI C compiler found (mpicc / cc); load cray-mpich" >&2; exit 1; }
 command -v cmake >/dev/null || { echo "cmake not found (module load cmake)" >&2; exit 1; }
 
+# pdc_timing.h defines its PDC_TIMING globals in the header (no `extern`), so every file that
+# includes it gets its own copy. PDC's CMakeLists adds -fcommon only for GCC; Cray clang
+# (Tuolumne's mpicc) otherwise fails to link with "duplicate symbol: pdc_timings".
+PDC_CFLAGS="${PDC_CFLAGS:--fcommon}"
+
 STEPS=("$@")
 [ ${#STEPS[@]} -gt 0 ] || STEPS=(deps prev new)
 
@@ -68,6 +73,7 @@ configure_pdc() { # src build
         -DBUILD_SHARED_LIBS=ON -DBUILD_TESTING=ON -DBUILD_MPI_TESTING=ON \
         -DPDC_ENABLE_MPI=ON -DPDC_TIMING=ON -DPDC_ENABLE_CHECKPOINT=ON \
         -DMERCURY_DIR="$MERCURY_DIR" -DCMAKE_INSTALL_PREFIX="$2/install" \
+        -DCMAKE_C_FLAGS="$PDC_CFLAGS" \
         ${PDC_CMAKE_EXTRA:-}
     cmake --build "$2" -j"$JOBS" --target pdc_server close_server kvtag_add_scale kvtag_get_verify_scale
 }
