@@ -57,10 +57,12 @@ so both variants run the same client code. Nothing else changes.
   checkpoint/restart cost is server-local anyway.
 * **Checkpoint location:** `CKPT_ON=lustre` (default; under the run dir on `/p/lustre5`) or
   `CKPT_ON=tmp` (node-local `/tmp`, removes file system noise).
-* **Clients:** `N_CLIENTS=1`. The PR's `kvtag_add_scale` deadlocks with more than one client
-  rank. All tags go to rank 0, which calls `MPI_Barrier` once per tag in its progress loop while
-  the other ranks skip it. The PR's own `kvtag_checkpoint_restart_mpi` ctest (2 servers, 4
-  clients) hangs for the same reason.
+* **Clients:** `N_CLIENTS=1` by default, to match the PR's numbers. As posted, the PR's
+  `kvtag_add_scale` deadlocked with more than one client rank: all tags go to rank 0, which
+  called `MPI_Barrier` once per tag while the other ranks skipped it. That also hung the PR's own
+  `kvtag_checkpoint_restart_mpi` ctest. This branch fixes both scale programs: every rank now runs
+  the progress loops to the largest per-rank count. The prev build copies the fixed programs too,
+  so larger `N_CLIENTS` values work for both variants.
 * LC asks that El Capitan-class results go to elcapitan-coe-issues@llnl.gov for review before
   public release, so check before posting the numbers on the PR.
 

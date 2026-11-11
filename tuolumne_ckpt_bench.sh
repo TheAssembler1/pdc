@@ -19,10 +19,9 @@
 # Knobs (env vars):
 #   VARIANTS="prev new"   SUITES="strong weak"   TRIALS=5   SERVERS="2 4 8 16"
 #   STRONG_NOBJ=100000    WEAK_NOBJ_PER_SERVER=5000 (=> 10K/20K/40K/80K)   N_TAG=100
-#   N_CLIENTS=1           client ranks. Keep 1: kvtag_add_scale (from the PR) deadlocks with >1
-#                         client because all N_TAG tags land on rank 0, which calls MPI_Barrier
-#                         once per tag while the other ranks do not. So the PR's numbers can only
-#                         have come from a single client rank.
+#   N_CLIENTS=1           client ranks. 1 matches the PR's numbers: before this branch's fix,
+#                         kvtag_add_scale deadlocked with >1 client (all tags land on rank 0,
+#                         which called MPI_Barrier per tag alone), so they came from 1 client.
 #   CORES_PER_TASK=2      LAUNCHER=flux|mpiexec|srun   LAUNCH_EXTRA="..."  (extra launcher args)
 #   CKPT_ON=lustre|tmp    (lustre: checkpoint under the run dir on Lustre; tmp: node-local /tmp)
 #   STEP_TIMEOUT=1800     (seconds per client/close step)  KEEP_CKPT=0
