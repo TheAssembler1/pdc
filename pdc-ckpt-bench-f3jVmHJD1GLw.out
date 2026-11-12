@@ -1,0 +1,62 @@
+[09:49:04] prev strong servers=2 clients=1 obj=10000 tag=100 trial=1
+    ckpt1=0.233790 close1=0.513465 restart=1.725954 ckpt2=0.080403 close2=0.376861 add_rc=0 verify_rc=0
+[09:49:15] new strong servers=2 clients=1 obj=10000 tag=100 trial=1
+    ckpt1=0.108607 close1=0.458101 restart=0.074525 ckpt2=0.131660 close2=0.425817 add_rc=0 verify_rc=0
+[09:49:25] prev strong servers=4 clients=1 obj=10000 tag=100 trial=1
+    ckpt1=0.051122 close1=0.547868 restart=0.022846 ckpt2=0.050238 close2=0.567988 add_rc=0 verify_rc=0
+[09:49:35] new strong servers=4 clients=1 obj=10000 tag=100 trial=1
+    ckpt1=0.059586 close1=0.560111 restart=0.038453 ckpt2=0.077244 close2=0.430111 add_rc=0 verify_rc=0
+
+results: /p/lustre5/lewis153/pdc-ckpt-bench/results/20261111-094904/results.csv
+## Strong Scaling (fixed 10K objects / 100 tags)
+
+### Checkpoint Time (seconds)
+
+| Servers | Prev Min | Prev Avg | Prev Max | New Min | New Avg | New Max | New/Prev (avg) |
+|---|---|---|---|---|---|---|---|
+| -n 2 -c 2, 1 clients | 0.233790 | 0.233790 | 0.233790 | 0.108607 | 0.108607 | 0.108607 | 0.46x |
+| -n 4 -c 2, 1 clients | 0.051122 | 0.051122 | 0.051122 | 0.059586 | 0.059586 | 0.059586 | 1.17x |
+
+### Server Close Time (seconds)
+
+| Servers | Prev Min | Prev Avg | Prev Max | New Min | New Avg | New Max | New/Prev (avg) |
+|---|---|---|---|---|---|---|---|
+| -n 2 -c 2, 1 clients | 0.513465 | 0.513465 | 0.513465 | 0.458101 | 0.458101 | 0.458101 | 0.89x |
+| -n 4 -c 2, 1 clients | 0.547868 | 0.547868 | 0.547868 | 0.560111 | 0.560111 | 0.560111 | 1.02x |
+
+### Server Restart Time (seconds)
+
+| Servers | Prev Min | Prev Avg | Prev Max | New Min | New Avg | New Max | New/Prev (avg) |
+|---|---|---|---|---|---|---|---|
+| -n 2 -c 2, 1 clients | 1.725954 | 1.725954 | 1.725954 | 0.074525 | 0.074525 | 0.074525 | 0.04x |
+| -n 4 -c 2, 1 clients | 0.022846 | 0.022846 | 0.022846 | 0.038453 | 0.038453 | 0.038453 | 1.68x |
+
+## Prev: 1st vs 2nd Checkpoint Time, strong scaling (seconds)
+
+| Servers | 1st Checkpoint (Avg) | 2nd Checkpoint (Avg) | Overhead (%) |
+|---|---|---|---|
+| -n 2 -c 2 | 0.233790 | 0.080403 | -65.61% |
+| -n 4 -c 2 | 0.051122 | 0.050238 | -1.73% |
+
+## New: 1st vs 2nd Checkpoint Time, strong scaling (seconds)
+
+| Servers | 1st Checkpoint (Avg) | 2nd Checkpoint (Avg) | Overhead (%) |
+|---|---|---|---|
+| -n 2 -c 2 | 0.108607 | 0.131660 | +21.23% |
+| -n 4 -c 2 | 0.059586 | 0.077244 | +29.63% |
+
+## Prev: 1st vs 2nd Server Close Time, strong scaling (seconds)
+
+| Servers | 1st Server Close (Avg) | 2nd Server Close (Avg) | Overhead (%) |
+|---|---|---|---|
+| -n 2 -c 2 | 0.513465 | 0.376861 | -26.60% |
+| -n 4 -c 2 | 0.547868 | 0.567988 | +3.67% |
+
+## New: 1st vs 2nd Server Close Time, strong scaling (seconds)
+
+| Servers | 1st Server Close (Avg) | 2nd Server Close (Avg) | Overhead (%) |
+|---|---|---|---|
+| -n 2 -c 2 | 0.458101 | 0.425817 | -7.05% |
+| -n 4 -c 2 | 0.560111 | 0.430111 | -23.21% |
+
+_Successful trials per cell: 1; failed trials: 0._

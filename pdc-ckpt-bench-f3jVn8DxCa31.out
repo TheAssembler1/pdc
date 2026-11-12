@@ -1,0 +1,257 @@
+[12:14:11] prev strong servers=2 clients=1 obj=100000 tag=100 trial=1
+    ckpt1=0.763954 close1=1.039893 restart=0.275152 ckpt2=0.809581 close2=1.094727 add_rc=0 verify_rc=0
+[12:16:40] new strong servers=2 clients=1 obj=100000 tag=100 trial=1
+    ckpt1=1.204823 close1=1.550561 restart=0.574388 ckpt2=1.217817 close2=1.510200 add_rc=0 verify_rc=0
+[12:19:16] prev strong servers=2 clients=1 obj=100000 tag=100 trial=2
+    ckpt1=0.682144 close1=1.019200 restart=0.274949 ckpt2=0.803131 close2=1.165198 add_rc=0 verify_rc=0
+[12:21:43] new strong servers=2 clients=1 obj=100000 tag=100 trial=2
+    ckpt1=1.080684 close1=1.370359 restart=0.609796 ckpt2=1.216653 close2=1.528962 add_rc=0 verify_rc=0
+[12:24:13] prev strong servers=2 clients=1 obj=100000 tag=100 trial=3
+    ckpt1=0.670731 close1=1.010044 restart=0.276379 ckpt2=0.784182 close2=1.135563 add_rc=0 verify_rc=0
+[12:26:46] new strong servers=2 clients=1 obj=100000 tag=100 trial=3
+    ckpt1=1.115206 close1=1.462246 restart=0.585354 ckpt2=1.194746 close2=1.518233 add_rc=0 verify_rc=0
+[12:29:13] prev strong servers=2 clients=1 obj=100000 tag=100 trial=4
+    ckpt1=0.674597 close1=0.987235 restart=0.273749 ckpt2=0.791026 close2=1.136743 add_rc=0 verify_rc=0
+[12:31:43] new strong servers=2 clients=1 obj=100000 tag=100 trial=4
+    ckpt1=1.094404 close1=1.437340 restart=0.635544 ckpt2=1.229866 close2=1.577298 add_rc=0 verify_rc=0
+[12:34:20] prev strong servers=2 clients=1 obj=100000 tag=100 trial=5
+    ckpt1=0.663786 close1=1.007642 restart=0.285699 ckpt2=0.793859 close2=1.138943 add_rc=0 verify_rc=0
+[12:36:48] new strong servers=2 clients=1 obj=100000 tag=100 trial=5
+    ckpt1=1.102863 close1=1.455617 restart=0.571562 ckpt2=1.201701 close2=1.504558 add_rc=0 verify_rc=0
+[12:39:19] prev strong servers=4 clients=1 obj=100000 tag=100 trial=1
+    ckpt1=0.359283 close1=0.967268 restart=0.145919 ckpt2=0.393882 close2=0.937640 add_rc=0 verify_rc=0
+[12:41:58] new strong servers=4 clients=1 obj=100000 tag=100 trial=1
+    ckpt1=0.580867 close1=1.024727 restart=0.283091 ckpt2=0.581775 close2=1.125144 add_rc=0 verify_rc=0
+[12:44:29] prev strong servers=4 clients=1 obj=100000 tag=100 trial=2
+    ckpt1=0.343800 close1=0.921114 restart=0.142235 ckpt2=0.372325 close2=0.829615 add_rc=0 verify_rc=0
+[12:47:00] new strong servers=4 clients=1 obj=100000 tag=100 trial=2
+    ckpt1=0.536176 close1=1.014421 restart=0.285273 ckpt2=0.599401 close2=1.040550 add_rc=0 verify_rc=0
+[12:49:31] prev strong servers=4 clients=1 obj=100000 tag=100 trial=3
+    ckpt1=0.346270 close1=0.956391 restart=0.142871 ckpt2=0.375096 close2=0.989484 add_rc=0 verify_rc=0
+[12:52:01] new strong servers=4 clients=1 obj=100000 tag=100 trial=3
+    ckpt1=0.539314 close1=1.062005 restart=0.277563 ckpt2=0.603148 close2=1.092010 add_rc=0 verify_rc=0
+[12:54:32] prev strong servers=4 clients=1 obj=100000 tag=100 trial=4
+    ckpt1=0.343137 close1=0.698505 restart=0.153435 ckpt2=0.377356 close2=0.904069 add_rc=0 verify_rc=0
+[12:57:02] new strong servers=4 clients=1 obj=100000 tag=100 trial=4
+    ckpt1=0.532742 close1=1.065218 restart=0.275479 ckpt2=0.586470 close2=1.090925 add_rc=0 verify_rc=0
+[12:59:33] prev strong servers=4 clients=1 obj=100000 tag=100 trial=5
+    ckpt1=0.344648 close1=0.850506 restart=0.142321 ckpt2=0.375459 close2=0.937251 add_rc=0 verify_rc=0
+[13:02:03] new strong servers=4 clients=1 obj=100000 tag=100 trial=5
+    ckpt1=0.545683 close1=1.169462 restart=0.281305 ckpt2=0.591805 close2=1.133944 add_rc=0 verify_rc=0
+[13:04:33] prev strong servers=8 clients=1 obj=100000 tag=100 trial=1
+    ckpt1=0.214540 close1=1.354910 restart=0.108637 ckpt2=0.237896 close2=1.238035 add_rc=0 verify_rc=0
+[13:07:05] new strong servers=8 clients=1 obj=100000 tag=100 trial=1
+    ckpt1=0.272345 close1=1.283046 restart=0.149539 ckpt2=0.322956 close2=1.150300 add_rc=0 verify_rc=0
+[13:09:36] prev strong servers=8 clients=1 obj=100000 tag=100 trial=2
+    ckpt1=0.227599 close1=1.254570 restart=0.115107 ckpt2=0.238487 close2=1.340202 add_rc=0 verify_rc=0
+[13:12:07] new strong servers=8 clients=1 obj=100000 tag=100 trial=2
+    ckpt1=0.272465 close1=1.286067 restart=0.146042 ckpt2=0.321389 close2=1.335741 add_rc=0 verify_rc=0
+[13:14:47] prev strong servers=8 clients=1 obj=100000 tag=100 trial=3
+    ckpt1=0.206029 close1=1.141797 restart=0.101603 ckpt2=0.238177 close2=1.318485 add_rc=0 verify_rc=0
+[13:17:19] new strong servers=8 clients=1 obj=100000 tag=100 trial=3
+    ckpt1=0.273692 close1=1.290519 restart=0.151906 ckpt2=0.325424 close2=1.398902 add_rc=0 verify_rc=0
+[13:19:54] prev strong servers=8 clients=1 obj=100000 tag=100 trial=4
+    ckpt1=0.217815 close1=1.270467 restart=0.115739 ckpt2=0.246217 close2=1.309651 add_rc=0 verify_rc=0
+[13:22:27] new strong servers=8 clients=1 obj=100000 tag=100 trial=4
+    ckpt1=0.283976 close1=1.368991 restart=0.152516 ckpt2=0.322481 close2=1.439771 add_rc=0 verify_rc=0
+[13:25:00] prev strong servers=8 clients=1 obj=100000 tag=100 trial=5
+    ckpt1=0.210576 close1=1.164051 restart=0.090161 ckpt2=0.233329 close2=1.337218 add_rc=0 verify_rc=0
+[13:27:32] new strong servers=8 clients=1 obj=100000 tag=100 trial=5
+    ckpt1=0.290709 close1=1.472703 restart=0.150028 ckpt2=0.318721 close2=1.427595 add_rc=0 verify_rc=0
+[13:30:05] prev strong servers=16 clients=1 obj=100000 tag=100 trial=1
+    ckpt1=0.160960 close1=2.367629 restart=2.952147 ckpt2=0.181274 close2=2.149465 add_rc=0 verify_rc=0
+[13:32:56] new strong servers=16 clients=1 obj=100000 tag=100 trial=1
+    ckpt1=0.154661 close1=2.283629 restart=0.098650 ckpt2=0.226861 close2=2.261279 add_rc=0 verify_rc=0
+[13:35:34] prev strong servers=16 clients=1 obj=100000 tag=100 trial=2
+    ckpt1=0.157464 close1=1.775450 restart=2.928129 ckpt2=0.202484 close2=2.379190 add_rc=0 verify_rc=0
+[13:38:14] new strong servers=16 clients=1 obj=100000 tag=100 trial=2
+    ckpt1=0.152177 close1=1.982663 restart=0.099591 ckpt2=0.231870 close2=2.154766 add_rc=0 verify_rc=0
+[13:40:52] prev strong servers=16 clients=1 obj=100000 tag=100 trial=3
+    ckpt1=0.164827 close1=2.265839 restart=2.966394 ckpt2=0.188705 close2=2.222462 add_rc=0 verify_rc=0
+[13:43:34] new strong servers=16 clients=1 obj=100000 tag=100 trial=3
+    ckpt1=0.151598 close1=2.038516 restart=0.099286 ckpt2=0.228197 close2=2.139951 add_rc=0 verify_rc=0
+[13:46:11] prev strong servers=16 clients=1 obj=100000 tag=100 trial=4
+    ckpt1=0.162621 close1=2.266736 restart=2.855100 ckpt2=0.192248 close2=2.105473 add_rc=0 verify_rc=0
+[13:49:01] new strong servers=16 clients=1 obj=100000 tag=100 trial=4
+    ckpt1=0.154018 close1=2.086063 restart=0.099724 ckpt2=0.229234 close2=2.308747 add_rc=0 verify_rc=0
+[13:51:39] prev strong servers=16 clients=1 obj=100000 tag=100 trial=5
+    ckpt1=0.163325 close1=2.057473 restart=2.967073 ckpt2=0.197181 close2=2.207776 add_rc=0 verify_rc=0
+[13:54:21] new strong servers=16 clients=1 obj=100000 tag=100 trial=5
+    ckpt1=0.152810 close1=2.268234 restart=0.100583 ckpt2=0.223106 close2=2.125367 add_rc=0 verify_rc=0
+[13:57:00] prev weak servers=2 clients=1 obj=10000 tag=100 trial=1
+    ckpt1=0.092602 close1=0.439129 restart=1.725465 ckpt2=0.076626 close2=0.251380 add_rc=0 verify_rc=0
+[13:57:10] new weak servers=2 clients=1 obj=10000 tag=100 trial=1
+    ckpt1=0.095185 close1=0.378023 restart=0.067005 ckpt2=0.102612 close2=0.420797 add_rc=0 verify_rc=0
+[13:57:19] prev weak servers=2 clients=1 obj=10000 tag=100 trial=2
+    ckpt1=0.092457 close1=0.442968 restart=1.725731 ckpt2=0.075816 close2=0.412490 add_rc=0 verify_rc=0
+[13:57:29] new weak servers=2 clients=1 obj=10000 tag=100 trial=2
+    ckpt1=0.095074 close1=0.401257 restart=0.068090 ckpt2=0.097551 close2=0.416354 add_rc=0 verify_rc=0
+[13:57:38] prev weak servers=2 clients=1 obj=10000 tag=100 trial=3
+    ckpt1=0.090964 close1=0.375568 restart=1.727637 ckpt2=0.085810 close2=0.439977 add_rc=0 verify_rc=0
+[13:57:49] new weak servers=2 clients=1 obj=10000 tag=100 trial=3
+    ckpt1=0.097167 close1=0.454985 restart=0.060797 ckpt2=0.104861 close2=0.439932 add_rc=0 verify_rc=0
+[13:57:59] prev weak servers=2 clients=1 obj=10000 tag=100 trial=4
+    ckpt1=0.090766 close1=0.375274 restart=1.727529 ckpt2=0.083625 close2=0.467037 add_rc=0 verify_rc=0
+[13:58:09] new weak servers=2 clients=1 obj=10000 tag=100 trial=4
+    ckpt1=0.098735 close1=0.425306 restart=0.067702 ckpt2=0.105070 close2=0.400675 add_rc=0 verify_rc=0
+[13:58:18] prev weak servers=2 clients=1 obj=10000 tag=100 trial=5
+    ckpt1=0.090705 close1=0.386471 restart=1.730487 ckpt2=0.079925 close2=0.464986 add_rc=0 verify_rc=0
+[13:58:29] new weak servers=2 clients=1 obj=10000 tag=100 trial=5
+    ckpt1=0.100945 close1=0.426283 restart=0.066810 ckpt2=0.106939 close2=0.432541 add_rc=0 verify_rc=0
+[13:58:38] prev weak servers=4 clients=1 obj=20000 tag=100 trial=1
+    ckpt1=0.090814 close1=0.725408 restart=1.726784 ckpt2=0.073705 close2=0.692582 add_rc=0 verify_rc=0
+[13:58:54] new weak servers=4 clients=1 obj=20000 tag=100 trial=1
+    ckpt1=0.101059 close1=0.685650 restart=0.065726 ckpt2=0.107780 close2=0.687572 add_rc=0 verify_rc=0
+[13:59:10] prev weak servers=4 clients=1 obj=20000 tag=100 trial=2
+    ckpt1=0.093577 close1=0.698318 restart=1.727183 ckpt2=0.073650 close2=0.624203 add_rc=0 verify_rc=0
+[13:59:26] new weak servers=4 clients=1 obj=20000 tag=100 trial=2
+    ckpt1=0.100543 close1=0.701030 restart=0.065994 ckpt2=0.100437 close2=0.633223 add_rc=0 verify_rc=0
+[13:59:41] prev weak servers=4 clients=1 obj=20000 tag=100 trial=3
+    ckpt1=0.095430 close1=0.607409 restart=1.729555 ckpt2=0.074348 close2=0.674052 add_rc=0 verify_rc=0
+[13:59:58] new weak servers=4 clients=1 obj=20000 tag=100 trial=3
+    ckpt1=0.103374 close1=0.747033 restart=0.065698 ckpt2=0.109637 close2=0.660985 add_rc=0 verify_rc=0
+[14:00:13] prev weak servers=4 clients=1 obj=20000 tag=100 trial=4
+    ckpt1=0.090194 close1=0.667476 restart=1.728828 ckpt2=0.074424 close2=0.638518 add_rc=0 verify_rc=0
+[14:00:30] new weak servers=4 clients=1 obj=20000 tag=100 trial=4
+    ckpt1=0.100852 close1=0.618627 restart=0.065721 ckpt2=0.111666 close2=0.730931 add_rc=0 verify_rc=0
+[14:00:45] prev weak servers=4 clients=1 obj=20000 tag=100 trial=5
+    ckpt1=0.090873 close1=0.682989 restart=1.734264 ckpt2=0.077961 close2=0.680328 add_rc=0 verify_rc=0
+[14:01:02] new weak servers=4 clients=1 obj=20000 tag=100 trial=5
+    ckpt1=0.102386 close1=0.674492 restart=0.065231 ckpt2=0.105486 close2=0.625308 add_rc=0 verify_rc=0
+[14:01:17] prev weak servers=8 clients=1 obj=40000 tag=100 trial=1
+    ckpt1=0.103843 close1=1.174718 restart=1.869001 ckpt2=0.097352 close2=1.181681 add_rc=0 verify_rc=0
+[14:01:49] new weak servers=8 clients=1 obj=40000 tag=100 trial=1
+    ckpt1=0.103787 close1=0.976191 restart=0.065760 ckpt2=0.120055 close2=1.248175 add_rc=0 verify_rc=0
+[14:02:20] prev weak servers=8 clients=1 obj=40000 tag=100 trial=2
+    ckpt1=0.105048 close1=1.273828 restart=1.905585 ckpt2=0.100965 close2=1.143366 add_rc=0 verify_rc=0
+[14:02:52] new weak servers=8 clients=1 obj=40000 tag=100 trial=2
+    ckpt1=0.103706 close1=1.039987 restart=0.061485 ckpt2=0.115954 close2=1.173603 add_rc=0 verify_rc=0
+[14:03:23] prev weak servers=8 clients=1 obj=40000 tag=100 trial=3
+    ckpt1=0.103644 close1=1.207536 restart=1.868557 ckpt2=0.096315 close2=0.976706 add_rc=0 verify_rc=0
+[14:03:56] new weak servers=8 clients=1 obj=40000 tag=100 trial=3
+    ckpt1=0.108146 close1=1.177258 restart=0.061875 ckpt2=0.117379 close2=1.141043 add_rc=0 verify_rc=0
+[14:04:27] prev weak servers=8 clients=1 obj=40000 tag=100 trial=4
+    ckpt1=0.103359 close1=1.165257 restart=1.897138 ckpt2=0.092884 close2=1.244455 add_rc=0 verify_rc=0
+[14:04:59] new weak servers=8 clients=1 obj=40000 tag=100 trial=4
+    ckpt1=0.107341 close1=1.110455 restart=0.061153 ckpt2=0.117171 close2=1.130694 add_rc=0 verify_rc=0
+[14:05:30] prev weak servers=8 clients=1 obj=40000 tag=100 trial=5
+    ckpt1=0.105863 close1=1.190447 restart=1.878894 ckpt2=0.091549 close2=1.113629 add_rc=0 verify_rc=0
+[14:06:03] new weak servers=8 clients=1 obj=40000 tag=100 trial=5
+    ckpt1=0.108260 close1=1.149648 restart=0.065548 ckpt2=0.124587 close2=1.225952 add_rc=0 verify_rc=0
+[14:06:34] prev weak servers=16 clients=1 obj=80000 tag=100 trial=1
+    ckpt1=0.142210 close1=2.000667 restart=2.174127 ckpt2=0.151226 close2=2.153823 add_rc=0 verify_rc=0
+[14:08:15] new weak servers=16 clients=1 obj=80000 tag=100 trial=1
+    ckpt1=0.124461 close1=1.846061 restart=0.082386 ckpt2=0.164579 close2=2.172643 add_rc=0 verify_rc=0
+[14:09:54] prev weak servers=16 clients=1 obj=80000 tag=100 trial=2
+    ckpt1=0.140721 close1=2.258412 restart=2.218138 ckpt2=0.156940 close2=2.248861 add_rc=0 verify_rc=0
+[14:11:35] new weak servers=16 clients=1 obj=80000 tag=100 trial=2
+    ckpt1=0.121707 close1=1.952787 restart=0.082562 ckpt2=0.180971 close2=2.224502 add_rc=0 verify_rc=0
+[14:13:13] prev weak servers=16 clients=1 obj=80000 tag=100 trial=3
+    ckpt1=0.145229 close1=2.213221 restart=2.230014 ckpt2=0.156422 close2=2.255366 add_rc=0 verify_rc=0
+[14:14:53] new weak servers=16 clients=1 obj=80000 tag=100 trial=3
+    ckpt1=0.122506 close1=2.175849 restart=0.082448 ckpt2=0.177400 close2=1.945157 add_rc=0 verify_rc=0
+[14:16:31] prev weak servers=16 clients=1 obj=80000 tag=100 trial=4
+    ckpt1=0.129842 close1=2.286042 restart=2.188134 ckpt2=0.154996 close2=2.178451 add_rc=0 verify_rc=0
+[14:18:13] new weak servers=16 clients=1 obj=80000 tag=100 trial=4
+    ckpt1=0.119099 close1=2.156258 restart=0.081554 ckpt2=0.183429 close2=2.112720 add_rc=0 verify_rc=0
+[14:19:50] prev weak servers=16 clients=1 obj=80000 tag=100 trial=5
+    ckpt1=0.144404 close1=2.034612 restart=2.228176 ckpt2=0.159297 close2=1.985599 add_rc=0 verify_rc=0
+[14:21:31] new weak servers=16 clients=1 obj=80000 tag=100 trial=5
+    ckpt1=0.130957 close1=2.172952 restart=0.082647 ckpt2=0.176287 close2=2.180982 add_rc=0 verify_rc=0
+
+results: /p/lustre5/lewis153/pdc-ckpt-bench/results/20261111-121411/results.csv
+## Strong Scaling (fixed 100K objects / 100 tags)
+
+### Checkpoint Time (seconds)
+
+| Servers | Prev Min | Prev Avg | Prev Max | New Min | New Avg | New Max | New/Prev (avg) |
+|---|---|---|---|---|---|---|---|
+| -n 2 -c 2, 1 clients | 0.663786 | 0.691042 | 0.763954 | 1.080684 | 1.119596 | 1.204823 | 1.62x |
+| -n 4 -c 2, 1 clients | 0.343137 | 0.347428 | 0.359283 | 0.532742 | 0.546956 | 0.580867 | 1.57x |
+| -n 8 -c 2, 1 clients | 0.206029 | 0.215312 | 0.227599 | 0.272345 | 0.278637 | 0.290709 | 1.29x |
+| -n 16 -c 2, 1 clients | 0.157464 | 0.161839 | 0.164827 | 0.151598 | 0.153053 | 0.154661 | 0.95x |
+
+### Server Close Time (seconds)
+
+| Servers | Prev Min | Prev Avg | Prev Max | New Min | New Avg | New Max | New/Prev (avg) |
+|---|---|---|---|---|---|---|---|
+| -n 2 -c 2, 1 clients | 0.987235 | 1.012803 | 1.039893 | 1.370359 | 1.455225 | 1.550561 | 1.44x |
+| -n 4 -c 2, 1 clients | 0.698505 | 0.878757 | 0.967268 | 1.014421 | 1.067167 | 1.169462 | 1.21x |
+| -n 8 -c 2, 1 clients | 1.141797 | 1.237159 | 1.354910 | 1.283046 | 1.340265 | 1.472703 | 1.08x |
+| -n 16 -c 2, 1 clients | 1.775450 | 2.146625 | 2.367629 | 1.982663 | 2.131821 | 2.283629 | 0.99x |
+
+### Server Restart Time (seconds)
+
+| Servers | Prev Min | Prev Avg | Prev Max | New Min | New Avg | New Max | New/Prev (avg) |
+|---|---|---|---|---|---|---|---|
+| -n 2 -c 2, 1 clients | 0.273749 | 0.277186 | 0.285699 | 0.571562 | 0.595329 | 0.635544 | 2.15x |
+| -n 4 -c 2, 1 clients | 0.142235 | 0.145356 | 0.153435 | 0.275479 | 0.280542 | 0.285273 | 1.93x |
+| -n 8 -c 2, 1 clients | 0.090161 | 0.106249 | 0.115739 | 0.146042 | 0.150006 | 0.152516 | 1.41x |
+| -n 16 -c 2, 1 clients | 2.855100 | 2.933769 | 2.967073 | 0.098650 | 0.099567 | 0.100583 | 0.03x |
+
+## Weak Scaling (fixed work per server)
+
+### Checkpoint Time (seconds)
+
+| Servers | Prev Min | Prev Avg | Prev Max | New Min | New Avg | New Max | New/Prev (avg) |
+|---|---|---|---|---|---|---|---|
+| -n 2 -c 2 (10K/100), 1 clients | 0.090705 | 0.091499 | 0.092602 | 0.095074 | 0.097421 | 0.100945 | 1.06x |
+| -n 4 -c 2 (20K/100), 1 clients | 0.090194 | 0.092178 | 0.095430 | 0.100543 | 0.101643 | 0.103374 | 1.10x |
+| -n 8 -c 2 (40K/100), 1 clients | 0.103359 | 0.104351 | 0.105863 | 0.103706 | 0.106248 | 0.108260 | 1.02x |
+| -n 16 -c 2 (80K/100), 1 clients | 0.129842 | 0.140481 | 0.145229 | 0.119099 | 0.123746 | 0.130957 | 0.88x |
+
+### Server Close Time (seconds)
+
+| Servers | Prev Min | Prev Avg | Prev Max | New Min | New Avg | New Max | New/Prev (avg) |
+|---|---|---|---|---|---|---|---|
+| -n 2 -c 2 (10K/100), 1 clients | 0.375274 | 0.403882 | 0.442968 | 0.378023 | 0.417171 | 0.454985 | 1.03x |
+| -n 4 -c 2 (20K/100), 1 clients | 0.607409 | 0.676320 | 0.725408 | 0.618627 | 0.685366 | 0.747033 | 1.01x |
+| -n 8 -c 2 (40K/100), 1 clients | 1.165257 | 1.202357 | 1.273828 | 0.976191 | 1.090708 | 1.177258 | 0.91x |
+| -n 16 -c 2 (80K/100), 1 clients | 2.000667 | 2.158591 | 2.286042 | 1.846061 | 2.060781 | 2.175849 | 0.95x |
+
+### Server Restart Time (seconds)
+
+| Servers | Prev Min | Prev Avg | Prev Max | New Min | New Avg | New Max | New/Prev (avg) |
+|---|---|---|---|---|---|---|---|
+| -n 2 -c 2 (10K/100), 1 clients | 1.725465 | 1.727370 | 1.730487 | 0.060797 | 0.066081 | 0.068090 | 0.04x |
+| -n 4 -c 2 (20K/100), 1 clients | 1.726784 | 1.729323 | 1.734264 | 0.065231 | 0.065674 | 0.065994 | 0.04x |
+| -n 8 -c 2 (40K/100), 1 clients | 1.868557 | 1.883835 | 1.905585 | 0.061153 | 0.063164 | 0.065760 | 0.03x |
+| -n 16 -c 2 (80K/100), 1 clients | 2.174127 | 2.207718 | 2.230014 | 0.081554 | 0.082319 | 0.082647 | 0.04x |
+
+## Prev: 1st vs 2nd Checkpoint Time, strong scaling (seconds)
+
+| Servers | 1st Checkpoint (Avg) | 2nd Checkpoint (Avg) | Overhead (%) |
+|---|---|---|---|
+| -n 2 -c 2 | 0.691042 | 0.796356 | +15.24% |
+| -n 4 -c 2 | 0.347428 | 0.378824 | +9.04% |
+| -n 8 -c 2 | 0.215312 | 0.238821 | +10.92% |
+| -n 16 -c 2 | 0.161839 | 0.192378 | +18.87% |
+
+## New: 1st vs 2nd Checkpoint Time, strong scaling (seconds)
+
+| Servers | 1st Checkpoint (Avg) | 2nd Checkpoint (Avg) | Overhead (%) |
+|---|---|---|---|
+| -n 2 -c 2 | 1.119596 | 1.212157 | +8.27% |
+| -n 4 -c 2 | 0.546956 | 0.592520 | +8.33% |
+| -n 8 -c 2 | 0.278637 | 0.322194 | +15.63% |
+| -n 16 -c 2 | 0.153053 | 0.227854 | +48.87% |
+
+## Prev: 1st vs 2nd Server Close Time, strong scaling (seconds)
+
+| Servers | 1st Server Close (Avg) | 2nd Server Close (Avg) | Overhead (%) |
+|---|---|---|---|
+| -n 2 -c 2 | 1.012803 | 1.134235 | +11.99% |
+| -n 4 -c 2 | 0.878757 | 0.919612 | +4.65% |
+| -n 8 -c 2 | 1.237159 | 1.308718 | +5.78% |
+| -n 16 -c 2 | 2.146625 | 2.212873 | +3.09% |
+
+## New: 1st vs 2nd Server Close Time, strong scaling (seconds)
+
+| Servers | 1st Server Close (Avg) | 2nd Server Close (Avg) | Overhead (%) |
+|---|---|---|---|
+| -n 2 -c 2 | 1.455225 | 1.527850 | +4.99% |
+| -n 4 -c 2 | 1.067167 | 1.096515 | +2.75% |
+| -n 8 -c 2 | 1.340265 | 1.350462 | +0.76% |
+| -n 16 -c 2 | 2.131821 | 2.198022 | +3.11% |
+
+_Successful trials per cell: 5; failed trials: 0._
