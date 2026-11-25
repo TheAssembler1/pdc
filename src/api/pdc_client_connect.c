@@ -1343,8 +1343,6 @@ PDC_Client_mercury_init(hg_class_t **hg_class, hg_context_t **hg_context, int po
     unsigned int           scoped_svc_id    = 0;
     unsigned int           scoped_vni       = 0;
     char                   scoped_device[32];
-    char *                 hostname      = NULL;
-    bool                   free_hostname = false;
 #ifdef PDC_HAS_CRAY_DRC
     uint32_t          credential, cookie;
     drc_info_handle_t credential_info;
@@ -1360,16 +1358,6 @@ PDC_Client_mercury_init(hg_class_t **hg_class, hg_context_t **hg_context, int po
     }
     else if (pdc_client_mpi_rank_g == 0)
         LOG_INFO("Environment variable HG_TRANSPORT was set\n");
-    if ((hostname = getenv("HG_HOST")) == NULL) {
-        hostname = PDC_malloc(HOSTNAME_LEN);
-        memset(hostname, 0, HOSTNAME_LEN);
-        gethostname(hostname, HOSTNAME_LEN - 1);
-        free_hostname = true;
-        if (pdc_client_mpi_rank_g == 0)
-            LOG_INFO("Environment variable HG_HOST was NOT set, default to %s\n", hostname);
-    }
-    else if (pdc_client_mpi_rank_g == 0)
-        LOG_INFO("Environment variable HG_HOST was set\n");
 
     ret_value = PDC_build_mercury_na_info_string(hg_transport, port, cxi_pid_base, na_info_string,
                                                  sizeof(na_info_string), host_buf, sizeof(host_buf));
