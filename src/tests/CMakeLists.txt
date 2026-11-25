@@ -128,10 +128,6 @@ set(PROGRAMS
   analysis/bench_curl_analyze
 )
 
-# Use C compiler for C files
-set(CMAKE_C_COMPILER gcc)
-set(CMAKE_CXX_COMPILER g++)  # still needed for linking C++/CUDA
-
 # Path to your CUDA library
 if(DEFINED ENV{CUDA_ROOT_DIR} AND NOT "$ENV{CUDA_ROOT_DIR}" STREQUAL "")
     set(CUDA_ROOT $ENV{CUDA_ROOT_DIR})
@@ -142,8 +138,6 @@ find_package(MPI REQUIRED)
 
 # Link CUDA runtime from your CUDA_ROOT
 set(CUDA_RUNTIME_LIB ${CUDA_ROOT}/lib64/libcudart.so)
-set(CMAKE_C_COMPILER mpicc)
-set(CMAKE_CXX_COMPILER mpicxx)
 
 # Iterate through your programs
 foreach(program ${PROGRAMS})
